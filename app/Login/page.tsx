@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { Mail, Lock } from 'lucide-react';
+import Link from 'next/link';
 
 const LoginPage = () => {
   const [email, setEmail] = useState('');
@@ -11,8 +12,9 @@ const LoginPage = () => {
     e.preventDefault();
     console.log("Login attempt:", { email, password });
   };
-
   return (
+    
+
     <main>
     <div className="min-h-screen flex items-center justify-center bg-[#2563EB] p-4 font-sans">
       {/* Main Card */}
@@ -75,14 +77,24 @@ const LoginPage = () => {
 
         </form>
 
-        {/* Quick Demo Access - Modified based on image_685193.jpg requirements */}
         <div className="w-full mt-10 pt-6 border-t border-slate-100">
           <p className="text-[10px] uppercase font-bold text-slate-400 text-center mb-4 tracking-widest">
             Quick Demo Access:
           </p>
           <div className="grid grid-cols-2 gap-3">
-            <DemoButton label="Counselor" textColor="text-blue-600" bgColor="bg-blue-50" />
-            <DemoButton label="Student" textColor="text-green-600" bgColor="bg-green-50" />
+            <Link 
+              href="/dashboard" 
+              className="bg-blue-50 text-blue-600 font-bold p-3 rounded-lg text-center block"
+            >
+              Counselor
+            </Link>
+
+            <Link 
+              href="/dashboard" 
+              className="bg-green-50 text-green-600 font-bold p-3 rounded-lg text-center block"
+            >
+              Student
+            </Link>
           </div>
           
           <footer className="mt-8 text-center">
