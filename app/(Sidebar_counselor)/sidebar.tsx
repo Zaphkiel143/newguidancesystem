@@ -1,33 +1,34 @@
 "use client";
 
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import { 
   LayoutDashboard, 
   Users, 
   CalendarCheck, 
   ClipboardList, 
   TrendingUp, 
-  Info, 
   LogOut,
   GraduationCap,
-  UserCircle
+  UserCircle,
+  MessageSquare // Swapped Info for MessageSquare
 } from 'lucide-react';
 
 const Sidebar = () => {
   const pathname = usePathname();
 
   const menuItems = [
-    { name: 'Dashboard', icon: <LayoutDashboard size={20} />,           path: '/dashboard' },
+    { name: 'Dashboard', icon: <LayoutDashboard size={20} />,         path: '/dashboard' },
     { name: 'Student Inventory', icon: <UserCircle size={20} />,       path: '/inventory' },
     { name: 'Appointments', icon: <CalendarCheck size={20} />,          path: '/appointment' },
     { name: 'Referral Management', icon: <ClipboardList size={20} />,   path: '/referral' },
     { name: 'Group Guidance', icon: <Users size={20} />,                path: '/groupguidance' },
     { name: 'Career Guidance', icon: <TrendingUp size={20} />,           path: '/careerguidance' },
+    { name: 'Messages', icon: <MessageSquare size={20} />,               path: '/message'},
   ];
 
   return (
-<aside className="w-64 h-screen bg-white border-r border-slate-200 flex flex-col fixed left-0 top-0 z-50">
+    <aside className="w-64 h-screen bg-white border-r border-slate-200 flex flex-col fixed left-0 top-0 z-50">
       {/* Brand/Logo Section */}
       <div className="p-6 border-b border-slate-50 flex items-center gap-3">
         <div className="bg-blue-600 p-2 rounded-lg text-white">
@@ -40,24 +41,29 @@ const Sidebar = () => {
       </div>
 
       {/* Navigation Links */}
-      <nav className="flex-1 p-4 space-y-1">
+      <nav className="flex-1 p-4 space-y-1.5">
         {menuItems.map((item) => {
-          // Case-sensitive comparison
           const isActive = pathname === item.path;
+          
           return (
             <Link 
               key={item.path} 
               href={item.path}
-              className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-semibold transition-all ${
+              className={`flex items-center justify-between px-3 py-2.5 rounded-xl border transition-all text-sm font-semibold ${
                 isActive 
-                  ? 'bg-blue-50 text-blue-600 border-r-4 border-blue-600 rounded-r-none' 
-                  : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
+                  ? 'bg-[#f0f6ff] border-slate-900 text-[#1d63ff]' 
+                  : 'text-slate-500 border-transparent hover:bg-slate-50 hover:text-slate-900'
               }`}
             >
-              <span className={isActive ? 'text-blue-600' : 'text-slate-400'}>
-                {item.icon}
-              </span>
-              {item.name}
+              {/* Left side: Icon and Text */}
+              <div className="flex items-center gap-3">
+                <span className={`transition-colors ${isActive ? 'text-[#1d63ff]' : 'text-slate-400'}`}>
+                  {item.icon}
+                </span>
+                <span>{item.name}</span>
+              </div>
+
+              {/* Right side: Badge (Only renders if it's the Messages tab or has unread count) */}
             </Link>
           );
         })}
@@ -65,10 +71,10 @@ const Sidebar = () => {
 
       {/* User / Logout Section */}
       <div className="p-4 border-t border-slate-100">
-        <button className="flex items-center gap-3 w-full px-3 py-2.5 text-sm font-semibold text-red-500 hover:bg-red-50 rounded-lg transition-colors">
+        <Link href="/" className="flex items-center gap-3 w-full px-3 py-2.5 text-sm font-semibold text-red-500 hover:bg-red-50 rounded-lg transition-colors">
           <LogOut size={20} />
           Logout
-        </button>
+        </Link>
       </div>
     </aside>
   );

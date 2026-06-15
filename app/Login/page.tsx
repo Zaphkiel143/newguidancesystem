@@ -84,19 +84,34 @@ const LoginPage = () => {
           <div className="grid grid-cols-2 gap-3">
             <Link 
               href="/dashboard" 
-              className="bg-blue-50 text-blue-600 font-bold p-3 rounded-lg text-center block"
-            >
+              className="bg-blue-50 text-[#1d63ff] font-bold p-3 rounded-xl text-center block transition-colors hover:bg-blue-100"
+            > 
               Counselor
             </Link>
 
             <Link 
-              href="/dashboard" 
-              className="bg-green-50 text-green-600 font-bold p-3 rounded-lg text-center block"
+              href="/student_dashboard" 
+              className="bg-green-50 text-[#00c853] font-bold p-3 rounded-xl text-center block transition-colors hover:bg-green-100"
             >
               Student
             </Link>
+
+            {/* New Faculty Entry matching image_900d85.png */}
+            <Link 
+              href="/faculty_dashboard" 
+              className="bg-purple-50 text-[#9333ea] font-bold p-3 rounded-xl text-center block transition-colors hover:bg-purple-100"
+            >
+              Faculty
+            </Link>
+
+            {/* New Parent Entry matching image_900d85.png */}
+            <Link 
+              href="/child_profile" 
+              className="bg-orange-50 text-[#ea580c] font-bold p-3 rounded-xl text-center block transition-colors hover:bg-orange-100"
+            >
+              Parent
+            </Link>
           </div>
-          
           <footer className="mt-8 text-center">
             <p className="text-[9px] text-slate-400">
               STI College Sta. Maria • Guidance and Counseling Office

@@ -1,0 +1,193 @@
+"use client";
+
+import React, { useState } from 'react';
+import { 
+  AlertCircle, 
+  Send, 
+  ShieldCheck, 
+  User, 
+  Info,
+  ChevronDown
+} from 'lucide-react';
+
+export const ReferChildForm: React.FC = () => {
+  // Form Field States
+  const [concernType, setConcernType] = useState('');
+  const [priorityLevel, setPriorityLevel] = useState('Medium - Noticeable concern');
+  const [description, setDescription] = useState('');
+  const [observedBehaviors, setObservedBehaviors] = useState('');
+  const [preferredTime, setPreferredTime] = useState('');
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!concernType || !description) return;
+
+    // Handle form submission logic
+    setSuccessMessage('Referral submitted successfully. The Guidance Office will review it shortly.');
+  };
+
+  return (
+    <div className="max-w-4xl mx-auto font-sans antialiased text-slate-800 space-y-6">
+      
+      {/* Page Header Titles (image_859d3c.png) */}
+      <div>
+        <h1 className="text-3xl font-bold text-blue-900 tracking-tight">Refer Child to Counselor</h1>
+        <p className="text-sm text-slate-500 font-medium mt-1">
+          Request guidance support for your child
+        </p>
+      </div>
+
+      {/* Child Information Banner (image_859d3c.png) */}
+      <div className="bg-[#f0f6ff] border border-[#d8e7fe] px-5 py-4 rounded-xl text-sm font-medium text-slate-600">
+        <span className="text-blue-500 font-bold block text-xs uppercase tracking-wider mb-1">Child Information</span>
+        <span className="text-[#1d63ff] font-bold">Nhel Belarmino</span>
+        <span className="mx-2 text-slate-300">•</span>
+        <span className="font-mono text-slate-500 text-xs">2024-12345</span>
+        <span className="mx-2 text-slate-300">•</span>
+        <span className="text-slate-700 font-semibold text-xs bg-white px-2 py-0.5 rounded border border-slate-100 shadow-2xs">Grade 12 - STEM-A</span>
+      </div>
+
+      {/* Confidentiality Notice Alert Banner (image_859d3c.png) */}
+      <div className="bg-[#f4fbf7] border border-[#e2f7ec] p-4 rounded-xl flex items-start gap-3">
+        <ShieldCheck className="text-[#00c853] shrink-0 mt-0.5" size={18} />
+        <p className="text-sm text-[#00a844] font-medium leading-relaxed">
+          All referrals are confidential and will be handled with care by the Guidance Office. The counselor will contact you to discuss the best support plan for your child.
+        </p>
+      </div>
+
+      {/* Main Intake Form Container Block (image_859d3c.png & image_859d58.png) */}
+      <div className="bg-white border border-slate-100 rounded-2xl shadow-sm overflow-hidden">
+        <form onSubmit={handleSubmit} className="p-6 space-y-6">
+          
+          {/* Row 1: Type of Concern & Priority Level Fields */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            
+            {/* Type of Concern Select Dropdown */}
+            <div className="space-y-2">
+              <label className="text-sm font-bold text-slate-700 block">
+                Type of Concern <span className="text-red-500">*</span>
+              </label>
+              <div className="relative">
+                <select
+                  value={concernType}
+                  onChange={(e) => setConcernType(e.target.value)}
+                  required
+                  className="w-full px-4 py-2.5 bg-white border border-slate-200 text-sm rounded-xl text-slate-700 appearance-none focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all font-medium"
+                >
+                  <option value="" disabled hidden>Select concern type...</option>
+                  <option value="Academic Decline">Academic Decline</option>
+                  <option value="Behavioral Concerns">Behavioral Concerns</option>
+                  <option value="Social Withdrawal">Social Withdrawal / Emotional Distress</option>
+                  <option value="Career Misalignment">Career Choice Uncertainty</option>
+                </select>
+                <ChevronDown size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+              </div>
+            </div>
+
+            {/* Priority Level Select Dropdown */}
+            <div className="space-y-2">
+              <label className="text-sm font-bold text-slate-700 block">
+                Priority Level <span className="text-red-500">*</span>
+              </label>
+              <div className="relative">
+                <select
+                  value={priorityLevel}
+                  onChange={(e) => setPriorityLevel(e.target.value)}
+                  required
+                  className="w-full px-4 py-2.5 bg-white border border-slate-200 text-sm rounded-xl text-slate-700 appearance-none focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all font-medium"
+                >
+                  <option value="Low - Mild observation">Low - Mild observation</option>
+                  <option value="Medium - Noticeable concern">Medium - Noticeable concern</option>
+                  <option value="High - Urgent attention needed">High - Urgent attention needed</option>
+                </select>
+                <ChevronDown size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+              </div>
+            </div>
+
+          </div>
+
+          {/* Textarea: Description of Concern */}
+          <div className="space-y-2">
+            <label className="text-sm font-bold text-slate-700 block">
+              Description of Concern <span className="text-red-500">*</span>
+            </label>
+            <textarea
+              rows={4}
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              required
+              placeholder="Please describe your concerns about your child. Include specific examples if possible..."
+              className="w-full px-4 py-3 bg-white border border-slate-200 text-sm rounded-xl placeholder:text-slate-400 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all resize-none leading-relaxed font-medium"
+            />
+          </div>
+
+          {/* Textarea: Observed Behaviors or Changes (Optional) */}
+          <div className="space-y-2">
+            <label className="text-sm font-bold text-slate-700 block">
+              Observed Behaviors or Changes (Optional)
+            </label>
+            <textarea
+              rows={3}
+              value={observedBehaviors}
+              onChange={(e) => setObservedBehaviors(e.target.value)}
+              placeholder="Any specific behaviors or changes you've noticed (e.g., mood changes, social withdrawal, academic decline)..."
+              className="w-full px-4 py-3 bg-white border border-slate-200 text-sm rounded-xl placeholder:text-slate-400 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all resize-none leading-relaxed font-medium"
+            />
+          </div>
+
+          {/* Input: Preferred Contact Time */}
+          <div className="space-y-2">
+            <label className="text-sm font-bold text-slate-700 block">
+              Preferred Contact Time
+            </label>
+            <input
+              type="text"
+              value={preferredTime}
+              onChange={(e) => setPreferredTime(e.target.value)}
+              placeholder="e.g., Weekday mornings, After 3 PM"
+              className="w-full px-4 py-2.5 bg-white border border-slate-200 text-sm rounded-xl placeholder:text-slate-400 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all font-medium"
+            />
+          </div>
+
+          {/* Orange Callout Note Box: Emergency Situations (image_859d58.png) */}
+          <div className="bg-[#fff7ed] border border-[#ffedd5] p-4 rounded-xl flex items-start gap-3">
+            <AlertCircle className="text-orange-600 shrink-0 mt-0.5" size={18} />
+            <p className="text-xs sm:text-sm text-orange-800 font-medium leading-relaxed">
+              <span className="font-bold text-orange-900">Note:</span> For emergency situations or immediate safety concerns, please contact the school office directly or call emergency services.
+            </p>
+          </div>
+
+          {/* Action Form Confirmation Feedback */}
+          {successMessage && (
+            <div className="p-4 bg-[#e8fbf0] border border-[#bbf7d0] text-[#00c853] text-sm font-bold rounded-xl flex items-center gap-2">
+              <Info size={16} />
+              <span>{successMessage}</span>
+            </div>
+          )}
+
+          {/* Form Action Controls Section Footer (image_859d58.png) */}
+          <div className="flex flex-col sm:flex-row items-center justify-end gap-3 pt-4 border-t border-slate-100">
+            <button
+              type="button"
+              className="w-full sm:w-auto px-8 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold rounded-xl text-sm transition-colors text-center"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="w-full sm:w-auto bg-[#1d63ff] hover:bg-blue-700 text-white font-bold py-2.5 px-8 rounded-xl transition-colors text-sm shadow-sm text-center flex items-center justify-center gap-2"
+            >
+              <Send size={15} />
+              Submit Referral
+            </button>
+          </div>
+
+        </form>
+      </div>
+
+    </div>
+  );
+};
+
+export default ReferChildForm;
