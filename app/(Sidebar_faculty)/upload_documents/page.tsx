@@ -1,175 +1,238 @@
 "use client";
 
-import React, { useState } from 'react';
-import { Calendar as CalendarIcon, Clock, AlignLeft, CheckCircle } from 'lucide-react';
+import React, { useEffect, useState, ChangeEvent, DragEvent } from 'react';
+import { UploadCloud, FileText, CheckCircle2, Trash2, Loader2 } from 'lucide-react';
+import { uploadDocument, getMyDocuments, deleteDocument } from '../../action/faculty';
 
-interface TimeSlot {
-  time: string;
-  available: boolean;
+const FACULTY_NAME = "Cho Sto Domingo";
+const MAX_FILE_BYTES = 5 * 1024 * 1024; // 5MB
+
+interface DocumentMeta {
+  id: string;
+  fileName: string;
+  fileType: string;
+  fileSize: number;
+  createdAt: Date;
 }
 
-export const BookAppointment: React.FC = () => {
-  // Form states tracking values from image_8609a1.png and image_8609bd.png
-  const [selectedDate, setSelectedDate] = useState<string>('2026-04-30');
-  const [selectedTime, setSelectedTime] = useState<string>('10:00 AM');
-  const [purpose, setPurpose] = useState<string>('Career Guidance');
-  const [description, setDescription] = useState<string>('');
-  const [isSubmitted, setIsSubmitted] = useState<string | null>(null);
+function formatSize(bytes: number): string {
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
 
-  // Time slots matching row configurations in image_8609bd.png
-  const timeSlots: TimeSlot[] = [
-    { time: '09:00 AM', available: true },
-    { time: '10:00 AM', available: true },
-    { time: '11:00 AM', available: true },
-    { time: '01:00 PM', available: true },
-    { time: '02:00 PM', available: true },
-    { time: '03:00 PM', available: true },
-  ];
+function fileToBase64(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = reader.result as string;
+      resolve(result.split(",")[1] ?? "");
+    };
+    reader.onerror = () => reject(reader.error);
+    reader.readAsDataURL(file);
+  });
+}
 
-  const handleSubmit = (e: React.FormEvent) => {
+export const UploadDocuments: React.FC = () => {
+  const [isDragging, setIsDragging] = useState(false);
+  const [documents, setDocuments] = useState<DocumentMeta[]>([]);
+  const [isUploading, setIsUploading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  const refresh = async () => {
+    const data = await getMyDocuments(FACULTY_NAME);
+    setDocuments(data);
+  };
+
+  useEffect(() => {
+    let cancelled = false;
+
+    (async () => {
+      const data = await getMyDocuments(FACULTY_NAME);
+      if (!cancelled) setDocuments(data);
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const processFiles = async (fileList: FileList) => {
+    setError(null);
+
+    for (const file of Array.from(fileList)) {
+      if (file.size > MAX_FILE_BYTES) {
+        setError(`"${file.name}" is larger than 5MB and was skipped.`);
+        continue;
+      }
+
+      setIsUploading(true);
+      const dataBase64 = await fileToBase64(file);
+      const result = await uploadDocument({
+        uploaderName: FACULTY_NAME,
+        fileName: file.name,
+        fileType: file.type || "application/octet-stream",
+        fileSize: file.size,
+        dataBase64,
+      });
+      setIsUploading(false);
+
+      if (!result.success) {
+        setError(`Failed to upload "${file.name}": ${result.error || "Unknown error"}`);
+      }
+    }
+
+    await refresh();
+  };
+
+  const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) processFiles(e.target.files);
+    e.target.value = "";
+  };
+
+  const handleDragOver = (e: DragEvent<HTMLDivElement>) => {
     e.preventDefault();
-    if (!selectedDate || !selectedTime || !purpose) return;
-    
-    setIsSubmitted("Appointment requested successfully!");
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = () => {
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e: DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDragging(false);
+    if (e.dataTransfer.files) processFiles(e.dataTransfer.files);
+  };
+
+  const removeFile = async (id: string) => {
+    setDeletingId(id);
+    const result = await deleteDocument(id);
+    setDeletingId(null);
+    if (result.success) {
+      await refresh();
+    } else {
+      alert(`Failed to delete document: ${result.error || "Unknown error"}`);
+    }
   };
 
   return (
-    <div className="max-w-3xl mx-auto font-sans antialiased text-slate-800 space-y-6">
-      
+    <div className="max-w-4xl mx-auto font-sans antialiased text-slate-800 space-y-6">
+
       {/* 1. Header Section */}
       <div>
-        <h1 className="text-3xl font-bold text-blue-900 tracking-tight">Book Appointment</h1>
+        <h1 className="text-3xl font-bold text-blue-900 tracking-tight">Upload Documents</h1>
         <p className="text-sm text-slate-500 font-medium mt-1">
-          Schedule a session with your assigned guidance counselor
+          Share files, forms, and reports securely with the Guidance Office
         </p>
       </div>
 
-      {/* Main Card Grid */}
-      <div className="bg-white border border-slate-100 rounded-2xl shadow-sm overflow-hidden">
-        <form onSubmit={handleSubmit} className="p-6 space-y-6">
-          
-          {/* 2. Top Grid: Date Picker & Time Slot Selection (image_8609bd.png) */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            
-            {/* Left: Date Picker Input Field */}
-            <div className="space-y-2">
-              <label className="text-xs font-bold text-slate-700 flex items-center gap-2 uppercase tracking-wider">
-                <CalendarIcon size={14} className="text-slate-400" />
-                Select Date <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="date"
-                value={selectedDate}
-                onChange={(e) => setSelectedDate(e.target.value)}
-                min="2026-01-01"
-                required
-                className="w-full px-4 py-2.5 bg-white border border-slate-200 text-sm font-medium rounded-xl text-slate-800 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all font-mono"
-              />
-            </div>
+      <div className="space-y-6">
 
-            {/* Right: Available Time Slots Selection Grid */}
-            <div className="space-y-2">
-              <label className="text-xs font-bold text-slate-700 flex items-center gap-2 uppercase tracking-wider">
-                <Clock size={14} className="text-slate-400" />
-                Available Time Slots <span className="text-red-500">*</span>
-              </label>
-              
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                {timeSlots.map((slot) => {
-                  const isSelected = selectedTime === slot.time;
-                  return (
-                    <button
-                      key={slot.time}
-                      type="button"
-                      onClick={() => setSelectedTime(slot.time)}
-                      className={`py-2 px-3 border text-xs font-semibold font-mono rounded-xl transition-all text-center
-                        ${isSelected 
-                          ? 'bg-[#1d63ff] border-[#1d63ff] text-white shadow-sm' 
-                          : 'bg-white border-slate-200 text-slate-700 hover:border-slate-300 hover:bg-slate-50/50'
-                        }
-                      `}
-                    >
-                      {slot.time}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
+        {/* 2. Drag & Drop Zone Area */}
+        <div
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          onDrop={handleDrop}
+          className={`border-2 border-dashed rounded-2xl p-8 text-center bg-white transition-all duration-200 flex flex-col items-center justify-center min-h-[260px] cursor-pointer relative
+            ${isDragging
+              ? 'border-blue-500 bg-blue-50/30'
+              : 'border-slate-200 hover:border-slate-300'
+            }
+          `}
+        >
+          {/* Hidden Core File Input Trigger */}
+          <input
+            type="file"
+            multiple
+            onChange={handleFileChange}
+            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+          />
 
+          <div className="bg-blue-50 p-4 rounded-full text-[#1d63ff] mb-4 shadow-sm">
+            {isUploading ? <Loader2 size={32} className="animate-spin" /> : <UploadCloud size={32} className="stroke-[2]" />}
           </div>
 
-          {/* 3. Bottom Stack: Purpose Selection & Description Box (image_8609a1.png) */}
-          <div className="space-y-5 pt-2 border-t border-slate-50">
-            
-            {/* Purpose Selector Dropdown */}
-            <div className="space-y-2">
-              <label className="text-xs font-bold text-slate-700 block uppercase tracking-wider">
-                Purpose of Appointment <span className="text-red-500">*</span>
-              </label>
-              <div className="relative">
-                <select
-                  value={purpose}
-                  onChange={(e) => setPurpose(e.target.value)}
-                  required
-                  className="w-full px-4 py-2.5 bg-white border border-slate-200 text-sm font-semibold rounded-xl text-slate-700 appearance-none focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all"
+          <h3 className="font-bold text-slate-800 text-base">
+            {isUploading ? "Uploading..." : (
+              <>Drag and drop files here, or <span className="text-[#1d63ff] hover:underline">browse</span></>
+            )}
+          </h3>
+
+          <p className="text-xs text-slate-400 font-medium mt-2 max-w-sm leading-relaxed">
+            Supports PDF, Word, Excel, and Images up to 5MB
+          </p>
+        </div>
+
+        {error && (
+          <div className="bg-red-50 border border-red-100 text-red-600 p-4 rounded-xl text-sm font-medium">
+            {error}
+          </div>
+        )}
+
+        {/* 3. Render Upload Queue List Panel */}
+        {documents.length > 0 && (
+          <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+            <div className="px-6 py-4 border-b border-slate-50 bg-slate-50/30">
+              <h4 className="font-bold text-slate-800 text-sm">Uploaded Documents</h4>
+            </div>
+
+            <div className="p-4 space-y-3">
+              {documents.map((file) => (
+                <div
+                  key={file.id}
+                  className="border border-slate-200/80 rounded-xl p-4 bg-white flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-all hover:border-slate-300"
                 >
-                  <option value="Career Guidance">Career Guidance</option>
-                  <option value="Individual Counseling">Individual Counseling</option>
-                  <option value="Academic Counseling">Academic Counseling</option>
-                  <option value="Follow-up Session">Follow-up Session</option>
-                </select>
-                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-slate-400 text-xs">
-                  ▼
+                  {/* File Metadata Cluster */}
+                  <div className="flex items-start gap-3.5 min-w-0 flex-1">
+                    <div className="p-2.5 bg-slate-50 text-slate-400 rounded-xl shrink-0 mt-0.5">
+                      <FileText size={20} />
+                    </div>
+
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-baseline gap-2 flex-wrap">
+                        <span className="font-bold text-slate-800 text-sm truncate max-w-[280px] sm:max-w-md">
+                          {file.fileName}
+                        </span>
+                        <span className="text-xs text-slate-400 font-mono font-medium">
+                          ({formatSize(file.fileSize)})
+                        </span>
+                      </div>
+                      <span className="text-[10px] text-slate-400 font-mono">
+                        {new Date(file.createdAt).toLocaleString()}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Status Indicator & Action Triggers Column */}
+                  <div className="flex items-center justify-between sm:justify-end gap-4 shrink-0 border-t border-slate-50 pt-2 sm:pt-0 sm:border-0">
+                    <div className="text-xs">
+                      <span className="inline-flex items-center gap-1.5 bg-[#e8fbf0] text-[#00c853] font-bold px-2.5 py-1 rounded-full border border-[#bbf7d0]">
+                        <CheckCircle2 size={13} className="stroke-[2.5]" />
+                        Uploaded
+                      </span>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => removeFile(file.id)}
+                      disabled={deletingId === file.id}
+                      className="text-slate-400 hover:text-red-500 p-1.5 rounded-lg hover:bg-slate-50 transition-colors disabled:opacity-50"
+                      title="Delete document"
+                    >
+                      {deletingId === file.id ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={16} />}
+                    </button>
+                  </div>
+
                 </div>
-              </div>
+              ))}
             </div>
-
-            {/* Optional Description Textarea */}
-            <div className="space-y-2">
-              <label className="text-xs font-bold text-slate-700 flex items-center gap-2 uppercase tracking-wider">
-                <AlignLeft size={14} className="text-slate-400" />
-                Description / Notes (Optional)
-              </label>
-              <textarea
-                rows={4}
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                placeholder="Briefly explain the reason for the appointment or specify any notes for your counselor..."
-                className="w-full px-4 py-3 bg-white border border-slate-200 text-sm rounded-xl placeholder:text-slate-400 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all resize-none leading-relaxed"
-              />
-            </div>
-
           </div>
+        )}
 
-          {/* Toast/Status Messaging Notification Alert */}
-          {isSubmitted && (
-            <div className="bg-[#e8fbf0] border border-[#bbf7d0] text-[#00c853] p-4 rounded-xl flex items-center gap-2.5 text-sm font-medium">
-              <CheckCircle size={16} className="stroke-[2.5]" />
-              <span>{isSubmitted}</span>
-            </div>
-          )}
-
-          {/* 4. Action Controls Footer Form Area */}
-          <div className="flex flex-col sm:flex-row items-center justify-end gap-3 pt-4 border-t border-slate-100">
-            <button
-              type="button"
-              className="w-full sm:w-auto px-8 py-2.5 bg-[#f1f5f9] hover:bg-slate-200 text-slate-800 font-semibold rounded-xl text-sm transition-colors text-center"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              className="w-full sm:w-auto bg-[#1d63ff] hover:bg-blue-700 text-white font-semibold py-2.5 px-8 rounded-xl transition-colors text-sm shadow-sm text-center"
-            >
-              Confirm Booking
-            </button>
-          </div>
-
-        </form>
       </div>
-
     </div>
   );
 };
 
-export default BookAppointment;
+export default UploadDocuments;

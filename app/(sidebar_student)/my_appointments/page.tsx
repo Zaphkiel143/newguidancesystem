@@ -1,65 +1,56 @@
 "use client";
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Plus, Calendar, Clock, CheckCircle2, AlertCircle } from 'lucide-react';
+import { getMyAppointments, getBookedTimesForDate, bookAppointment } from '../../action/student';
+import BookAppointmentModal from '../../../components/BookAppointmentModal';
+import type { Appointment as DbAppointment } from '../../../lib/generated';
 
-// Define strict typing for appointment history items
-interface Appointment {
-  id: string;
-  type: string;
-  counselor: string;
-  date: string;
-  time: string;
-  status: 'Confirmed' | 'Completed' | 'Pending' | 'Cancelled';
-}
+const STUDENT_NAME = "Nhel Belarmino";
+const PURPOSE_OPTIONS = ["Individual Counseling", "Academic Concern", "Career Guidance", "Compliance Interview"];
 
 export const MyAppointments: React.FC = () => {
-  
-  // Data strictly extracted from image_9101e7.png
-  const appointmentHistory: Appointment[] = [
-    {
-      id: 'apt-1',
-      type: 'Career Guidance',
-      counselor: 'Ralph Michael',
-      date: '2026-04-30',
-      time: '10:00 AM',
-      status: 'Confirmed',
-    },
-    {
-      id: 'apt-2',
-      type: 'Individual Counseling',
-      counselor: 'Ralph Michael',
-      date: '2026-04-20',
-      time: '2:00 PM',
-      status: 'Completed',
-    }
-  ];
+  const [appointments, setAppointments] = useState<DbAppointment[]>([]);
+  const [isBookingOpen, setIsBookingOpen] = useState(false);
 
-  // Helper function to dynamically output status badges
-  const renderStatusBadge = (status: Appointment['status']) => {
-    switch (status) {
-      case 'Confirmed':
-        return (
-          <span className="inline-flex items-center gap-1.5 bg-[#e8fbf0] text-[#00c853] text-xs font-bold px-3 py-1 rounded-full border border-[#bbf7d0]">
-            <CheckCircle2 size={14} className="stroke-[2.5]" />
-            Confirmed
-          </span>
-        );
-      case 'Completed':
-        return (
-          <span className="inline-flex items-center gap-1.5 bg-[#f1f5f9] text-[#64748b] text-xs font-bold px-3 py-1 rounded-full border border-[#e2e8f0]">
-            <AlertCircle size={14} className="stroke-[2.5]" />
-            Completed
-          </span>
-        );
-      default:
-        return null;
+  const refresh = async () => {
+    const data = await getMyAppointments(STUDENT_NAME);
+    setAppointments(data);
+  };
+
+  useEffect(() => {
+    let cancelled = false;
+
+    (async () => {
+      const data = await getMyAppointments(STUDENT_NAME);
+      if (!cancelled) setAppointments(data);
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const renderStatusBadge = (status: string) => {
+    if (status === "CONFIRMED") {
+      return (
+        <span className="inline-flex items-center gap-1.5 bg-[#e8fbf0] text-[#00c853] text-xs font-bold px-3 py-1 rounded-full border border-[#bbf7d0]">
+          <CheckCircle2 size={14} className="stroke-[2.5]" />
+          Confirmed
+        </span>
+      );
     }
+    return (
+      <span className="inline-flex items-center gap-1.5 bg-[#fff7ed] text-[#ea580c] text-xs font-bold px-3 py-1 rounded-full border border-[#fed7aa]">
+        <AlertCircle size={14} className="stroke-[2.5]" />
+        Pending
+      </span>
+    );
   };
 
   return (
     <div className="flex-1 bg-[#f8fafc] p-8 overflow-y-auto min-h-screen font-sans antialiased text-slate-800">
-      
+
       {/* Top Header Row with Action Button */}
       <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div>
@@ -68,8 +59,11 @@ export const MyAppointments: React.FC = () => {
             Manage your guidance counseling appointments
           </p>
         </div>
-        
-        <button className="inline-flex items-center justify-center gap-2 bg-[#1d63ff] hover:bg-blue-700 text-white font-semibold py-2.5 px-5 rounded-xl transition-colors text-sm shadow-sm shrink-0">
+
+        <button
+          onClick={() => setIsBookingOpen(true)}
+          className="inline-flex items-center justify-center gap-2 bg-[#1d63ff] hover:bg-blue-700 text-white font-semibold py-2.5 px-5 rounded-xl transition-colors text-sm shadow-sm shrink-0"
+        >
           <Plus size={18} className="stroke-[2.5]" />
           <span>Book Appointment</span>
         </button>
@@ -82,41 +76,58 @@ export const MyAppointments: React.FC = () => {
         </div>
 
         {/* List of Historical Rows */}
-        <div className="p-6 space-y-4">
-          {appointmentHistory.map((apt) => (
-            <div 
-              key={apt.id}
-              className="bg-white rounded-xl p-5 border border-slate-200/80 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 transition-all hover:border-slate-300"
-            >
-              <div className="space-y-1">
-                <h3 className="font-bold text-slate-800 text-[16px] tracking-wide">
-                  {apt.type}
-                </h3>
-                <p className="text-sm text-slate-500 font-medium">
-                  Counselor: <span className="text-slate-700">{apt.counselor}</span>
-                </p>
-                
-                {/* Embedded Inline Schedule Stamps */}
-                <div className="flex flex-wrap items-center gap-x-4 gap-y-1 pt-1.5 text-xs text-slate-500 font-medium">
-                  <div className="flex items-center gap-1.5">
-                    <Calendar size={14} className="text-slate-400" />
-                    <span className="font-mono">{apt.date}</span>
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <Clock size={14} className="text-slate-400" />
-                    <span className="font-mono">{apt.time}</span>
+        {appointments.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-16 text-center">
+            <p className="text-sm font-semibold text-slate-500">No appointments yet</p>
+            <p className="text-xs text-slate-400">Book an appointment with the guidance counselor to get started</p>
+          </div>
+        ) : (
+          <div className="p-6 space-y-4">
+            {appointments.map((apt) => (
+              <div
+                key={apt.id}
+                className="bg-white rounded-xl p-5 border border-slate-200/80 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 transition-all hover:border-slate-300"
+              >
+                <div className="space-y-1">
+                  <h3 className="font-bold text-slate-800 text-[16px] tracking-wide">
+                    {apt.appointmentType || "General Consultation"}
+                  </h3>
+                  <p className="text-sm text-slate-500 font-medium">
+                    Counselor: <span className="text-slate-700">Ralph Michael</span>
+                  </p>
+
+                  {/* Embedded Inline Schedule Stamps */}
+                  <div className="flex flex-wrap items-center gap-x-4 gap-y-1 pt-1.5 text-xs text-slate-500 font-medium">
+                    <div className="flex items-center gap-1.5">
+                      <Calendar size={14} className="text-slate-400" />
+                      <span className="font-mono">{new Date(apt.date).toLocaleDateString()}</span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <Clock size={14} className="text-slate-400" />
+                      <span className="font-mono">{apt.time}</span>
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              {/* Status Badge Alignment Wrapper */}
-              <div className="shrink-0 self-start sm:self-center">
-                {renderStatusBadge(apt.status)}
+                {/* Status Badge Alignment Wrapper */}
+                <div className="shrink-0 self-start sm:self-center">
+                  {renderStatusBadge(apt.status)}
+                </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
+
+      {isBookingOpen && (
+        <BookAppointmentModal
+          purposeOptions={PURPOSE_OPTIONS}
+          getBookedTimesForDate={getBookedTimesForDate}
+          bookAppointment={(data) => bookAppointment({ ...data, studentName: STUDENT_NAME })}
+          onClose={() => setIsBookingOpen(false)}
+          onBooked={refresh}
+        />
+      )}
 
     </div>
   );

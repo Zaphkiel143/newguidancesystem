@@ -1,15 +1,20 @@
-"use cient"
+"use client";
 
-import React from 'react';
-import { 
-  Calendar, 
-  FileText, 
-  Send, 
-  MessageSquare, 
-  Award, 
-  Target, 
-  TrendingUp 
+import React, { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import {
+  Calendar,
+  FileText,
+  Send,
+  MessageSquare,
+  Award,
+  Target,
+  TrendingUp
 } from 'lucide-react';
+import { getMyAppointments } from '../../action/student';
+import type { Appointment as DbAppointment } from '../../../lib/generated';
+
+const STUDENT_NAME = "Nhel Belarmino";
 
 //Interfaces for structured data matching the UI
 interface QuickAction {
@@ -17,6 +22,7 @@ interface QuickAction {
   label: string;
   icon: React.ReactNode;
   iconBg: string;
+  path: string;
 }
 
 interface MetricCard {
@@ -35,12 +41,29 @@ interface ProgressBarMetric {
 }
 
 export const DashboardContent: React.FC = () => {
-  
+  const router = useRouter();
+  const [upcoming, setUpcoming] = useState<DbAppointment | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    (async () => {
+      const appointments = await getMyAppointments(STUDENT_NAME);
+      if (cancelled) return;
+      const next = appointments.find((a) => a.status !== "CANCELLED" && new Date(a.date) >= new Date());
+      setUpcoming(next ?? null);
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   const quickActions: QuickAction[] = [
-    { id: 'book', label: 'Book Appointment', icon: <Calendar size={20} />, iconBg: 'bg-[#1d63ff]' },
-    { id: 'profile', label: 'View My Profile', icon: <FileText size={20} />, iconBg: 'bg-[#00c853]' },
-    { id: 'refer', label: 'Refer a Student', icon: <Send size={20} />, iconBg: 'bg-[#ff2b3d]' },
-    { id: 'chat', label: 'Chat with E-Gabay', icon: <MessageSquare size={20} />, iconBg: 'bg-[#ff7d00]' },
+    { id: 'book', label: 'Book Appointment', icon: <Calendar size={20} />, iconBg: 'bg-[#1d63ff]', path: '/my_appointments' },
+    { id: 'profile', label: 'View My Profile', icon: <FileText size={20} />, iconBg: 'bg-[#00c853]', path: '/profile' },
+    { id: 'refer', label: 'Refer a Student', icon: <Send size={20} />, iconBg: 'bg-[#ff2b3d]', path: '/refer_student' },
+    { id: 'chat', label: 'Chat with E-Gabay', icon: <MessageSquare size={20} />, iconBg: 'bg-[#ff7d00]', path: '/my_messages' },
   ];
 
   const metricCards: MetricCard[] = [
@@ -57,12 +80,13 @@ export const DashboardContent: React.FC = () => {
 
   return (
     <div className="flex-1 bg-[#f8fafc] p-8 space-y-6 overflow-y-auto min-h-screen font-sans text-slate-800">
-      
+
       {/* 1. Top Quick Action Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {quickActions.map((action) => (
           <button
             key={action.id}
+            onClick={() => router.push(action.path)}
             className="flex flex-col items-start bg-white p-5 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-all group text-left"
           >
             <div className={`p-3 rounded-xl text-white ${action.iconBg} mb-4 shrink-0 shadow-sm`}>
@@ -78,12 +102,12 @@ export const DashboardContent: React.FC = () => {
       {/* 2. Progress Overview Section Card */}
       <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
         <h2 className="text-lg font-bold text-[#0d2343] mb-5">My Progress Overview</h2>
-        
+
         {/* Metric Pill Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
           {metricCards.map((metric) => (
-            <div 
-              key={metric.id} 
+            <div
+              key={metric.id}
               className="bg-[#f8fafc] rounded-xl p-4 flex items-center gap-4 border border-slate-50"
             >
               <div className={`w-9 h-9 rounded-lg text-white flex items-center justify-center ${metric.iconBg} shrink-0`}>
@@ -108,7 +132,7 @@ export const DashboardContent: React.FC = () => {
               {/* Outer track */}
               <div className="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden">
                 {/* Inner progress fill */}
-                <div 
+                <div
                   className={`h-full rounded-full ${item.colorClass} transition-all duration-500`}
                   style={{ width: `${item.percentage}%` }}
                 />
@@ -120,19 +144,31 @@ export const DashboardContent: React.FC = () => {
 
       {/* 3. Bottom Columns Layout */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        
+
         {/* Left Column: Upcoming Appointments */}
         <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 flex flex-col">
           <h2 className="text-lg font-bold text-[#0d2343] mb-4">Upcoming Appointments</h2>
-          <div className="bg-[#f0f6ff] rounded-xl p-4 border border-blue-50 flex-1">
-            <h3 className="font-semibold text-slate-800 text-[15px]">Career Guidance</h3>
-            <p className="text-xs font-mono text-slate-500 mt-1">2026-04-30 at 10:00 AM</p>
-            <div className="mt-3">
-              <span className="inline-flex items-center bg-[#e8fbf0] text-[#00c853] text-[11px] font-bold px-2.5 py-1 rounded-full border border-[#bbf7d0]">
-                Confirmed
-              </span>
+          {upcoming ? (
+            <div className="bg-[#f0f6ff] rounded-xl p-4 border border-blue-50 flex-1">
+              <h3 className="font-semibold text-slate-800 text-[15px]">{upcoming.appointmentType || "General Consultation"}</h3>
+              <p className="text-xs font-mono text-slate-500 mt-1">
+                {new Date(upcoming.date).toLocaleDateString()} at {upcoming.time}
+              </p>
+              <div className="mt-3">
+                <span className={`inline-flex items-center text-[11px] font-bold px-2.5 py-1 rounded-full border ${
+                  upcoming.status === "CONFIRMED"
+                    ? "bg-[#e8fbf0] text-[#00c853] border-[#bbf7d0]"
+                    : "bg-orange-50 text-orange-600 border-orange-100"
+                }`}>
+                  {upcoming.status === "CONFIRMED" ? "Confirmed" : "Pending"}
+                </span>
+              </div>
             </div>
-          </div>
+          ) : (
+            <div className="bg-slate-50 rounded-xl p-4 border border-slate-100 flex-1 flex items-center justify-center text-sm text-slate-400 font-medium">
+              No upcoming appointments
+            </div>
+          )}
         </div>
 
         {/* Right Column: Recent Announcements */}

@@ -1,51 +1,105 @@
 "use client";
 
-import React, { useState } from 'react';
-import { Search, AlertTriangle, Clock, CheckCircle } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { Search, AlertTriangle, Clock, CheckCircle, X } from 'lucide-react';
+import { listReferrals, updateReferralStatus, addReferralNotes, sendReferralFeedback } from '../../action/counselor';
+import type { Referral } from '../../../lib/generated';
 
-interface Referral {
-  id: string;
-  studentName: string;
-  studentId: string;
-  referredBy: string;
-  date: string;
-  reason: string;
-  priority: 'HIGH' | 'MEDIUM' | 'LOW';
-  status: 'OPEN' | 'IN PROGRESS' | 'CLOSED';
-}
+type ModalState = { type: 'notes' | 'feedback'; referral: Referral } | null;
 
 const ReferralManagement = () => {
   const [filter, setFilter] = useState('All');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [referrals, setReferrals] = useState<Referral[]>([]);
+  const [modal, setModal] = useState<ModalState>(null);
+  const [modalText, setModalText] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
+  const [updatingId, setUpdatingId] = useState<string | null>(null);
 
-  const referrals: Referral[] = [
-    {
-      id: '1',
-      studentName: 'Dexter Glorioso',
-      studentId: '2024-12346',
-      referredBy: 'Cho Domingo',
-      date: '2026-04-28',
-      reason: 'Behavioral concern - disruptive in class',
-      priority: 'HIGH',
-      status: 'OPEN',
-    },
-    {
-      id: '2',
-      studentName: 'Kurt Aquino',
-      studentId: '2024-12348',
-      referredBy: 'Cho Domingo',
-      date: '2026-04-27',
-      reason: 'Academic performance declining',
-      priority: 'MEDIUM',
-      status: 'IN PROGRESS',
-    },
-  ];
+  const refresh = async () => {
+    const data = await listReferrals();
+    setReferrals(data);
+  };
+
+  useEffect(() => {
+    let cancelled = false;
+
+    (async () => {
+      const data = await listReferrals();
+      if (!cancelled) setReferrals(data);
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const statusForFilter: Record<string, string | null> = {
+    All: null,
+    Open: 'OPEN',
+    'In Progress': 'IN_PROGRESS',
+    Closed: 'CLOSED',
+  };
+
+  const filteredReferrals = referrals.filter((r) => {
+    const expectedStatus = statusForFilter[filter];
+    if (expectedStatus && r.status !== expectedStatus) return false;
+
+    const query = searchQuery.trim().toLowerCase();
+    if (!query) return true;
+    return (
+      r.studentName.toLowerCase().includes(query) ||
+      r.referrerName.toLowerCase().includes(query) ||
+      r.description.toLowerCase().includes(query) ||
+      r.concernType.toLowerCase().includes(query)
+    );
+  });
+
+  const handleAdvanceStatus = async (referral: Referral, status: "IN_PROGRESS" | "CLOSED") => {
+    setUpdatingId(referral.id);
+    const result = await updateReferralStatus(referral.id, status);
+    setUpdatingId(null);
+    if (result.success) {
+      await refresh();
+    } else {
+      alert(`Failed to update referral: ${result.error || "Unknown error"}`);
+    }
+  };
+
+  const openModal = (type: 'notes' | 'feedback', referral: Referral) => {
+    setModal({ type, referral });
+    setModalText(type === 'notes' ? referral.notes || '' : '');
+  };
+
+  const closeModal = () => {
+    setModal(null);
+    setModalText('');
+  };
+
+  const handleModalSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!modal || !modalText.trim()) return;
+
+    setIsSaving(true);
+    const result = modal.type === 'notes'
+      ? await addReferralNotes(modal.referral.id, modalText.trim())
+      : await sendReferralFeedback(modal.referral.id, modalText.trim());
+    setIsSaving(false);
+
+    if (result.success) {
+      closeModal();
+      await refresh();
+    } else {
+      alert(`Failed to save: ${result.error || "Unknown error"}`);
+    }
+  };
 
   return (
     <div className="p-8 bg-slate-50 min-h-screen font-sans text-slate-900">
       {/* Header */}
       <header className="mb-8">
         <h1 className="text-2xl font-bold">Referral Management</h1>
-        <p className="text-slate-500 text-sm">Track and manage student referrals from faculty</p>
+        <p className="text-slate-500 text-sm">Track and manage student referrals from faculty, students, and parents</p>
       </header>
 
       {/* Toolbar */}
@@ -55,6 +109,8 @@ const ReferralManagement = () => {
           <input
             type="text"
             placeholder="Search referrals..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full pl-10 pr-4 py-2 bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all text-sm"
           />
         </div>
@@ -65,8 +121,8 @@ const ReferralManagement = () => {
               key={tab}
               onClick={() => setFilter(tab)}
               className={`px-4 py-1.5 text-xs font-semibold rounded-md transition-all ${
-                filter === tab 
-                ? 'bg-blue-600 text-white shadow-sm' 
+                filter === tab
+                ? 'bg-blue-600 text-white shadow-sm'
                 : 'text-slate-600 hover:text-slate-900'
               }`}
             >
@@ -78,17 +134,93 @@ const ReferralManagement = () => {
 
       {/* Referral Cards List */}
       <div className="space-y-6">
-        {referrals.map((referral) => (
-          <ReferralCard key={referral.id} referral={referral} />
-        ))}
+        {filteredReferrals.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-20 border-2 border-dashed border-slate-200 rounded-2xl bg-white">
+            <p className="text-sm font-semibold text-slate-500">No referrals found</p>
+          </div>
+        ) : (
+          filteredReferrals.map((referral) => (
+            <ReferralCard
+              key={referral.id}
+              referral={referral}
+              isUpdating={updatingId === referral.id}
+              onAdvanceStatus={handleAdvanceStatus}
+              onAddNotes={() => openModal('notes', referral)}
+              onSendFeedback={() => openModal('feedback', referral)}
+            />
+          ))
+        )}
       </div>
+
+      {/* NOTES / FEEDBACK MODAL */}
+      {modal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+          <div className="bg-white w-full max-w-md p-6 rounded-2xl shadow-xl border border-slate-100 space-y-4">
+            <div className="flex items-start justify-between">
+              <div>
+                <h3 className="text-lg font-bold text-slate-900">
+                  {modal.type === 'notes' ? 'Add Internal Notes' : 'Send Feedback'}
+                </h3>
+                <p className="text-xs text-slate-500">
+                  {modal.type === 'notes'
+                    ? `Internal notes for ${modal.referral.studentName}'s referral`
+                    : `Sent as a message to ${modal.referral.referrerName}`}
+                </p>
+              </div>
+              <button
+                onClick={closeModal}
+                className="text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg p-1.5 transition"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <form onSubmit={handleModalSubmit} className="space-y-4">
+              <textarea
+                rows={4}
+                value={modalText}
+                onChange={(e) => setModalText(e.target.value)}
+                placeholder={modal.type === 'notes' ? 'Internal notes...' : 'Write feedback for the referrer...'}
+                className="w-full text-sm bg-slate-50 border border-slate-200 rounded-xl p-3 focus:outline-none resize-none"
+                required
+              />
+
+              <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={closeModal}
+                  className="px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 rounded-xl transition"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSaving}
+                  className="px-5 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 rounded-xl transition"
+                >
+                  {isSaving ? "Saving..." : modal.type === 'notes' ? "Save Notes" : "Send Feedback"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
 
-const ReferralCard = ({ referral }: { referral: Referral }) => {
-  const isHigh = referral.priority === 'HIGH';
+interface ReferralCardProps {
+  referral: Referral;
+  isUpdating: boolean;
+  onAdvanceStatus: (referral: Referral, status: "IN_PROGRESS" | "CLOSED") => void;
+  onAddNotes: () => void;
+  onSendFeedback: () => void;
+}
+
+const ReferralCard = ({ referral, isUpdating, onAdvanceStatus, onAddNotes, onSendFeedback }: ReferralCardProps) => {
+  const isHigh = referral.priority === 'High' || referral.priority === 'Urgent';
   const isOpen = referral.status === 'OPEN';
+  const isClosed = referral.status === 'CLOSED';
 
   return (
     <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden transition-hover hover:shadow-md">
@@ -97,51 +229,76 @@ const ReferralCard = ({ referral }: { referral: Referral }) => {
         <div className="flex justify-between items-start mb-4">
           <div>
             <h3 className="text-lg font-bold text-slate-800">{referral.studentName}</h3>
-            <p className="text-xs font-semibold text-slate-500 uppercase tracking-tight">ID: {referral.studentId}</p>
+            <p className="text-xs font-semibold text-slate-500 uppercase tracking-tight">
+              Referred by {referral.referrerName} ({referral.referrerRole})
+            </p>
           </div>
-          
+
           <div className="flex gap-2">
-            <span className={`px-3 py-1 rounded-full text-[10px] font-bold border ${
+            <span className={`px-3 py-1 rounded-full text-[10px] font-bold border uppercase ${
               isHigh ? 'bg-red-50 text-red-600 border-red-100' : 'bg-orange-50 text-orange-600 border-orange-100'
             }`}>
               {referral.priority}
             </span>
             <span className={`flex items-center gap-1 px-3 py-1 rounded-full text-[10px] font-bold border ${
-              isOpen ? 'bg-red-50 text-red-600 border-red-100' : 'bg-orange-50 text-orange-600 border-orange-100'
+              isOpen ? 'bg-red-50 text-red-600 border-red-100' : isClosed ? 'bg-green-50 text-green-600 border-green-100' : 'bg-orange-50 text-orange-600 border-orange-100'
             }`}>
-              {isOpen ? <AlertTriangle size={12}/> : <Clock size={12}/>}
-              {referral.status}
+              {isOpen ? <AlertTriangle size={12}/> : isClosed ? <CheckCircle size={12} /> : <Clock size={12}/>}
+              {referral.status.replace('_', ' ')}
             </span>
           </div>
         </div>
 
         {/* Details Section */}
         <div className="space-y-1 mb-4">
-          <p className="text-sm text-slate-600"><span className="text-slate-400">Referred by:</span> {referral.referredBy}</p>
-          <p className="text-sm text-slate-600"><span className="text-slate-400">Date:</span> {referral.date}</p>
-          <p className="text-xs font-bold text-slate-400 mt-2 uppercase">Reason:</p>
+          <p className="text-sm text-slate-600"><span className="text-slate-400">Concern type:</span> {referral.concernType}</p>
+          <p className="text-sm text-slate-600"><span className="text-slate-400">Date:</span> {new Date(referral.createdAt).toLocaleDateString()}</p>
+          <p className="text-xs font-bold text-slate-400 mt-2 uppercase">Description:</p>
         </div>
 
         {/* Reason Box */}
-        <div className="bg-slate-50/80 p-4 rounded-lg border border-slate-100 mb-6 italic text-sm text-slate-700">
-          {referral.reason}
+        <div className="bg-slate-50/80 p-4 rounded-lg border border-slate-100 mb-4 italic text-sm text-slate-700 whitespace-pre-wrap">
+          {referral.description}
         </div>
 
+        {referral.notes && (
+          <div className="bg-blue-50/60 p-4 rounded-lg border border-blue-100 mb-6 text-sm text-slate-700">
+            <p className="text-[10px] font-bold text-blue-600 uppercase tracking-wide mb-1">Internal Notes</p>
+            {referral.notes}
+          </div>
+        )}
+
         {/* Actions */}
-        <div className="flex gap-3">
-          {isOpen ? (
-            <button className="px-4 py-2 bg-orange-50 text-orange-600 text-xs font-bold rounded-lg border border-orange-100 hover:bg-orange-100 transition-colors">
-              Start Intervention
-            </button>
-          ) : (
-            <button className="px-4 py-2 bg-green-50 text-green-600 text-xs font-bold rounded-lg border border-green-100 hover:bg-green-100 transition-colors">
-              Mark as Resolved
-            </button>
+        <div className="flex flex-wrap gap-3">
+          {!isClosed && (
+            isOpen ? (
+              <button
+                onClick={() => onAdvanceStatus(referral, "IN_PROGRESS")}
+                disabled={isUpdating}
+                className="px-4 py-2 bg-orange-50 text-orange-600 text-xs font-bold rounded-lg border border-orange-100 hover:bg-orange-100 transition-colors disabled:opacity-50"
+              >
+                {isUpdating ? "Updating..." : "Start Intervention"}
+              </button>
+            ) : (
+              <button
+                onClick={() => onAdvanceStatus(referral, "CLOSED")}
+                disabled={isUpdating}
+                className="px-4 py-2 bg-green-50 text-green-600 text-xs font-bold rounded-lg border border-green-100 hover:bg-green-100 transition-colors disabled:opacity-50"
+              >
+                {isUpdating ? "Updating..." : "Mark as Resolved"}
+              </button>
+            )
           )}
-          <button className="px-4 py-2 bg-blue-50 text-blue-600 text-xs font-bold rounded-lg border border-blue-100 hover:bg-blue-100 transition-colors">
+          <button
+            onClick={onAddNotes}
+            className="px-4 py-2 bg-blue-50 text-blue-600 text-xs font-bold rounded-lg border border-blue-100 hover:bg-blue-100 transition-colors"
+          >
             Add Notes
           </button>
-          <button className="px-4 py-2 bg-slate-50 text-slate-600 text-xs font-bold rounded-lg border border-slate-100 hover:bg-slate-100 transition-colors">
+          <button
+            onClick={onSendFeedback}
+            className="px-4 py-2 bg-slate-50 text-slate-600 text-xs font-bold rounded-lg border border-slate-100 hover:bg-slate-100 transition-colors"
+          >
             Send Feedback
           </button>
         </div>

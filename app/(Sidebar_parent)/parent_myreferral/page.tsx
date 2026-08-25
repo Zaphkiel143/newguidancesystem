@@ -1,78 +1,59 @@
 "use client";
 
-import React, { useState } from 'react';
-import { 
-  Search, 
-  User, 
-  Calendar, 
-  MessageSquare, 
-  Clock, 
-  CheckCircle2, 
+import React, { useEffect, useState } from 'react';
+import {
+  Search,
+  Clock,
+  CheckCircle2,
   AlertCircle,
-  FolderOpen
 } from 'lucide-react';
+import { getMyReferrals } from '../../action/parent';
+import type { Referral } from '../../../lib/generated';
 
-interface ReferralCard {
-  id: string;
-  category: string;
-  counselor: string;
-  dateSubmitted: string;
-  priority: 'LOW' | 'MEDIUM' | 'HIGH';
-  status: 'OPEN' | 'IN PROGRESS' | 'CLOSED';
-  feedback: string;
-}
+const PARENT_NAME = "Mrs. Belarmino";
+const CHILD_NAME = "Nhel Belarmino";
 
 export const MyReferralsPage: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
+  const [referrals, setReferrals] = useState<Referral[]>([]);
 
-  // Explicit dataset extracted verbatim from image_85a086.png and image_859ddb.png
-  const referrals: ReferralCard[] = [
-    {
-      id: 'ref-1',
-      category: 'Academic Performance',
-      counselor: 'Ralph Michael',
-      dateSubmitted: '2026-04-28',
-      priority: 'MEDIUM',
-      status: 'IN PROGRESS',
-      feedback: 'Initial assessment completed. Meeting scheduled with student to discuss study strategies and time management.'
-    },
-    {
-      id: 'ref-2',
-      category: 'Career/College Guidance',
-      counselor: 'Ralph Michael',
-      dateSubmitted: '2026-03-15',
-      priority: 'LOW',
-      status: 'CLOSED',
-      feedback: 'Career assessment completed. Student is on track with college application process. Follow-up scheduled for May.'
-    }
-  ];
+  useEffect(() => {
+    let cancelled = false;
 
-  // Filtering query hook implementation
-  const filteredReferrals = referrals.filter(item => 
-    item.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    item.counselor.toLowerCase().includes(searchQuery.toLowerCase())
+    (async () => {
+      const data = await getMyReferrals(PARENT_NAME);
+      if (!cancelled) setReferrals(data);
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const filteredReferrals = referrals.filter((item) =>
+    item.concernType.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   return (
     <div className="max-w-5xl mx-auto font-sans antialiased text-slate-800 space-y-6">
-      
+
       {/* Page Title & Context Header Copy */}
       <div>
         <h1 className="text-3xl font-bold text-blue-900 tracking-tight">My Referrals</h1>
         <p className="text-sm text-slate-500 font-medium mt-1">
-          Track referrals submitted for Nhel Belarmino
+          Track referrals submitted for {CHILD_NAME}
         </p>
       </div>
 
-      {/* Target Focus Notice Block Banner (from image_85a086.png) */}
+      {/* Target Focus Notice Block Banner */}
       <div className="bg-[#f0f6ff] border border-[#d8e7fe] px-5 py-3.5 rounded-xl text-sm font-medium text-[#1d63ff]">
-        Viewing referrals for: <span className="font-bold">Nhel Belarmino</span> <span className="text-blue-500 font-mono text-xs">(2024-12345)</span>
+        Viewing referrals for: <span className="font-bold">{CHILD_NAME}</span>
       </div>
 
       {/* Main Container Wrapper */}
       <div className="bg-white border border-slate-100 rounded-2xl shadow-sm overflow-hidden">
-        
-        {/* Search Input Bar (from image_85a086.png) */}
+
+        {/* Search Input Bar */}
         <div className="p-5 border-b border-slate-100 bg-slate-50/30">
           <div className="relative">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
@@ -90,53 +71,55 @@ export const MyReferralsPage: React.FC = () => {
         <div className="p-6 space-y-6">
           {filteredReferrals.length > 0 ? (
             filteredReferrals.map((item) => (
-              <div 
-                key={item.id} 
+              <div
+                key={item.id}
                 className="bg-white border border-slate-100 rounded-xl p-5 space-y-4 hover:shadow-xs transition-shadow"
               >
                 {/* Row Header Segment: Title + Badges */}
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div className="space-y-1">
-                    <h3 className="text-lg font-bold text-slate-900 tracking-tight">{item.category}</h3>
+                    <h3 className="text-lg font-bold text-slate-900 tracking-tight">{item.concernType}</h3>
                     <div className="text-xs text-slate-500 font-medium flex flex-wrap items-center gap-x-4 gap-y-1">
-                      <span>Counselor: <span className="text-slate-700 font-semibold">{item.counselor}</span></span>
+                      <span>Counselor: <span className="text-slate-700 font-semibold">Ralph Michael</span></span>
                       <span className="hidden sm:inline text-slate-300">•</span>
-                      <span className="font-mono">Date Submitted: {item.dateSubmitted}</span>
+                      <span className="font-mono">Date Submitted: {new Date(item.createdAt).toLocaleDateString()}</span>
                     </div>
                   </div>
 
                   {/* Operational Target State Tags */}
                   <div className="flex items-center gap-2">
                     {/* Priority Indicator Badge */}
-                    <span className={`text-[10px] font-bold px-2.5 py-1 rounded-md tracking-wider
-                      ${item.priority === 'MEDIUM' ? 'bg-orange-50 text-orange-700' : ''}
-                      ${item.priority === 'LOW' ? 'bg-blue-50 text-blue-700' : ''}
-                      ${item.priority === 'HIGH' ? 'bg-red-50 text-red-700' : ''}
+                    <span className={`text-[10px] font-bold px-2.5 py-1 rounded-md tracking-wider uppercase
+                      ${item.priority === 'Medium' ? 'bg-orange-50 text-orange-700' : ''}
+                      ${item.priority === 'Low' ? 'bg-blue-50 text-blue-700' : ''}
+                      ${(item.priority === 'High' || item.priority === 'Urgent') ? 'bg-red-50 text-red-700' : ''}
                     `}>
                       {item.priority}
                     </span>
 
                     {/* Dynamic Status Track Pill */}
                     <span className={`text-[11px] font-bold px-3 py-1 rounded-full flex items-center gap-1.5 uppercase font-sans tracking-wide
-                      ${item.status === 'IN PROGRESS' ? 'bg-orange-50 border border-orange-100 text-orange-700' : ''}
+                      ${item.status === 'IN_PROGRESS' ? 'bg-orange-50 border border-orange-100 text-orange-700' : ''}
                       ${item.status === 'CLOSED' ? 'bg-[#e8fbf0] border border-[#bbf7d0] text-[#00c853]' : ''}
                       ${item.status === 'OPEN' ? 'bg-red-50 border border-red-100 text-red-600' : ''}
                     `}>
-                      {item.status === 'IN PROGRESS' && <Clock size={13} className="stroke-[2.5]" />}
+                      {item.status === 'IN_PROGRESS' && <Clock size={13} className="stroke-[2.5]" />}
                       {item.status === 'CLOSED' && <CheckCircle2 size={13} className="stroke-[2.5]" />}
                       {item.status === 'OPEN' && <AlertCircle size={13} className="stroke-[2.5]" />}
-                      {item.status}
+                      {item.status.replace('_', ' ')}
                     </span>
                   </div>
                 </div>
 
                 {/* Counselor Feedback Collateral Block Frame */}
-                <div className="bg-[#f4fbf7] border border-[#e2f7ec] rounded-xl p-4 space-y-1">
-                  <h4 className="text-xs font-bold text-[#00c853] uppercase tracking-wider">Counselor Feedback:</h4>
-                  <p className="text-sm text-slate-700 font-medium leading-relaxed">
-                    {item.feedback}
-                  </p>
-                </div>
+                {item.notes && (
+                  <div className="bg-[#f4fbf7] border border-[#e2f7ec] rounded-xl p-4 space-y-1">
+                    <h4 className="text-xs font-bold text-[#00c853] uppercase tracking-wider">Counselor Feedback:</h4>
+                    <p className="text-sm text-slate-700 font-medium leading-relaxed">
+                      {item.notes}
+                    </p>
+                  </div>
+                )}
 
               </div>
             ))
@@ -148,10 +131,10 @@ export const MyReferralsPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Referral Status Guide Explainer Panel (from image_859ddb.png) */}
+      {/* Referral Status Guide Explainer Panel */}
       <div className="bg-white border border-slate-100 rounded-2xl p-6 shadow-sm space-y-4">
         <h3 className="text-base font-bold text-slate-900 tracking-tight">Referral Status Guide</h3>
-        
+
         <div className="space-y-4 text-sm font-medium leading-relaxed">
           {/* Row 1: Open */}
           <div className="flex items-start gap-4">

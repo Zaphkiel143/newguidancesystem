@@ -1,7 +1,6 @@
 "use client";
 
 import React from 'react';
-import { LogOut } from 'lucide-react';
 
 const Header = () => {
   return (
@@ -18,7 +17,7 @@ const Header = () => {
 
       <div className="flex items-center gap-6">
         <div className="text-right flex flex-col justify-center border-r border-white/20 pr-6">
-          <p className="text-sm font-bold leading-none">Cho Sto Domingo</p>
+          <p className="text-sm font-bold leading-none">Mrs. Belarmino</p>
           <p className="text-[10px] opacity-80 mt-1">Parent</p>
         </div>
       </div>

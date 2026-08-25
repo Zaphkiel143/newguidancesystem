@@ -1,30 +1,61 @@
 "use client";
 
 import React, { useState } from 'react';
-import { 
-  AlertCircle, 
-  Send, 
-  ShieldCheck, 
-  User, 
+import {
+  AlertCircle,
+  Send,
+  ShieldCheck,
   Info,
   ChevronDown
 } from 'lucide-react';
+import { submitReferral } from '../../action/parent';
+
+const CHILD_NAME = "Nhel Belarmino";
+const PARENT_NAME = "Mrs. Belarmino";
 
 export const ReferChildForm: React.FC = () => {
   // Form Field States
   const [concernType, setConcernType] = useState('');
-  const [priorityLevel, setPriorityLevel] = useState('Medium - Noticeable concern');
+  const [priorityLevel, setPriorityLevel] = useState('Medium');
   const [description, setDescription] = useState('');
   const [observedBehaviors, setObservedBehaviors] = useState('');
   const [preferredTime, setPreferredTime] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!concernType || !description) return;
 
-    // Handle form submission logic
-    setSuccessMessage('Referral submitted successfully. The Guidance Office will review it shortly.');
+    setIsSaving(true);
+    setError(null);
+    setSuccessMessage(null);
+
+    const detailLines = [
+      observedBehaviors && `Observed Behaviors: ${observedBehaviors}`,
+      preferredTime && `Preferred Contact Time: ${preferredTime}`,
+    ].filter(Boolean);
+
+    const result = await submitReferral({
+      studentName: CHILD_NAME,
+      referrerName: PARENT_NAME,
+      concernType,
+      priority: priorityLevel,
+      description: [description, ...detailLines].join("\n\n"),
+    });
+
+    setIsSaving(false);
+
+    if (result.success) {
+      setSuccessMessage('Referral submitted successfully. The Guidance Office will review it shortly.');
+      setConcernType('');
+      setDescription('');
+      setObservedBehaviors('');
+      setPreferredTime('');
+    } else {
+      setError(result.error || "Failed to submit referral.");
+    }
   };
 
   return (
@@ -97,9 +128,9 @@ export const ReferChildForm: React.FC = () => {
                   required
                   className="w-full px-4 py-2.5 bg-white border border-slate-200 text-sm rounded-xl text-slate-700 appearance-none focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all font-medium"
                 >
-                  <option value="Low - Mild observation">Low - Mild observation</option>
-                  <option value="Medium - Noticeable concern">Medium - Noticeable concern</option>
-                  <option value="High - Urgent attention needed">High - Urgent attention needed</option>
+                  <option value="Low">Low - Mild observation</option>
+                  <option value="Medium">Medium - Noticeable concern</option>
+                  <option value="High">High - Urgent attention needed</option>
                 </select>
                 <ChevronDown size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
               </div>
@@ -166,20 +197,34 @@ export const ReferChildForm: React.FC = () => {
             </div>
           )}
 
+          {error && (
+            <div className="p-4 bg-red-50 border border-red-100 text-red-600 text-sm font-bold rounded-xl flex items-center gap-2">
+              <AlertCircle size={16} />
+              <span>{error}</span>
+            </div>
+          )}
+
           {/* Form Action Controls Section Footer (image_859d58.png) */}
           <div className="flex flex-col sm:flex-row items-center justify-end gap-3 pt-4 border-t border-slate-100">
             <button
               type="button"
+              onClick={() => {
+                setConcernType('');
+                setDescription('');
+                setObservedBehaviors('');
+                setPreferredTime('');
+              }}
               className="w-full sm:w-auto px-8 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold rounded-xl text-sm transition-colors text-center"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="w-full sm:w-auto bg-[#1d63ff] hover:bg-blue-700 text-white font-bold py-2.5 px-8 rounded-xl transition-colors text-sm shadow-sm text-center flex items-center justify-center gap-2"
+              disabled={isSaving}
+              className="w-full sm:w-auto bg-[#1d63ff] hover:bg-blue-700 disabled:bg-blue-400 text-white font-bold py-2.5 px-8 rounded-xl transition-colors text-sm shadow-sm text-center flex items-center justify-center gap-2"
             >
               <Send size={15} />
-              Submit Referral
+              {isSaving ? "Submitting..." : "Submit Referral"}
             </button>
           </div>
 

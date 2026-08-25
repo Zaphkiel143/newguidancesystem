@@ -1,0 +1,140 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../lib/generated"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Appointment {
+  id           String   @id @default(uuid())
+  date         DateTime
+  time         String
+  studentName  String?  // Optional field if counseling a specific student
+  status       String   @default("PENDING") // PENDING, CONFIRMED, CANCELLED
+  
+  // New polished fields for the counselor
+  appointmentType String? // e.g., Academic, Personal, Career Guidance
+  notes           String? @db.Text
+  requirements    String[] // Array of strings for checklists (Prisma supports this natively in PostgreSQL)
+
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+model BlockedSlot {
+  id          String   @id @default(uuid())
+  counselorId String
+  date        DateTime // Keep this matching the type used in Appointment
+  time        String   // Changed from startTime/endTime to a single slot string to match your toggle view
+  createdAt   DateTime @default(now())
+}
+
+model CareerPlan {
+  id          String   @id @default(uuid())
+  studentName String
+  studentId   String
+  grade       String
+
+  // One entry per step in app/config/careerSteps.ts, in order.
+  // "" means that step isn't completed yet; otherwise it holds the completion date (YYYY-MM-DD).
+  stepDates   String[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model GroupGuidanceProgram {
+  id           String   @id @default(uuid())
+  title        String
+  gradeLevel   String
+  date         DateTime
+  time         String
+  participants Int      @default(0)
+
+  createdAt    DateTime @default(now())
+}
+
+enum UserRole {
+  COUNSELOR
+  FACULTY
+  PARENT
+  STUDENT
+}
+
+model User {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  passwordHash String
+  name         String
+  role         UserRole
+
+  sessions     Session[]
+
+  createdAt    DateTime @default(now())
+}
+
+model Session {
+  token     String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  expiresAt DateTime
+
+  createdAt DateTime @default(now())
+}
+
+model Referral {
+  id            String   @id @default(uuid())
+  studentName   String
+  referrerName  String
+  referrerRole  String   // Student, Faculty, Parent
+  concernType   String   // e.g. Academic, Behavioral, Career/College Planning
+  priority      String   @default("Normal") // Low, Normal, High, Urgent
+  description   String   @db.Text
+  status        String   @default("OPEN") // OPEN, IN_PROGRESS, CLOSED
+  notes         String?  @db.Text
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model Document {
+  id           String   @id @default(uuid())
+  uploaderName String
+  uploaderRole String
+  fileName     String
+  fileType     String
+  fileSize     Int
+  data         Bytes
+
+  createdAt    DateTime @default(now())
+}
+
+model Conversation {
+  id              String   @id @default(uuid())
+  participantName String   // the non-counselor party, e.g. "Nhel Belarmino"
+  participantRole String   // Student, Faculty, Parent
+
+  messages        Message[]
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model Message {
+  id             String       @id @default(uuid())
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id])
+
+  senderRole     String   // Counselor, Student, Faculty, Parent
+  senderName     String
+  content        String   @db.Text
+  readAt         DateTime?
+
+  createdAt      DateTime @default(now())
+}

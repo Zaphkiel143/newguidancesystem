@@ -2,6 +2,9 @@
 
 import React, { useState, FormEvent } from 'react';
 import { Send } from 'lucide-react';
+import { submitReferral } from '../../action/student';
+
+const REFERRER_NAME = "Nhel Belarmino";
 
 // Form state interface definition
 interface ReferralFormData {
@@ -15,18 +18,23 @@ interface ReferralFormData {
   observedBehaviors: string;
 }
 
+const EMPTY_FORM: ReferralFormData = {
+  studentName: '',
+  studentId: '',
+  grade: '',
+  section: '',
+  concernType: '',
+  priorityLevel: 'Medium', // Defaults to 'Medium' as seen in image_90f762.png
+  description: '',
+  observedBehaviors: '',
+};
+
 export const ReferStudentForm: React.FC = () => {
   // Initialize form state matching the fields across images
-  const [formData, setFormData] = useState<ReferralFormData>({
-    studentName: '',
-    studentId: '',
-    grade: '',
-    section: '',
-    concernType: '',
-    priorityLevel: 'Medium', // Defaults to 'Medium' as seen in image_90f762.png
-    description: '',
-    observedBehaviors: '',
-  });
+  const [formData, setFormData] = useState<ReferralFormData>(EMPTY_FORM);
+  const [isSaving, setIsSaving] = useState(false);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
@@ -35,10 +43,34 @@ export const ReferStudentForm: React.FC = () => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e: FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    console.log('Referral Submitted Data:', formData);
-    // Add submission processing logic here
+    setIsSaving(true);
+    setError(null);
+    setSuccessMessage(null);
+
+    const detailLines = [
+      formData.studentId && `Student ID: ${formData.studentId}`,
+      (formData.grade || formData.section) && `Grade & Section: ${formData.grade} ${formData.section}`.trim(),
+      formData.observedBehaviors && `Observed Behaviors: ${formData.observedBehaviors}`,
+    ].filter(Boolean);
+
+    const result = await submitReferral({
+      studentName: formData.studentName,
+      referrerName: REFERRER_NAME,
+      concernType: formData.concernType,
+      priority: formData.priorityLevel,
+      description: [formData.description, ...detailLines].join("\n\n"),
+    });
+
+    setIsSaving(false);
+
+    if (result.success) {
+      setSuccessMessage("Referral submitted successfully. The Guidance Office will review it shortly.");
+      setFormData(EMPTY_FORM);
+    } else {
+      setError(result.error || "Failed to submit referral.");
+    }
   };
 
   return (
@@ -234,20 +266,34 @@ export const ReferStudentForm: React.FC = () => {
             </span>
           </div>
 
+          {successMessage && (
+            <div className="p-4 bg-[#e8fbf0] border border-[#bbf7d0] text-[#00c853] text-sm font-bold rounded-xl">
+              {successMessage}
+            </div>
+          )}
+
+          {error && (
+            <div className="p-4 bg-red-50 border border-red-100 text-red-600 text-sm font-bold rounded-xl">
+              {error}
+            </div>
+          )}
+
           {/* 5. Bottom Action Controls Footer Area (from image_90fa09.png) */}
           <div className="flex flex-col sm:flex-row items-center justify-end gap-3 pt-3 border-t border-slate-100">
             <button
               type="button"
+              onClick={() => setFormData(EMPTY_FORM)}
               className="w-full sm:w-auto px-12 py-2.5 bg-[#f1f5f9] hover:bg-slate-200 text-slate-800 font-semibold rounded-xl text-sm transition-colors text-center"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-[#1d63ff] hover:bg-blue-700 text-white font-semibold py-2.5 px-8 rounded-xl transition-colors text-sm shadow-sm"
+              disabled={isSaving}
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-[#1d63ff] hover:bg-blue-700 disabled:bg-blue-400 text-white font-semibold py-2.5 px-8 rounded-xl transition-colors text-sm shadow-sm"
             >
               <Send size={16} className="rotate-0 stroke-[2.5]" />
-              <span>Submit Referral</span>
+              <span>{isSaving ? "Submitting..." : "Submit Referral"}</span>
             </button>
           </div>
 

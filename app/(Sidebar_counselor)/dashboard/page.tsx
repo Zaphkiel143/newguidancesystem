@@ -1,10 +1,19 @@
 import React from 'react';
-import { 
-  LayoutDashboard, Users, Calendar, FileText, 
-  UsersRound, Briefcase, TestTube2, Info, LogOut 
-} from 'lucide-react';
+import { Users, Calendar, FileText, Briefcase } from 'lucide-react';
+import { getAppointmentsByDate, getDashboardStats, listReferrals } from '../../action/counselor';
 
-const Dashboard = () => {
+const Dashboard = async () => {
+  const today = new Date().toISOString().split("T")[0];
+  const [todaysAppointments, stats, referrals] = await Promise.all([
+    getAppointmentsByDate(today),
+    getDashboardStats(),
+    listReferrals(),
+  ]);
+
+  const urgentReferrals = referrals
+    .filter((r) => r.status !== "CLOSED" && (r.priority === "High" || r.priority === "Urgent"))
+    .slice(0, 5);
+
   return (
     <main>
     <div className="flex h-screen bg-slate-50 font-sans text-slate-900">
@@ -14,25 +23,35 @@ const Dashboard = () => {
         <div className="p-8 overflow-y-auto">
           <header className="mb-8">
             <h2 className="text-2xl font-bold">Dashboard</h2>
-            <p className="text-slate-500">Welcome back! Here's an overview of your guidance activities.</p>
+            <p className="text-slate-500">Welcome back! Here&apos;s an overview of your guidance activities.</p>
           </header>
 
           {/* Stats Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            <StatCard icon={<Users className="text-blue-600"/>} value="1,247" label="Total Students" color="bg-blue-50" />
-            <StatCard icon={<Calendar className="text-green-600"/>} value="8" label="Today's Appointments" color="bg-green-50" />
-            <StatCard icon={<FileText className="text-orange-600"/>} value="12" label="Pending Referrals" color="bg-orange-50" />
-            <StatCard icon={<Briefcase className="text-purple-600"/>} value="342" label="Active Career Plans" color="bg-purple-50" />
+            <StatCard icon={<Users className="text-blue-600"/>} value={String(stats.totalStudents)} label="Total Students" color="bg-blue-50" />
+            <StatCard icon={<Calendar className="text-green-600"/>} value={String(todaysAppointments.length)} label="Today's Appointments" color="bg-green-50" />
+            <StatCard icon={<FileText className="text-orange-600"/>} value={String(stats.pendingReferrals)} label="Pending Referrals" color="bg-orange-50" />
+            <StatCard icon={<Briefcase className="text-purple-600"/>} value={String(stats.activeCareerPlans)} label="Active Career Plans" color="bg-purple-50" />
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {/* Appointments List */}
             <section className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
-              <h3 className="text-lg font-bold mb-4">Today's Appointments</h3>
+              <h3 className="text-lg font-bold mb-4">Today&apos;s Appointments</h3>
               <div className="space-y-4">
-                <AppointmentRow name="Nhel Belarmino" type="Individual Counseling" time="9:00 AM" status="Confirmed" />
-                <AppointmentRow name="Dexter Glorioso" type="Career Guidance" time="10:30 AM" status="Confirmed" />
-                <AppointmentRow name="Justine Casano" type="Academic Concern" time="2:00 PM" status="Pending" />
+                {todaysAppointments.length === 0 ? (
+                  <p className="text-sm text-slate-400">No appointments scheduled for today.</p>
+                ) : (
+                  todaysAppointments.map((appointment) => (
+                    <AppointmentRow
+                      key={appointment.id}
+                      name={appointment.studentName || "Unnamed Student"}
+                      type={appointment.appointmentType || "General"}
+                      time={appointment.time}
+                      status={appointment.status === "CONFIRMED" ? "Confirmed" : "Pending"}
+                    />
+                  ))
+                )}
               </div>
             </section>
 
@@ -40,8 +59,19 @@ const Dashboard = () => {
             <section className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
               <h3 className="text-lg font-bold mb-4">Urgent Referrals</h3>
               <div className="space-y-4">
-                <ReferralCard name="Dexter Glorioso" referrer="Cho Domingo" reason="Behavioral concern" date="2026-04-28" />
-                <ReferralCard name="Kurt Aquino" referrer="Cho Domingo" reason="Academic performance" date="2026-04-27" />
+                {urgentReferrals.length === 0 ? (
+                  <p className="text-sm text-slate-400">No urgent referrals right now.</p>
+                ) : (
+                  urgentReferrals.map((referral) => (
+                    <ReferralCard
+                      key={referral.id}
+                      name={referral.studentName}
+                      referrer={referral.referrerName}
+                      reason={referral.concernType}
+                      date={new Date(referral.createdAt).toLocaleDateString()}
+                    />
+                  ))
+                )}
               </div>
             </section>
           </div>
@@ -53,21 +83,6 @@ const Dashboard = () => {
 };
 
 export default Dashboard;
-
-interface SidebarItemProps {
-  icon: React.ReactNode;
-  label: string;
-  active?: boolean;
-}
-
-const SidebarItem = ({ icon, label, active = false }: SidebarItemProps) => (
-  <div className={`flex items-center gap-3 px-4 py-3 rounded-lg cursor-pointer transition-colors ${
-    active ? 'bg-blue-50 text-blue-700' : 'text-slate-600 hover:bg-slate-50'
-  }`}>
-    {icon}
-    <span className="font-medium">{label}</span>
-  </div>
-);
 
 const StatCard = ({ icon, value, label, color }: { icon: React.ReactNode; value: string; label: string; color: string }) => (
   <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex items-start gap-4">

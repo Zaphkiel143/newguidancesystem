@@ -2,24 +2,46 @@
 
 import React, { useState } from 'react';
 import { Mail, Lock } from 'lucide-react';
-import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { login, loginAsDemo } from '../action/auth';
+import type { UserRole } from '../../lib/generated';
 
 const LoginPage = () => {
+  const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [demoLoadingRole, setDemoLoadingRole] = useState<UserRole | null>(null);
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Login attempt:", { email, password });
+    setIsSubmitting(true);
+    setError(null);
+
+    const result = await login({ email, password });
+
+    setIsSubmitting(false);
+    if (result.success) {
+      router.push(result.redirectTo);
+    } else {
+      setError(result.error || "Login failed.");
+    }
   };
+
+  const handleDemoAccess = async (role: UserRole) => {
+    setDemoLoadingRole(role);
+    await loginAsDemo(role);
+  };
+
   return (
-    
+
 
     <main>
     <div className="min-h-screen flex items-center justify-center bg-[#2563EB] p-4 font-sans">
       {/* Main Card */}
       <div className="bg-white w-full max-w-100 rounded-2xl shadow-2xl p-8 flex flex-col items-center">
-        
+
         {/* STI Logo Box */}
         <div className="bg-[#2563EB] w-14 h-14 rounded-xl flex items-center justify-center mb-4 shadow-md">
           <span className="text-white font-bold text-lg">STI</span>
@@ -66,12 +88,20 @@ const LoginPage = () => {
               />
             </div>
           </div>
+
+          {error && (
+            <p className="text-xs font-semibold text-red-600 bg-red-50 border border-red-100 rounded-lg px-3 py-2">
+              {error}
+            </p>
+          )}
+
           <nav className="flex items-center justify-between text-xs text-slate-500">
             <button
               type="submit"
-              className="w-full bg-[#2563EB] text-white font-semibold py-2.5 rounded-lg hover:bg-blue-700 active:scale-[0.98] transition-all shadow-md mt-4 text-sm"
+              disabled={isSubmitting}
+              className="w-full bg-[#2563EB] text-white font-semibold py-2.5 rounded-lg hover:bg-blue-700 active:scale-[0.98] transition-all shadow-md mt-4 text-sm disabled:opacity-60"
             >
-              Login
+              {isSubmitting ? "Signing in..." : "Login"}
             </button>
           </nav>
 
@@ -82,35 +112,41 @@ const LoginPage = () => {
             Quick Demo Access:
           </p>
           <div className="grid grid-cols-2 gap-3">
-            <Link 
-              href="/dashboard" 
-              className="bg-blue-50 text-[#1d63ff] font-bold p-3 rounded-xl text-center block transition-colors hover:bg-blue-100"
-            > 
-              Counselor
-            </Link>
-
-            <Link 
-              href="/student_dashboard" 
-              className="bg-green-50 text-[#00c853] font-bold p-3 rounded-xl text-center block transition-colors hover:bg-green-100"
+            <button
+              type="button"
+              onClick={() => handleDemoAccess("COUNSELOR")}
+              disabled={demoLoadingRole !== null}
+              className="bg-blue-50 text-[#1d63ff] font-bold p-3 rounded-xl text-center block transition-colors hover:bg-blue-100 disabled:opacity-60"
             >
-              Student
-            </Link>
+              {demoLoadingRole === "COUNSELOR" ? "Signing in..." : "Counselor"}
+            </button>
 
-            {/* New Faculty Entry matching image_900d85.png */}
-            <Link 
-              href="/faculty_dashboard" 
-              className="bg-purple-50 text-[#9333ea] font-bold p-3 rounded-xl text-center block transition-colors hover:bg-purple-100"
+            <button
+              type="button"
+              onClick={() => handleDemoAccess("STUDENT")}
+              disabled={demoLoadingRole !== null}
+              className="bg-green-50 text-[#00c853] font-bold p-3 rounded-xl text-center block transition-colors hover:bg-green-100 disabled:opacity-60"
             >
-              Faculty
-            </Link>
+              {demoLoadingRole === "STUDENT" ? "Signing in..." : "Student"}
+            </button>
 
-            {/* New Parent Entry matching image_900d85.png */}
-            <Link 
-              href="/child_profile" 
-              className="bg-orange-50 text-[#ea580c] font-bold p-3 rounded-xl text-center block transition-colors hover:bg-orange-100"
+            <button
+              type="button"
+              onClick={() => handleDemoAccess("FACULTY")}
+              disabled={demoLoadingRole !== null}
+              className="bg-purple-50 text-[#9333ea] font-bold p-3 rounded-xl text-center block transition-colors hover:bg-purple-100 disabled:opacity-60"
             >
-              Parent
-            </Link>
+              {demoLoadingRole === "FACULTY" ? "Signing in..." : "Faculty"}
+            </button>
+
+            <button
+              type="button"
+              onClick={() => handleDemoAccess("PARENT")}
+              disabled={demoLoadingRole !== null}
+              className="bg-orange-50 text-[#ea580c] font-bold p-3 rounded-xl text-center block transition-colors hover:bg-orange-100 disabled:opacity-60"
+            >
+              {demoLoadingRole === "PARENT" ? "Signing in..." : "Parent"}
+            </button>
           </div>
           <footer className="mt-8 text-center">
             <p className="text-[9px] text-slate-400">
@@ -123,18 +159,5 @@ const LoginPage = () => {
     </main>
   );
 };
-
-/* Helper Component for Demo Buttons */
-interface DemoButtonProps {
-  label: string;
-  textColor: string;
-  bgColor: string;
-}
-
-const DemoButton = ({ label, textColor, bgColor }: DemoButtonProps) => (
-  <button className={`w-full py-2 rounded-lg ${bgColor} ${textColor} text-xs font-bold hover:opacity-80 transition-opacity border border-transparent`}>
-    {label}
-  </button>
-);
 
 export default LoginPage;

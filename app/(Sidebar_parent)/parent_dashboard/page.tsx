@@ -1,37 +1,75 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Calendar as CalendarIcon, Clock, AlignLeft, Users, CheckCircle } from 'lucide-react';
+import { getBookedTimesForDate, bookAppointment } from '../../action/parent';
+import { STANDARD_DAY_HOURS } from '../../config/timeSlots';
 
-interface TimeSlot {
-  time: string;
-  available: boolean;
+function toDateString(date: Date): string {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+}
+
+function getMinSelectableDate(): string {
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  return toDateString(tomorrow);
 }
 
 export const ParentBookAppointment: React.FC = () => {
+  const minSelectableDate = getMinSelectableDate();
+
   // State configurations matching parent metrics from image_85ac21.png
   const [selectedChild, setSelectedChild] = useState<string>('Nhel Belarmino');
-  const [selectedDate, setSelectedDate] = useState<string>('2026-04-30');
-  const [selectedTime, setSelectedTime] = useState<string>('10:00 AM');
+  const [selectedDate, setSelectedDate] = useState<string>(minSelectableDate);
+  const [selectedTime, setSelectedTime] = useState<string | null>(null);
   const [purpose, setPurpose] = useState<string>('Academic Counseling');
   const [description, setDescription] = useState<string>('');
   const [isSubmitted, setIsSubmitted] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [bookedTimes, setBookedTimes] = useState<string[]>([]);
 
-  // Core time options matching wireframe grids
-  const timeSlots: TimeSlot[] = [
-    { time: '09:00 AM', available: true },
-    { time: '10:00 AM', available: true },
-    { time: '11:00 AM', available: true },
-    { time: '01:00 PM', available: true },
-    { time: '02:00 PM', available: true },
-    { time: '03:00 PM', available: true },
-  ];
+  useEffect(() => {
+    let cancelled = false;
 
-  const handleSubmit = (e: React.FormEvent) => {
+    (async () => {
+      const taken = await getBookedTimesForDate(selectedDate);
+      if (cancelled) return;
+      setBookedTimes(taken);
+      setSelectedTime((prev) => (prev && taken.includes(prev) ? null : prev));
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedDate]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedChild || !selectedDate || !selectedTime || !purpose) return;
-    
-    setIsSubmitted("Appointment request submitted successfully!");
+
+    setIsSaving(true);
+    setError(null);
+
+    const result = await bookAppointment({
+      dateString: selectedDate,
+      timeSlot: selectedTime,
+      appointmentType: purpose,
+      notes: description,
+      childName: selectedChild,
+    });
+
+    setIsSaving(false);
+
+    if (result.success) {
+      setIsSubmitted("Appointment request submitted successfully!");
+      setDescription('');
+      setSelectedTime(null);
+      const taken = await getBookedTimesForDate(selectedDate);
+      setBookedTimes(taken);
+    } else {
+      setError(result.error || "Failed to submit appointment request.");
+    }
   };
 
   return (
@@ -41,7 +79,7 @@ export const ParentBookAppointment: React.FC = () => {
       <div>
         <h1 className="text-3xl font-bold text-blue-900 tracking-tight">Book Appointment</h1>
         <p className="text-sm text-slate-500 font-medium mt-1">
-          Schedule a meeting with your child's guidance counselor
+          Schedule a meeting with your child&apos;s guidance counselor
         </p>
       </div>
 
@@ -84,8 +122,10 @@ export const ParentBookAppointment: React.FC = () => {
               <input
                 type="date"
                 value={selectedDate}
-                onChange={(e) => setSelectedDate(e.target.value)}
-                min="2026-01-01"
+                onChange={(e) => {
+                  if (e.target.value >= minSelectableDate) setSelectedDate(e.target.value);
+                }}
+                min={minSelectableDate}
                 required
                 className="w-full px-4 py-2.5 bg-white border border-slate-200 text-sm font-medium rounded-xl text-slate-800 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all font-mono"
               />
@@ -99,21 +139,25 @@ export const ParentBookAppointment: React.FC = () => {
               </label>
               
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                {timeSlots.map((slot) => {
-                  const isSelected = selectedTime === slot.time;
+                {STANDARD_DAY_HOURS.map((slot) => {
+                  const isTaken = bookedTimes.includes(slot);
+                  const isSelected = selectedTime === slot;
                   return (
                     <button
-                      key={slot.time}
+                      key={slot}
                       type="button"
-                      onClick={() => setSelectedTime(slot.time)}
+                      disabled={isTaken}
+                      onClick={() => setSelectedTime(slot)}
                       className={`py-2 px-3 border text-xs font-semibold font-mono rounded-xl transition-all text-center
-                        ${isSelected 
-                          ? 'bg-[#1d63ff] border-[#1d63ff] text-white shadow-sm' 
+                        ${isTaken
+                          ? 'bg-slate-50 border-slate-100 text-slate-300 cursor-not-allowed line-through'
+                          : isSelected
+                          ? 'bg-[#1d63ff] border-[#1d63ff] text-white shadow-sm'
                           : 'bg-white border-slate-200 text-slate-700 hover:border-slate-300 hover:bg-slate-50/50'
                         }
                       `}
                     >
-                      {slot.time}
+                      {slot}
                     </button>
                   );
                 })}
@@ -173,6 +217,12 @@ export const ParentBookAppointment: React.FC = () => {
             </div>
           )}
 
+          {error && (
+            <div className="bg-red-50 border border-red-100 text-red-600 p-4 rounded-xl text-sm font-medium">
+              {error}
+            </div>
+          )}
+
           {/* 4. Action Buttons Footer Controls */}
           <div className="flex flex-col sm:flex-row items-center justify-end gap-3 pt-3 border-t border-slate-100">
             <button
@@ -183,9 +233,10 @@ export const ParentBookAppointment: React.FC = () => {
             </button>
             <button
               type="submit"
-              className="w-full sm:w-auto bg-[#1d63ff] hover:bg-blue-700 text-white font-semibold py-2.5 px-8 rounded-xl transition-colors text-sm shadow-sm text-center"
+              disabled={isSaving}
+              className="w-full sm:w-auto bg-[#1d63ff] hover:bg-blue-700 disabled:bg-blue-400 text-white font-semibold py-2.5 px-8 rounded-xl transition-colors text-sm shadow-sm text-center"
             >
-              Confirm Booking
+              {isSaving ? "Booking..." : "Confirm Booking"}
             </button>
           </div>
 

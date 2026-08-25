@@ -58,7 +58,7 @@ export const ChildProfilePage: React.FC = () => {
       <div>
         <h1 className="text-3xl font-bold text-blue-900 tracking-tight">Child Profile</h1>
         <p className="text-sm text-slate-500 font-medium mt-1">
-          View your child's information and guidance progress
+          View your child&apos;s information and guidance progress
         </p>
       </div>
 

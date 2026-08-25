@@ -1,203 +1,265 @@
 "use client";
 
-import React, { useState, ChangeEvent, DragEvent } from 'react';
-import { UploadCloud, FileText, CheckCircle2, AlertCircle, Trash2 } from 'lucide-react';
+import React, { useState, FormEvent } from 'react';
+import { Send } from 'lucide-react';
+import { submitReferral } from '../../action/faculty';
 
-interface UploadedFile {
-  id: string;
-  name: string;
-  size: string;
-  status: 'Uploading' | 'Success' | 'Error';
-  progress?: number;
+const FACULTY_NAME = "Cho Sto Domingo";
+
+interface ReferralFormData {
+  studentName: string;
+  studentId: string;
+  gradeSection: string;
+  concernType: string;
+  priorityLevel: string;
+  description: string;
+  observedBehaviors: string;
 }
 
-export const UploadDocuments: React.FC = () => {
-  const [isDragging, setIsDragging] = useState(false);
-  
-  // State populated with the exact mock rows shown in image_860ddb.png
-  const [files, setFiles] = useState<UploadedFile[]>([
-    {
-      id: 'file-1',
-      name: 'Incident_Report_Form.pdf',
-      size: '245 KB',
-      status: 'Success',
-    },
-    {
-      id: 'file-2',
-      name: 'Student_Behavior_Log.xlsx',
-      size: '1.2 MB',
-      status: 'Uploading',
-      progress: 45,
-    },
-  ]);
+const EMPTY_FORM: ReferralFormData = {
+  studentName: '',
+  studentId: '',
+  gradeSection: '',
+  concernType: '',
+  priorityLevel: 'Medium',
+  description: '',
+  observedBehaviors: '',
+};
 
-  // Handle file selection logic
-  const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      processFiles(e.target.files);
-    }
+export const SubmitReferralForm: React.FC = () => {
+  const [formData, setFormData] = useState<ReferralFormData>(EMPTY_FORM);
+  const [isSaving, setIsSaving] = useState(false);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
+  ) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  // Drag and drop event handlers
-  const handleDragOver = (e: DragEvent<HTMLDivElement>) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    setIsDragging(true);
-  };
+    setIsSaving(true);
+    setError(null);
+    setSuccessMessage(null);
 
-  const handleDragLeave = () => {
-    setIsDragging(false);
-  };
+    const detailLines = [
+      formData.studentId && `Student ID: ${formData.studentId}`,
+      formData.gradeSection && `Grade & Section: ${formData.gradeSection}`,
+      formData.observedBehaviors && `Observed Behaviors: ${formData.observedBehaviors}`,
+    ].filter(Boolean);
 
-  const handleDrop = (e: DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    setIsDragging(false);
-    if (e.dataTransfer.files) {
-      processFiles(e.dataTransfer.files);
+    const result = await submitReferral({
+      studentName: formData.studentName,
+      referrerName: FACULTY_NAME,
+      concernType: formData.concernType,
+      priority: formData.priorityLevel,
+      description: [formData.description, ...detailLines].join("\n\n"),
+    });
+
+    setIsSaving(false);
+
+    if (result.success) {
+      setSuccessMessage("Referral submitted successfully. The Guidance Office will review it shortly.");
+      setFormData(EMPTY_FORM);
+    } else {
+      setError(result.error || "Failed to submit referral.");
     }
-  };
-
-  const processFiles = (fileList: FileList) => {
-    const newFiles: UploadedFile[] = Array.from(fileList).map((file, index) => ({
-      id: `new-file-${Date.now()}-${index}`,
-      name: file.name,
-      size: `${(file.size / (1024 * 1024)).toFixed(1)} MB`,
-      status: 'Success', // Mock completion automatically
-    }));
-    setFiles((prev) => [...prev, ...newFiles]);
-  };
-
-  const removeFile = (id: string) => {
-    setFiles((prev) => prev.filter((f) => f.id !== id));
   };
 
   return (
-    <div className="max-w-4xl mx-auto font-sans antialiased text-slate-800 space-y-6">
-      
+    <div className="flex-1 bg-[#f8fafc] p-8 overflow-y-auto min-h-screen font-sans antialiased text-slate-800">
+
       {/* 1. Header Section */}
-      <div>
-        <h1 className="text-3xl font-bold text-blue-900 tracking-tight">Upload Documents</h1>
-        <p className="text-sm text-slate-500 font-medium mt-1">
-          Share files, forms, and reports securely with the Guidance Office
+      <header className="mb-6">
+        <h1 className="text-3xl font-bold text-[#0d2343]">Submit Referral</h1>
+        <p className="text-sm text-slate-500 mt-1">
+          Refer a student to the Guidance Office for support
         </p>
-      </div>
+      </header>
 
-      <div className="space-y-6">
-        
-        {/* 2. Drag & Drop Zone Area (from image_860dbf.png) */}
-        <div
-          onDragOver={handleDragOver}
-          onDragLeave={handleDragLeave}
-          onDrop={handleDrop}
-          className={`border-2 border-dashed rounded-2xl p-8 text-center bg-white transition-all duration-200 flex flex-col items-center justify-center min-h-[260px] cursor-pointer relative
-            ${isDragging 
-              ? 'border-blue-500 bg-blue-50/30' 
-              : 'border-slate-200 hover:border-slate-300'
-            }
-          `}
-        >
-          {/* Hidden Core File Input Trigger */}
-          <input
-            type="file"
-            multiple
-            onChange={handleFileChange}
-            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-          />
+      <div className="max-w-4xl space-y-4">
 
-          <div className="bg-blue-50 p-4 rounded-full text-[#1d63ff] mb-4 shadow-sm">
-            <UploadCloud size={32} className="stroke-[2]" />
-          </div>
-
-          <h3 className="font-bold text-slate-800 text-base">
-            Drag and drop files here, or <span className="text-[#1d63ff] hover:underline">browse</span>
-          </h3>
-          
-          <p className="text-xs text-slate-400 font-medium mt-2 max-w-sm leading-relaxed">
-            Supports PDF, Word, Excel, and Images up to 10MB
-          </p>
+        {/* 2. Informational Banner */}
+        <div className="bg-[#f0f6ff] border border-blue-200 text-[#1d63ff] rounded-xl p-4 text-sm leading-relaxed">
+          <span className="font-bold">Faculty Referral:</span> If you notice a student who may need support, you can refer them to the Guidance Office. All referrals are confidential and will be handled with care.
         </div>
 
-        {/* 3. Render Upload Queue List Panel (from image_860ddb.png) */}
-        {files.length > 0 && (
-          <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
-            <div className="px-6 py-4 border-b border-slate-50 bg-slate-50/30">
-              <h4 className="font-bold text-slate-800 text-sm">Uploaded Documents</h4>
+        {/* 3. Main Form Card Panel */}
+        <form onSubmit={handleSubmit} className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 space-y-5 mt-6">
+
+          {/* Row 1: Student Name & Student ID */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-slate-700 block">
+                Student Name <span className="text-[#ff2b3d]">*</span>
+              </label>
+              <input
+                type="text"
+                name="studentName"
+                value={formData.studentName}
+                onChange={handleInputChange}
+                required
+                className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
+              />
             </div>
 
-            <div className="p-4 space-y-3">
-              {files.map((file) => (
-                <div 
-                  key={file.id} 
-                  className="border border-slate-200/80 rounded-xl p-4 bg-white flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-all hover:border-slate-300"
-                >
-                  {/* File Metadata Cluster */}
-                  <div className="flex items-start gap-3.5 min-w-0 flex-1">
-                    <div className="p-2.5 bg-slate-50 text-slate-400 rounded-xl shrink-0 mt-0.5">
-                      <FileText size={20} />
-                    </div>
-                    
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-baseline gap-2 flex-wrap">
-                        <span className="font-bold text-slate-800 text-sm truncate max-w-[280px] sm:max-w-md">
-                          {file.name}
-                        </span>
-                        <span className="text-xs text-slate-400 font-mono font-medium">
-                          ({file.size})
-                        </span>
-                      </div>
-
-                      {/* Render active horizontal slider path if loading */}
-                      {file.status === 'Uploading' && (
-                        <div className="mt-2 w-full max-w-xs space-y-1">
-                          <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
-                            <div 
-                              className="bg-[#1d63ff] h-full rounded-full transition-all duration-300"
-                              style={{ width: `${file.progress}%` }}
-                            />
-                          </div>
-                          <span className="text-[10px] text-slate-400 font-bold font-mono">
-                            Uploading... {file.progress}%
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Status Indicator & Action Triggers Column */}
-                  <div className="flex items-center justify-between sm:justify-end gap-4 shrink-0 border-t border-slate-50 pt-2 sm:pt-0 sm:border-0">
-                    <div className="text-xs">
-                      {file.status === 'Success' && (
-                        <span className="inline-flex items-center gap-1.5 bg-[#e8fbf0] text-[#00c853] font-bold px-2.5 py-1 rounded-full border border-[#bbf7d0]">
-                          <CheckCircle2 size={13} className="stroke-[2.5]" />
-                          Success
-                        </span>
-                      )}
-                      {file.status === 'Error' && (
-                        <span className="inline-flex items-center gap-1.5 bg-red-50 text-red-600 font-bold px-2.5 py-1 rounded-full border border-red-100">
-                          <AlertCircle size={13} className="stroke-[2.5]" />
-                          Failed
-                        </span>
-                      )}
-                    </div>
-
-                    <button
-                      type="button"
-                      onClick={() => removeFile(file.id)}
-                      className="text-slate-400 hover:text-red-500 p-1.5 rounded-lg hover:bg-slate-50 transition-colors"
-                      title="Delete document"
-                    >
-                      <Trash2 size={16} />
-                    </button>
-                  </div>
-
-                </div>
-              ))}
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-slate-700 block">
+                Student ID
+              </label>
+              <input
+                type="text"
+                name="studentId"
+                value={formData.studentId}
+                onChange={handleInputChange}
+                className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
+              />
             </div>
           </div>
-        )}
+
+          {/* Row 2: Grade & Section, Type of Concern */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-slate-700 block">
+                Grade & Section
+              </label>
+              <input
+                type="text"
+                name="gradeSection"
+                value={formData.gradeSection}
+                onChange={handleInputChange}
+                placeholder="e.g., Grade 12 - STEM-A"
+                className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-slate-700 block">
+                Type of Concern <span className="text-[#ff2b3d]">*</span>
+              </label>
+              <div className="relative">
+                <select
+                  name="concernType"
+                  value={formData.concernType}
+                  onChange={handleInputChange}
+                  required
+                  className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white appearance-none focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors text-slate-700"
+                >
+                  <option value="" disabled>Select concern type...</option>
+                  <option value="Academic">Academic Concern</option>
+                  <option value="Behavioral">Behavioral Observation</option>
+                  <option value="Attendance">Attendance Concern</option>
+                  <option value="Personal">Personal Issues</option>
+                </select>
+                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-500">
+                  ▼
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Row 3: Priority Level */}
+          <div className="space-y-1.5">
+            <label className="text-xs font-bold text-slate-700 block">
+              Priority Level <span className="text-[#ff2b3d]">*</span>
+            </label>
+            <div className="relative max-w-xs">
+              <select
+                name="priorityLevel"
+                value={formData.priorityLevel}
+                onChange={handleInputChange}
+                required
+                className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white appearance-none focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors text-slate-700"
+              >
+                <option value="Low">Low</option>
+                <option value="Medium">Medium</option>
+                <option value="High">High</option>
+                <option value="Urgent">Urgent</option>
+              </select>
+              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-500">
+                ▼
+              </div>
+            </div>
+          </div>
+
+          {/* Text Area 1: Description of Concern */}
+          <div className="space-y-1.5">
+            <label className="text-xs font-bold text-slate-700 block">
+              Description of Concern <span className="text-[#ff2b3d]">*</span>
+            </label>
+            <textarea
+              name="description"
+              rows={4}
+              value={formData.description}
+              onChange={handleInputChange}
+              required
+              placeholder="Please describe what you've observed or what concerns you about this student..."
+              className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors resize-none"
+            />
+          </div>
+
+          {/* Text Area 2: Observed Behaviors (Optional) */}
+          <div className="space-y-1.5">
+            <label className="text-xs font-bold text-slate-700 block">
+              Observed Behaviors (Optional)
+            </label>
+            <textarea
+              name="observedBehaviors"
+              rows={3}
+              value={formData.observedBehaviors}
+              onChange={handleInputChange}
+              placeholder="Describe any specific behaviors or patterns you've noticed..."
+              className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors resize-none"
+            />
+          </div>
+
+          {/* Emergency Alert Box */}
+          <div className="bg-[#fff1ec] border border-[#ffe0d3] rounded-xl p-4 text-sm leading-relaxed">
+            <span className="font-bold text-[#b43403]">Emergency Situations:</span>{' '}
+            <span className="text-[#b43403]/90">
+              If this is an emergency or the student is in immediate danger, please notify school administration right away.
+            </span>
+          </div>
+
+          {successMessage && (
+            <div className="p-4 bg-[#e8fbf0] border border-[#bbf7d0] text-[#00c853] text-sm font-bold rounded-xl">
+              {successMessage}
+            </div>
+          )}
+
+          {error && (
+            <div className="p-4 bg-red-50 border border-red-100 text-red-600 text-sm font-bold rounded-xl">
+              {error}
+            </div>
+          )}
+
+          {/* Bottom Action Controls */}
+          <div className="flex flex-col sm:flex-row items-center justify-end gap-3 pt-3 border-t border-slate-100">
+            <button
+              type="button"
+              onClick={() => setFormData(EMPTY_FORM)}
+              className="w-full sm:w-auto px-12 py-2.5 bg-[#f1f5f9] hover:bg-slate-200 text-slate-800 font-semibold rounded-xl text-sm transition-colors text-center"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={isSaving}
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-[#1d63ff] hover:bg-blue-700 disabled:bg-blue-400 text-white font-semibold py-2.5 px-8 rounded-xl transition-colors text-sm shadow-sm"
+            >
+              <Send size={16} className="stroke-[2.5]" />
+              <span>{isSaving ? "Submitting..." : "Submit Referral"}</span>
+            </button>
+          </div>
+
+        </form>
 
       </div>
     </div>
   );
 };
 
-export default UploadDocuments;
+export default SubmitReferralForm;

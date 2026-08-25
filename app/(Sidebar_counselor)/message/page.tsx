@@ -1,62 +1,86 @@
 "use client";
 
-import React, { useState } from 'react';
-import { Search, MessageSquare, Plus, User } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { Search, MessageSquare, User, X } from 'lucide-react';
+import { listConversations, startConversation, getMessages, markConversationRead, sendMessage } from '../../action/counselor';
+import ConversationPanel from '../../../components/ConversationPanel';
 
-// Define the structure for a conversation item
+const VIEWER_ROLE = "Counselor";
+const VIEWER_NAME = "Ralph Michael";
+const POLL_INTERVAL_MS = 5000;
+
 interface Conversation {
   id: string;
-  name: string;
-  role: 'Student' | 'Faculty' | 'Parent';
+  participantName: string;
+  participantRole: string;
   lastMessage: string;
-  timestamp: string;
-  unreadCount?: number;
+  lastMessageAt: Date;
+  unreadCount: number;
 }
 
-const initialConversations: Conversation[] = [
-  {
-    id: '1',
-    name: 'Nhel Belarmino',
-    role: 'Student',
-    lastMessage: 'Thank you for the guidance session today',
-    timestamp: '2026-05-14 10:30 AM',
-  },
-  {
-    id: '2',
-    name: 'Cho Domingo',
-    role: 'Faculty',
-    lastMessage: 'I submitted a referral for Dexter Glorioso',
-    timestamp: '2026-05-13 03:45 PM',
-    unreadCount: 2,
-  },
-  {
-    id: '3',
-    name: 'Mrs. Belarmino',
-    role: 'Parent',
-    lastMessage: 'How is my child progressing?',
-    timestamp: '2026-05-12 11:20 AM',
-    unreadCount: 1,
-  },
-];
-
 export const MessagesDashboard: React.FC = () => {
-  const [conversations, setConversations] = useState<Conversation[]>(initialConversations);
+  const [conversations, setConversations] = useState<Conversation[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>('');
 
-  // Filter conversations based on search input
+  const [isNewMessageOpen, setIsNewMessageOpen] = useState(false);
+  const [newName, setNewName] = useState('');
+  const [newRole, setNewRole] = useState<'Student' | 'Faculty' | 'Parent'>('Student');
+  const [newContent, setNewContent] = useState('');
+  const [isStarting, setIsStarting] = useState(false);
+
+  const refreshConversations = async () => {
+    const data = await listConversations();
+    setConversations(data);
+  };
+
+  useEffect(() => {
+    let cancelled = false;
+
+    (async () => {
+      const data = await listConversations();
+      if (!cancelled) setConversations(data);
+    })();
+
+    const interval = setInterval(refreshConversations, POLL_INTERVAL_MS);
+
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+    };
+  }, []);
+
   const filteredConversations = conversations.filter((chat) =>
-    chat.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    chat.participantName.toLowerCase().includes(searchQuery.toLowerCase()) ||
     chat.lastMessage.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    chat.role.toLowerCase().includes(searchQuery.toLowerCase())
+    chat.participantRole.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const handleSelectConversation = (id: string) => {
-    setSelectedId(id);
-    // Optionally clear unread count when clicked
-    setConversations(prev =>
-      prev.map(chat => chat.id === id ? { ...chat, unreadCount: undefined } : chat)
-    );
+  const selectedConversation = conversations.find((c) => c.id === selectedId) ?? null;
+
+  const handleStartConversation = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newName.trim() || !newContent.trim()) return;
+
+    setIsStarting(true);
+    const result = await startConversation({
+      participantName: newName.trim(),
+      participantRole: newRole,
+      senderName: VIEWER_NAME,
+      content: newContent.trim(),
+    });
+    setIsStarting(false);
+
+    if (result.success && result.conversation) {
+      setIsNewMessageOpen(false);
+      setNewName('');
+      setNewContent('');
+      setNewRole('Student');
+      await refreshConversations();
+      setSelectedId(result.conversation.id);
+    } else {
+      alert(`Failed to start conversation: ${result.error || "Unknown error"}`);
+    }
   };
 
   return (
@@ -71,7 +95,7 @@ export const MessagesDashboard: React.FC = () => {
 
       {/* Main Content Area */}
       <div className="flex flex-1 overflow-hidden">
-        
+
         {/* Left Sidebar: Conversation List */}
         <aside className="w-[360px] border-r border-slate-200 flex flex-col bg-white shrink-0">
           {/* Action Area: Search & New Message Button */}
@@ -89,7 +113,10 @@ export const MessagesDashboard: React.FC = () => {
             </div>
 
             {/* New Message Button */}
-            <button className="w-full flex items-center justify-center gap-2 bg-[#1d63ff] hover:bg-blue-700 text-white font-medium py-2.5 px-4 rounded-lg transition-colors text-sm shadow-sm">
+            <button
+              onClick={() => setIsNewMessageOpen(true)}
+              className="w-full flex items-center justify-center gap-2 bg-[#1d63ff] hover:bg-blue-700 text-white font-medium py-2.5 px-4 rounded-lg transition-colors text-sm shadow-sm"
+            >
               <MessageSquare className="w-4 h-4 fill-current" />
               <span>New Message</span>
             </button>
@@ -103,7 +130,7 @@ export const MessagesDashboard: React.FC = () => {
                 return (
                   <button
                     key={chat.id}
-                    onClick={() => handleSelectConversation(chat.id)}
+                    onClick={() => setSelectedId(chat.id)}
                     className={`w-full text-left p-4 flex items-start gap-3 transition-colors ${
                       isSelected ? 'bg-slate-50' : 'hover:bg-slate-50/60'
                     }`}
@@ -120,15 +147,15 @@ export const MessagesDashboard: React.FC = () => {
                       <div className="flex items-start justify-between gap-2">
                         <div>
                           <h4 className="font-semibold text-slate-900 truncate text-sm leading-tight">
-                            {chat.name}
+                            {chat.participantName}
                           </h4>
                           <span className="text-xs text-slate-400 font-medium">
-                            {chat.role}
+                            {chat.participantRole}
                           </span>
                         </div>
-                        
+
                         {/* Unread Pill Indicator */}
-                        {chat.unreadCount && chat.unreadCount > 0 && (
+                        {chat.unreadCount > 0 && (
                           <span className="bg-[#1d63ff] text-white text-xs font-bold min-w-[18px] h-[18px] px-1 rounded-full flex items-center justify-center shrink-0">
                             {chat.unreadCount}
                           </span>
@@ -136,11 +163,11 @@ export const MessagesDashboard: React.FC = () => {
                       </div>
 
                       <p className="text-xs text-slate-600 mt-1.5 line-clamp-2 leading-relaxed">
-                        {chat.lastMessage}
+                        {chat.lastMessage || "No messages yet"}
                       </p>
-                      
+
                       <span className="text-[10px] text-slate-400 block mt-1 font-mono">
-                        {chat.timestamp}
+                        {new Date(chat.lastMessageAt).toLocaleString()}
                       </span>
                     </div>
                   </button>
@@ -155,32 +182,123 @@ export const MessagesDashboard: React.FC = () => {
         </aside>
 
         {/* Right Main Panel: Workspace View */}
-        <main className="flex-1 bg-white flex flex-col items-center justify-center p-8 select-none">
-          <div className="text-center max-w-sm flex flex-col items-center">
-            {/* Minimalist Dialogue Bubble Icon */}
-            <div className="text-slate-300 mb-4 transform scale-[2.5]">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                strokeWidth="1"
-                stroke="currentColor"
-                className="w-12 h-12"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M12 20.25c4.97 0 9-3.694 9-8.25s-4.03-8.25-9-8.25S3 7.444 3 12c0 2.104.859 4.023 2.273 5.48.432.447.74 1.04.586 1.641a4.483 4.483 0 01-.923 1.785 4.5 4.5 0 003.23-.74c.504-.316 1.137-.36 1.7-.168A8.825 8.825 0 0012 20.25z"
-                />
-              </svg>
+        {selectedConversation ? (
+          <ConversationPanel
+            key={selectedConversation.id}
+            conversationId={selectedConversation.id}
+            viewerRole={VIEWER_ROLE}
+            viewerName={VIEWER_NAME}
+            title={selectedConversation.participantName}
+            subtitle={selectedConversation.participantRole}
+            onMessageSent={refreshConversations}
+            getMessages={getMessages}
+            markConversationRead={markConversationRead}
+            sendMessage={sendMessage}
+          />
+        ) : (
+          <main className="flex-1 bg-white flex flex-col items-center justify-center p-8 select-none">
+            <div className="text-center max-w-sm flex flex-col items-center">
+              {/* Minimalist Dialogue Bubble Icon */}
+              <div className="text-slate-300 mb-4 transform scale-[2.5]">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth="1"
+                  stroke="currentColor"
+                  className="w-12 h-12"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M12 20.25c4.97 0 9-3.694 9-8.25s-4.03-8.25-9-8.25S3 7.444 3 12c0 2.104.859 4.023 2.273 5.48.432.447.74 1.04.586 1.641a4.483 4.483 0 01-.923 1.785 4.5 4.5 0 003.23-.74c.504-.316 1.137-.36 1.7-.168A8.825 8.825 0 0012 20.25z"
+                  />
+                </svg>
+              </div>
+              <p className="text-slate-500 font-medium text-[15px]">
+                Select a conversation to start messaging
+              </p>
             </div>
-            <p className="text-slate-500 font-medium text-[15px]">
-              Select a conversation to start messaging
-            </p>
-          </div>
-        </main>
+          </main>
+        )}
 
       </div>
+
+      {/* NEW MESSAGE MODAL */}
+      {isNewMessageOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+          <div className="bg-white w-full max-w-md p-6 rounded-2xl shadow-xl border border-slate-100 space-y-4">
+            <div className="flex items-start justify-between">
+              <div>
+                <h3 className="text-lg font-bold text-slate-900">New Message</h3>
+                <p className="text-xs text-slate-500">Start a conversation with a student, faculty member, or parent</p>
+              </div>
+              <button
+                onClick={() => setIsNewMessageOpen(false)}
+                className="text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg p-1.5 transition"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <form onSubmit={handleStartConversation} className="space-y-4">
+              <div className="space-y-1">
+                <label className="text-xs font-semibold text-slate-700">Recipient Name</label>
+                <input
+                  type="text"
+                  required
+                  value={newName}
+                  onChange={(e) => setNewName(e.target.value)}
+                  placeholder="e.g., Kurt Aquino"
+                  className="w-full text-sm bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 focus:outline-none"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-xs font-semibold text-slate-700">Recipient Role</label>
+                <select
+                  value={newRole}
+                  onChange={(e) => setNewRole(e.target.value as 'Student' | 'Faculty' | 'Parent')}
+                  className="w-full text-sm bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 focus:outline-none"
+                >
+                  <option value="Student">Student</option>
+                  <option value="Faculty">Faculty</option>
+                  <option value="Parent">Parent</option>
+                </select>
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-xs font-semibold text-slate-700">Message</label>
+                <textarea
+                  required
+                  rows={3}
+                  value={newContent}
+                  onChange={(e) => setNewContent(e.target.value)}
+                  placeholder="Write your first message..."
+                  className="w-full text-sm bg-slate-50 border border-slate-200 rounded-xl p-3 focus:outline-none resize-none"
+                />
+              </div>
+
+              <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setIsNewMessageOpen(false)}
+                  className="px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 rounded-xl transition"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isStarting}
+                  className="px-5 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 rounded-xl transition"
+                >
+                  {isStarting ? "Sending..." : "Send Message"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

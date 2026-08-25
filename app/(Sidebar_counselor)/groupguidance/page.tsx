@@ -1,8 +1,110 @@
 "use client";
 
+import { useEffect, useState } from 'react';
 import { Users, Calendar, Download, Send, BarChart3 } from 'lucide-react';
+import { GRADE_LEVELS } from '../../config/gradeLevels';
+import { getGroupGuidancePrograms, addGroupGuidanceProgram } from '../../action/counselor';
+
+interface Program {
+  id: string;
+  title: string;
+  gradeLevel: string;
+  date: string;
+  time: string;
+  participants: number;
+}
+
+// Local (not UTC) YYYY-MM-DD — avoids comparisons rolling back a day near midnight in timezones behind UTC
+function toDateString(date: Date): string {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+}
+
+function getProgramStatus(dateString: string): "Completed" | "Upcoming" {
+  return dateString < toDateString(new Date()) ? "Completed" : "Upcoming";
+}
+
+function getMinSelectableDate(): string {
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  return toDateString(tomorrow);
+}
 
 const GroupGuidance = () => {
+  const minSelectableDate = getMinSelectableDate();
+  const [programs, setPrograms] = useState<Program[]>([]);
+
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [title, setTitle] = useState("");
+  const [gradeLevel, setGradeLevel] = useState<string>(GRADE_LEVELS[0]);
+  const [date, setDate] = useState(minSelectableDate);
+  const [time, setTime] = useState("");
+
+  const refreshPrograms = async () => {
+    const data = await getGroupGuidancePrograms();
+    setPrograms(
+      data.map((p) => ({
+        id: p.id,
+        title: p.title,
+        gradeLevel: p.gradeLevel,
+        date: toDateString(new Date(p.date)),
+        time: p.time,
+        participants: p.participants,
+      }))
+    );
+  };
+
+  useEffect(() => {
+    let cancelled = false;
+
+    (async () => {
+      const data = await getGroupGuidancePrograms();
+      if (cancelled) return;
+      setPrograms(
+        data.map((p) => ({
+          id: p.id,
+          title: p.title,
+          gradeLevel: p.gradeLevel,
+          date: toDateString(new Date(p.date)),
+          time: p.time,
+          participants: p.participants,
+        }))
+      );
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const handleNewProgram = () => {
+    setTitle("");
+    setGradeLevel(GRADE_LEVELS[0]);
+    setDate(minSelectableDate);
+    setTime("");
+    setIsModalOpen(true);
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSaving(true);
+
+    const result = await addGroupGuidanceProgram({
+      title,
+      gradeLevel,
+      dateString: date,
+      time,
+    });
+
+    setIsSaving(false);
+    if (result.success) {
+      setIsModalOpen(false);
+      await refreshPrograms();
+    } else {
+      alert(`Database Error: ${result.error || "Failed to save program"}`);
+    }
+  };
+
   return (
     <div className="p-8 bg-slate-50 min-h-screen font-sans text-slate-900">
       {/* Header */}
@@ -12,40 +114,40 @@ const GroupGuidance = () => {
       </header>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        
+
         {/* Left Column: Guidance Programs */}
         <div className="lg:col-span-7 space-y-6">
           <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm min-h-125">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-lg font-bold">Guidance Programs</h2>
-              <button className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-blue-700 transition-colors">
+              <button
+                onClick={handleNewProgram}
+                className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-blue-700 transition-colors"
+              >
                 New Program
               </button>
             </div>
 
-            <div className="space-y-4">
-              <ProgramCard 
-                title="Mental Health Awareness" 
-                grade="Grade 11" 
-                participants="156" 
-                date="2026-04-15" 
-                status="Completed" 
-              />
-              <ProgramCard 
-                title="Study Skills Workshop" 
-                grade="Grade 12" 
-                participants="142" 
-                date="2026-04-22" 
-                status="Completed" 
-              />
-              <ProgramCard 
-                title="Anti-Bullying Campaign" 
-                grade="All Grades" 
-                participants="487" 
-                date="2026-05-05" 
-                status="Upcoming" 
-              />
-            </div>
+            {programs.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-20 border-2 border-dashed border-slate-100 rounded-2xl bg-slate-50/40">
+                <span className="text-3xl mb-2">📋</span>
+                <p className="text-sm font-semibold text-slate-500">No guidance programs scheduled yet</p>
+                <p className="text-xs text-slate-400">Click &quot;New Program&quot; to schedule one</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {programs.map((program) => (
+                  <ProgramCard
+                    key={program.id}
+                    title={program.title}
+                    grade={program.gradeLevel}
+                    participants={program.participants}
+                    date={program.date}
+                    status={getProgramStatus(program.date)}
+                  />
+                ))}
+              </div>
+            )}
           </div>
         </div>
 
@@ -62,16 +164,12 @@ const GroupGuidance = () => {
 
             <div className="mb-8">
               <p className="text-xs text-slate-500 font-medium">Total Responses</p>
-              <p className="text-3xl font-bold">487</p>
+              <p className="text-3xl font-bold">0</p>
             </div>
 
-            <div className="space-y-5 mb-8">
-              <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Top Student Concerns:</p>
-              <ProgressBar label="Academic Stress" percentage={68} count={331} />
-              <ProgressBar label="Career Uncertainty" percentage={54} count={263} />
-              <ProgressBar label="Peer Relationships" percentage={42} count={205} />
-              <ProgressBar label="Family Issues" percentage={28} count={136} />
-              <ProgressBar label="Mental Health" percentage={35} count={170} />
+            <div className="flex flex-col items-center justify-center py-10 mb-8 border-2 border-dashed border-slate-100 rounded-2xl bg-slate-50/40">
+              <p className="text-sm font-semibold text-slate-500">No assessment responses yet</p>
+              <p className="text-xs text-slate-400 text-center px-4">Send an assessment form to start collecting student concerns</p>
             </div>
 
             <button className="w-full flex items-center justify-center gap-2 bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors shadow-md">
@@ -81,7 +179,7 @@ const GroupGuidance = () => {
           </div>
         </div>
 
-        {/* Bottom Section: Timeline Placeholder (Second Screenshot) */}
+        {/* Bottom Section: Timeline Placeholder */}
         <div className="lg:col-span-12">
           <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
             <div className="p-4 border-b border-slate-100 bg-white">
@@ -94,12 +192,102 @@ const GroupGuidance = () => {
           </div>
         </div>
       </div>
+
+      {/* NEW PROGRAM MODAL */}
+      {isModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+          <div className="bg-white w-full max-w-md p-6 rounded-2xl shadow-xl border border-slate-100 space-y-4">
+            <div>
+              <h3 className="text-lg font-bold text-slate-900">Group Guidance</h3>
+              <p className="text-xs text-slate-500">Schedule a new group guidance program</p>
+            </div>
+
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="space-y-1">
+                <label className="text-xs font-semibold text-slate-700">Program Title</label>
+                <input
+                  type="text"
+                  required
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  placeholder="e.g., Mental Health Awareness"
+                  className="w-full text-sm bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 focus:outline-none"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-xs font-semibold text-slate-700">Grade Level</label>
+                <select
+                  value={gradeLevel}
+                  onChange={(e) => setGradeLevel(e.target.value)}
+                  className="w-full text-sm bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 focus:outline-none"
+                >
+                  {GRADE_LEVELS.map((level) => (
+                    <option key={level} value={level}>{level}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <label className="text-xs font-semibold text-slate-700">Date</label>
+                  <input
+                    type="date"
+                    required
+                    value={date}
+                    min={minSelectableDate}
+                    onChange={(e) => {
+                      if (e.target.value >= minSelectableDate) {
+                        setDate(e.target.value);
+                      }
+                    }}
+                    className="w-full text-sm bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 focus:outline-none"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-xs font-semibold text-slate-700">Time</label>
+                  <input
+                    type="time"
+                    required
+                    value={time}
+                    onChange={(e) => setTime(e.target.value)}
+                    className="w-full text-sm bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setIsModalOpen(false)}
+                  className="px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 rounded-xl transition"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSaving}
+                  className="px-5 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 rounded-xl transition"
+                >
+                  {isSaving ? "Saving..." : "Schedule Program"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
 
 /* Sub-component for Program Cards */
-const ProgramCard = ({ title, grade, participants, date, status }: any) => (
+const ProgramCard = ({ title, grade, participants, date, status }: {
+  title: string;
+  grade: string;
+  participants: number;
+  date: string;
+  status: "Completed" | "Upcoming";
+}) => (
   <div className="p-5 border border-slate-100 rounded-xl hover:border-blue-100 hover:bg-blue-50/20 transition-all group">
     <div className="flex justify-between items-start mb-2">
       <h3 className="font-bold text-slate-800">{title}</h3>
@@ -121,22 +309,6 @@ const ProgramCard = ({ title, grade, participants, date, status }: any) => (
     <button className="text-blue-600 bg-blue-50 px-3 py-1.5 rounded-md text-xs font-bold hover:bg-blue-100 transition-colors">
       View Details
     </button>
-  </div>
-);
-
-/* Sub-component for Assessment Progress Bars */
-const ProgressBar = ({ label, percentage, count }: any) => (
-  <div className="space-y-1.5">
-    <div className="flex justify-between text-xs font-medium">
-      <span className="text-slate-700">{label}</span>
-      <span className="text-slate-500">{percentage}% ({count})</span>
-    </div>
-    <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-      <div 
-        className="bg-blue-600 h-full rounded-full transition-all duration-1000" 
-        style={{ width: `${percentage}%` }}
-      />
-    </div>
   </div>
 );
 
