@@ -1,9 +1,9 @@
 "use client";
 
-import React from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LogOut } from 'lucide-react';
+import { LogOut, Menu, X } from 'lucide-react';
 import { navigationConfig, MenuItem } from "../app/config/navigation";; // Adjust this path if your config is located elsewhere
 import { logout } from "../app/action/auth";
 
@@ -14,15 +14,55 @@ interface SidebarProps {
 
 export const Sidebar: React.FC<SidebarProps> = ({ role }) => {
   const pathname = usePathname();
-  
+  const [isOpen, setIsOpen] = useState(false);
+  const [lastPathname, setLastPathname] = useState(pathname);
+
   // Safely fallback to an empty array if the role isn't found
   const menuItems = navigationConfig[role] || [];
 
+  // Close the mobile menu automatically whenever the route changes
+  if (pathname !== lastPathname) {
+    setLastPathname(pathname);
+    setIsOpen(false);
+  }
+
   return (
-    <aside className="w-64 h-screen bg-white border-r border-slate-100 flex flex-col fixed left-0 top-0 z-50 font-sans antialiased">
+    <>
+      {/* Mobile top bar: shown only below md, hosts the menu toggle */}
+      <div className="md:hidden fixed top-0 left-0 right-0 h-14 bg-white border-b border-slate-100 flex items-center px-4 z-40">
+        <button
+          onClick={() => setIsOpen(true)}
+          className="p-2 -ml-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors"
+          aria-label="Open menu"
+        >
+          <Menu size={22} />
+        </button>
+        <span className="ml-3 font-bold text-slate-800">E-Gabay STI</span>
+      </div>
+
+      {/* Backdrop, mobile only, closes the menu on click */}
+      {isOpen && (
+        <div
+          className="md:hidden fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50"
+          onClick={() => setIsOpen(false)}
+        />
+      )}
+
+      <aside
+        className={`w-64 h-screen bg-white border-r border-slate-100 flex flex-col fixed left-0 top-0 z-50 font-sans antialiased transition-transform duration-300 ease-in-out md:translate-x-0 ${
+          isOpen ? 'translate-x-0' : '-translate-x-full'
+        }`}
+      >
       {/* Platform Branding Header */}
-      <div className="p-6 border-b border-slate-50 flex items-center gap-3">
+      <div className="p-6 border-b border-slate-50 flex items-center justify-between gap-3">
         <span className="font-bold text-lg text-slate-800">E-Gabay STI</span>
+        <button
+          onClick={() => setIsOpen(false)}
+          className="md:hidden p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-50 rounded-lg transition-colors"
+          aria-label="Close menu"
+        >
+          <X size={20} />
+        </button>
       </div>
 
       {/* Dynamic Menu Items */}
@@ -67,6 +107,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ role }) => {
           <span>Log Out</span>
         </button>
       </div>
-    </aside>
+      </aside>
+    </>
   );
 };

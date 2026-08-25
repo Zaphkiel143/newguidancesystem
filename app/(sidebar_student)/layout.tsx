@@ -9,7 +9,7 @@ export default async function StudentLayout({ children }: { children: React.Reac
       {/* Pass the specific role property here */}
       <Sidebar role="student" /> 
       
-      <main className="flex-1 pl-64">
+      <main className="flex-1 pt-14 md:pt-0 md:pl-64">
         {children}
       </main>
     </div>
