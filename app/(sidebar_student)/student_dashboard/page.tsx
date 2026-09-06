@@ -63,7 +63,7 @@ export const DashboardContent: React.FC = () => {
     { id: 'book', label: 'Book Appointment', icon: <Calendar size={20} />, iconBg: 'bg-[#1d63ff]', path: '/my_appointments' },
     { id: 'profile', label: 'View My Profile', icon: <FileText size={20} />, iconBg: 'bg-[#00c853]', path: '/profile' },
     { id: 'refer', label: 'Refer a Student', icon: <Send size={20} />, iconBg: 'bg-[#ff2b3d]', path: '/refer_student' },
-    { id: 'chat', label: 'Chat with E-Gabay', icon: <MessageSquare size={20} />, iconBg: 'bg-[#ff7d00]', path: '/my_messages' },
+    { id: 'chat', label: 'Chat with E-Gabay', icon: <MessageSquare size={20} />, iconBg: 'bg-[#ff7d00]', path: '/ai_chat' },
   ];
 
   const metricCards: MetricCard[] = [

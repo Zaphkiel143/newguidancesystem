@@ -1,0 +1,262 @@
+{
+  "intents": [
+    {
+      "tag": "greeting",
+      "patterns_en": [
+        "hi", "hello", "hey", "good morning", "good afternoon", "good evening",
+        "is anyone there", "hey there", "yo", "hiya", "hello there", "what's up"
+      ],
+      "patterns_tl": [
+        "kumusta", "kamusta", "musta", "kumusta ka", "hoy", "hi po",
+        "magandang umaga", "magandang hapon", "magandang gabi", "kamusta po"
+      ],
+      "responses_en": [
+        "Hi there! I'm E-Gabay. How are you feeling today?",
+        "Hello! What's on your mind?",
+        "Hey! I'm here if you want to talk about anything."
+      ],
+      "responses_tl": [
+        "Kumusta! Ako si E-Gabay. Kamusta ang pakiramdam mo ngayon?",
+        "Hi! Ano ang nasa isip mo?",
+        "Kumusta! Nandito ako kung gusto mong mag-usap."
+      ]
+    },
+    {
+      "tag": "goodbye",
+      "patterns_en": [
+        "bye", "goodbye", "see you later", "talk to you later", "i have to go",
+        "gotta go", "see ya", "i'm leaving now", "bye bye"
+      ],
+      "patterns_tl": [
+        "paalam", "sige bye", "aalis na ako", "kita na lang tayo ulit", "babay",
+        "sige po salamat aalis na ako", "aalis na po ako"
+      ],
+      "responses_en": [
+        "Take care! I'm here whenever you need to talk.",
+        "Goodbye! Remember, your counselor is always available too.",
+        "See you! Take care of yourself."
+      ],
+      "responses_tl": [
+        "Ingat! Nandito ako kapag kailangan mo ng kausap.",
+        "Paalam! Tandaan mo, available din ang counselor mo.",
+        "Ingat ka lagi!"
+      ]
+    },
+    {
+      "tag": "thanks",
+      "patterns_en": [
+        "thanks", "thank you", "that helps", "appreciate it", "thanks a lot",
+        "thank you so much", "that was helpful"
+      ],
+      "patterns_tl": [
+        "salamat", "maraming salamat", "salamat po", "nakatulong yan",
+        "thank you po", "salamat talaga"
+      ],
+      "responses_en": [
+        "You're welcome! I'm glad I could help.",
+        "Anytime! Take care of yourself.",
+        "Happy to help. Is there anything else on your mind?"
+      ],
+      "responses_tl": [
+        "Walang anuman! Masaya akong nakatulong.",
+        "Anytime! Ingatan mo ang sarili mo.",
+        "Walang anuman. May iba ka pa bang gustong pag-usapan?"
+      ]
+    },
+    {
+      "tag": "exam_stress",
+      "patterns_en": [
+        "i'm stressed about exams", "i have a test coming up and i'm scared",
+        "i'm anxious about my exams", "finals are stressing me out",
+        "i can't focus on studying", "i'm scared i'll fail my exam",
+        "too much pressure with exams", "i'm nervous about my upcoming test",
+        "exams are making me so anxious", "i can't stop worrying about my grades"
+      ],
+      "patterns_tl": [
+        "kinakabahan ako sa exam", "stress na stress ako sa exam",
+        "takot ako baka bumagsak ako", "hindi ako makapag-focus mag-aral",
+        "malapit na ang finals at kinakabahan ako", "ang bigat ng pressure sa exam",
+        "kinakabahan ako sa test bukas", "takot akong mag-exam"
+      ],
+      "responses_en": [
+        "Exam stress is really common — try breaking your study sessions into smaller chunks with breaks in between. Would you like some study tips?",
+        "It's okay to feel anxious before exams. Try to get enough sleep and take breaks — your brain needs rest to retain information. Want to talk more about what's worrying you?",
+        "That sounds stressful. Remember that one exam doesn't define you. Have you talked to your teachers about how you're feeling?"
+      ],
+      "responses_tl": [
+        "Normal lang ang mararamdaman mong kabado bago mag-exam. Subukan mong hatiin ang pag-aaral mo sa maiikling bahagi na may pahinga sa gitna. Gusto mo ba ng tips sa pag-aaral?",
+        "Okay lang na mag-alala, pero siguraduhin mong sapat ang tulog mo. Kailangan ding magpahinga ang utak para matandaan ang mga aralin. Gusto mo bang pag-usapan kung ano talaga ang ikinakaba mo?",
+        "Naiintindihan ko na stressful iyan. Tandaan mo, hindi ka masusukat ng isang exam lang. Nakausap mo na ba ang teacher mo tungkol dito?"
+      ]
+    },
+    {
+      "tag": "time_management",
+      "patterns_en": [
+        "i can't manage my time", "i have too much homework",
+        "i'm overwhelmed with school work", "i don't know how to balance everything",
+        "i keep procrastinating", "there's too much to do and not enough time",
+        "i'm behind on all my requirements", "i can't keep up with deadlines"
+      ],
+      "patterns_tl": [
+        "ang dami kong gawain hindi ko kaya", "hirap ako mag-manage ng oras",
+        "sobrang dami kong homework", "lagi akong naiiwan sa deadline",
+        "palagi akong nagpaplano pero hindi ko nagagawa", "di ko na alam paano aabutan lahat"
+      ],
+      "responses_en": [
+        "Try making a simple daily schedule and prioritizing your top 3 tasks each day. Small steps really help!",
+        "Procrastination happens to everyone. Try the 'just 5 minutes' trick — start a task for just 5 minutes and often you'll keep going.",
+        "Breaking big tasks into smaller ones can make things feel less overwhelming. Want some tips on organizing your schedule?"
+      ],
+      "responses_tl": [
+        "Subukan mong gumawa ng simpleng schedule at unahin ang tatlong pinaka-importanteng gawain kada araw. Malaking tulong iyan!",
+        "Normal lang ang mag-procrastinate paminsan-minsan. Subukan mong gawin ang gawain nang 5 minuto lang muna — kadalasan, magpapatuloy ka na.",
+        "Kapag hinati mo ang malaking gawain sa maliliit na bahagi, mas magaan ang pakiramdam. Gusto mo ba ng tips sa pag-oorganisa ng schedule mo?"
+      ]
+    },
+    {
+      "tag": "bullying",
+      "patterns_en": [
+        "someone is bullying me", "i'm being bullied at school",
+        "classmates are picking on me", "i'm being teased a lot",
+        "people are being mean to me at school", "i'm getting bullied online",
+        "my classmates keep making fun of me", "i'm scared to go to school because of bullies"
+      ],
+      "patterns_tl": [
+        "may nambubully sa akin", "binu-bully ako sa school",
+        "pinagtatawanan ako ng mga kaklase ko", "may naninira sa akin sa school",
+        "takot akong pumasok dahil may bully", "sinisiraan ako ng mga kaklase ko"
+      ],
+      "responses_en": [
+        "I'm really sorry you're going through that. Bullying is never okay, and you don't have to handle it alone. Please consider talking to your guidance counselor or a trusted teacher about this.",
+        "That sounds really hard. You deserve to feel safe at school. I'd strongly encourage you to report this to your counselor — would you like help reaching out to them?"
+      ],
+      "responses_tl": [
+        "Pasensya na talaga na dumaranas ka niyan. Hindi dapat pinapayagan ang bullying, at hindi mo kailangang harapin ito nang mag-isa. Pag-isipan mong kausapin ang guidance counselor o isang gurong pinagkakatiwalaan mo.",
+        "Mahirap talaga iyan. Dapat ligtas ang pakiramdam mo sa school. Hinihikayat kitang i-report ito sa counselor mo — gusto mo bang tulungan kitang makipag-usap sa kanila?"
+      ]
+    },
+    {
+      "tag": "family_problems",
+      "patterns_en": [
+        "my parents are fighting a lot", "things are hard at home",
+        "my family doesn't understand me", "i'm having problems with my parents",
+        "there's a lot of stress at home", "my parents are getting a divorce",
+        "i don't get along with my family", "home doesn't feel safe"
+      ],
+      "patterns_tl": [
+        "lagi nag-aaway magulang ko", "hirap sa bahay ngayon",
+        "hindi ako naiintindihan ng pamilya ko", "may problema ako sa magulang ko",
+        "sobrang stress sa bahay", "hindi ako sang-ayon sa magulang ko"
+      ],
+      "responses_en": [
+        "Family struggles can be really tough to deal with. I'm here to listen. Have you considered talking to your guidance counselor about this too? They can offer more support.",
+        "That sounds difficult. You're not alone in this — your school counselor is a safe person to talk to if you'd like more support."
+      ],
+      "responses_tl": [
+        "Talagang mahirap harapin ang mga problema sa pamilya. Nandito ako para makinig. Pag-isipan mo ring kausapin ang guidance counselor mo para sa dagdag na suporta.",
+        "Mahirap iyan. Hindi ka nag-iisa dito — ang counselor ng school mo ay ligtas na taong pwede mong kausapin kung gusto mo ng dagdag na tulong."
+      ]
+    },
+    {
+      "tag": "friendship_issues",
+      "patterns_en": [
+        "i had a fight with my friend", "my friends are ignoring me",
+        "i feel lonely at school", "i don't have many friends",
+        "my best friend and i aren't talking anymore", "my friend group excluded me",
+        "i feel left out by my friends"
+      ],
+      "patterns_tl": [
+        "nag-away kami ng friend ko", "iniiwasan ako ng mga kaibigan ko",
+        "nalulungkot ako sa school", "wala akong masyadong kaibigan",
+        "hindi na kami magkausap ng best friend ko", "hindi ako sinasali ng barkada ko"
+      ],
+      "responses_en": [
+        "Friendship troubles can really hurt. Do you want to talk about what happened?",
+        "Feeling lonely at school is hard. Sometimes joining a club or activity can help you meet new people who share your interests."
+      ],
+      "responses_tl": [
+        "Mahirap talaga ang problema sa friendship. Gusto mo bang ikwento kung ano ang nangyari?",
+        "Mahirap ang mapag-isa sa school. Minsan makakatulong ang pagsali sa isang club o activity para makakilala ka ng bagong kaibigan na may parehong interes."
+      ]
+    },
+    {
+      "tag": "career_question",
+      "patterns_en": [
+        "i don't know what course to take in college", "what career should i choose",
+        "i'm confused about my future", "what strand should i pick",
+        "i need help planning my career", "i don't know what i want to do after graduation",
+        "how do i choose the right college course"
+      ],
+      "patterns_tl": [
+        "hindi ko alam kung anong course kukunin", "ano bang course ang bagay sa akin",
+        "nalilito ako sa future ko", "anong strand ang dapat kong kunin",
+        "kailangan ko ng tulong sa pagpaplano ng career ko", "di ko alam gagawin ko pagtapos"
+      ],
+      "responses_en": [
+        "That's a big decision! Our Career Guidance program can help you explore your interests and strengths. Would you like to talk to your counselor about a career assessment?",
+        "It's completely normal to feel unsure about your future. Think about what subjects you enjoy most, and consider booking an appointment with your counselor to explore your options."
+      ],
+      "responses_tl": [
+        "Malaking desisyon iyan! Matutulungan ka ng Career Guidance program namin na alamin ang interes at lakas mo. Gusto mo bang kausapin ang counselor mo para sa career assessment?",
+        "Normal lang na hindi sigurado sa future. Isipin mo kung anong subjects ang pinaka-gusto mong pag-aralan, at pag-isipan mong mag-book ng appointment sa counselor mo para matulungan kang alamin ang mga options mo."
+      ]
+    },
+    {
+      "tag": "self_esteem",
+      "patterns_en": [
+        "i don't feel good enough", "i feel like a failure", "i hate myself",
+        "i'm not smart enough", "i feel worthless", "i feel like i'm not good at anything",
+        "i always feel like i disappoint everyone"
+      ],
+      "patterns_tl": [
+        "parang wala akong kwenta", "pakiramdam ko palpak ako",
+        "ayoko na sa sarili ko", "parang hindi ako sapat",
+        "wala akong halaga", "pakiramdam ko lagi akong nakakadismaya"
+      ],
+      "responses_en": [
+        "I'm really sorry you're feeling this way. You matter, and these feelings, while very real, don't define your worth. Please consider talking to your guidance counselor — they can offer real support.",
+        "That sounds really painful to carry. You're not alone, and it might really help to talk to your counselor or someone you trust about how you've been feeling."
+      ],
+      "responses_tl": [
+        "Pasensya na talaga na ganito ang nararamdaman mo. Mahalaga ka, at ang mga nararamdaman mong ito, kahit totoo, ay hindi sumusukat sa halaga mo bilang tao. Pag-isipan mong kausapin ang guidance counselor mo — may tunay silang maibibigay na suporta.",
+        "Mabigat talagang dalhin iyan. Hindi ka nag-iisa, at makakatulong talaga kung kakausapin mo ang counselor mo o isang taong pinagkakatiwalaan mo tungkol dito."
+      ]
+    },
+    {
+      "tag": "crisis",
+      "patterns_en": [
+        "i want to hurt myself", "i don't want to live anymore",
+        "i want to kill myself", "i'm thinking about suicide",
+        "i want to end my life", "i've been cutting myself",
+        "life isn't worth living", "i don't want to be alive anymore"
+      ],
+      "patterns_tl": [
+        "gusto kong magpakamatay", "ayoko na mabuhay",
+        "gusto kong saktan ang sarili ko", "papatayin ko na lang sarili ko",
+        "wala nang saysay ang buhay", "gusto ko nang mamatay",
+        "sinasaktan ko ang sarili ko"
+      ],
+      "responses_en": [
+        "I'm really concerned about what you just shared, and your safety matters most right now. Please reach out immediately to a trusted adult, your guidance counselor, or a parent/guardian. If you're in immediate danger, please contact emergency services right away. You don't have to go through this alone."
+      ],
+      "responses_tl": [
+        "Lubos akong nag-aalala sa sinabi mo, at ang kaligtasan mo ang pinakamahalaga ngayon. Mangyaring makipag-usap agad sa isang taong may tiwala mo, sa guidance counselor mo, o sa magulang/guardian mo. Kung nasa agarang panganib ka, mangyaring tumawag agad sa emergency services. Hindi mo kailangang harapin ito nang mag-isa."
+      ]
+    },
+    {
+      "tag": "fallback",
+      "patterns_en": [],
+      "patterns_tl": [],
+      "responses_en": [
+        "I'm not totally sure I understand — could you tell me a bit more about what's going on?",
+        "I want to make sure I understand you correctly. Could you rephrase that?",
+        "I'm still learning! Could you say that in a different way, or would you like to talk to your guidance counselor directly about this?"
+      ],
+      "responses_tl": [
+        "Hindi ko lubos na naintindihan — pwede mo bang ipaliwanag pa nang kaunti?",
+        "Gusto kong masiguradong naiintindihan kita nang tama. Pwede mo bang sabihin ulit sa ibang paraan?",
+        "Marami pa akong kailangang matutunan! Pwede mo bang sabihin sa ibang paraan, o gusto mo na lang kausapin agad ang guidance counselor mo tungkol dito?"
+      ]
+    }
+  ]
+}

@@ -8,8 +8,9 @@ FileText,
 Users,          
 Archive,        
 User,         
-Baby,           
-Compass,        
+Baby,
+Compass,
+Sparkles,
 LucideIcon
 } from 'lucide-react';
 
@@ -50,6 +51,7 @@ parent: [
 
 student: [
     { name: 'Dashboard', icon: LayoutDashboard, path: '/student_dashboard' },
+    { name: 'Chat with E-Gabay', icon: Sparkles, path: '/ai_chat' },
     { name: 'My Appointments', icon: Calendar, path: '/my_appointments' },
     { name: 'My Messages', icon: MessageSquare, path: '/my_messages' },
     { name: 'Profile', icon: User, path: '/profile' },

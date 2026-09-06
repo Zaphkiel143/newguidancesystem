@@ -44,3 +44,8 @@ next-env.d.ts
 
 .vercel
 .env*
+
+# nlp_service (Python)
+nlp_service/.venv
+nlp_service/__pycache__
+nlp_service/model/*.joblib

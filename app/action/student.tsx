@@ -2,6 +2,7 @@
 
 import db from "../../lib/db";
 import { revalidatePath } from "next/cache";
+import { getNlpReply } from "../../lib/nlp";
 
 // ---- Appointments ----
 
@@ -152,6 +153,49 @@ export async function submitReferral(formData: {
     return { success: true };
   } catch (error) {
     console.error("[student] Failed to submit referral:", error);
+    return { success: false, error: String(error) };
+  }
+}
+
+// ---- AI Assistant (E-Gabay) ----
+
+export async function getMyAiConversation(studentName: string) {
+  try {
+    const existing = await db.aiConversation.findUnique({
+      where: { studentName },
+      include: { messages: { orderBy: { createdAt: "asc" } } },
+    });
+    if (existing) return existing;
+
+    return await db.aiConversation.create({
+      data: { studentName },
+      include: { messages: { orderBy: { createdAt: "asc" } } },
+    });
+  } catch (error) {
+    console.error("[student] Failed to get or create AI conversation:", error);
+    return null;
+  }
+}
+
+export async function sendAiMessage(formData: { conversationId: string; content: string }) {
+  try {
+    await db.aiMessage.create({
+      data: { conversationId: formData.conversationId, role: "user", content: formData.content },
+    });
+
+    // The intent classifier is single-turn (no conversation memory needed) -
+    // it just classifies this message and returns a curated response.
+    const reply = await getNlpReply(formData.content);
+
+    const assistantMessage = await db.aiMessage.create({
+      data: { conversationId: formData.conversationId, role: "assistant", content: reply },
+    });
+
+    await db.aiConversation.update({ where: { id: formData.conversationId }, data: { updatedAt: new Date() } });
+
+    return { success: true, message: assistantMessage };
+  } catch (error) {
+    console.error("[student] Failed to send AI message:", error);
     return { success: false, error: String(error) };
   }
 }
