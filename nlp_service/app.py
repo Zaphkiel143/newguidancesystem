@@ -5,6 +5,7 @@ Run after training (see train.py):
 """
 
 import json
+import os
 import random
 from pathlib import Path
 
@@ -43,9 +44,14 @@ CRISIS_KEYWORDS = CRISIS_KEYWORDS_EN + CRISIS_KEYWORDS_TL
 
 app = FastAPI(title="E-Gabay NLP Service")
 
+# Comma-separated list of origins allowed to call this service. Defaults to
+# local dev; set ALLOWED_ORIGINS on the host (e.g. Render) to include the
+# deployed Next.js site's origin.
+ALLOWED_ORIGINS = os.environ.get("ALLOWED_ORIGINS", "http://localhost:3000").split(",")
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
+    allow_origins=ALLOWED_ORIGINS,
     allow_methods=["POST", "GET"],
     allow_headers=["*"],
 )

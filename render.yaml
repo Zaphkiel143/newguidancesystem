@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: egabay-nlp-service
+    runtime: python
+    rootDir: nlp_service
+    plan: free
+    buildCommand: pip install -r requirements.txt && python train.py
+    startCommand: uvicorn app:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: ALLOWED_ORIGINS
+        value: http://localhost:3000,https://guidancesystem-green.vercel.app
