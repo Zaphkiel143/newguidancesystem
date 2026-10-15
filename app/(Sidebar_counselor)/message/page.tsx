@@ -84,10 +84,10 @@ export const MessagesDashboard: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col h-screen bg-white font-sans antialiased text-slate-800">
+    <div className="flex flex-col h-[calc(100dvh-var(--topbar-h))] bg-white font-sans antialiased text-slate-800">
       {/* Header Section */}
       <header className="px-8 pt-6 pb-4 border-b border-slate-100">
-        <h1 className="text-3xl font-bold text-[#0d2343]">Messages</h1>
+        <h1 className="page-title">Messages</h1>
         <p className="text-sm text-slate-500 mt-1">
           Communicate with students, faculty, and parents
         </p>
@@ -115,7 +115,7 @@ export const MessagesDashboard: React.FC = () => {
             {/* New Message Button */}
             <button
               onClick={() => setIsNewMessageOpen(true)}
-              className="w-full flex items-center justify-center gap-2 bg-[#1d63ff] hover:bg-blue-700 text-white font-medium py-2.5 px-4 rounded-lg transition-colors text-sm shadow-sm"
+              className="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 px-4 rounded-lg transition-colors text-sm shadow-sm"
             >
               <MessageSquare className="w-4 h-4 fill-current" />
               <span>New Message</span>
@@ -156,7 +156,7 @@ export const MessagesDashboard: React.FC = () => {
 
                         {/* Unread Pill Indicator */}
                         {chat.unreadCount > 0 && (
-                          <span className="bg-[#1d63ff] text-white text-xs font-bold min-w-[18px] h-[18px] px-1 rounded-full flex items-center justify-center shrink-0">
+                          <span className="bg-blue-600 text-white text-xs font-bold min-w-[18px] h-[18px] px-1 rounded-full flex items-center justify-center shrink-0">
                             {chat.unreadCount}
                           </span>
                         )}

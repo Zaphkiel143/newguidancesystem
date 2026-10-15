@@ -28,8 +28,8 @@ const quickActions: QuickAction[] = [
     title: 'Submit New Referral',
     description: 'Refer a student to the Guidance Office',
     icon: <Send size={20} />,
-    bgClass: 'bg-[#f0f6ff] hover:bg-blue-100/70',
-    textClass: 'text-[#1d63ff]',
+    bgClass: 'bg-blue-50 hover:bg-blue-100/70',
+    textClass: 'text-blue-600',
     path: '/submit_referral',
   },
   {
@@ -37,8 +37,8 @@ const quickActions: QuickAction[] = [
     title: 'Book Appointment',
     description: 'Schedule a meeting with the counselor',
     icon: <Calendar size={20} />,
-    bgClass: 'bg-[#faf5ff] hover:bg-purple-100/70',
-    textClass: 'text-[#a855f7]',
+    bgClass: 'bg-violet-50 hover:bg-purple-100/70',
+    textClass: 'text-violet-500',
     path: '/faculty_appointment',
   },
   {
@@ -46,8 +46,8 @@ const quickActions: QuickAction[] = [
     title: 'Upload Documents',
     description: 'Share files with the Guidance Office',
     icon: <Upload size={20} />,
-    bgClass: 'bg-[#f0fdf4] hover:bg-green-100/70',
-    textClass: 'text-[#00c853]',
+    bgClass: 'bg-emerald-50 hover:bg-green-100/70',
+    textClass: 'text-emerald-600',
     path: '/upload_documents',
   },
   {
@@ -55,7 +55,7 @@ const quickActions: QuickAction[] = [
     title: 'View My Referrals',
     description: 'Track status of submitted referrals',
     icon: <FileText size={20} />,
-    bgClass: 'bg-[#f8fafc] hover:bg-slate-200/60',
+    bgClass: 'bg-slate-50 hover:bg-slate-200/60',
     textClass: 'text-slate-700',
     path: '/faculty_myreferral',
   },
@@ -72,49 +72,65 @@ export const FacultyDashboard = async () => {
       id: 'metric-1',
       title: 'Total Referrals Submitted',
       value: referrals.length,
-      icon: <Send size={18} className="text-white" />,
-      iconBg: 'bg-[#1d63ff]',
+      icon: <Send size={18} />,
+      iconBg: 'bg-blue-50 text-blue-600',
     },
     {
       id: 'metric-2',
       title: 'Pending Review',
       value: referrals.filter((r) => r.status === 'OPEN').length,
-      icon: <Clock size={18} className="text-white" />,
-      iconBg: 'bg-[#ff7a00]',
+      icon: <Clock size={18} />,
+      iconBg: 'bg-orange-50 text-orange-600',
     },
     {
       id: 'metric-3',
       title: 'Resolved',
       value: referrals.filter((r) => r.status === 'CLOSED').length,
-      icon: <CheckCircle2 size={18} className="text-white" />,
-      iconBg: 'bg-[#00c853]',
+      icon: <CheckCircle2 size={18} />,
+      iconBg: 'bg-emerald-50 text-emerald-600',
     },
     {
       id: 'metric-4',
       title: 'My Appointments',
       value: appointments.length,
-      icon: <Calendar size={18} className="text-white" />,
-      iconBg: 'bg-[#a855f7]',
+      icon: <Calendar size={18} />,
+      iconBg: 'bg-violet-50 text-violet-600',
     },
   ];
 
   const recentReferrals = referrals.slice(0, 3);
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto font-sans antialiased text-slate-800">
+    <div className="p-4 sm:p-6 lg:p-8 space-y-6 max-w-7xl mx-auto font-sans antialiased text-slate-800">
+
+      {/* Greeting banner */}
+      <section className="relative overflow-hidden rounded-2xl bg-navy text-white p-6 sm:p-8">
+        <div className="pointer-events-none absolute -top-24 -right-10 w-80 h-80 rounded-full bg-blue-600/40 blur-3xl" />
+        <div className="pointer-events-none absolute -bottom-28 right-40 w-64 h-64 rounded-full bg-gold-400/15 blur-3xl" />
+        <div className="relative flex flex-col md:flex-row md:items-end md:justify-between gap-6">
+          <div>
+            <p className="text-gold-300 text-xs font-bold uppercase tracking-[0.14em]">Faculty portal</p>
+            <h1 className="text-2xl sm:text-[28px] font-extrabold tracking-tight mt-2">Welcome back, {FACULTY_NAME.split(" ")[0]}</h1>
+            <p className="text-white/60 text-sm mt-1.5">Noticed a student who needs support? A referral takes just a minute.</p>
+          </div>
+          <Link href="/submit_referral" className="self-start md:self-auto inline-flex items-center gap-2 bg-gold-400 text-navy font-bold text-sm px-5 py-3 rounded-xl hover:bg-gold-300 transition-colors">
+            <Send size={16} /> Submit a referral
+          </Link>
+        </div>
+      </section>
 
       {/* SECTION 1: Upper Metric Summary Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {metrics.map((m) => (
-          <div key={m.id} className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex flex-col justify-between min-h-[140px] relative overflow-hidden">
+          <div key={m.id} className="bg-white p-5 rounded-2xl border border-slate-200/70 shadow-sm flex flex-col justify-between relative overflow-hidden">
             <div className="flex items-start justify-between">
-              <div className={`${m.iconBg} p-2.5 rounded-xl shadow-sm flex items-center justify-center`}>
+              <div className={`${m.iconBg} w-10 h-10 rounded-xl grid place-items-center`}>
                 {m.icon}
               </div>
             </div>
             <div className="mt-4">
-              <span className="text-3xl font-bold text-slate-900 tracking-tight block">{m.value}</span>
-              <span className="text-xs font-medium text-slate-400 block mt-0.5">{m.title}</span>
+              <span className="text-[28px] font-extrabold text-slate-900 tracking-tight leading-none block">{m.value}</span>
+              <span className="text-[13px] font-medium text-slate-500 block mt-1.5">{m.title}</span>
             </div>
           </div>
         ))}
@@ -180,17 +196,17 @@ export const FacultyDashboard = async () => {
                   {/* Status Badging Blocks */}
                   <div className="shrink-0">
                     {ref.status === 'OPEN' && (
-                      <span className="bg-[#fff1f2] border border-[#ffe4e6] text-[#ff2b3d] text-[11px] font-bold px-2.5 py-0.5 rounded-full">
+                      <span className="bg-rose-50 border border-rose-100 text-rose-500 text-[11px] font-bold px-2.5 py-0.5 rounded-full">
                         Open
                       </span>
                     )}
                     {ref.status === 'IN_PROGRESS' && (
-                      <span className="bg-[#fff7ed] border border-[#ffedd5] text-[#ff7a00] text-[11px] font-bold px-2.5 py-0.5 rounded-full">
+                      <span className="bg-orange-50 border border-orange-100 text-orange-500 text-[11px] font-bold px-2.5 py-0.5 rounded-full">
                         In Progress
                       </span>
                     )}
                     {ref.status === 'CLOSED' && (
-                      <span className="bg-[#e8fbf0] border border-[#bbf7d0] text-[#00c853] text-[11px] font-bold px-2.5 py-0.5 rounded-full">
+                      <span className="bg-emerald-50 border border-emerald-200 text-emerald-600 text-[11px] font-bold px-2.5 py-0.5 rounded-full">
                         Closed
                       </span>
                     )}

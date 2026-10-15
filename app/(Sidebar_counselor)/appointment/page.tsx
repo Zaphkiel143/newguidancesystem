@@ -224,9 +224,9 @@ export default function AppointmentScheduling() {
   };
 
   return (
-    <div className="p-6 max-w-7xl mx-auto bg-transparent text-slate-900">
+    <div className="p-4 sm:p-6 lg:p-8 max-w-7xl text-slate-900">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-slate-900">Appointment Scheduling</h1>
+        <h1 className="page-title">Appointment Scheduling</h1>
         <p className="text-slate-500 text-sm">Manage student appointments and counseling sessions</p>
       </div>
 

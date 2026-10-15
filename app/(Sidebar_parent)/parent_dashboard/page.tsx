@@ -73,11 +73,11 @@ export const ParentBookAppointment: React.FC = () => {
   };
 
   return (
-    <div className="max-w-3xl mx-auto font-sans antialiased text-slate-800 space-y-6">
+    <div className="p-4 sm:p-6 lg:p-8 max-w-3xl mx-auto font-sans antialiased text-slate-800 space-y-6">
       
       {/* Page Context Branding Header */}
       <div>
-        <h1 className="text-3xl font-bold text-blue-900 tracking-tight">Book Appointment</h1>
+        <h1 className="page-title">Book Appointment</h1>
         <p className="text-sm text-slate-500 font-medium mt-1">
           Schedule a meeting with your child&apos;s guidance counselor
         </p>
@@ -152,7 +152,7 @@ export const ParentBookAppointment: React.FC = () => {
                         ${isTaken
                           ? 'bg-slate-50 border-slate-100 text-slate-300 cursor-not-allowed line-through'
                           : isSelected
-                          ? 'bg-[#1d63ff] border-[#1d63ff] text-white shadow-sm'
+                          ? 'bg-blue-600 border-blue-600 text-white shadow-sm'
                           : 'bg-white border-slate-200 text-slate-700 hover:border-slate-300 hover:bg-slate-50/50'
                         }
                       `}
@@ -211,7 +211,7 @@ export const ParentBookAppointment: React.FC = () => {
 
           {/* Feedback Success Notification */}
           {isSubmitted && (
-            <div className="bg-[#e8fbf0] border border-[#bbf7d0] text-[#00c853] p-4 rounded-xl flex items-center gap-2.5 text-sm font-medium animate-fade-in">
+            <div className="bg-emerald-50 border border-emerald-200 text-emerald-600 p-4 rounded-xl flex items-center gap-2.5 text-sm font-medium animate-fade-in">
               <CheckCircle size={16} className="stroke-[2.5]" />
               <span>{isSubmitted}</span>
             </div>
@@ -227,14 +227,14 @@ export const ParentBookAppointment: React.FC = () => {
           <div className="flex flex-col sm:flex-row items-center justify-end gap-3 pt-3 border-t border-slate-100">
             <button
               type="button"
-              className="w-full sm:w-auto px-8 py-2.5 bg-[#f1f5f9] hover:bg-slate-200 text-slate-800 font-semibold rounded-xl text-sm transition-colors text-center"
+              className="w-full sm:w-auto px-8 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-800 font-semibold rounded-xl text-sm transition-colors text-center"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isSaving}
-              className="w-full sm:w-auto bg-[#1d63ff] hover:bg-blue-700 disabled:bg-blue-400 text-white font-semibold py-2.5 px-8 rounded-xl transition-colors text-sm shadow-sm text-center"
+              className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-semibold py-2.5 px-8 rounded-xl transition-colors text-sm shadow-sm text-center"
             >
               {isSaving ? "Booking..." : "Confirm Booking"}
             </button>

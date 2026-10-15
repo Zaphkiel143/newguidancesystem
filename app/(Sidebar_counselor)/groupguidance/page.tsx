@@ -106,10 +106,10 @@ const GroupGuidance = () => {
   };
 
   return (
-    <div className="p-8 bg-slate-50 min-h-screen font-sans text-slate-900">
+    <div className="p-4 sm:p-6 lg:p-8 min-h-[calc(100dvh-var(--topbar-h))] font-sans text-slate-900">
       {/* Header */}
       <header className="mb-8">
-        <h1 className="text-2xl font-bold">Group Guidance & Needs Assessment</h1>
+        <h1 className="page-title">Group Guidance & Needs Assessment</h1>
         <p className="text-slate-500 text-sm">Plan and track group guidance programs</p>
       </header>
 

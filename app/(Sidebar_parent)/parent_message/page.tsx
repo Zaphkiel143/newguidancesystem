@@ -23,11 +23,11 @@ export const ParentMessagesPage: React.FC = () => {
   }, []);
 
   return (
-    <div className="max-w-7xl mx-auto font-sans antialiased text-slate-800 space-y-6">
+    <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto font-sans antialiased text-slate-800 space-y-6">
 
       {/* Page Heading Section Header */}
       <div>
-        <h1 className="text-3xl font-bold text-blue-900 tracking-tight">Messages</h1>
+        <h1 className="page-title">Messages</h1>
         <p className="text-sm text-slate-500 font-medium mt-1">
           Communicate with the Guidance Office about your child
         </p>

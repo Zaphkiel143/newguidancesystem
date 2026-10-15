@@ -52,11 +52,11 @@ export const ChildProfilePage: React.FC = () => {
   ];
 
   return (
-    <div className="max-w-5xl mx-auto font-sans antialiased text-slate-800 space-y-6">
+    <div className="p-4 sm:p-6 lg:p-8 max-w-5xl mx-auto font-sans antialiased text-slate-800 space-y-6">
       
       {/* Page Context Description Typography */}
       <div>
-        <h1 className="text-3xl font-bold text-blue-900 tracking-tight">Child Profile</h1>
+        <h1 className="page-title">Child Profile</h1>
         <p className="text-sm text-slate-500 font-medium mt-1">
           View your child&apos;s information and guidance progress
         </p>
@@ -66,8 +66,8 @@ export const ChildProfilePage: React.FC = () => {
       <div className="bg-white border border-slate-100 rounded-2xl shadow-sm overflow-hidden">
         
         {/* Top Accent Blue Header Panel banner area */}
-        <div className="bg-[#1d63ff] p-6 flex items-center gap-5 text-white">
-          <div className="w-16 h-16 bg-white text-[#1d63ff] rounded-full flex items-center justify-center shrink-0 shadow-inner">
+        <div className="relative overflow-hidden bg-navy p-6 flex items-center gap-5 text-white bg-[radial-gradient(circle_at_85%_-20%,rgb(58_99_240/0.55),transparent_55%)]">
+          <div className="w-16 h-16 bg-gold-400 text-navy rounded-2xl flex items-center justify-center shrink-0 shadow-lg">
             <User size={32} className="stroke-[2]" />
           </div>
           <div className="space-y-1">
@@ -159,7 +159,7 @@ export const ChildProfilePage: React.FC = () => {
           {guidanceSessions.map((session) => (
             <div 
               key={session.id} 
-              className="bg-[#f8fafc] hover:bg-slate-50 border border-slate-100 rounded-xl p-4 flex flex-col sm:flex-row sm:items-start justify-between gap-3 transition-colors group"
+              className="bg-slate-50 hover:bg-slate-50 border border-slate-100 rounded-xl p-4 flex flex-col sm:flex-row sm:items-start justify-between gap-3 transition-colors group"
             >
               <div className="space-y-1 min-w-0 flex-1">
                 <h4 className="font-bold text-slate-800 text-sm group-hover:text-blue-600 transition-colors flex items-center gap-2">

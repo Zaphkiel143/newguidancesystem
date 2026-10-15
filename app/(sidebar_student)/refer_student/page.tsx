@@ -74,11 +74,11 @@ export const ReferStudentForm: React.FC = () => {
   };
 
   return (
-    <div className="flex-1 bg-[#f8fafc] p-8 overflow-y-auto min-h-screen font-sans antialiased text-slate-800">
+    <div className="p-4 sm:p-6 lg:p-8 min-h-[calc(100dvh-var(--topbar-h))] font-sans antialiased text-slate-800">
       
       {/* 1. Header Section (from image_90f762.png) */}
       <header className="mb-6">
-        <h1 className="text-3xl font-bold text-[#0d2343]">Refer a Student</h1>
+        <h1 className="page-title">Refer a Student</h1>
         <p className="text-sm text-slate-500 mt-1">
           Help a fellow student by referring them to the Guidance Office
         </p>
@@ -88,12 +88,12 @@ export const ReferStudentForm: React.FC = () => {
         
         {/* 2. Informational Banner Blocks (from image_90f762.png) */}
         {/* Blue Info Banner */}
-        <div className="bg-[#f0f6ff] border border-blue-200 text-[#1d63ff] rounded-xl p-4 text-sm leading-relaxed">
+        <div className="bg-blue-50 border border-blue-200 text-blue-600 rounded-xl p-4 text-sm leading-relaxed">
           <span className="font-bold">Peer Support:</span> If you notice a fellow student who may need support, you can refer them to the Guidance Office. All referrals are confidential and will be handled with care.
         </div>
 
         {/* Green Info Banner */}
-        <div className="bg-[#e8fbf0] border border-green-200 text-[#00c853] rounded-xl p-4 text-sm leading-relaxed">
+        <div className="bg-emerald-50 border border-green-200 text-emerald-600 rounded-xl p-4 text-sm leading-relaxed">
           Looking out for each other is an important part of building a supportive school community. Your concern for your peers makes a difference.
         </div>
 
@@ -104,7 +104,7 @@ export const ReferStudentForm: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             <div className="space-y-1.5">
               <label className="text-xs font-bold text-slate-700 block">
-                Student Name <span className="text-[#ff2b3d]">*</span>
+                Student Name <span className="text-rose-500">*</span>
               </label>
               <input
                 type="text"
@@ -118,7 +118,7 @@ export const ReferStudentForm: React.FC = () => {
 
             <div className="space-y-1.5">
               <label className="text-xs font-bold text-slate-700 block">
-                Student ID <span className="text-[#ff2b3d]">*</span>
+                Student ID <span className="text-rose-500">*</span>
               </label>
               <input
                 type="text"
@@ -135,7 +135,7 @@ export const ReferStudentForm: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             <div className="space-y-1.5">
               <label className="text-xs font-bold text-slate-700 block">
-                Grade <span className="text-[#ff2b3d]">*</span>
+                Grade <span className="text-rose-500">*</span>
               </label>
               <div className="relative">
                 <select
@@ -157,7 +157,7 @@ export const ReferStudentForm: React.FC = () => {
 
             <div className="space-y-1.5">
               <label className="text-xs font-bold text-slate-700 block">
-                Section <span className="text-[#ff2b3d]">*</span>
+                Section <span className="text-rose-500">*</span>
               </label>
               <div className="relative">
                 <select
@@ -183,7 +183,7 @@ export const ReferStudentForm: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             <div className="space-y-1.5">
               <label className="text-xs font-bold text-slate-700 block">
-                Type of Concern <span className="text-[#ff2b3d]">*</span>
+                Type of Concern <span className="text-rose-500">*</span>
               </label>
               <div className="relative">
                 <select
@@ -206,7 +206,7 @@ export const ReferStudentForm: React.FC = () => {
 
             <div className="space-y-1.5">
               <label className="text-xs font-bold text-slate-700 block">
-                Priority Level <span className="text-[#ff2b3d]">*</span>
+                Priority Level <span className="text-rose-500">*</span>
               </label>
               <div className="relative">
                 <select
@@ -230,7 +230,7 @@ export const ReferStudentForm: React.FC = () => {
           {/* Text Area 1: Description of Concern */}
           <div className="space-y-1.5">
             <label className="text-xs font-bold text-slate-700 block">
-              Description of Concern <span className="text-[#ff2b3d]">*</span>
+              Description of Concern <span className="text-rose-500">*</span>
             </label>
             <textarea
               name="description"
@@ -259,15 +259,15 @@ export const ReferStudentForm: React.FC = () => {
           </div>
 
           {/* 4. Emergency Alert Box (from image_90fa09.png) */}
-          <div className="bg-[#fff1ec] border border-[#ffe0d3] rounded-xl p-4 text-sm leading-relaxed">
-            <span className="font-bold text-[#b43403]">Emergency Situations:</span>{' '}
-            <span className="text-[#b43403]/90">
+          <div className="bg-orange-50 border border-orange-200 rounded-xl p-4 text-sm leading-relaxed">
+            <span className="font-bold text-orange-800">Emergency Situations:</span>{' '}
+            <span className="text-orange-800/90">
               If this is an emergency or the student is in immediate danger, please notify a teacher, school staff, or go directly to the Guidance Office right away.
             </span>
           </div>
 
           {successMessage && (
-            <div className="p-4 bg-[#e8fbf0] border border-[#bbf7d0] text-[#00c853] text-sm font-bold rounded-xl">
+            <div className="p-4 bg-emerald-50 border border-emerald-200 text-emerald-600 text-sm font-bold rounded-xl">
               {successMessage}
             </div>
           )}
@@ -283,14 +283,14 @@ export const ReferStudentForm: React.FC = () => {
             <button
               type="button"
               onClick={() => setFormData(EMPTY_FORM)}
-              className="w-full sm:w-auto px-12 py-2.5 bg-[#f1f5f9] hover:bg-slate-200 text-slate-800 font-semibold rounded-xl text-sm transition-colors text-center"
+              className="w-full sm:w-auto px-12 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-800 font-semibold rounded-xl text-sm transition-colors text-center"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isSaving}
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-[#1d63ff] hover:bg-blue-700 disabled:bg-blue-400 text-white font-semibold py-2.5 px-8 rounded-xl transition-colors text-sm shadow-sm"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-semibold py-2.5 px-8 rounded-xl transition-colors text-sm shadow-sm"
             >
               <Send size={16} className="rotate-0 stroke-[2.5]" />
               <span>{isSaving ? "Submitting..." : "Submit Referral"}</span>

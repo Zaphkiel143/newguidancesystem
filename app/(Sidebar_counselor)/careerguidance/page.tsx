@@ -89,11 +89,11 @@ const CareerTracker = () => {
   };
 
   return (
-    <div className="p-8 bg-slate-50 min-h-screen font-sans text-slate-900">
+    <div className="p-4 sm:p-6 lg:p-8 min-h-[calc(100dvh-var(--topbar-h))] font-sans text-slate-900">
       {/* Header */}
       <header className="mb-8 flex justify-between items-start">
         <div>
-          <h1 className="text-2xl font-bold">Career Guidance Tracker</h1>
+          <h1 className="page-title">Career Guidance Tracker</h1>
           <p className="text-slate-500 text-sm">Monitor SHS students&apos; Career Planning Program progress</p>
         </div>
         <button

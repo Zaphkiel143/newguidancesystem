@@ -34,14 +34,14 @@ export const MyAppointments: React.FC = () => {
   const renderStatusBadge = (status: string) => {
     if (status === "CONFIRMED") {
       return (
-        <span className="inline-flex items-center gap-1.5 bg-[#e8fbf0] text-[#00c853] text-xs font-bold px-3 py-1 rounded-full border border-[#bbf7d0]">
+        <span className="inline-flex items-center gap-1.5 bg-emerald-50 text-emerald-600 text-xs font-bold px-3 py-1 rounded-full border border-emerald-200">
           <CheckCircle2 size={14} className="stroke-[2.5]" />
           Confirmed
         </span>
       );
     }
     return (
-      <span className="inline-flex items-center gap-1.5 bg-[#fff7ed] text-[#ea580c] text-xs font-bold px-3 py-1 rounded-full border border-[#fed7aa]">
+      <span className="inline-flex items-center gap-1.5 bg-orange-50 text-orange-600 text-xs font-bold px-3 py-1 rounded-full border border-orange-200">
         <AlertCircle size={14} className="stroke-[2.5]" />
         Pending
       </span>
@@ -49,12 +49,12 @@ export const MyAppointments: React.FC = () => {
   };
 
   return (
-    <div className="flex-1 bg-[#f8fafc] p-8 overflow-y-auto min-h-screen font-sans antialiased text-slate-800">
+    <div className="p-4 sm:p-6 lg:p-8 min-h-[calc(100dvh-var(--topbar-h))] font-sans antialiased text-slate-800">
 
       {/* Top Header Row with Action Button */}
       <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div>
-          <h1 className="text-3xl font-bold text-[#0d2343]">My Appointments</h1>
+          <h1 className="page-title">My Appointments</h1>
           <p className="text-sm text-slate-500 mt-1">
             Manage your guidance counseling appointments
           </p>
@@ -62,7 +62,7 @@ export const MyAppointments: React.FC = () => {
 
         <button
           onClick={() => setIsBookingOpen(true)}
-          className="inline-flex items-center justify-center gap-2 bg-[#1d63ff] hover:bg-blue-700 text-white font-semibold py-2.5 px-5 rounded-xl transition-colors text-sm shadow-sm shrink-0"
+          className="inline-flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 px-5 rounded-xl transition-colors text-sm shadow-sm shrink-0"
         >
           <Plus size={18} className="stroke-[2.5]" />
           <span>Book Appointment</span>

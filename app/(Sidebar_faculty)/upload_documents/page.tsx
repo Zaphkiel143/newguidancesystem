@@ -117,11 +117,11 @@ export const UploadDocuments: React.FC = () => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto font-sans antialiased text-slate-800 space-y-6">
+    <div className="p-4 sm:p-6 lg:p-8 max-w-4xl mx-auto font-sans antialiased text-slate-800 space-y-6">
 
       {/* 1. Header Section */}
       <div>
-        <h1 className="text-3xl font-bold text-blue-900 tracking-tight">Upload Documents</h1>
+        <h1 className="page-title">Upload Documents</h1>
         <p className="text-sm text-slate-500 font-medium mt-1">
           Share files, forms, and reports securely with the Guidance Office
         </p>
@@ -149,13 +149,13 @@ export const UploadDocuments: React.FC = () => {
             className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
           />
 
-          <div className="bg-blue-50 p-4 rounded-full text-[#1d63ff] mb-4 shadow-sm">
+          <div className="bg-blue-50 p-4 rounded-full text-blue-600 mb-4 shadow-sm">
             {isUploading ? <Loader2 size={32} className="animate-spin" /> : <UploadCloud size={32} className="stroke-[2]" />}
           </div>
 
           <h3 className="font-bold text-slate-800 text-base">
             {isUploading ? "Uploading..." : (
-              <>Drag and drop files here, or <span className="text-[#1d63ff] hover:underline">browse</span></>
+              <>Drag and drop files here, or <span className="text-blue-600 hover:underline">browse</span></>
             )}
           </h3>
 
@@ -207,7 +207,7 @@ export const UploadDocuments: React.FC = () => {
                   {/* Status Indicator & Action Triggers Column */}
                   <div className="flex items-center justify-between sm:justify-end gap-4 shrink-0 border-t border-slate-50 pt-2 sm:pt-0 sm:border-0">
                     <div className="text-xs">
-                      <span className="inline-flex items-center gap-1.5 bg-[#e8fbf0] text-[#00c853] font-bold px-2.5 py-1 rounded-full border border-[#bbf7d0]">
+                      <span className="inline-flex items-center gap-1.5 bg-emerald-50 text-emerald-600 font-bold px-2.5 py-1 rounded-full border border-emerald-200">
                         <CheckCircle2 size={13} className="stroke-[2.5]" />
                         Uploaded
                       </span>

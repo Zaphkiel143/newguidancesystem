@@ -59,20 +59,20 @@ export const ReferChildForm: React.FC = () => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto font-sans antialiased text-slate-800 space-y-6">
+    <div className="p-4 sm:p-6 lg:p-8 max-w-4xl mx-auto font-sans antialiased text-slate-800 space-y-6">
       
       {/* Page Header Titles (image_859d3c.png) */}
       <div>
-        <h1 className="text-3xl font-bold text-blue-900 tracking-tight">Refer Child to Counselor</h1>
+        <h1 className="page-title">Refer Child to Counselor</h1>
         <p className="text-sm text-slate-500 font-medium mt-1">
           Request guidance support for your child
         </p>
       </div>
 
       {/* Child Information Banner (image_859d3c.png) */}
-      <div className="bg-[#f0f6ff] border border-[#d8e7fe] px-5 py-4 rounded-xl text-sm font-medium text-slate-600">
+      <div className="bg-blue-50 border border-blue-100 px-5 py-4 rounded-xl text-sm font-medium text-slate-600">
         <span className="text-blue-500 font-bold block text-xs uppercase tracking-wider mb-1">Child Information</span>
-        <span className="text-[#1d63ff] font-bold">Nhel Belarmino</span>
+        <span className="text-blue-600 font-bold">Nhel Belarmino</span>
         <span className="mx-2 text-slate-300">•</span>
         <span className="font-mono text-slate-500 text-xs">2024-12345</span>
         <span className="mx-2 text-slate-300">•</span>
@@ -80,9 +80,9 @@ export const ReferChildForm: React.FC = () => {
       </div>
 
       {/* Confidentiality Notice Alert Banner (image_859d3c.png) */}
-      <div className="bg-[#f4fbf7] border border-[#e2f7ec] p-4 rounded-xl flex items-start gap-3">
-        <ShieldCheck className="text-[#00c853] shrink-0 mt-0.5" size={18} />
-        <p className="text-sm text-[#00a844] font-medium leading-relaxed">
+      <div className="bg-emerald-50 border border-emerald-50 p-4 rounded-xl flex items-start gap-3">
+        <ShieldCheck className="text-emerald-600 shrink-0 mt-0.5" size={18} />
+        <p className="text-sm text-emerald-700 font-medium leading-relaxed">
           All referrals are confidential and will be handled with care by the Guidance Office. The counselor will contact you to discuss the best support plan for your child.
         </p>
       </div>
@@ -182,7 +182,7 @@ export const ReferChildForm: React.FC = () => {
           </div>
 
           {/* Orange Callout Note Box: Emergency Situations (image_859d58.png) */}
-          <div className="bg-[#fff7ed] border border-[#ffedd5] p-4 rounded-xl flex items-start gap-3">
+          <div className="bg-orange-50 border border-orange-100 p-4 rounded-xl flex items-start gap-3">
             <AlertCircle className="text-orange-600 shrink-0 mt-0.5" size={18} />
             <p className="text-xs sm:text-sm text-orange-800 font-medium leading-relaxed">
               <span className="font-bold text-orange-900">Note:</span> For emergency situations or immediate safety concerns, please contact the school office directly or call emergency services.
@@ -191,7 +191,7 @@ export const ReferChildForm: React.FC = () => {
 
           {/* Action Form Confirmation Feedback */}
           {successMessage && (
-            <div className="p-4 bg-[#e8fbf0] border border-[#bbf7d0] text-[#00c853] text-sm font-bold rounded-xl flex items-center gap-2">
+            <div className="p-4 bg-emerald-50 border border-emerald-200 text-emerald-600 text-sm font-bold rounded-xl flex items-center gap-2">
               <Info size={16} />
               <span>{successMessage}</span>
             </div>
@@ -221,7 +221,7 @@ export const ReferChildForm: React.FC = () => {
             <button
               type="submit"
               disabled={isSaving}
-              className="w-full sm:w-auto bg-[#1d63ff] hover:bg-blue-700 disabled:bg-blue-400 text-white font-bold py-2.5 px-8 rounded-xl transition-colors text-sm shadow-sm text-center flex items-center justify-center gap-2"
+              className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-bold py-2.5 px-8 rounded-xl transition-colors text-sm shadow-sm text-center flex items-center justify-center gap-2"
             >
               <Send size={15} />
               {isSaving ? "Submitting..." : "Submit Referral"}

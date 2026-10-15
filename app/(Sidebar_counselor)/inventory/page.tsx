@@ -67,10 +67,10 @@ const StudentInventory = () => {
 
   return (
     <main>
-    <div className="p-8 bg-slate-50 min-h-screen font-sans">
+    <div className="p-4 sm:p-6 lg:p-8 min-h-[calc(100dvh-var(--topbar-h))] font-sans">
       {/* Header Section */}
       <header className="mb-6">
-        <h1 className="text-2xl font-bold text-slate-900">Individual Inventory</h1>
+        <h1 className="page-title">Individual Inventory</h1>
         <p className="text-slate-500 text-sm">Centralized student profiles and guidance history</p>
       </header>
 

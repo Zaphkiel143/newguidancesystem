@@ -23,10 +23,10 @@ export const StudentMessagesDashboard: React.FC = () => {
   }, []);
 
   return (
-    <div className="flex flex-col h-screen bg-white font-sans antialiased text-slate-800">
+    <div className="flex flex-col h-[calc(100dvh-var(--topbar-h))] bg-white font-sans antialiased text-slate-800">
       {/* Header Section */}
       <header className="px-8 pt-6 pb-4 border-b border-slate-100">
-        <h1 className="text-3xl font-bold text-[#0d2343]">Messages</h1>
+        <h1 className="page-title">Messages</h1>
         <p className="text-sm text-slate-500 mt-1">
           Communicate with your guidance counselor
         </p>

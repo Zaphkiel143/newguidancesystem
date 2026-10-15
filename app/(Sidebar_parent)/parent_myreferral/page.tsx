@@ -35,18 +35,18 @@ export const MyReferralsPage: React.FC = () => {
   );
 
   return (
-    <div className="max-w-5xl mx-auto font-sans antialiased text-slate-800 space-y-6">
+    <div className="p-4 sm:p-6 lg:p-8 max-w-5xl mx-auto font-sans antialiased text-slate-800 space-y-6">
 
       {/* Page Title & Context Header Copy */}
       <div>
-        <h1 className="text-3xl font-bold text-blue-900 tracking-tight">My Referrals</h1>
+        <h1 className="page-title">My Referrals</h1>
         <p className="text-sm text-slate-500 font-medium mt-1">
           Track referrals submitted for {CHILD_NAME}
         </p>
       </div>
 
       {/* Target Focus Notice Block Banner */}
-      <div className="bg-[#f0f6ff] border border-[#d8e7fe] px-5 py-3.5 rounded-xl text-sm font-medium text-[#1d63ff]">
+      <div className="bg-blue-50 border border-blue-100 px-5 py-3.5 rounded-xl text-sm font-medium text-blue-600">
         Viewing referrals for: <span className="font-bold">{CHILD_NAME}</span>
       </div>
 
@@ -100,7 +100,7 @@ export const MyReferralsPage: React.FC = () => {
                     {/* Dynamic Status Track Pill */}
                     <span className={`text-[11px] font-bold px-3 py-1 rounded-full flex items-center gap-1.5 uppercase font-sans tracking-wide
                       ${item.status === 'IN_PROGRESS' ? 'bg-orange-50 border border-orange-100 text-orange-700' : ''}
-                      ${item.status === 'CLOSED' ? 'bg-[#e8fbf0] border border-[#bbf7d0] text-[#00c853]' : ''}
+                      ${item.status === 'CLOSED' ? 'bg-emerald-50 border border-emerald-200 text-emerald-600' : ''}
                       ${item.status === 'OPEN' ? 'bg-red-50 border border-red-100 text-red-600' : ''}
                     `}>
                       {item.status === 'IN_PROGRESS' && <Clock size={13} className="stroke-[2.5]" />}
@@ -113,8 +113,8 @@ export const MyReferralsPage: React.FC = () => {
 
                 {/* Counselor Feedback Collateral Block Frame */}
                 {item.notes && (
-                  <div className="bg-[#f4fbf7] border border-[#e2f7ec] rounded-xl p-4 space-y-1">
-                    <h4 className="text-xs font-bold text-[#00c853] uppercase tracking-wider">Counselor Feedback:</h4>
+                  <div className="bg-emerald-50 border border-emerald-50 rounded-xl p-4 space-y-1">
+                    <h4 className="text-xs font-bold text-emerald-600 uppercase tracking-wider">Counselor Feedback:</h4>
                     <p className="text-sm text-slate-700 font-medium leading-relaxed">
                       {item.notes}
                     </p>
@@ -158,7 +158,7 @@ export const MyReferralsPage: React.FC = () => {
 
           {/* Row 3: Closed */}
           <div className="flex items-start gap-4">
-            <span className="w-24 text-center shrink-0 bg-[#e8fbf0] border border-[#bbf7d0] text-[#00c853] font-bold py-1 rounded text-xs tracking-wider uppercase">
+            <span className="w-24 text-center shrink-0 bg-emerald-50 border border-emerald-200 text-emerald-600 font-bold py-1 rounded text-xs tracking-wider uppercase">
               Closed
             </span>
             <p className="text-slate-600 pt-0.5">

@@ -37,11 +37,11 @@ export const StudentProfile: React.FC = () => {
   ];
 
   return (
-    <div className="flex-1 bg-[#f8fafc] p-8 overflow-y-auto min-h-screen font-sans antialiased text-slate-800">
+    <div className="p-4 sm:p-6 lg:p-8 min-h-[calc(100dvh-var(--topbar-h))] font-sans antialiased text-slate-800">
       
       {/* Page Title & Subtitle Header */}
       <header className="mb-6">
-        <h1 className="text-3xl font-bold text-[#0d2343]">My Profile</h1>
+        <h1 className="page-title">My Profile</h1>
         <p className="text-sm text-slate-500 mt-1">
           View your personal and academic information
         </p>
@@ -52,8 +52,8 @@ export const StudentProfile: React.FC = () => {
         {/* 1. Profile Banner & Personal Information Card (from image_9102a1.png) */}
         <section className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
           {/* Blue Hero Banner Area */}
-          <div className="bg-[#1d63ff] px-6 py-8 flex items-center gap-5">
-            <div className="w-16 h-16 rounded-full bg-white flex items-center justify-center text-[#1d63ff] shrink-0 shadow-inner">
+          <div className="relative overflow-hidden bg-navy px-6 py-8 flex items-center gap-5 bg-[radial-gradient(circle_at_85%_-20%,rgb(58_99_240/0.55),transparent_55%)]">
+            <div className="w-16 h-16 rounded-2xl bg-gold-400 flex items-center justify-center text-navy shrink-0 shadow-lg">
               <User size={32} className="stroke-[2]" />
             </div>
             <div>
@@ -151,7 +151,7 @@ export const StudentProfile: React.FC = () => {
             {guidanceSessions.map((session) => (
               <div 
                 key={session.id}
-                className="bg-[#f8fafc] rounded-xl p-5 border border-slate-50 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 transition-all hover:border-slate-200"
+                className="bg-slate-50 rounded-xl p-5 border border-slate-50 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 transition-all hover:border-slate-200"
               >
                 <div>
                   <h4 className="font-bold text-slate-800 text-[15px] tracking-wide">
