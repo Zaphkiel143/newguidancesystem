@@ -54,8 +54,21 @@ const LoginPage = () => {
       <div className="flex-1 w-full max-w-5xl mx-auto px-6 sm:px-10 py-12 grid lg:grid-cols-[1fr_400px] gap-14 lg:gap-24 items-center">
         {/* Office context */}
         <section className="relative overflow-hidden lg:bg-blue-50 lg:border lg:border-blue-100 lg:rounded-2xl lg:p-10 max-w-md lg:max-w-none">
+          {/* Campus photo banner, fading into the panel so the text below stays readable */}
+          <div className="relative h-44 mb-6 rounded-2xl overflow-hidden lg:h-60 lg:-mx-10 lg:-mt-10 lg:mb-0 lg:rounded-none">
+            <Image
+              src="/campus.jpg"
+              alt="STI College Sta. Maria campus"
+              fill
+              priority
+              sizes="(min-width: 1024px) 560px, 100vw"
+              className="object-cover object-[50%_58%]"
+            />
+            <div aria-hidden className="hidden lg:block absolute inset-x-0 bottom-0 h-24 bg-linear-to-t from-blue-50 to-blue-50/0" />
+          </div>
+
           <div className="relative">
-          <Image src="/sti-logo.jpg" alt="STI College Sta. Maria" width={88} height={88} className="hidden lg:block mb-6 rounded-2xl shadow-md" />
+          <Image src="/sti-logo.jpg" alt="" width={72} height={72} className="hidden lg:block -mt-9 mb-5 rounded-2xl shadow-md ring-4 ring-blue-50" />
           <p className="text-sm text-slate-500">STI College Sta. Maria</p>
           <h1 className="font-serif text-[40px] sm:text-[52px] leading-[1.02] tracking-tight text-ink mt-3">
             Guidance &amp; <em className="italic text-blue-700 bg-linear-to-b from-transparent from-60% to-butter-200 to-60% px-1 -mx-1">Counseling</em> Office
