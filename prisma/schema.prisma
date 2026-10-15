@@ -284,3 +284,20 @@ model EmailLog {
 
   createdAt DateTime @default(now())
 }
+
+// ---- Sign-in with a school email code ----
+
+// One-time 6-digit codes sent to a school email. Only a hash of the code is
+// stored; a code works once, for 10 minutes, with at most 5 wrong guesses.
+model LoginCode {
+  id        String    @id @default(uuid())
+  email     String
+  codeHash  String
+  expiresAt DateTime
+  attempts  Int       @default(0)
+  usedAt    DateTime?
+
+  createdAt DateTime  @default(now())
+
+  @@index([email, createdAt])
+}

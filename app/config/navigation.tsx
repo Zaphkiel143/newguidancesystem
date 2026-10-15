@@ -17,6 +17,7 @@ NotebookPen,
 ClipboardList,
 Route,
 Inbox,
+UserCog,
 LucideIcon
 } from 'lucide-react';
 
@@ -49,6 +50,7 @@ counselor: [
     { name: 'Information Service', icon: Megaphone, path: '/information' },
     { name: 'Events', icon: CalendarDays, path: '/events' },
     { name: 'Messages', icon: MessageSquare, path: '/message' },
+    { name: 'Accounts', icon: UserCog, path: '/accounts' },
 ],
 
 parent: [

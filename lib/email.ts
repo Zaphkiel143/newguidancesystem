@@ -18,11 +18,19 @@ const transporter = process.env.SMTP_HOST
 
 const FROM = process.env.SMTP_FROM ?? "E-Gabay STI <no-reply@egabay.local>";
 
-// Never throws: a failed email must not undo the booking that triggered it.
-export async function sendEmail(to: string | null | undefined, subject: string, body: string) {
-  if (!to) return;
+export type EmailStatus = "SENT" | "LOGGED" | "FAILED";
 
-  let status = "LOGGED";
+// Never throws: a failed email must not undo the booking that triggered it.
+// Pass logBody to keep secrets (e.g. sign-in codes) out of the EmailLog table.
+export async function sendEmail(
+  to: string | null | undefined,
+  subject: string,
+  body: string,
+  options: { logBody?: string } = {}
+): Promise<EmailStatus | null> {
+  if (!to) return null;
+
+  let status: EmailStatus = "LOGGED";
   let error: string | null = null;
 
   if (transporter) {
@@ -39,10 +47,11 @@ export async function sendEmail(to: string | null | undefined, subject: string, 
   }
 
   try {
-    await db.emailLog.create({ data: { to, subject, body, status, error } });
+    await db.emailLog.create({ data: { to, subject, body: options.logBody ?? body, status, error } });
   } catch (err) {
     console.error("[email] Failed to record email:", err);
   }
+  return status;
 }
 
 export async function counselorEmails(): Promise<string[]> {

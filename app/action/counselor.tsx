@@ -773,6 +773,38 @@ export async function sendReferralFeedback(referralId: string, content: string) 
   }
 }
 
+// ==== Accounts ====
+// Everyone who signs in with a school email starts as a student; the Guidance
+// Associate promotes faculty and other counselors here.
+
+export async function listAccounts() {
+  try {
+    const me = await counselorOnly();
+    const users = await db.user.findMany({
+      select: { id: true, name: true, email: true, role: true, createdAt: true },
+      orderBy: [{ role: "asc" }, { name: "asc" }],
+    });
+    return users.map((u) => ({ ...u, isMe: u.id === me.id }));
+  } catch (error) {
+    console.error("Failed to list accounts:", error);
+    return [];
+  }
+}
+
+export async function setAccountRole(userId: string, role: "STUDENT" | "FACULTY" | "PARENT" | "COUNSELOR") {
+  try {
+    const me = await counselorOnly();
+    if (userId === me.id) return { success: false, error: "You can't change your own role." };
+    await db.user.update({ where: { id: userId }, data: { role } });
+    // Their open sessions keep working; the new role applies on the next page load.
+    revalidatePath("/accounts");
+    return { success: true };
+  } catch (error) {
+    console.error("Failed to change role:", error);
+    return { success: false, error: String(error) };
+  }
+}
+
 // ==== Dashboard overview stats ====
 
 export async function getDashboardStats() {

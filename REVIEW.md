@@ -40,6 +40,23 @@ changes there on purpose: `prisma db push` adds tables and columns.
 | Students submit documents (excuse letters, medical certificates…) | Student: **Profile** |
 | Single-entry session logging + GCO Daily Log | Session notes in **Appointments** appear in **Daily Log** and on the student record |
 
+## Signing in
+
+- **Students and staff** sign in with their school email (`@stamaria.sti.edu.ph`,
+  set in `app/config/school.ts`): they get a 6-digit code by email, valid for
+  10 minutes, single use, 5 wrong tries max, at most one per minute / five per
+  hour. First-timers enter their full name once; if an Individual Inventory
+  record already has their email, that name is used instead.
+- New accounts start as **students**. The Guidance Associate changes roles on
+  the **Accounts** page. Emails listed in `COUNSELOR_EMAILS` (comma-separated
+  env var) become Guidance Associate accounts on first sign-in.
+- **Parents** keep email + password sign-in ("Sign in with a password").
+- Codes are emailed via the same SMTP settings as notifications. Without SMTP,
+  the code is printed in the dev server console only; it is never stored in
+  plain text (the database keeps a hash, and the email log omits the code).
+- Microsoft sign-in isn't used: STI requires IT approval for that.
+- **Remove the "Continue as …" demo buttons before real use.**
+
 ## Privacy / access fixes
 
 - Every server action now checks the signed-in user's role and takes the
