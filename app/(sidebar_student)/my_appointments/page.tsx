@@ -61,7 +61,7 @@ export const MyAppointments: React.FC = () => {
 
         <button
           onClick={() => setIsBookingOpen(true)}
-          className="inline-flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 px-5 rounded-xl transition-colors text-sm shadow-sm shrink-0"
+          className="inline-flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 px-5 rounded-full transition-colors text-sm shadow-sm shrink-0"
         >
           <Plus size={18} className="stroke-[2.5]" />
           <span>Book Appointment</span>

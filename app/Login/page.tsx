@@ -44,11 +44,14 @@ const LoginPage = () => {
 
   return (
     <main className="min-h-dvh bg-paper flex flex-col">
-      <header className="px-6 sm:px-10 pt-8">
-        <span className="inline-flex items-center gap-3">
-          <Image src="/sti-logo.jpg" alt="STI College Sta. Maria" width={48} height={48} className="rounded-lg shadow-sm" priority />
-          <span className="font-serif text-2xl text-ink tracking-tight">E-Gabay</span>
-        </span>
+      {/* STI top bar: navy with the yellow stripe, as on One STI */}
+      <header className="h-(--topbar-h) bg-blue-700 text-white border-t-4 border-sti-yellow shadow-md">
+        <div className="h-full max-w-5xl mx-auto px-6 sm:px-10 flex items-center gap-3">
+          <Image src="/sti-logo.jpg" alt="STI College Sta. Maria" width={36} height={36} className="rounded-md" priority />
+          <span className="font-semibold text-[17px] tracking-tight">E-Gabay</span>
+          <span aria-hidden className="hidden sm:block w-px h-5 bg-white/30" />
+          <span className="hidden sm:block text-[13px] text-white/80">Guidance and Counseling Office</span>
+        </div>
       </header>
 
       <div className="flex-1 w-full max-w-5xl mx-auto px-6 sm:px-10 py-12 grid lg:grid-cols-[1fr_400px] gap-14 lg:gap-24 items-center">
@@ -70,7 +73,7 @@ const LoginPage = () => {
           <div className="relative">
           <Image src="/sti-logo.jpg" alt="" width={72} height={72} className="hidden lg:block -mt-9 mb-5 rounded-2xl shadow-md ring-4 ring-blue-50" />
           <p className="text-sm text-slate-500">STI College Sta. Maria</p>
-          <h1 className="font-serif text-[40px] sm:text-[52px] leading-[1.02] tracking-tight text-ink mt-3">
+          <h1 className="font-serif font-bold text-[32px] sm:text-[40px] leading-[1.1] tracking-tight text-ink mt-3">
             Guidance &amp; <em className="italic text-blue-700 bg-linear-to-b from-transparent from-60% to-butter-200 to-60% px-1 -mx-1">Counseling</em> Office
           </h1>
           <p className="mt-5 text-[15px] leading-relaxed text-slate-600 max-w-[42ch]">
@@ -130,7 +133,7 @@ const LoginPage = () => {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full inline-flex items-center justify-center gap-2 bg-blue-700 text-white font-medium py-2.5 rounded-md hover:bg-blue-800 transition-colors text-[15px] disabled:opacity-60"
+              className="w-full inline-flex items-center justify-center gap-2 bg-blue-700 text-white font-medium py-2.5 rounded-full hover:bg-blue-800 transition-colors text-[15px] disabled:opacity-60"
             >
               {isSubmitting ? (
                 <>

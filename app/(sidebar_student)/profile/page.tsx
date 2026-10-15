@@ -165,7 +165,7 @@ export const StudentProfile: React.FC = () => {
                 <button
                   type="submit"
                   disabled={isUploading}
-                  className="inline-flex items-center gap-2 bg-blue-700 hover:bg-blue-800 disabled:opacity-60 text-white text-sm font-medium px-4 min-h-11 rounded-md transition-colors"
+                  className="inline-flex items-center gap-2 bg-blue-700 hover:bg-blue-800 disabled:opacity-60 text-white text-sm font-medium px-4 min-h-11 rounded-full transition-colors"
                 >
                   {isUploading ? <Loader2 size={16} className="animate-spin" /> : <Upload size={16} />}
                   {isUploading ? "Submitting" : "Submit to guidance office"}

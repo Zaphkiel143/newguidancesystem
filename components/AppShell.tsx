@@ -41,18 +41,6 @@ function initials(name: string): string {
     .join("");
 }
 
-function Wordmark() {
-  return (
-    <span className="leading-none flex items-center gap-3">
-      <Image src="/sti-logo.jpg" alt="STI College Sta. Maria" width={44} height={44} className="rounded-lg shadow-sm shrink-0" priority />
-      <span>
-      <span className="block font-serif text-[22px] text-ink tracking-tight">E-Gabay</span>
-      <span className="block text-xs text-slate-500 mt-1">STI College Sta. Maria</span>
-      </span>
-    </span>
-  );
-}
-
 export function AppShell({ role, userName, children }: AppShellProps) {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
@@ -68,21 +56,34 @@ export function AppShell({ role, userName, children }: AppShellProps) {
 
   return (
     <div className="min-h-screen bg-paper">
-      {/* Mobile bar */}
-      <div className="md:hidden sticky top-0 z-40 h-(--topbar-h) bg-blue-50/95 backdrop-blur border-b border-blue-100 flex items-center gap-3 px-4">
+      {/* STI top bar: navy with the yellow stripe, as on One STI */}
+      <header className="sticky top-0 z-40 h-(--topbar-h) bg-blue-700 text-white border-t-4 border-sti-yellow flex items-center gap-3 px-3 md:px-5 shadow-md">
         <button
           onClick={() => setIsOpen(true)}
-          className="w-11 h-11 -ml-3 grid place-items-center text-slate-700 hover:bg-blue-100 rounded-md transition-colors"
+          className="md:hidden w-11 h-11 grid place-items-center rounded-full hover:bg-white/10 transition-colors"
           aria-label="Open menu"
           aria-expanded={isOpen}
         >
           <Menu size={20} />
         </button>
-        <span className="inline-flex items-center gap-2">
-          <Image src="/sti-logo.jpg" alt="" width={28} height={28} className="rounded-md" />
-          <span className="font-serif text-lg text-ink">E-Gabay</span>
-        </span>
-      </div>
+
+        <Link href={menuItems[0]?.path ?? "/"} className="flex items-center gap-3 min-w-0">
+          <Image src="/sti-logo.jpg" alt="STI College Sta. Maria" width={36} height={36} className="rounded-md shrink-0" priority />
+          <span className="font-semibold text-[17px] tracking-tight">E-Gabay</span>
+          <span aria-hidden className="hidden sm:block w-px h-5 bg-white/30" />
+          <span className="hidden sm:block text-[13px] text-white/80 truncate">Guidance and Counseling Office · STI College Sta. Maria</span>
+        </Link>
+
+        <div className="ml-auto flex items-center gap-3">
+          <span className="hidden md:block text-right leading-tight">
+            <span className="block text-[13px] font-medium">{userName}</span>
+            <span className="block text-xs text-white/75">{ROLE_LABEL[role]}</span>
+          </span>
+          <span className="w-9 h-9 rounded-full bg-sti-yellow text-blue-900 grid place-items-center text-xs font-bold shrink-0">
+            {initials(userName)}
+          </span>
+        </div>
+      </header>
 
       {isOpen && (
         <div
@@ -92,25 +93,28 @@ export function AppShell({ role, userName, children }: AppShellProps) {
       )}
 
       <aside
-        className={`w-(--sidebar-w) h-screen bg-blue-50 border-r border-blue-100 flex flex-col fixed left-0 top-0 z-50 transition-transform duration-300 ease-out md:translate-x-0 ${
+        className={`w-(--sidebar-w) bg-blue-50 border-r border-blue-100 flex flex-col fixed left-0 z-50 md:z-30 top-0 h-screen md:top-(--topbar-h) md:h-[calc(100vh-var(--topbar-h))] transition-transform duration-300 ease-out md:translate-x-0 ${
           isOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
-        <div className="px-6 pt-7 pb-6 flex items-start justify-between">
-          <Link href={menuItems[0]?.path ?? "/"}>
-            <Wordmark />
-          </Link>
+        {/* Drawer header, phones only (the top bar carries the brand on wider screens) */}
+        <div className="md:hidden px-5 pt-5 pb-4 flex items-center justify-between">
+          <span className="inline-flex items-center gap-2.5">
+            <Image src="/sti-logo.jpg" alt="" width={32} height={32} className="rounded-md" />
+            <span className="font-semibold text-ink">E-Gabay</span>
+          </span>
           <button
             onClick={() => setIsOpen(false)}
-            className="md:hidden w-11 h-11 -mr-3 -mt-2 grid place-items-center text-slate-500 hover:text-ink hover:bg-blue-100 rounded-md transition-colors"
+            className="w-11 h-11 -mr-2 grid place-items-center text-slate-500 hover:text-ink hover:bg-blue-100 rounded-full transition-colors"
             aria-label="Close menu"
           >
             <X size={18} />
           </button>
         </div>
 
-        <nav className="flex-1 px-3 overflow-y-auto" aria-label="Main">
-          <ul className="space-y-px">
+        <nav className="flex-1 px-3 pt-2 md:pt-5 overflow-y-auto" aria-label="Main">
+          <p className="px-3 mb-2 text-xs font-medium text-slate-500">Menu</p>
+          <ul className="space-y-0.5">
             {menuItems.map((item: MenuItem) => {
               const Icon = item.icon;
               const isActive = pathname === item.path;
@@ -120,16 +124,16 @@ export function AppShell({ role, userName, children }: AppShellProps) {
                   <Link
                     href={item.path}
                     aria-current={isActive ? "page" : undefined}
-                    className={`relative flex items-center gap-3 px-3 min-h-11 rounded-md text-[14px] transition-colors ${
+                    className={`relative flex items-center gap-3 px-4 min-h-11 rounded-full text-[14px] transition-colors ${
                       isActive
                         ? "bg-butter-200 text-ink font-semibold shadow-sm"
                         : "text-slate-600 hover:text-ink hover:bg-blue-100"
                     }`}
                   >
                     <Icon
-                      size={16}
-                      strokeWidth={1.75}
-                      className={isActive ? "text-ink" : "text-blue-500"}
+                      size={17}
+                      strokeWidth={1.9}
+                      className={isActive ? "text-blue-700" : "text-blue-500"}
                     />
                     <span>{item.name}</span>
                     {item.unreadCount && (
@@ -144,9 +148,9 @@ export function AppShell({ role, userName, children }: AppShellProps) {
           </ul>
         </nav>
 
-        <div className="px-6 py-5 border-t border-blue-100">
-          <div className="flex items-center gap-3">
-            <span className="w-9 h-9 rounded-full bg-butter-200 text-ink grid place-items-center text-xs font-semibold shrink-0">
+        <div className="px-5 py-4 border-t border-blue-100">
+          <div className="md:hidden flex items-center gap-3 mb-2">
+            <span className="w-9 h-9 rounded-full bg-sti-yellow text-blue-900 grid place-items-center text-xs font-bold shrink-0">
               {initials(userName)}
             </span>
             <div className="min-w-0 flex-1 leading-tight">
@@ -156,9 +160,9 @@ export function AppShell({ role, userName, children }: AppShellProps) {
           </div>
           <button
             onClick={() => logout()}
-            className="mt-2 -ml-2 px-2 min-h-11 inline-flex items-center gap-2 text-[13px] text-slate-500 hover:text-red-700 hover:bg-blue-100 rounded-md transition-colors"
+            className="w-full px-4 min-h-11 inline-flex items-center gap-2 text-[14px] text-slate-600 hover:text-red-700 hover:bg-red-50 rounded-full transition-colors"
           >
-            <LogOut size={14} strokeWidth={1.75} />
+            <LogOut size={16} strokeWidth={1.9} />
             Sign out
           </button>
         </div>

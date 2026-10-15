@@ -45,7 +45,7 @@ export const FacultyDashboard = async () => {
         </div>
         <Link
           href="/submit_referral"
-          className="self-start sm:self-auto inline-flex items-center gap-2 bg-blue-700 hover:bg-blue-800 text-white text-[14px] font-medium px-4 py-2.5 rounded-md transition-colors"
+          className="self-start sm:self-auto inline-flex items-center gap-2 bg-blue-700 hover:bg-blue-800 text-white text-[14px] font-medium px-4 py-2.5 rounded-full transition-colors"
         >
           New referral <ArrowRight size={15} />
         </Link>

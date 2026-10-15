@@ -54,7 +54,7 @@ export default function DailyLogPage() {
           </p>
         </div>
         <button onClick={() => window.print()}
-          className="self-start sm:self-auto inline-flex items-center gap-2 border border-slate-300 hover:bg-slate-100 text-sm px-4 min-h-11 rounded-md transition-colors print:hidden">
+          className="self-start sm:self-auto inline-flex items-center gap-2 border border-slate-300 hover:bg-slate-100 text-sm px-4 min-h-11 rounded-full transition-colors print:hidden">
           <Printer size={16} /> Print
         </button>
       </header>

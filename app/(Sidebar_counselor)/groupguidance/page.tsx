@@ -142,7 +142,7 @@ export default function GroupGuidance() {
         <div className="flex flex-wrap items-baseline justify-between gap-3 mb-3">
           <h2 className="font-serif text-[22px] text-ink">Needs assessment</h2>
           <button onClick={() => { setFormError(null); setIsFormOpen(true); }}
-            className="inline-flex items-center gap-2 bg-blue-700 hover:bg-blue-800 text-white text-sm font-medium px-4 min-h-11 rounded-md transition-colors">
+            className="inline-flex items-center gap-2 bg-blue-700 hover:bg-blue-800 text-white text-sm font-medium px-4 min-h-11 rounded-full transition-colors">
             <Plus size={16} /> New form
           </button>
         </div>
@@ -168,7 +168,7 @@ export default function GroupGuidance() {
                         <span className={a.isOpen ? "text-emerald-700" : ""}>{a.isOpen ? "Open" : "Closed"}</span>
                       </p>
                     </div>
-                    <button onClick={() => toggleOpen(a)} className="px-3 min-h-9 rounded-md text-[13px] text-slate-600 hover:bg-slate-100">
+                    <button onClick={() => toggleOpen(a)} className="px-3 min-h-9 rounded-full text-[13px] text-slate-600 hover:bg-slate-100">
                       {a.isOpen ? "Close form" : "Reopen form"}
                     </button>
                   </div>
@@ -219,7 +219,7 @@ export default function GroupGuidance() {
         <div className="flex flex-wrap items-baseline justify-between gap-3 mb-3">
           <h2 className="font-serif text-[22px] text-ink">Group sessions</h2>
           <button onClick={() => { setProgram({ title: "", gradeLevel: GRADE_LEVELS[0], dateString: minSelectableDate, time: "" }); setProgramError(null); setIsProgramOpen(true); }}
-            className="inline-flex items-center gap-2 border border-slate-300 hover:bg-slate-100 text-sm font-medium px-4 min-h-11 rounded-md transition-colors">
+            className="inline-flex items-center gap-2 border border-slate-300 hover:bg-slate-100 text-sm font-medium px-4 min-h-11 rounded-full transition-colors">
             <Plus size={16} /> Schedule a session
           </button>
         </div>
@@ -246,7 +246,7 @@ export default function GroupGuidance() {
                     <span className="inline-flex items-center gap-1.5 text-[13px] text-slate-600"><Users size={14} /> {p.participants} attended</span>
                     <span className={`text-xs ${isPast ? "text-slate-500" : "text-blue-700"}`}>{isPast ? "Held" : "Upcoming"}</span>
                     <button onClick={() => { setRecordError(null); setRecording({ id: p.id, title: p.title, attendees: p.attendees.join("\n"), outcomes: p.outcomes ?? "" }); }}
-                      className="px-3 min-h-9 rounded-md text-[13px] text-blue-700 hover:bg-blue-50">
+                      className="px-3 min-h-9 rounded-full text-[13px] text-blue-700 hover:bg-blue-50">
                       {p.attendees.length || p.outcomes ? "Edit record" : "Record attendance"}
                     </button>
                   </div>
@@ -341,7 +341,7 @@ function Dialog({ title, onClose, children }: { title: string; onClose: () => vo
         className="bg-sheet w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-xl border border-rule shadow-xl p-6">
         <div className="flex items-start justify-between gap-4 mb-4">
           <h2 className="font-medium text-ink">{title}</h2>
-          <button type="button" onClick={onClose} aria-label="Close" className="w-11 h-11 -m-2 grid place-items-center text-slate-500 hover:text-ink hover:bg-slate-100 rounded-md"><X size={18} /></button>
+          <button type="button" onClick={onClose} aria-label="Close" className="w-11 h-11 -m-2 grid place-items-center text-slate-500 hover:text-ink hover:bg-slate-100 rounded-full"><X size={18} /></button>
         </div>
         {children}
       </div>
@@ -361,9 +361,9 @@ function Field({ id, label, children }: { id: string; label: string; children: R
 function DialogButtons({ onCancel, isSaving, label }: { onCancel: () => void; isSaving: boolean; label: string }) {
   return (
     <div className="flex justify-end gap-2 pt-2 border-t border-rule">
-      <button type="button" onClick={onCancel} className="px-4 min-h-11 rounded-md text-sm text-slate-600 hover:bg-slate-100">Cancel</button>
+      <button type="button" onClick={onCancel} className="px-4 min-h-11 rounded-full text-sm text-slate-600 hover:bg-slate-100">Cancel</button>
       <button type="submit" disabled={isSaving}
-        className="inline-flex items-center gap-2 bg-blue-700 hover:bg-blue-800 disabled:opacity-60 text-white text-sm font-medium px-4 min-h-11 rounded-md">
+        className="inline-flex items-center gap-2 bg-blue-700 hover:bg-blue-800 disabled:opacity-60 text-white text-sm font-medium px-4 min-h-11 rounded-full">
         {isSaving && <Loader2 size={16} className="animate-spin" />} {label}
       </button>
     </div>

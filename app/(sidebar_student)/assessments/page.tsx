@@ -122,7 +122,7 @@ function AssessmentForm({ assessment, onSaved }: { assessment: Assessment; onSav
       <button
         type="submit"
         disabled={isSaving}
-        className="mt-4 inline-flex items-center gap-2 bg-blue-700 hover:bg-blue-800 disabled:opacity-60 text-white text-sm font-medium px-4 min-h-11 rounded-md transition-colors"
+        className="mt-4 inline-flex items-center gap-2 bg-blue-700 hover:bg-blue-800 disabled:opacity-60 text-white text-sm font-medium px-4 min-h-11 rounded-full transition-colors"
       >
         {isSaving && <Loader2 size={16} className="animate-spin" />}
         {assessment.myResponse ? "Update answers" : "Submit answers"}

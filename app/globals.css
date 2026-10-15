@@ -1,27 +1,29 @@
 @import "tailwindcss";
 
 /*
- * E-Gabay design system — pastel blue and butter yellow
+ * E-Gabay design system — STI College
  *
- * Soft cream page, pastel-blue surfaces (sidebar, chat bubbles, tints) and a
- * butter-yellow highlight for "you are here" and things worth noticing. Deeper
- * blues carry buttons and links so text always meets WCAG AA. Status colors
- * stay muted and are only used for meaning (confirmed / pending / urgent).
- * Decorative hues (violet, purple) fold into the neutrals.
+ * Follows STI's own sites (eLMS, One STI): Poppins, STI navy #0B5793 for the
+ * top bar, buttons and links, STI sky blue #28A0DE as a fill/accent (too light
+ * for text), and STI yellow for the stripe and highlights. Surfaces stay soft
+ * and pastel: light grey-blue page (as on eLMS), pale sky tints, butter
+ * yellow for "you are here". Status colors are only used for meaning.
  */
 @theme {
-  /* Primary: powder blue, deepening to a readable navy-blue */
-  --color-blue-50: #f1f6fd;
-  --color-blue-100: #e2edfa;
-  --color-blue-200: #c9ddf4;
-  --color-blue-300: #a6c5ea;
-  --color-blue-400: #7ca6dc;
-  --color-blue-500: #5585c9;
-  --color-blue-600: #3d6cb3;
-  --color-blue-700: #2e5590; /* buttons/links: 7.4:1 with white */
-  --color-blue-800: #26467a;
-  --color-blue-900: #213b63;
-  --color-blue-950: #162640;
+  /* Primary: STI sky blue deepening to STI navy */
+  --color-blue-50: #eaf5fc;
+  --color-blue-100: #d6ecf9;
+  --color-blue-200: #b0daf3;
+  --color-blue-300: #79c1ea;
+  --color-blue-400: #28a0de; /* STI sky blue: fills and accents only */
+  --color-blue-500: #1683c2;
+  --color-blue-600: #0e6aa8;
+  --color-blue-700: #0b5793; /* STI navy: top bar, buttons, links (7.5:1 with white) */
+  --color-blue-800: #0a4878;
+  --color-blue-900: #0a3b61;
+  --color-blue-950: #072742;
+
+  --color-sti-yellow: #ffd200;
 
   /* Accent: butter yellow (highlights only; never text on light backgrounds) */
   --color-butter-50: #fffbec;
@@ -33,19 +35,19 @@
   --color-butter-600: #b98a10;
   --color-butter-700: #8a660d;
 
-  /* Neutrals: soft blue-grey */
-  --color-slate-50: #f7f9fc;
-  --color-slate-100: #eef2f8;
-  --color-slate-200: #e0e6ef;
-  --color-slate-300: #c7d0dd;
-  /* 400 is for icons and borders (3:1+ on paper); 500 is the lightest text tone (5.4:1). */
-  --color-slate-400: #7d899d;
-  --color-slate-500: #5b677c;
-  --color-slate-600: #475369;
-  --color-slate-700: #364157;
-  --color-slate-800: #263149;
-  --color-slate-900: #1d2a44;
-  --color-slate-950: #121b2e;
+  /* Neutrals: cool grey-blue */
+  --color-slate-50: #f6f8fb;
+  --color-slate-100: #edf1f6;
+  --color-slate-200: #dfe5ee;
+  --color-slate-300: #c5cfdc;
+  /* 400 is for icons and borders (3.2:1 on paper); 500 is the lightest text tone (5:1). */
+  --color-slate-400: #7b8ba0;
+  --color-slate-500: #5a6b80;
+  --color-slate-600: #45546a;
+  --color-slate-700: #334156;
+  --color-slate-800: #222f45;
+  --color-slate-900: #13233b;
+  --color-slate-950: #0b1628;
 
   /* Decorative hues collapse into neutrals */
   --color-violet-50: var(--color-slate-100);
@@ -93,13 +95,14 @@
   --color-red-600: #943d32;
   --color-red-700: #823429;
 
-  --color-paper: #fbf9f2;
+  --color-paper: #f3f6fa;
   --color-sheet: #ffffff;
-  --color-ink: #1d2a44;
-  --color-rule: #e2e7ef;
+  --color-ink: #13233b;
+  --color-rule: #dfe5ee;
 
-  --font-sans: var(--font-plex-sans), ui-sans-serif, system-ui, sans-serif;
-  --font-serif: var(--font-newsreader), ui-serif, Georgia, serif;
+  --font-sans: var(--font-poppins), ui-sans-serif, system-ui, sans-serif;
+  /* Headings that used the old serif now use Poppins too (semibold, see below). */
+  --font-serif: var(--font-poppins), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-plex-mono), ui-monospace, monospace;
 
   /* Softer corners suit the pastel palette; inner elements stay tighter */
@@ -109,22 +112,16 @@
   --radius-2xl: 1.125rem;
 
   /* Flat by default; soft blue-tinted elevation only where something floats */
-  --shadow-sm: 0 1px 2px rgb(46 85 144 / 0.05);
-  --shadow-md: 0 4px 14px -6px rgb(46 85 144 / 0.14);
-  --shadow-lg: 0 12px 30px -12px rgb(46 85 144 / 0.22);
-  --shadow-xl: 0 20px 44px -16px rgb(46 85 144 / 0.26);
+  --shadow-sm: 0 1px 2px rgb(11 87 147 / 0.05);
+  --shadow-md: 0 4px 14px -6px rgb(11 87 147 / 0.14);
+  --shadow-lg: 0 12px 30px -12px rgb(11 87 147 / 0.22);
+  --shadow-xl: 0 20px 44px -16px rgb(11 87 147 / 0.26);
   --shadow-2xl: 0 28px 60px -20px rgb(29 42 68 / 0.3);
 }
 
 :root {
-  --topbar-h: 3.5rem;
-  --sidebar-w: 15.5rem;
-}
-
-@media (min-width: 768px) {
-  :root {
-    --topbar-h: 0rem;
-  }
+  --topbar-h: 3.75rem;
+  --sidebar-w: 16rem;
 }
 
 html {
@@ -163,7 +160,7 @@ body {
   textarea:focus-visible {
     outline: none;
     border-color: var(--color-blue-600);
-    box-shadow: 0 0 0 3px rgb(61 108 179 / 0.18);
+    box-shadow: 0 0 0 3px rgb(14 106 168 / 0.2);
   }
 
   button:focus-visible,
@@ -183,19 +180,25 @@ body {
 }
 
 @layer components {
+  /* Former serif headings (section titles, figures) read best semibold in Poppins. */
+  .font-serif {
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+
   /* Page titles are set in the serif — the one place the type gets to speak. */
   .page-title {
     font-family: var(--font-serif);
-    font-size: 2.125rem;
-    line-height: 1.1;
-    font-weight: 500;
-    letter-spacing: -0.015em;
+    font-size: 1.875rem;
+    line-height: 1.15;
+    font-weight: 700;
+    letter-spacing: -0.02em;
     color: var(--color-ink);
   }
 
   @media (max-width: 640px) {
     .page-title {
-      font-size: 1.75rem;
+      font-size: 1.5rem;
     }
   }
 

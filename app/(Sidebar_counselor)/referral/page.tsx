@@ -178,7 +178,7 @@ const ReferralManagement = () => {
               </div>
               <button
                 onClick={closeModal}
-                aria-label="Close" className="w-11 h-11 -m-2 grid place-items-center text-slate-500 hover:text-ink hover:bg-slate-100 rounded-md transition"
+                aria-label="Close" className="w-11 h-11 -m-2 grid place-items-center text-slate-500 hover:text-ink hover:bg-slate-100 rounded-full transition"
               >
                 <X size={18} />
               </button>
@@ -200,14 +200,14 @@ const ReferralManagement = () => {
                 <button
                   type="button"
                   onClick={closeModal}
-                  className="px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 rounded-xl transition"
+                  className="px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 rounded-full transition"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={isSaving}
-                  className="px-5 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 rounded-xl transition"
+                  className="px-5 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 rounded-full transition"
                 >
                   {isSaving ? "Saving..." : modal.type === 'notes' ? "Save Notes" : "Send Feedback"}
                 </button>
@@ -288,7 +288,7 @@ const ReferralCard = ({ referral, isUpdating, onAdvanceStatus, onAddNotes, onSen
               <button
                 onClick={() => onAdvanceStatus(referral, "IN_PROGRESS")}
                 disabled={isUpdating}
-                className="px-4 py-2 bg-orange-50 text-orange-600 text-xs font-semibold rounded-lg border border-orange-100 hover:bg-orange-100 transition-colors disabled:opacity-50"
+                className="px-4 py-2 bg-orange-50 text-orange-600 text-xs font-semibold rounded-full border border-orange-100 hover:bg-orange-100 transition-colors disabled:opacity-50"
               >
                 {isUpdating ? "Updating..." : "Start Intervention"}
               </button>
@@ -296,7 +296,7 @@ const ReferralCard = ({ referral, isUpdating, onAdvanceStatus, onAddNotes, onSen
               <button
                 onClick={() => onAdvanceStatus(referral, "CLOSED")}
                 disabled={isUpdating}
-                className="px-4 py-2 bg-green-50 text-green-600 text-xs font-semibold rounded-lg border border-green-100 hover:bg-green-100 transition-colors disabled:opacity-50"
+                className="px-4 py-2 bg-green-50 text-green-600 text-xs font-semibold rounded-full border border-green-100 hover:bg-green-100 transition-colors disabled:opacity-50"
               >
                 {isUpdating ? "Updating..." : "Mark as Resolved"}
               </button>
@@ -304,13 +304,13 @@ const ReferralCard = ({ referral, isUpdating, onAdvanceStatus, onAddNotes, onSen
           )}
           <button
             onClick={onAddNotes}
-            className="px-4 py-2 bg-blue-50 text-blue-600 text-xs font-semibold rounded-lg border border-blue-100 hover:bg-blue-100 transition-colors"
+            className="px-4 py-2 bg-blue-50 text-blue-600 text-xs font-semibold rounded-full border border-blue-100 hover:bg-blue-100 transition-colors"
           >
             Add Notes
           </button>
           <button
             onClick={onSendFeedback}
-            className="px-4 py-2 bg-slate-50 text-slate-600 text-xs font-semibold rounded-lg border border-slate-100 hover:bg-slate-100 transition-colors"
+            className="px-4 py-2 bg-slate-50 text-slate-600 text-xs font-semibold rounded-full border border-slate-100 hover:bg-slate-100 transition-colors"
           >
             Send Feedback
           </button>

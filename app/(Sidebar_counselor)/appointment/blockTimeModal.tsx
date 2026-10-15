@@ -54,7 +54,7 @@ export default function BlockTimeModal({ date, onClose }: ModalProps) {
           <button 
             onClick={onClose}
             aria-label="Close"
-            className="w-11 h-11 -m-2 grid place-items-center text-slate-500 hover:text-ink rounded-md hover:bg-slate-100 transition"
+            className="w-11 h-11 -m-2 grid place-items-center text-slate-500 hover:text-ink rounded-full hover:bg-slate-100 transition"
           >
             ✕
           </button>
@@ -89,7 +89,7 @@ export default function BlockTimeModal({ date, onClose }: ModalProps) {
         <div className="mt-6 flex justify-end">
           <button
             onClick={onClose}
-            className="bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs px-5 py-2.5 rounded-xl shadow-sm transition"
+            className="bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs px-5 py-2.5 rounded-full shadow-sm transition"
           >
             Save & Finish
           </button>

@@ -45,7 +45,7 @@ export const MyAppointmentsPage: React.FC = () => {
         <button
           type="button"
           onClick={() => setIsBookingOpen(true)}
-          className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 px-5 rounded-xl transition-colors text-sm shadow-sm flex items-center justify-center gap-1.5 self-start sm:self-auto shrink-0"
+          className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 px-5 rounded-full transition-colors text-sm shadow-sm flex items-center justify-center gap-1.5 self-start sm:self-auto shrink-0"
         >
           <Plus size={16} className="stroke-[3]" />
           <span>Book Appointment</span>

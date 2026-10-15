@@ -219,7 +219,7 @@ export const UploadDocuments: React.FC = () => {
                       type="button"
                       onClick={() => removeFile(file.id)}
                       disabled={deletingId === file.id}
-                      className="text-slate-500 hover:text-red-500 p-1.5 rounded-lg hover:bg-slate-50 transition-colors disabled:opacity-50"
+                      className="text-slate-500 hover:text-red-500 p-1.5 rounded-full hover:bg-slate-50 transition-colors disabled:opacity-50"
                       title="Delete document"
                       aria-label={`Delete ${file.fileName}`}
                     >

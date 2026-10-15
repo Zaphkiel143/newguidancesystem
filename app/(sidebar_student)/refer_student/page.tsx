@@ -318,14 +318,14 @@ export const ReferStudentForm: React.FC = () => {
             <button
               type="button"
               onClick={() => setFormData(EMPTY_FORM)}
-              className="w-full sm:w-auto px-12 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-800 font-semibold rounded-xl text-sm transition-colors text-center"
+              className="w-full sm:w-auto px-12 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-800 font-semibold rounded-full text-sm transition-colors text-center"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isSaving}
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-semibold py-2.5 px-8 rounded-xl transition-colors text-sm shadow-sm"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-semibold py-2.5 px-8 rounded-full transition-colors text-sm shadow-sm"
             >
               <Send size={16} className="rotate-0 stroke-[2.5]" />
               <span>{isSaving ? "Submitting..." : "Submit Referral"}</span>

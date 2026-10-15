@@ -109,13 +109,13 @@ export default function EventsPage() {
             <InlineError message={formError} onDismiss={() => setFormError(null)} />
             <div className="flex gap-2">
               <button type="submit" disabled={isSaving}
-                className="inline-flex items-center gap-2 bg-blue-700 hover:bg-blue-800 disabled:opacity-60 text-white text-sm font-medium px-4 min-h-11 rounded-md transition-colors">
+                className="inline-flex items-center gap-2 bg-blue-700 hover:bg-blue-800 disabled:opacity-60 text-white text-sm font-medium px-4 min-h-11 rounded-full transition-colors">
                 {isSaving && <Loader2 size={16} className="animate-spin" />}
                 {editing.id ? "Save changes" : "Add event"}
               </button>
               {editing.id && (
                 <button type="button" onClick={() => { setEditing(EMPTY); setFormError(null); }}
-                  className="px-4 min-h-11 rounded-md text-sm text-slate-600 hover:bg-slate-100 transition-colors">Cancel</button>
+                  className="px-4 min-h-11 rounded-full text-sm text-slate-600 hover:bg-slate-100 transition-colors">Cancel</button>
               )}
             </div>
           </form>
@@ -163,8 +163,8 @@ function EventList({ items, empty, muted, onEdit, onDelete, rowError, clearRowEr
           {ev.location && <p className="text-[13px] text-slate-500 inline-flex items-center gap-1 mt-0.5"><MapPin size={12} /> {ev.location}</p>}
           {ev.description && <p className="text-sm text-slate-600 mt-1 line-clamp-2">{ev.description}</p>}
           <div className="mt-1 flex gap-1 text-[13px]">
-            <button onClick={() => onEdit(ev)} className="px-2 min-h-9 -ml-2 rounded-md text-slate-600 hover:bg-slate-100">Edit</button>
-            <button onClick={() => onDelete(ev)} className="px-2 min-h-9 rounded-md text-red-700 hover:bg-red-50">Remove</button>
+            <button onClick={() => onEdit(ev)} className="px-2 min-h-9 -ml-2 rounded-full text-slate-600 hover:bg-slate-100">Edit</button>
+            <button onClick={() => onDelete(ev)} className="px-2 min-h-9 rounded-full text-red-700 hover:bg-red-50">Remove</button>
           </div>
           <InlineError message={rowError?.id === ev.id ? rowError.message : null} onDismiss={clearRowError} className="mt-2" />
         </li>

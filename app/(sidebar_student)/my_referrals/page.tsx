@@ -35,7 +35,7 @@ export default function MyReferralsPage() {
         </div>
         <Link
           href="/refer_student"
-          className="self-start sm:self-auto inline-flex items-center bg-blue-700 hover:bg-blue-800 text-white text-sm font-medium px-4 min-h-11 rounded-md transition-colors"
+          className="self-start sm:self-auto inline-flex items-center bg-blue-700 hover:bg-blue-800 text-white text-sm font-medium px-4 min-h-11 rounded-full transition-colors"
         >
           New referral
         </Link>

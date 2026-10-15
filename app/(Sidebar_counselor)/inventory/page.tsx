@@ -111,7 +111,7 @@ export default function StudentInventory() {
           <p className="text-sm text-slate-500 mt-1">One record per student: profile, family background, sessions, career plan, referrals, and documents</p>
         </div>
         <button onClick={() => { setForm({ ...EMPTY }); setFormError(null); }}
-          className="self-start sm:self-auto inline-flex items-center gap-2 bg-blue-700 hover:bg-blue-800 text-white text-sm font-medium px-4 min-h-11 rounded-md transition-colors">
+          className="self-start sm:self-auto inline-flex items-center gap-2 bg-blue-700 hover:bg-blue-800 text-white text-sm font-medium px-4 min-h-11 rounded-full transition-colors">
           <Plus size={16} /> Add student
         </button>
       </header>
@@ -158,8 +158,8 @@ export default function StudentInventory() {
                       {r.lastSession ? new Date(r.lastSession).toLocaleDateString("en-PH", { timeZone: "UTC", month: "short", day: "numeric", year: "numeric" }) : "—"}
                     </td>
                     <td className="py-2 text-right whitespace-nowrap">
-                      <button onClick={() => openStudent(r)} className="px-3 min-h-9 rounded-md text-blue-700 hover:bg-blue-50">Open</button>
-                      <button onClick={() => { setForm(toInput(r)); setFormError(null); }} className="px-3 min-h-9 rounded-md text-slate-600 hover:bg-slate-100">Edit</button>
+                      <button onClick={() => openStudent(r)} className="px-3 min-h-9 rounded-full text-blue-700 hover:bg-blue-50">Open</button>
+                      <button onClick={() => { setForm(toInput(r)); setFormError(null); }} className="px-3 min-h-9 rounded-full text-slate-600 hover:bg-slate-100">Edit</button>
                     </td>
                   </tr>
                 ))
@@ -180,8 +180,8 @@ export default function StudentInventory() {
                 <p className="font-mono text-[13px] text-slate-500 mt-0.5">{viewing.studentId} · {viewing.gradeSection}</p>
               </div>
               <div className="flex gap-1">
-                <button onClick={() => { setForm(toInput(viewing)); setFormError(null); }} className="px-3 min-h-11 rounded-md text-sm text-slate-700 hover:bg-slate-100">Edit</button>
-                <button onClick={() => setViewing(null)} aria-label="Close" className="w-11 h-11 grid place-items-center text-slate-500 hover:text-ink hover:bg-slate-100 rounded-md"><X size={18} /></button>
+                <button onClick={() => { setForm(toInput(viewing)); setFormError(null); }} className="px-3 min-h-11 rounded-full text-sm text-slate-700 hover:bg-slate-100">Edit</button>
+                <button onClick={() => setViewing(null)} aria-label="Close" className="w-11 h-11 grid place-items-center text-slate-500 hover:text-ink hover:bg-slate-100 rounded-full"><X size={18} /></button>
               </div>
             </div>
 
@@ -258,7 +258,7 @@ export default function StudentInventory() {
                             <span className="block text-xs text-slate-500">{d.category ?? "Document"} · {new Date(d.createdAt).toLocaleDateString("en-PH", { month: "short", day: "numeric" })}</span>
                           </span>
                           <button onClick={() => download(d.id)} aria-label={`Download ${d.fileName}`}
-                            className="w-11 h-11 shrink-0 grid place-items-center rounded-md text-slate-600 hover:bg-slate-100"><Download size={16} /></button>
+                            className="w-11 h-11 shrink-0 grid place-items-center rounded-full text-slate-600 hover:bg-slate-100"><Download size={16} /></button>
                         </li>
                       ))}
                     </ul>
@@ -278,7 +278,7 @@ export default function StudentInventory() {
             className="bg-sheet w-full max-w-3xl max-h-[90vh] overflow-y-auto rounded-xl border border-rule shadow-xl">
             <div className="sticky top-0 bg-sheet border-b border-rule px-6 py-4 flex items-center justify-between">
               <h2 id="form-title" className="font-medium text-ink">{form.id ? `Edit ${form.name}` : "Add a student"}</h2>
-              <button type="button" onClick={() => setForm(null)} aria-label="Close" className="w-11 h-11 -m-2 grid place-items-center text-slate-500 hover:text-ink hover:bg-slate-100 rounded-md"><X size={18} /></button>
+              <button type="button" onClick={() => setForm(null)} aria-label="Close" className="w-11 h-11 -m-2 grid place-items-center text-slate-500 hover:text-ink hover:bg-slate-100 rounded-full"><X size={18} /></button>
             </div>
             <div className="p-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
               <Input label="Student ID *" value={form.studentId} onChange={(v) => setForm({ ...form, studentId: v })} required />
@@ -313,9 +313,9 @@ export default function StudentInventory() {
             <div className="sticky bottom-0 bg-sheet border-t border-rule px-6 py-4 space-y-3">
               <InlineError message={formError} onDismiss={() => setFormError(null)} />
               <div className="flex justify-end gap-2">
-                <button type="button" onClick={() => setForm(null)} className="px-4 min-h-11 rounded-md text-sm text-slate-600 hover:bg-slate-100">Cancel</button>
+                <button type="button" onClick={() => setForm(null)} className="px-4 min-h-11 rounded-full text-sm text-slate-600 hover:bg-slate-100">Cancel</button>
                 <button type="submit" disabled={isSaving}
-                  className="inline-flex items-center gap-2 bg-blue-700 hover:bg-blue-800 disabled:opacity-60 text-white text-sm font-medium px-4 min-h-11 rounded-md transition-colors">
+                  className="inline-flex items-center gap-2 bg-blue-700 hover:bg-blue-800 disabled:opacity-60 text-white text-sm font-medium px-4 min-h-11 rounded-full transition-colors">
                   {isSaving && <Loader2 size={16} className="animate-spin" />} Save record
                 </button>
               </div>

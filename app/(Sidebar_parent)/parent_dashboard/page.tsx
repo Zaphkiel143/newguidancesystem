@@ -152,7 +152,7 @@ export const ParentBookAppointment: React.FC = () => {
                       type="button"
                       disabled={isTaken}
                       onClick={() => setSelectedTime(slot)}
-                      className={`min-h-11 py-2 px-3 border text-xs font-semibold font-mono rounded-xl transition-all text-center
+                      className={`min-h-11 py-2 px-3 border text-xs font-semibold font-mono rounded-full transition-all text-center
                         ${isTaken
                           ? 'bg-slate-50 border-slate-100 text-slate-300 cursor-not-allowed line-through'
                           : isSelected
@@ -231,14 +231,14 @@ export const ParentBookAppointment: React.FC = () => {
           <div className="flex flex-col sm:flex-row items-center justify-end gap-3 pt-3 border-t border-slate-100">
             <button
               type="button"
-              className="w-full sm:w-auto px-8 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-800 font-semibold rounded-xl text-sm transition-colors text-center"
+              className="w-full sm:w-auto px-8 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-800 font-semibold rounded-full text-sm transition-colors text-center"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isSaving}
-              className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-semibold py-2.5 px-8 rounded-xl transition-colors text-sm shadow-sm text-center"
+              className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-semibold py-2.5 px-8 rounded-full transition-colors text-sm shadow-sm text-center"
             >
               {isSaving ? "Booking..." : "Confirm Booking"}
             </button>

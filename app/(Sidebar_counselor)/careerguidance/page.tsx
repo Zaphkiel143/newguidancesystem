@@ -119,7 +119,7 @@ export default function CareerTracker() {
           <p className="text-sm text-slate-500 mt-1">Senior High School students&apos; progress through the Career Planning Program</p>
         </div>
         <button onClick={() => { setAddError(null); setIsAddOpen(true); }}
-          className="self-start sm:self-auto inline-flex items-center gap-2 bg-blue-700 hover:bg-blue-800 text-white text-sm font-medium px-4 min-h-11 rounded-md transition-colors">
+          className="self-start sm:self-auto inline-flex items-center gap-2 bg-blue-700 hover:bg-blue-800 text-white text-sm font-medium px-4 min-h-11 rounded-full transition-colors">
           <Plus size={16} /> Add student
         </button>
       </header>
@@ -177,10 +177,10 @@ export default function CareerTracker() {
                     </div>
                     <div className="flex gap-2">
                       <button onClick={confirmAdvance} disabled={isAdvancing}
-                        className="inline-flex items-center gap-2 bg-blue-700 hover:bg-blue-800 disabled:opacity-60 text-white text-sm font-medium px-4 min-h-11 rounded-md">
+                        className="inline-flex items-center gap-2 bg-blue-700 hover:bg-blue-800 disabled:opacity-60 text-white text-sm font-medium px-4 min-h-11 rounded-full">
                         {isAdvancing ? <Loader2 size={16} className="animate-spin" /> : <Check size={16} />} Mark done
                       </button>
-                      <button onClick={() => setAdvancing(null)} className="px-4 min-h-11 rounded-md text-sm text-slate-600 hover:bg-slate-100">Cancel</button>
+                      <button onClick={() => setAdvancing(null)} className="px-4 min-h-11 rounded-full text-sm text-slate-600 hover:bg-slate-100">Cancel</button>
                     </div>
                   </div>
                 ) : (
@@ -189,11 +189,11 @@ export default function CareerTracker() {
                       <span className="text-emerald-700 px-2 min-h-9 -ml-2 inline-flex items-center">All stages complete</span>
                     ) : (
                       <button onClick={() => { setRowError(null); setAdvancing({ id: plan.id, note: "" }); }}
-                        className="px-2 min-h-9 -ml-2 rounded-md text-blue-700 hover:bg-blue-50">
+                        className="px-2 min-h-9 -ml-2 rounded-full text-blue-700 hover:bg-blue-50">
                         Complete “{CAREER_STEPS[next]}”
                       </button>
                     )}
-                    <button onClick={() => openDetails(plan)} className="px-2 min-h-9 rounded-md text-slate-600 hover:bg-slate-100">
+                    <button onClick={() => openDetails(plan)} className="px-2 min-h-9 rounded-full text-slate-600 hover:bg-slate-100">
                       Activities & facilitator
                     </button>
                   </div>
@@ -214,7 +214,7 @@ export default function CareerTracker() {
                 <h2 id="add-title" className="font-medium text-ink">Add to Career Planning Program</h2>
                 <p className="text-xs text-slate-500 mt-0.5">Senior High School students from the Individual Inventory</p>
               </div>
-              <button type="button" onClick={() => setIsAddOpen(false)} aria-label="Close" className="w-11 h-11 -m-2 grid place-items-center text-slate-500 hover:text-ink hover:bg-slate-100 rounded-md"><X size={18} /></button>
+              <button type="button" onClick={() => setIsAddOpen(false)} aria-label="Close" className="w-11 h-11 -m-2 grid place-items-center text-slate-500 hover:text-ink hover:bg-slate-100 rounded-full"><X size={18} /></button>
             </div>
             <div>
               <label htmlFor="cpp-student" className="block text-[13px] font-medium text-slate-700 mb-1.5">Student</label>
@@ -231,9 +231,9 @@ export default function CareerTracker() {
             </div>
             <InlineError message={addError} onDismiss={() => setAddError(null)} />
             <div className="flex justify-end gap-2 pt-2 border-t border-rule">
-              <button type="button" onClick={() => setIsAddOpen(false)} className="px-4 min-h-11 rounded-md text-sm text-slate-600 hover:bg-slate-100">Cancel</button>
+              <button type="button" onClick={() => setIsAddOpen(false)} className="px-4 min-h-11 rounded-full text-sm text-slate-600 hover:bg-slate-100">Cancel</button>
               <button type="submit" disabled={isAdding}
-                className="inline-flex items-center gap-2 bg-blue-700 hover:bg-blue-800 disabled:opacity-60 text-white text-sm font-medium px-4 min-h-11 rounded-md">
+                className="inline-flex items-center gap-2 bg-blue-700 hover:bg-blue-800 disabled:opacity-60 text-white text-sm font-medium px-4 min-h-11 rounded-full">
                 {isAdding && <Loader2 size={16} className="animate-spin" />} Add student
               </button>
             </div>
@@ -250,7 +250,7 @@ export default function CareerTracker() {
                 <h2 id="details-title" className="font-serif text-[26px] leading-tight text-ink">{details.plan.studentName}</h2>
                 <p className="font-mono text-[13px] text-slate-500 mt-0.5">{details.plan.studentId} · {details.plan.grade}</p>
               </div>
-              <button onClick={() => setDetails(null)} aria-label="Close" className="w-11 h-11 grid place-items-center text-slate-500 hover:text-ink hover:bg-slate-100 rounded-md"><X size={18} /></button>
+              <button onClick={() => setDetails(null)} aria-label="Close" className="w-11 h-11 grid place-items-center text-slate-500 hover:text-ink hover:bg-slate-100 rounded-full"><X size={18} /></button>
             </div>
             <div className="px-6 py-6 space-y-6">
               <div>
@@ -276,9 +276,9 @@ export default function CareerTracker() {
               </div>
               <InlineError message={detailsError} onDismiss={() => setDetailsError(null)} />
               <div className="flex justify-end gap-2">
-                <button onClick={() => setDetails(null)} className="px-4 min-h-11 rounded-md text-sm text-slate-600 hover:bg-slate-100">Cancel</button>
+                <button onClick={() => setDetails(null)} className="px-4 min-h-11 rounded-full text-sm text-slate-600 hover:bg-slate-100">Cancel</button>
                 <button onClick={saveDetails} disabled={isSavingDetails}
-                  className="inline-flex items-center gap-2 bg-blue-700 hover:bg-blue-800 disabled:opacity-60 text-white text-sm font-medium px-4 min-h-11 rounded-md">
+                  className="inline-flex items-center gap-2 bg-blue-700 hover:bg-blue-800 disabled:opacity-60 text-white text-sm font-medium px-4 min-h-11 rounded-full">
                   {isSavingDetails && <Loader2 size={16} className="animate-spin" />} Save
                 </button>
               </div>

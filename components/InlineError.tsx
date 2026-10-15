@@ -25,7 +25,7 @@ export default function InlineError({ message, onDismiss, className = "" }: Inli
           type="button"
           onClick={onDismiss}
           aria-label="Dismiss error"
-          className="w-8 h-8 shrink-0 grid place-items-center rounded-md text-red-700/70 hover:text-red-700 hover:bg-red-100 transition-colors"
+          className="w-8 h-8 shrink-0 grid place-items-center rounded-full text-red-700/70 hover:text-red-700 hover:bg-red-100 transition-colors"
         >
           <X size={14} />
         </button>

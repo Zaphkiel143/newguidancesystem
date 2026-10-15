@@ -80,7 +80,7 @@ export const DashboardContent: React.FC = () => {
       {/* E-Gabay invitation: one quiet line, not a banner */}
       <Link
         href="/ai_chat"
-        className="group mt-8 flex items-center justify-between gap-6 border border-butter-200 bg-butter-100 rounded-2xl px-6 py-5 hover:border-butter-300 hover:bg-butter-50 transition-colors"
+        className="group mt-8 flex items-center justify-between gap-6 border border-butter-200 bg-butter-100 rounded-full px-6 py-5 hover:border-butter-300 hover:bg-butter-50 transition-colors"
       >
         <span>
           <span className="block font-serif text-[22px] text-ink leading-snug">Need someone to talk to?</span>

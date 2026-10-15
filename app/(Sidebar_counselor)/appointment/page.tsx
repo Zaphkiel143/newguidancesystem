@@ -275,7 +275,7 @@ export default function AppointmentScheduling() {
           {/* Connected Button click target */}
           <button 
             onClick={handleBlockTimeSlot}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-xl shadow-sm transition text-sm text-center"
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-full shadow-sm transition text-sm text-center"
           >
             Block Time Slot
           </button>
@@ -330,28 +330,28 @@ export default function AppointmentScheduling() {
                         <button
                           onClick={() => handleStartSession(appointment)}
                           disabled={confirmingId === appointment.id}
-                          className="bg-emerald-50 hover:bg-emerald-100 text-emerald-600 font-semibold text-xs px-4 py-2 rounded-xl transition disabled:opacity-50"
+                          className="bg-emerald-50 hover:bg-emerald-100 text-emerald-600 font-semibold text-xs px-4 py-2 rounded-full transition disabled:opacity-50"
                         >
                           {confirmingId === appointment.id ? "Starting..." : "Start Session"}
                         </button>
                       ) : (
                         <button
                           onClick={() => handleOpenConfigurator(appointment)}
-                          className="bg-blue-50 hover:bg-blue-100 text-blue-600 font-semibold text-xs px-4 py-2 rounded-xl transition"
+                          className="bg-blue-50 hover:bg-blue-100 text-blue-600 font-semibold text-xs px-4 py-2 rounded-full transition"
                         >
                           Manage
                         </button>
                       )}
                       <button
                         onClick={() => handleOpenConfigurator(appointment)}
-                        className="bg-slate-50 hover:bg-slate-100 text-slate-600 font-semibold text-xs px-4 py-2 rounded-xl transition"
+                        className="bg-slate-50 hover:bg-slate-100 text-slate-600 font-semibold text-xs px-4 py-2 rounded-full transition"
                       >
                         Reschedule
                       </button>
                       <button
                         onClick={() => handleCancelAppointment(appointment)}
                         disabled={cancelingId === appointment.id}
-                        className="bg-red-50 hover:bg-red-100 text-red-600 font-semibold text-xs px-4 py-2 rounded-xl transition disabled:opacity-50"
+                        className="bg-red-50 hover:bg-red-100 text-red-600 font-semibold text-xs px-4 py-2 rounded-full transition disabled:opacity-50"
                       >
                         {cancelingId === appointment.id ? "Canceling..." : "Cancel"}
                       </button>
@@ -464,7 +464,7 @@ export default function AppointmentScheduling() {
                   <button
                     type="button"
                     onClick={handleAddRequirement}
-                    className="bg-slate-900 text-white font-medium text-xs px-4 rounded-xl hover:bg-slate-800 transition"
+                    className="bg-slate-900 text-white font-medium text-xs px-4 rounded-full hover:bg-slate-800 transition"
                   >
                     Add
                   </button>
@@ -499,14 +499,14 @@ export default function AppointmentScheduling() {
                 <button
                   type="button"
                   onClick={() => setIsFormOpen(false)}
-                  className="px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 rounded-xl transition"
+                  className="px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 rounded-full transition"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={isSaving}
-                  className="px-5 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 rounded-xl transition flex items-center gap-2"
+                  className="px-5 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 rounded-full transition flex items-center gap-2"
                 >
                   {isSaving ? "Saving..." : "Save Specifications"}
                 </button>

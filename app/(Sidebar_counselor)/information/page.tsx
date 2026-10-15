@@ -111,13 +111,13 @@ export default function InformationServicePage() {
             <InlineError message={formError} onDismiss={() => setFormError(null)} />
             <div className="flex gap-2">
               <button type="submit" disabled={isSaving}
-                className="inline-flex items-center gap-2 bg-blue-700 hover:bg-blue-800 disabled:opacity-60 text-white text-sm font-medium px-4 min-h-11 rounded-md transition-colors">
+                className="inline-flex items-center gap-2 bg-blue-700 hover:bg-blue-800 disabled:opacity-60 text-white text-sm font-medium px-4 min-h-11 rounded-full transition-colors">
                 {isSaving && <Loader2 size={16} className="animate-spin" />}
                 {editing.id ? "Save changes" : "Post announcement"}
               </button>
               {editing.id && (
                 <button type="button" onClick={() => { setEditing(EMPTY); setFormError(null); }}
-                  className="px-4 min-h-11 rounded-md text-sm text-slate-600 hover:bg-slate-100 transition-colors">
+                  className="px-4 min-h-11 rounded-full text-sm text-slate-600 hover:bg-slate-100 transition-colors">
                   Cancel
                 </button>
               )}
@@ -147,15 +147,15 @@ export default function InformationServicePage() {
                   <p className="font-medium text-ink mt-1">{a.title}</p>
                   <p className="text-sm text-slate-600 mt-1 line-clamp-2">{a.body}</p>
                   <div className="mt-2 flex flex-wrap items-center gap-x-1 text-[13px]">
-                    <button onClick={() => setViewersOf(a)} className="px-2 min-h-9 -ml-2 rounded-md text-blue-700 hover:bg-blue-50">
+                    <button onClick={() => setViewersOf(a)} className="px-2 min-h-9 -ml-2 rounded-full text-blue-700 hover:bg-blue-50">
                       Seen by {a.views.length}
                     </button>
                     <button onClick={() => { setEditing({ id: a.id, title: a.title, body: a.body, category: a.category, audience: a.audience, isPublished: a.isPublished }); setFormError(null); }}
-                      className="px-2 min-h-9 rounded-md text-slate-600 hover:bg-slate-100">Edit</button>
-                    <button onClick={() => togglePublished(a)} className="px-2 min-h-9 rounded-md text-slate-600 hover:bg-slate-100">
+                      className="px-2 min-h-9 rounded-full text-slate-600 hover:bg-slate-100">Edit</button>
+                    <button onClick={() => togglePublished(a)} className="px-2 min-h-9 rounded-full text-slate-600 hover:bg-slate-100">
                       {a.isPublished ? "Hide" : "Publish"}
                     </button>
-                    <button onClick={() => handleDelete(a)} className="px-2 min-h-9 rounded-md text-red-700 hover:bg-red-50">Delete</button>
+                    <button onClick={() => handleDelete(a)} className="px-2 min-h-9 rounded-full text-red-700 hover:bg-red-50">Delete</button>
                   </div>
                   <InlineError message={rowError?.id === a.id ? rowError.message : null} onDismiss={() => setRowError(null)} className="mt-2" />
                 </li>
@@ -175,7 +175,7 @@ export default function InformationServicePage() {
                 <p className="text-xs text-slate-500 mt-0.5">{viewersOf.title}</p>
               </div>
               <button onClick={() => setViewersOf(null)} aria-label="Close"
-                className="w-11 h-11 -m-2 grid place-items-center text-slate-500 hover:text-ink hover:bg-slate-100 rounded-md"><X size={18} /></button>
+                className="w-11 h-11 -m-2 grid place-items-center text-slate-500 hover:text-ink hover:bg-slate-100 rounded-full"><X size={18} /></button>
             </div>
             {viewersOf.views.length === 0 ? (
               <p className="p-5 text-sm text-slate-500">No one has opened the board since this was posted.</p>
