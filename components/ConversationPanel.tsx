@@ -3,6 +3,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { ArrowUp, Loader2 } from "lucide-react";
 import type { Message as DbMessage } from "../lib/generated";
+import InlineError from "./InlineError";
 
 interface ConversationPanelProps {
   conversationId: string;
@@ -37,6 +38,7 @@ export default function ConversationPanel({
   const [isLoading, setIsLoading] = useState(true);
   const [draft, setDraft] = useState("");
   const [isSending, setIsSending] = useState(false);
+  const [sendError, setSendError] = useState<string | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -73,6 +75,7 @@ export default function ConversationPanel({
     if (!content) return;
 
     setIsSending(true);
+    setSendError(null);
     setDraft("");
     const result = await sendMessage({ conversationId, senderName: viewerName, content });
     setIsSending(false);
@@ -82,7 +85,7 @@ export default function ConversationPanel({
       setMessages(data);
       onMessageSent?.();
     } else {
-      alert(`Failed to send message: ${result.error || "Unknown error"}`);
+      setSendError(`Message not sent: ${result.error || "unknown error"}. Your text is back in the box — try again.`);
       setDraft(content);
     }
   };
@@ -142,6 +145,7 @@ export default function ConversationPanel({
       </div>
 
       <div className="border-t border-rule px-4 py-3 shrink-0">
+        <InlineError message={sendError} onDismiss={() => setSendError(null)} className="mb-2" />
         <form onSubmit={handleSend} className="flex items-center gap-2">
           <label htmlFor={`draft-${conversationId}`} className="sr-only">Write a message</label>
           <input

@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { Search, MessageSquare, User, X } from 'lucide-react';
 import { listConversations, startConversation, getMessages, markConversationRead, sendMessage } from '../../action/counselor';
 import ConversationPanel from '../../../components/ConversationPanel';
+import InlineError from '../../../components/InlineError';
 
 const VIEWER_ROLE = "Counselor";
 const VIEWER_NAME = "Ralph Michael";
@@ -24,6 +25,7 @@ export const MessagesDashboard: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState<string>('');
 
   const [isNewMessageOpen, setIsNewMessageOpen] = useState(false);
+  const [startError, setStartError] = useState<string | null>(null);
   const [newName, setNewName] = useState('');
   const [newRole, setNewRole] = useState<'Student' | 'Faculty' | 'Parent'>('Student');
   const [newContent, setNewContent] = useState('');
@@ -63,6 +65,7 @@ export const MessagesDashboard: React.FC = () => {
     if (!newName.trim() || !newContent.trim()) return;
 
     setIsStarting(true);
+    setStartError(null);
     const result = await startConversation({
       participantName: newName.trim(),
       participantRole: newRole,
@@ -79,7 +82,7 @@ export const MessagesDashboard: React.FC = () => {
       await refreshConversations();
       setSelectedId(result.conversation.id);
     } else {
-      alert(`Failed to start conversation: ${result.error || "Unknown error"}`);
+      setStartError(`Couldn't send this message: ${result.error || "unknown error"}.`);
     }
   };
 
@@ -115,7 +118,7 @@ export const MessagesDashboard: React.FC = () => {
 
             {/* New Message Button */}
             <button
-              onClick={() => setIsNewMessageOpen(true)}
+              onClick={() => { setStartError(null); setIsNewMessageOpen(true); }}
               className="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 px-4 rounded-lg transition-colors text-sm shadow-sm"
             >
               <MessageSquare className="w-4 h-4 fill-current" />
@@ -279,6 +282,8 @@ export const MessagesDashboard: React.FC = () => {
                   className="w-full text-sm bg-slate-50 border border-slate-200 rounded-xl p-3 focus:outline-none resize-none"
                 />
               </div>
+
+              <InlineError message={startError} onDismiss={() => setStartError(null)} />
 
               <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
                 <button

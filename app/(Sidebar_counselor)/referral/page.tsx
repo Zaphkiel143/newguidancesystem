@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { Search, AlertTriangle, Clock, CheckCircle, X } from 'lucide-react';
 import { listReferrals, updateReferralStatus, addReferralNotes, sendReferralFeedback } from '../../action/counselor';
 import type { Referral } from '../../../lib/generated';
+import InlineError from '../../../components/InlineError';
 
 type ModalState = { type: 'notes' | 'feedback'; referral: Referral } | null;
 
@@ -15,6 +16,8 @@ const ReferralManagement = () => {
   const [modalText, setModalText] = useState('');
   const [isSaving, setIsSaving] = useState(false);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const [cardError, setCardError] = useState<{ id: string; message: string } | null>(null);
+  const [modalError, setModalError] = useState<string | null>(null);
 
   const refresh = async () => {
     const data = await listReferrals();
@@ -57,17 +60,19 @@ const ReferralManagement = () => {
 
   const handleAdvanceStatus = async (referral: Referral, status: "IN_PROGRESS" | "CLOSED") => {
     setUpdatingId(referral.id);
+    setCardError(null);
     const result = await updateReferralStatus(referral.id, status);
     setUpdatingId(null);
     if (result.success) {
       await refresh();
     } else {
-      alert(`Failed to update referral: ${result.error || "Unknown error"}`);
+      setCardError({ id: referral.id, message: `Couldn't update this referral: ${result.error || "unknown error"}.` });
     }
   };
 
   const openModal = (type: 'notes' | 'feedback', referral: Referral) => {
     setModal({ type, referral });
+    setModalError(null);
     setModalText(type === 'notes' ? referral.notes || '' : '');
   };
 
@@ -81,6 +86,7 @@ const ReferralManagement = () => {
     if (!modal || !modalText.trim()) return;
 
     setIsSaving(true);
+    setModalError(null);
     const result = modal.type === 'notes'
       ? await addReferralNotes(modal.referral.id, modalText.trim())
       : await sendReferralFeedback(modal.referral.id, modalText.trim());
@@ -90,7 +96,7 @@ const ReferralManagement = () => {
       closeModal();
       await refresh();
     } else {
-      alert(`Failed to save: ${result.error || "Unknown error"}`);
+      setModalError(`Couldn't save: ${result.error || "unknown error"}.`);
     }
   };
 
@@ -148,6 +154,8 @@ const ReferralManagement = () => {
               onAdvanceStatus={handleAdvanceStatus}
               onAddNotes={() => openModal('notes', referral)}
               onSendFeedback={() => openModal('feedback', referral)}
+              error={cardError?.id === referral.id ? cardError.message : null}
+              onDismissError={() => setCardError(null)}
             />
           ))
         )}
@@ -186,6 +194,8 @@ const ReferralManagement = () => {
                 required
               />
 
+              <InlineError message={modalError} onDismiss={() => setModalError(null)} />
+
               <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
                 <button
                   type="button"
@@ -216,9 +226,11 @@ interface ReferralCardProps {
   onAdvanceStatus: (referral: Referral, status: "IN_PROGRESS" | "CLOSED") => void;
   onAddNotes: () => void;
   onSendFeedback: () => void;
+  error: string | null;
+  onDismissError: () => void;
 }
 
-const ReferralCard = ({ referral, isUpdating, onAdvanceStatus, onAddNotes, onSendFeedback }: ReferralCardProps) => {
+const ReferralCard = ({ referral, isUpdating, onAdvanceStatus, onAddNotes, onSendFeedback, error, onDismissError }: ReferralCardProps) => {
   const isHigh = referral.priority === 'High' || referral.priority === 'Urgent';
   const isOpen = referral.status === 'OPEN';
   const isClosed = referral.status === 'CLOSED';
@@ -303,6 +315,7 @@ const ReferralCard = ({ referral, isUpdating, onAdvanceStatus, onAddNotes, onSen
             Send Feedback
           </button>
         </div>
+        <InlineError message={error} onDismiss={onDismissError} className="mt-3" />
       </div>
     </div>
   );

@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { saveAppointmentDetails, getAppointmentsByDate, getDateStats, updateAppointmentStatus } from "../../action/counselor";
 import type { Appointment as DbAppointment } from "../../../lib/generated";
 import { STANDARD_DAY_HOURS, parseTimeToMinutes, formatMinutesToTime } from "../../config/timeSlots";
+import InlineError from "../../../components/InlineError";
 
 const MAX_BLOCK_MINUTES = 60;
 
@@ -59,6 +60,9 @@ export default function AppointmentScheduling() {
   const [newRequirementInput, setNewRequirementInput] = useState("");
   const [confirmingId, setConfirmingId] = useState<string | null>(null);
   const [cancelingId, setCancelingId] = useState<string | null>(null);
+  // Errors are shown where they happened: on the appointment card, or in the edit form.
+  const [rowError, setRowError] = useState<{ id: string; message: string } | null>(null);
+  const [formError, setFormError] = useState<string | null>(null);
   const [editDate, setEditDate] = useState("");
   const [editTime, setEditTime] = useState("");
 
@@ -122,13 +126,14 @@ export default function AppointmentScheduling() {
 
   const handleStartSession = async (appointment: Appointment) => {
     setConfirmingId(appointment.id);
+    setRowError(null);
     const result = await updateAppointmentStatus(appointment.id, "CONFIRMED");
     setConfirmingId(null);
 
     if (result.success) {
       await refreshData(selectedDate);
     } else {
-      alert("Failed to start the session.");
+      setRowError({ id: appointment.id, message: "Couldn't start this session. Try again." });
     }
   };
 
@@ -149,6 +154,7 @@ export default function AppointmentScheduling() {
     });
     setAppointmentType("Unavailable / Reserved Slot");
     setNotes("Time slot manually blocked by counselor.");
+    setFormError(null);
     setRequirements([]);
     setIsFormOpen(true);
   };
@@ -158,6 +164,7 @@ export default function AppointmentScheduling() {
     setAppointmentType(appointment.appointmentType || "Individual Counseling");
     setNotes(appointment.notes || "");
     setRequirements(appointment.requirements || []);
+    setFormError(null);
     setEditDate(appointment.date);
     setEditTime(appointment.time);
     setIsFormOpen(true);
@@ -167,13 +174,14 @@ export default function AppointmentScheduling() {
     if (!window.confirm(`Cancel the appointment for ${appointment.studentName}?`)) return;
 
     setCancelingId(appointment.id);
+    setRowError(null);
     const result = await updateAppointmentStatus(appointment.id, "CANCELLED");
     setCancelingId(null);
 
     if (result.success) {
       await refreshData(selectedDate);
     } else {
-      alert("Failed to cancel the appointment.");
+      setRowError({ id: appointment.id, message: "Couldn't cancel this appointment. Try again." });
     }
   };
 
@@ -191,6 +199,7 @@ export default function AppointmentScheduling() {
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSaving(true);
+    setFormError(null);
 
     // Blocks use a fake client-side id ("block-<timestamp>") that doesn't exist
     // in the database yet — sending it as appointmentId would make the server
@@ -219,7 +228,7 @@ export default function AppointmentScheduling() {
       setNotes("");
       setRequirements([]);
     } else {
-      alert(`Database Error: ${result.error || "Failed to save appointment"}`);
+      setFormError(`Couldn't save: ${result.error || "unknown error"}.`);
     }
   };
 
@@ -347,6 +356,10 @@ export default function AppointmentScheduling() {
                         {cancelingId === appointment.id ? "Canceling..." : "Cancel"}
                       </button>
                     </div>
+                    <InlineError
+                      message={rowError?.id === appointment.id ? rowError.message : null}
+                      onDismiss={() => setRowError(null)}
+                    />
                   </div>
                 ))}
               </div>
@@ -479,6 +492,8 @@ export default function AppointmentScheduling() {
                   className="w-full text-sm bg-slate-50 border border-slate-200 rounded-xl p-3 focus:outline-none resize-none"
                 />
               </div>
+
+              <InlineError message={formError} onDismiss={() => setFormError(null)} />
 
               <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
                 <button

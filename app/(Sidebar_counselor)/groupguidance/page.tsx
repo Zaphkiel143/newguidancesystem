@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { Users, Calendar, Download, Send, BarChart3 } from 'lucide-react';
 import { GRADE_LEVELS } from '../../config/gradeLevels';
 import { getGroupGuidancePrograms, addGroupGuidanceProgram } from '../../action/counselor';
+import InlineError from '../../../components/InlineError';
 
 interface Program {
   id: string;
@@ -35,6 +36,7 @@ const GroupGuidance = () => {
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
   const [title, setTitle] = useState("");
   const [gradeLevel, setGradeLevel] = useState<string>(GRADE_LEVELS[0]);
   const [date, setDate] = useState(minSelectableDate);
@@ -82,12 +84,14 @@ const GroupGuidance = () => {
     setGradeLevel(GRADE_LEVELS[0]);
     setDate(minSelectableDate);
     setTime("");
+    setSaveError(null);
     setIsModalOpen(true);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSaving(true);
+    setSaveError(null);
 
     const result = await addGroupGuidanceProgram({
       title,
@@ -101,7 +105,7 @@ const GroupGuidance = () => {
       setIsModalOpen(false);
       await refreshPrograms();
     } else {
-      alert(`Database Error: ${result.error || "Failed to save program"}`);
+      setSaveError(`Couldn't save this program: ${result.error || "unknown error"}.`);
     }
   };
 
@@ -255,6 +259,8 @@ const GroupGuidance = () => {
                   />
                 </div>
               </div>
+
+              <InlineError message={saveError} onDismiss={() => setSaveError(null)} />
 
               <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
                 <button

@@ -5,6 +5,7 @@ import { CheckCircle2, Circle, X, Loader2 } from 'lucide-react';
 import { CAREER_STEPS } from '../../config/careerSteps';
 import { getCareerPlans, addCareerPlanStudent, advanceCareerPlanProgress, getStudentProfile } from '../../action/counselor';
 import type { Appointment as DbAppointment } from '../../../lib/generated';
+import InlineError from '../../../components/InlineError';
 
 interface CareerPlan {
   id: string;
@@ -17,12 +18,14 @@ interface CareerPlan {
 const CareerTracker = () => {
   const [careerPlans, setCareerPlans] = useState<CareerPlan[]>([]);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const [progressError, setProgressError] = useState<{ id: string; message: string } | null>(null);
 
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [newStudentName, setNewStudentName] = useState("");
   const [newStudentId, setNewStudentId] = useState("");
   const [newGrade, setNewGrade] = useState("Grade 12");
+  const [addError, setAddError] = useState<string | null>(null);
 
   const [viewingPlan, setViewingPlan] = useState<CareerPlan | null>(null);
   const [isLoadingProfile, setIsLoadingProfile] = useState(false);
@@ -49,6 +52,7 @@ const CareerTracker = () => {
   const handleAddStudent = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSaving(true);
+    setAddError(null);
 
     const result = await addCareerPlanStudent({
       studentName: newStudentName,
@@ -64,19 +68,20 @@ const CareerTracker = () => {
       setNewGrade("Grade 12");
       await refreshCareerPlans();
     } else {
-      alert(`Database Error: ${result.error || "Failed to add student"}`);
+      setAddError(`Couldn't add this student: ${result.error || "unknown error"}.`);
     }
   };
 
   const handleUpdateProgress = async (id: string) => {
     setUpdatingId(id);
+    setProgressError(null);
     const result = await advanceCareerPlanProgress(id);
     setUpdatingId(null);
 
     if (result.success) {
       await refreshCareerPlans();
     } else {
-      alert(`Database Error: ${result.error || "Failed to update progress"}`);
+      setProgressError({ id, message: `Couldn't update progress: ${result.error || "unknown error"}.` });
     }
   };
 
@@ -97,7 +102,7 @@ const CareerTracker = () => {
           <p className="text-slate-500 text-sm">Monitor SHS students&apos; Career Planning Program progress</p>
         </div>
         <button
-          onClick={() => setIsAddModalOpen(true)}
+          onClick={() => { setAddError(null); setIsAddModalOpen(true); }}
           className="bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm px-5 py-2.5 rounded-xl shadow-sm transition"
         >
           + Add Career Guidance Student
@@ -196,6 +201,11 @@ const CareerTracker = () => {
                     View Full Plan
                   </button>
                 </div>
+                <InlineError
+                  message={progressError?.id === plan.id ? progressError.message : null}
+                  onDismiss={() => setProgressError(null)}
+                  className="mt-3"
+                />
               </div>
             );
           })
@@ -247,6 +257,8 @@ const CareerTracker = () => {
                   <option value="Grade 12">Grade 12</option>
                 </select>
               </div>
+
+              <InlineError message={addError} onDismiss={() => setAddError(null)} />
 
               <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
                 <button

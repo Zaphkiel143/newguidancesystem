@@ -3,6 +3,7 @@
 import React, { useEffect, useState, ChangeEvent, DragEvent } from 'react';
 import { UploadCloud, FileText, CheckCircle2, Trash2, Loader2 } from 'lucide-react';
 import { uploadDocument, getMyDocuments, deleteDocument } from '../../action/faculty';
+import InlineError from '../../../components/InlineError';
 
 const FACULTY_NAME = "Cho Sto Domingo";
 const MAX_FILE_BYTES = 5 * 1024 * 1024; // 5MB
@@ -38,6 +39,7 @@ export const UploadDocuments: React.FC = () => {
   const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   const refresh = async () => {
     const data = await getMyDocuments(FACULTY_NAME);
@@ -107,12 +109,14 @@ export const UploadDocuments: React.FC = () => {
 
   const removeFile = async (id: string) => {
     setDeletingId(id);
+    setDeleteError(null);
     const result = await deleteDocument(id);
     setDeletingId(null);
     if (result.success) {
       await refresh();
     } else {
-      alert(`Failed to delete document: ${result.error || "Unknown error"}`);
+      const name = documents.find((d) => d.id === id)?.fileName ?? "this document";
+      setDeleteError(`Couldn't delete ${name}: ${result.error || "unknown error"}.`);
     }
   };
 
@@ -219,6 +223,7 @@ export const UploadDocuments: React.FC = () => {
                       disabled={deletingId === file.id}
                       className="text-slate-500 hover:text-red-500 p-1.5 rounded-lg hover:bg-slate-50 transition-colors disabled:opacity-50"
                       title="Delete document"
+                      aria-label={`Delete ${file.fileName}`}
                     >
                       {deletingId === file.id ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={16} />}
                     </button>
@@ -227,6 +232,7 @@ export const UploadDocuments: React.FC = () => {
                 </div>
               ))}
             </div>
+            <InlineError message={deleteError} onDismiss={() => setDeleteError(null)} className="mt-3" />
           </div>
         )}
 
