@@ -92,7 +92,7 @@ const Dashboard = async () => {
                     <span className="text-[12px] text-red-700 font-medium shrink-0">{referral.priority}</span>
                   </div>
                   <p className="text-[14px] text-slate-600 mt-0.5">{referral.concernType}</p>
-                  <p className="text-[12px] text-slate-400 mt-1.5">
+                  <p className="text-[12px] text-slate-500 mt-1.5">
                     From {referral.referrerName} · {new Date(referral.createdAt).toLocaleDateString("en-PH", { month: "short", day: "numeric" })}
                   </p>
                 </li>

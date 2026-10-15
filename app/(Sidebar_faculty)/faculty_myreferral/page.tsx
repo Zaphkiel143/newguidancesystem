@@ -60,9 +60,10 @@ export const MyReferralsPage: React.FC = () => {
       {/* Persistent Search Action Input Field Container */}
       <div className="bg-white p-4 rounded-xl border border-slate-100 shadow-sm">
         <div className="relative">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
           <input
             type="text"
+                aria-label="Search referrals"
             placeholder="Search referrals..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
@@ -87,11 +88,11 @@ export const MyReferralsPage: React.FC = () => {
 
                 {/* Priority and Progress Badges Row Section */}
                 <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
-                  <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-md ${getPriorityStyles(log.priority)}`}>
+                  <span className={`text-xs font-semibold px-2 py-0.5 rounded-md ${getPriorityStyles(log.priority)}`}>
                     {log.priority}
                   </span>
 
-                  <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-md flex items-center gap-1.5 ${getStatusStyles(log.status)}`}>
+                  <span className={`text-xs font-semibold px-2 py-0.5 rounded-md flex items-center gap-1.5 ${getStatusStyles(log.status)}`}>
                     {log.status === 'OPEN' && <AlertTriangle size={12} className="stroke-[2.5]" />}
                     {log.status === 'IN_PROGRESS' && <Clock size={12} className="stroke-[2.5]" />}
                     {log.status === 'CLOSED' && <CheckCircle2 size={12} className="stroke-[2.5]" />}
@@ -103,11 +104,11 @@ export const MyReferralsPage: React.FC = () => {
               {/* Central Core Parameters Content Summary Block */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1 text-xs">
                 <div className="space-y-1">
-                  <span className="text-slate-400 font-medium block">Concern Type:</span>
+                  <span className="text-slate-500 font-medium block">Concern Type:</span>
                   <span className="text-slate-800 font-semibold text-[13px]">{log.concernType}</span>
                 </div>
                 <div className="space-y-1">
-                  <span className="text-slate-400 font-medium block">Date Submitted:</span>
+                  <span className="text-slate-500 font-medium block">Date Submitted:</span>
                   <span className="text-slate-700 font-mono font-semibold">{new Date(log.createdAt).toLocaleDateString()}</span>
                 </div>
               </div>
@@ -128,7 +129,7 @@ export const MyReferralsPage: React.FC = () => {
             </div>
           ))
         ) : (
-          <div className="text-center p-12 bg-white rounded-2xl border border-dashed border-slate-200 text-slate-400 text-sm font-medium">
+          <div className="text-center p-12 bg-white rounded-2xl border border-dashed border-slate-200 text-slate-500 text-sm font-medium">
             No matching logged student referral records found.
           </div>
         )}

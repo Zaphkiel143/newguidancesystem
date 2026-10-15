@@ -97,7 +97,7 @@ export default function ConversationPanel({
   return (
     <div className="flex-1 flex flex-col bg-paper h-full min-h-0">
       <div className="px-6 py-4 border-b border-rule shrink-0 flex items-center gap-3">
-        <span className="w-9 h-9 rounded-md bg-slate-200 text-slate-700 grid place-items-center text-[11px] font-semibold">
+        <span className="w-9 h-9 rounded-md bg-slate-200 text-slate-700 grid place-items-center text-xs font-semibold">
           {initials}
         </span>
         <div className="leading-tight">
@@ -108,7 +108,7 @@ export default function ConversationPanel({
 
       <div className="flex-1 overflow-y-auto px-6 py-6 space-y-4 min-h-0">
         {isLoading ? (
-          <div className="h-full flex items-center justify-center text-slate-400">
+          <div className="h-full flex items-center justify-center text-slate-500">
             <Loader2 className="animate-spin" size={20} />
           </div>
         ) : messages.length === 0 ? (
@@ -124,7 +124,7 @@ export default function ConversationPanel({
                 <p className="max-w-[75%] bg-blue-700 text-white rounded-lg rounded-br-sm px-4 py-2.5 text-[15px] leading-relaxed whitespace-pre-wrap">
                   {m.content}
                 </p>
-                <span className="text-[11px] text-slate-400 mt-1">{time}</span>
+                <span className="text-xs text-slate-500 mt-1">{time}</span>
               </div>
             ) : (
               <div key={m.id} className="max-w-[75%]">

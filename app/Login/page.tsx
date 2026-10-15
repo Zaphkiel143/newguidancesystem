@@ -131,11 +131,11 @@ const LoginPage = () => {
                     type="button"
                     onClick={() => handleDemoAccess(role)}
                     disabled={demoLoadingRole !== null}
-                    className="group w-full flex items-center justify-between py-2.5 text-[14px] text-ink hover:text-blue-700 disabled:opacity-50 transition-colors"
+                    className="group w-full flex items-center justify-between min-h-11 text-[14px] text-ink hover:text-blue-700 disabled:opacity-50 transition-colors"
                   >
                     <span>Continue as {label}</span>
                     {demoLoadingRole === role ? (
-                      <Loader2 size={15} className="animate-spin text-slate-400" />
+                      <Loader2 size={15} className="animate-spin text-slate-500" />
                     ) : (
                       <ArrowRight size={15} className="text-slate-300 group-hover:text-blue-700 group-hover:translate-x-0.5 transition" />
                     )}
@@ -147,7 +147,7 @@ const LoginPage = () => {
         </section>
       </div>
 
-      <footer className="px-6 sm:px-10 py-6 text-[12px] text-slate-400 flex flex-wrap gap-x-6 gap-y-1">
+      <footer className="px-6 sm:px-10 py-6 text-[12px] text-slate-500 flex flex-wrap gap-x-6 gap-y-1">
         <span>© {new Date().getFullYear()} STI College Sta. Maria</span>
         <span>Guidance and Counseling Office</span>
       </footer>

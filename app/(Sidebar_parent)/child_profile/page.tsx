@@ -85,36 +85,36 @@ export const ChildProfilePage: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5 text-sm">
             {/* Email Field Column Segment */}
             <div className="flex items-start gap-3">
-              <Mail size={18} className="text-slate-400 shrink-0 mt-0.5" />
+              <Mail size={18} className="text-slate-500 shrink-0 mt-0.5" />
               <div className="space-y-0.5">
-                <span className="text-xs text-slate-400 font-medium block">Email</span>
+                <span className="text-xs text-slate-500 font-medium block">Email</span>
                 <span className="text-slate-700 font-semibold">{profile.email}</span>
               </div>
             </div>
 
             {/* Phone Field Column Segment */}
             <div className="flex items-start gap-3">
-              <Phone size={18} className="text-slate-400 shrink-0 mt-0.5" />
+              <Phone size={18} className="text-slate-500 shrink-0 mt-0.5" />
               <div className="space-y-0.5">
-                <span className="text-xs text-slate-400 font-medium block">Phone</span>
+                <span className="text-xs text-slate-500 font-medium block">Phone</span>
                 <span className="text-slate-700 font-semibold">{profile.phone}</span>
               </div>
             </div>
 
             {/* Date of Birth Field Column Segment */}
             <div className="flex items-start gap-3">
-              <Calendar size={18} className="text-slate-400 shrink-0 mt-0.5" />
+              <Calendar size={18} className="text-slate-500 shrink-0 mt-0.5" />
               <div className="space-y-0.5">
-                <span className="text-xs text-slate-400 font-medium block">Date of Birth</span>
+                <span className="text-xs text-slate-500 font-medium block">Date of Birth</span>
                 <span className="text-slate-700 font-mono font-semibold">{profile.dob}</span>
               </div>
             </div>
 
             {/* Address Field Column Segment */}
             <div className="flex items-start gap-3">
-              <MapPin size={18} className="text-slate-400 shrink-0 mt-0.5" />
+              <MapPin size={18} className="text-slate-500 shrink-0 mt-0.5" />
               <div className="space-y-0.5">
-                <span className="text-xs text-slate-400 font-medium block">Address</span>
+                <span className="text-xs text-slate-500 font-medium block">Address</span>
                 <span className="text-slate-700 font-semibold">{profile.address}</span>
               </div>
             </div>
@@ -132,17 +132,17 @@ export const ChildProfilePage: React.FC = () => {
 
         <div className="p-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 text-sm">
           <div className="space-y-1">
-            <span className="text-xs text-slate-400 font-medium block">Grade & Section</span>
+            <span className="text-xs text-slate-500 font-medium block">Grade & Section</span>
             <span className="text-slate-800 font-semibold text-[15px]">{profile.gradeSection}</span>
           </div>
 
           <div className="space-y-1">
-            <span className="text-xs text-slate-400 font-medium block">Strand</span>
+            <span className="text-xs text-slate-500 font-medium block">Strand</span>
             <span className="text-slate-800 font-semibold text-[15px]">{profile.strand}</span>
           </div>
 
           <div className="space-y-1">
-            <span className="text-xs text-slate-400 font-medium block">Enrolled Since</span>
+            <span className="text-xs text-slate-500 font-medium block">Enrolled Since</span>
             <span className="text-slate-700 font-semibold text-[15px]">{profile.enrolledSince}</span>
           </div>
         </div>
@@ -163,7 +163,7 @@ export const ChildProfilePage: React.FC = () => {
             >
               <div className="space-y-1 min-w-0 flex-1">
                 <h4 className="font-semibold text-slate-800 text-sm group-hover:text-blue-600 transition-colors flex items-center gap-2">
-                  <FileText size={15} className="text-slate-400 shrink-0" />
+                  <FileText size={15} className="text-slate-500 shrink-0" />
                   {session.type}
                 </h4>
                 <p className="text-xs text-slate-500 font-medium leading-relaxed pl-5">
@@ -172,7 +172,7 @@ export const ChildProfilePage: React.FC = () => {
               </div>
 
               {/* Timestamp Alignments */}
-              <div className="flex items-center gap-1.5 text-slate-400 shrink-0 font-mono font-medium text-xs sm:pt-0.5 pl-5 sm:pl-0">
+              <div className="flex items-center gap-1.5 text-slate-500 shrink-0 font-mono font-medium text-xs sm:pt-0.5 pl-5 sm:pl-0">
                 <Clock size={13} />
                 <span>{session.date}</span>
               </div>

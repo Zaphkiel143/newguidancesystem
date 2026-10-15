@@ -159,7 +159,7 @@ export const UploadDocuments: React.FC = () => {
             )}
           </h3>
 
-          <p className="text-xs text-slate-400 font-medium mt-2 max-w-sm leading-relaxed">
+          <p className="text-xs text-slate-500 font-medium mt-2 max-w-sm leading-relaxed">
             Supports PDF, Word, Excel, and Images up to 5MB
           </p>
         </div>
@@ -185,7 +185,7 @@ export const UploadDocuments: React.FC = () => {
                 >
                   {/* File Metadata Cluster */}
                   <div className="flex items-start gap-3.5 min-w-0 flex-1">
-                    <div className="p-2.5 bg-slate-50 text-slate-400 rounded-xl shrink-0 mt-0.5">
+                    <div className="p-2.5 bg-slate-50 text-slate-500 rounded-xl shrink-0 mt-0.5">
                       <FileText size={20} />
                     </div>
 
@@ -194,11 +194,11 @@ export const UploadDocuments: React.FC = () => {
                         <span className="font-semibold text-slate-800 text-sm truncate max-w-[280px] sm:max-w-md">
                           {file.fileName}
                         </span>
-                        <span className="text-xs text-slate-400 font-mono font-medium">
+                        <span className="text-xs text-slate-500 font-mono font-medium">
                           ({formatSize(file.fileSize)})
                         </span>
                       </div>
-                      <span className="text-[11px] text-slate-400 font-mono">
+                      <span className="text-xs text-slate-500 font-mono">
                         {new Date(file.createdAt).toLocaleString()}
                       </span>
                     </div>
@@ -217,7 +217,7 @@ export const UploadDocuments: React.FC = () => {
                       type="button"
                       onClick={() => removeFile(file.id)}
                       disabled={deletingId === file.id}
-                      className="text-slate-400 hover:text-red-500 p-1.5 rounded-lg hover:bg-slate-50 transition-colors disabled:opacity-50"
+                      className="text-slate-500 hover:text-red-500 p-1.5 rounded-lg hover:bg-slate-50 transition-colors disabled:opacity-50"
                       title="Delete document"
                     >
                       {deletingId === file.id ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={16} />}

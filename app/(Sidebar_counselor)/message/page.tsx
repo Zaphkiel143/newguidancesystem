@@ -102,9 +102,10 @@ export const MessagesDashboard: React.FC = () => {
           <div className="p-4 space-y-3 border-b border-slate-100">
             {/* Search Input */}
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 w-5 h-5" />
               <input
                 type="text"
+                aria-label="Search conversations"
                 placeholder="Search conversations..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
@@ -149,7 +150,7 @@ export const MessagesDashboard: React.FC = () => {
                           <h4 className="font-semibold text-slate-900 truncate text-sm leading-tight">
                             {chat.participantName}
                           </h4>
-                          <span className="text-xs text-slate-400 font-medium">
+                          <span className="text-xs text-slate-500 font-medium">
                             {chat.participantRole}
                           </span>
                         </div>
@@ -166,7 +167,7 @@ export const MessagesDashboard: React.FC = () => {
                         {chat.lastMessage || "No messages yet"}
                       </p>
 
-                      <span className="text-[11px] text-slate-400 block mt-1 font-mono">
+                      <span className="text-xs text-slate-500 block mt-1 font-mono">
                         {new Date(chat.lastMessageAt).toLocaleString()}
                       </span>
                     </div>
@@ -174,7 +175,7 @@ export const MessagesDashboard: React.FC = () => {
                 );
               })
             ) : (
-              <div className="p-6 text-center text-sm text-slate-400">
+              <div className="p-6 text-center text-sm text-slate-500">
                 No conversations found
               </div>
             )}
@@ -235,7 +236,7 @@ export const MessagesDashboard: React.FC = () => {
               </div>
               <button
                 onClick={() => setIsNewMessageOpen(false)}
-                className="text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg p-1.5 transition"
+                aria-label="Close" className="w-11 h-11 -m-2 grid place-items-center text-slate-500 hover:text-ink hover:bg-slate-100 rounded-md transition"
               >
                 <X size={18} />
               </button>

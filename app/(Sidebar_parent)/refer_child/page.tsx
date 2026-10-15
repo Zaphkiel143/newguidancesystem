@@ -112,7 +112,7 @@ export const ReferChildForm: React.FC = () => {
                   <option value="Social Withdrawal">Social Withdrawal / Emotional Distress</option>
                   <option value="Career Misalignment">Career Choice Uncertainty</option>
                 </select>
-                <ChevronDown size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                <ChevronDown size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none" />
               </div>
             </div>
 
@@ -132,7 +132,7 @@ export const ReferChildForm: React.FC = () => {
                   <option value="Medium">Medium - Noticeable concern</option>
                   <option value="High">High - Urgent attention needed</option>
                 </select>
-                <ChevronDown size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                <ChevronDown size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none" />
               </div>
             </div>
 

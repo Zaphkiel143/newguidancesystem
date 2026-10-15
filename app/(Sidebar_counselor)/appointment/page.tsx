@@ -282,7 +282,7 @@ export default function AppointmentScheduling() {
             {appointments.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-20 border-2 border-dashed border-slate-100 rounded-2xl bg-slate-50/40">
                 <p className="text-sm font-semibold text-slate-500">No active sessions scheduled yet</p>
-                <p className="text-xs text-slate-400">Newly placed student appointment records will render here automatically</p>
+                <p className="text-xs text-slate-500">Newly placed student appointment records will render here automatically</p>
               </div>
             ) : (
               <div className="space-y-4">
@@ -304,10 +304,10 @@ export default function AppointmentScheduling() {
                     </div>
 
                     <div className="flex items-start gap-4">
-                      <div className="w-10 h-10 bg-slate-200 text-slate-600 rounded-md grid place-items-center text-[11px] font-semibold">{appointment.studentName?.split(" ").map((p) => p[0]).slice(0, 2).join("")}</div>
+                      <div className="w-10 h-10 bg-slate-200 text-slate-600 rounded-md grid place-items-center text-xs font-semibold">{appointment.studentName?.split(" ").map((p) => p[0]).slice(0, 2).join("")}</div>
                       <div>
                         <h3 className="font-semibold text-slate-900 text-base">{appointment.studentName}</h3>
-                        <p className="text-slate-400 text-sm">{appointment.appointmentType}</p>
+                        <p className="text-slate-500 text-sm">{appointment.appointmentType}</p>
                       </div>
                     </div>
 

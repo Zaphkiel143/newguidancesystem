@@ -105,9 +105,10 @@ const ReferralManagement = () => {
       {/* Toolbar */}
       <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-8">
         <div className="relative w-full md:max-w-xl">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
           <input
             type="text"
+                aria-label="Search referrals"
             placeholder="Search referrals..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
@@ -169,7 +170,7 @@ const ReferralManagement = () => {
               </div>
               <button
                 onClick={closeModal}
-                className="text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg p-1.5 transition"
+                aria-label="Close" className="w-11 h-11 -m-2 grid place-items-center text-slate-500 hover:text-ink hover:bg-slate-100 rounded-md transition"
               >
                 <X size={18} />
               </button>
@@ -235,12 +236,12 @@ const ReferralCard = ({ referral, isUpdating, onAdvanceStatus, onAddNotes, onSen
           </div>
 
           <div className="flex gap-2">
-            <span className={`px-3 py-1 rounded text-[11px] font-semibold border ${
+            <span className={`px-3 py-1 rounded text-xs font-semibold border ${
               isHigh ? 'bg-red-50 text-red-600 border-red-100' : 'bg-orange-50 text-orange-600 border-orange-100'
             }`}>
               {referral.priority}
             </span>
-            <span className={`flex items-center gap-1 px-3 py-1 rounded text-[11px] font-semibold border ${
+            <span className={`flex items-center gap-1 px-3 py-1 rounded text-xs font-semibold border ${
               isOpen ? 'bg-red-50 text-red-600 border-red-100' : isClosed ? 'bg-green-50 text-green-600 border-green-100' : 'bg-orange-50 text-orange-600 border-orange-100'
             }`}>
               {isOpen ? <AlertTriangle size={12}/> : isClosed ? <CheckCircle size={12} /> : <Clock size={12}/>}
@@ -251,9 +252,9 @@ const ReferralCard = ({ referral, isUpdating, onAdvanceStatus, onAddNotes, onSen
 
         {/* Details Section */}
         <div className="space-y-1 mb-4">
-          <p className="text-sm text-slate-600"><span className="text-slate-400">Concern type:</span> {referral.concernType}</p>
-          <p className="text-sm text-slate-600"><span className="text-slate-400">Date:</span> {new Date(referral.createdAt).toLocaleDateString()}</p>
-          <p className="text-xs font-semibold text-slate-400 mt-2">Description:</p>
+          <p className="text-sm text-slate-600"><span className="text-slate-500">Concern type:</span> {referral.concernType}</p>
+          <p className="text-sm text-slate-600"><span className="text-slate-500">Date:</span> {new Date(referral.createdAt).toLocaleDateString()}</p>
+          <p className="text-xs font-semibold text-slate-500 mt-2">Description:</p>
         </div>
 
         {/* Reason Box */}
@@ -263,7 +264,7 @@ const ReferralCard = ({ referral, isUpdating, onAdvanceStatus, onAddNotes, onSen
 
         {referral.notes && (
           <div className="bg-blue-50/60 p-4 rounded-lg border border-blue-100 mb-6 text-sm text-slate-700">
-            <p className="text-[11px] font-semibold text-blue-600 mb-1">Internal Notes</p>
+            <p className="text-xs font-semibold text-blue-600 mb-1">Internal Notes</p>
             {referral.notes}
           </div>
         )}

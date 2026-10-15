@@ -96,7 +96,7 @@ export default function AiChatClient() {
           </p>
 
           {isLoading ? (
-            <div className="py-20 flex justify-center text-slate-400">
+            <div className="py-20 flex justify-center text-slate-500">
               <Loader2 className="animate-spin" size={20} />
             </div>
           ) : messages.length === 0 ? (
@@ -140,7 +140,7 @@ export default function AiChatClient() {
           {isSending && (
             <div>
               <p className="font-serif italic text-[13px] text-slate-500 mb-1">E-Gabay</p>
-              <p className="text-[15px] text-slate-400 flex items-center gap-1" aria-label="E-Gabay is typing">
+              <p className="text-[15px] text-slate-500 flex items-center gap-1" aria-label="E-Gabay is typing">
                 <span className="w-1 h-1 rounded-full bg-slate-400 animate-pulse" />
                 <span className="w-1 h-1 rounded-full bg-slate-400 animate-pulse [animation-delay:150ms]" />
                 <span className="w-1 h-1 rounded-full bg-slate-400 animate-pulse [animation-delay:300ms]" />

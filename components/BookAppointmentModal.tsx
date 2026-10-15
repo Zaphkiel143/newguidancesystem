@@ -98,7 +98,7 @@ export default function BookAppointmentModal({
           <button
             type="button"
             onClick={onClose}
-            className="text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg p-1.5 transition"
+            aria-label="Close" className="w-11 h-11 -m-2 grid place-items-center text-slate-500 hover:text-ink hover:bg-slate-100 rounded-md transition"
           >
             <X size={18} />
           </button>
@@ -131,7 +131,7 @@ export default function BookAppointmentModal({
                     type="button"
                     disabled={isTaken}
                     onClick={() => setTime(slot)}
-                    className={`py-2 px-2 border text-xs font-semibold font-mono rounded-xl transition-all text-center ${
+                    className={`min-h-11 py-2 px-2 border text-xs font-semibold font-mono rounded-xl transition-all text-center ${
                       isTaken
                         ? "bg-slate-50 border-slate-100 text-slate-300 cursor-not-allowed line-through"
                         : isSelected

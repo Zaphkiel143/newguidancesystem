@@ -112,7 +112,7 @@ const CareerTracker = () => {
               <div className="w-10 h-10 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center font-semibold text-sm border border-blue-100">
                 {index + 1}
               </div>
-              <p className="text-[11px] font-semibold text-slate-500 tracking-tight leading-tight max-w-20">
+              <p className="text-xs font-semibold text-slate-500 tracking-tight leading-tight max-w-20">
                 {step}
               </p>
             </div>
@@ -124,14 +124,14 @@ const CareerTracker = () => {
       <div className="space-y-6">
         <div className="flex justify-between items-center px-2">
           <h2 className="text-lg font-semibold">Student Progress</h2>
-          <span className="text-xs font-semibold text-slate-400">{careerPlans.length} Active Career Plans</span>
+          <span className="text-xs font-semibold text-slate-500">{careerPlans.length} Active Career Plans</span>
         </div>
 
         {careerPlans.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 border-2 border-dashed border-slate-200 rounded-2xl bg-white">
             <span className="text-3xl mb-2">🎯</span>
             <p className="text-sm font-semibold text-slate-500">No career plans yet</p>
-            <p className="text-xs text-slate-400">Add a student to start tracking their Career Planning Program</p>
+            <p className="text-xs text-slate-500">Add a student to start tracking their Career Planning Program</p>
           </div>
         ) : (
           careerPlans.map((plan) => {
@@ -149,7 +149,7 @@ const CareerTracker = () => {
                   </div>
                   <div className="text-right">
                     <p className="text-2xl font-semibold text-blue-600 leading-none">{percentage}%</p>
-                    <p className="text-[11px] font-semibold text-slate-400">Complete</p>
+                    <p className="text-xs font-semibold text-slate-500">Complete</p>
                   </div>
                 </div>
 
@@ -170,10 +170,10 @@ const CareerTracker = () => {
                       ) : (
                         <Circle className="text-slate-200 mb-2" size={24} />
                       )}
-                      <p className="text-[11px] font-semibold text-slate-500 text-center tracking-tight">
+                      <p className="text-xs font-semibold text-slate-500 text-center tracking-tight">
                         {step}
                       </p>
-                      <p className="text-[9px] text-slate-400 mt-0.5">
+                      <p className="text-[9px] text-slate-500 mt-0.5">
                         {plan.stepDates[i] || '—'}
                       </p>
                     </div>
@@ -280,7 +280,7 @@ const CareerTracker = () => {
               </div>
               <button
                 onClick={() => setViewingPlan(null)}
-                className="text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg p-1.5 transition"
+                aria-label="Close" className="w-11 h-11 -m-2 grid place-items-center text-slate-500 hover:text-ink hover:bg-slate-100 rounded-md transition"
               >
                 <X size={20} />
               </button>
@@ -288,7 +288,7 @@ const CareerTracker = () => {
 
             <div className="p-6 space-y-8">
               {isLoadingProfile ? (
-                <div className="flex flex-col items-center justify-center py-16 text-slate-400">
+                <div className="flex flex-col items-center justify-center py-16 text-slate-500">
                   <Loader2 className="animate-spin mb-2" size={28} />
                   <p className="text-sm font-medium">Loading student record...</p>
                 </div>
@@ -306,10 +306,10 @@ const CareerTracker = () => {
                               completedOn ? "bg-green-50 border-green-100" : "bg-slate-50 border-slate-100"
                             }`}
                           >
-                            <p className="text-[11px] font-semibold tracking-tight text-slate-500 leading-tight">
+                            <p className="text-xs font-semibold tracking-tight text-slate-500 leading-tight">
                               {step}
                             </p>
-                            <p className={`text-[11px] mt-1 font-semibold ${completedOn ? "text-green-600" : "text-slate-400"}`}>
+                            <p className={`text-xs mt-1 font-semibold ${completedOn ? "text-green-600" : "text-slate-500"}`}>
                               {completedOn || "Pending"}
                             </p>
                           </div>
@@ -322,7 +322,7 @@ const CareerTracker = () => {
                     <h4 className="text-sm font-semibold text-slate-800 mb-4">
                       Guidance Session History
                       {sessionHistory.length > 0 && (
-                        <span className="ml-2 text-xs font-semibold text-slate-400">
+                        <span className="ml-2 text-xs font-semibold text-slate-500">
                           {sessionHistory.length} record{sessionHistory.length === 1 ? "" : "s"}
                         </span>
                       )}
@@ -336,7 +336,7 @@ const CareerTracker = () => {
                                 {appt.appointmentType || "General Session"}
                               </p>
                               <span
-                                className={`text-[11px] font-semibold px-2 py-0.5 rounded ${
+                                className={`text-xs font-semibold px-2 py-0.5 rounded ${
                                   appt.status === "CONFIRMED"
                                     ? "bg-emerald-50 text-emerald-600"
                                     : appt.status === "PENDING"
@@ -357,7 +357,7 @@ const CareerTracker = () => {
                         ))}
                       </div>
                     ) : (
-                      <p className="text-sm text-slate-400 italic">No guidance sessions on record for this student.</p>
+                      <p className="text-sm text-slate-500 italic">No guidance sessions on record for this student.</p>
                     )}
                   </section>
                 </>

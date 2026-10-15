@@ -71,44 +71,44 @@ export const StudentProfile: React.FC = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-y-5 gap-x-8">
               {/* Email Block */}
               <div className="flex items-start gap-3">
-                <div className="p-2 bg-slate-50 rounded-lg text-slate-400 mt-0.5">
+                <div className="p-2 bg-slate-50 rounded-lg text-slate-500 mt-0.5">
                   <Mail size={18} />
                 </div>
                 <div>
-                  <span className="block text-xs font-semibold text-slate-400">Email</span>
+                  <span className="block text-xs font-semibold text-slate-500">Email</span>
                   <span className="text-sm font-medium text-slate-800">nhel.belarmino@sti.edu</span>
                 </div>
               </div>
 
               {/* Phone Block */}
               <div className="flex items-start gap-3">
-                <div className="p-2 bg-slate-50 rounded-lg text-slate-400 mt-0.5">
+                <div className="p-2 bg-slate-50 rounded-lg text-slate-500 mt-0.5">
                   <Phone size={18} />
                 </div>
                 <div>
-                  <span className="block text-xs font-semibold text-slate-400">Phone</span>
+                  <span className="block text-xs font-semibold text-slate-500">Phone</span>
                   <span className="text-sm font-medium text-slate-800">0912-345-6789</span>
                 </div>
               </div>
 
               {/* Date of Birth Block */}
               <div className="flex items-start gap-3">
-                <div className="p-2 bg-slate-50 rounded-lg text-slate-400 mt-0.5">
+                <div className="p-2 bg-slate-50 rounded-lg text-slate-500 mt-0.5">
                   <Calendar size={18} />
                 </div>
                 <div>
-                  <span className="block text-xs font-semibold text-slate-400">Date of Birth</span>
+                  <span className="block text-xs font-semibold text-slate-500">Date of Birth</span>
                   <span className="text-sm font-medium text-slate-800 font-mono">2005-03-15</span>
                 </div>
               </div>
 
               {/* Address Block */}
               <div className="flex items-start gap-3">
-                <div className="p-2 bg-slate-50 rounded-lg text-slate-400 mt-0.5">
+                <div className="p-2 bg-slate-50 rounded-lg text-slate-500 mt-0.5">
                   <MapPin size={18} />
                 </div>
                 <div>
-                  <span className="block text-xs font-semibold text-slate-400">Address</span>
+                  <span className="block text-xs font-semibold text-slate-500">Address</span>
                   <span className="text-sm font-medium text-slate-800">Sta. Maria, Bulacan</span>
                 </div>
               </div>
@@ -125,17 +125,17 @@ export const StudentProfile: React.FC = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-y-5 gap-x-8">
             <div>
-              <span className="block text-xs font-semibold text-slate-400">Grade & Section</span>
+              <span className="block text-xs font-semibold text-slate-500">Grade & Section</span>
               <span className="text-sm font-semibold text-slate-800 mt-0.5 block">Grade 12 - STEM-A</span>
             </div>
             
             <div>
-              <span className="block text-xs font-semibold text-slate-400">Strand</span>
+              <span className="block text-xs font-semibold text-slate-500">Strand</span>
               <span className="text-sm font-semibold text-slate-800 mt-0.5 block">STEM</span>
             </div>
 
             <div>
-              <span className="block text-xs font-semibold text-slate-400">Enrolled Since</span>
+              <span className="block text-xs font-semibold text-slate-500">Enrolled Since</span>
               <span className="text-sm font-semibold text-slate-800 mt-0.5 block">August 2024</span>
             </div>
           </div>
@@ -161,7 +161,7 @@ export const StudentProfile: React.FC = () => {
                     {session.description}
                   </p>
                 </div>
-                <span className="text-xs font-mono font-semibold text-slate-400 shrink-0 mt-0.5">
+                <span className="text-xs font-mono font-semibold text-slate-500 shrink-0 mt-0.5">
                   {session.date}
                 </span>
               </div>

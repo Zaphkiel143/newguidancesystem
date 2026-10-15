@@ -132,7 +132,7 @@ const GroupGuidance = () => {
               <div className="flex flex-col items-center justify-center py-20 border-2 border-dashed border-slate-100 rounded-2xl bg-slate-50/40">
                 <span className="text-3xl mb-2">📋</span>
                 <p className="text-sm font-semibold text-slate-500">No guidance programs scheduled yet</p>
-                <p className="text-xs text-slate-400">Click &quot;New Program&quot; to schedule one</p>
+                <p className="text-xs text-slate-500">Click &quot;New Program&quot; to schedule one</p>
               </div>
             ) : (
               <div className="space-y-4">
@@ -169,7 +169,7 @@ const GroupGuidance = () => {
 
             <div className="flex flex-col items-center justify-center py-10 mb-8 border-2 border-dashed border-slate-100 rounded-2xl bg-slate-50/40">
               <p className="text-sm font-semibold text-slate-500">No assessment responses yet</p>
-              <p className="text-xs text-slate-400 text-center px-4">Send an assessment form to start collecting student concerns</p>
+              <p className="text-xs text-slate-500 text-center px-4">Send an assessment form to start collecting student concerns</p>
             </div>
 
             <button className="w-full flex items-center justify-center gap-2 bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors shadow-md">
@@ -185,7 +185,7 @@ const GroupGuidance = () => {
             <div className="p-4 border-b border-slate-100 bg-white">
               <h2 className="font-semibold text-slate-800">Assessment Submissions Timeline</h2>
             </div>
-            <div className="h-48 flex flex-col items-center justify-center text-slate-400 bg-white">
+            <div className="h-48 flex flex-col items-center justify-center text-slate-500 bg-white">
               <BarChart3 size={32} className="mb-2 opacity-30" />
               <p className="text-sm">Visual analytics coming soon</p>
             </div>
@@ -291,14 +291,14 @@ const ProgramCard = ({ title, grade, participants, date, status }: {
   <div className="p-5 border border-slate-100 rounded-xl hover:border-blue-100 hover:bg-blue-50/20 transition-all group">
     <div className="flex justify-between items-start mb-2">
       <h3 className="font-semibold text-slate-800">{title}</h3>
-      <span className={`text-[11px] font-semibold px-3 py-1 rounded ${
+      <span className={`text-xs font-semibold px-3 py-1 rounded ${
         status === 'Completed' ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'
       }`}>
         {status}
       </span>
     </div>
     <p className="text-xs text-slate-500 mb-4">{grade}</p>
-    <div className="flex items-center gap-6 text-[11px] text-slate-500 mb-4">
+    <div className="flex items-center gap-6 text-xs text-slate-500 mb-4">
       <div className="flex items-center gap-2">
         <Users size={14} /> {participants} participants
       </div>

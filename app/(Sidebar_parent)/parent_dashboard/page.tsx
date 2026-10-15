@@ -90,7 +90,7 @@ export const ParentBookAppointment: React.FC = () => {
           {/* 1. Select Child Field Segment (Parent Specific Attribute from image_85ac21.png) */}
           <div className="space-y-2">
             <label className="text-xs font-semibold text-slate-700 flex items-center gap-2">
-              <Users size={14} className="text-slate-400" />
+              <Users size={14} className="text-slate-500" />
               Select Child <span className="text-red-500">*</span>
             </label>
             <div className="relative">
@@ -104,7 +104,7 @@ export const ParentBookAppointment: React.FC = () => {
                 {/* Fallback option for multi-child parents */}
                 <option value="Other Child">Other Student</option>
               </select>
-              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-slate-400 text-xs">
+              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-slate-500 text-xs">
                 ▼
               </div>
             </div>
@@ -116,7 +116,7 @@ export const ParentBookAppointment: React.FC = () => {
             {/* Left: Interactive Date Field */}
             <div className="space-y-2">
               <label className="text-xs font-semibold text-slate-700 flex items-center gap-2">
-                <CalendarIcon size={14} className="text-slate-400" />
+                <CalendarIcon size={14} className="text-slate-500" />
                 Select Date <span className="text-red-500">*</span>
               </label>
               <input
@@ -134,7 +134,7 @@ export const ParentBookAppointment: React.FC = () => {
             {/* Right: Available Slots Tracker */}
             <div className="space-y-2">
               <label className="text-xs font-semibold text-slate-700 flex items-center gap-2">
-                <Clock size={14} className="text-slate-400" />
+                <Clock size={14} className="text-slate-500" />
                 Available Time Slots <span className="text-red-500">*</span>
               </label>
               
@@ -148,7 +148,7 @@ export const ParentBookAppointment: React.FC = () => {
                       type="button"
                       disabled={isTaken}
                       onClick={() => setSelectedTime(slot)}
-                      className={`py-2 px-3 border text-xs font-semibold font-mono rounded-xl transition-all text-center
+                      className={`min-h-11 py-2 px-3 border text-xs font-semibold font-mono rounded-xl transition-all text-center
                         ${isTaken
                           ? 'bg-slate-50 border-slate-100 text-slate-300 cursor-not-allowed line-through'
                           : isSelected
@@ -186,7 +186,7 @@ export const ParentBookAppointment: React.FC = () => {
                   <option value="Career/College Planning">Career/College Planning</option>
                   <option value="General Consultation">General Consultation</option>
                 </select>
-                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-slate-400 text-xs">
+                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-slate-500 text-xs">
                   ▼
                 </div>
               </div>
@@ -195,7 +195,7 @@ export const ParentBookAppointment: React.FC = () => {
             {/* Optional Context Textarea Description */}
             <div className="space-y-2">
               <label className="text-xs font-semibold text-slate-700 flex items-center gap-2">
-                <AlignLeft size={14} className="text-slate-400" />
+                <AlignLeft size={14} className="text-slate-500" />
                 Description / Notes (Optional)
               </label>
               <textarea

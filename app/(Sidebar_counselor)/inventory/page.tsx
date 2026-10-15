@@ -81,9 +81,10 @@ const StudentInventory = () => {
         <div className="p-6 space-y-3">
           <div className="flex items-center gap-4">
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
               <input
                 type="text"
+                aria-label="Search by name or student ID"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search by name or student ID..."
@@ -136,7 +137,7 @@ const StudentInventory = () => {
             <tbody>
               {filteredStudents.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="px-6 py-10 text-center text-sm text-slate-400">
+                  <td colSpan={5} className="px-6 py-10 text-center text-sm text-slate-500">
                     No students match &quot;{searchQuery}&quot;
                   </td>
                 </tr>
@@ -180,7 +181,7 @@ const StudentInventory = () => {
             </div>
             <button
               onClick={closeProfile}
-              className="text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg p-1.5 transition"
+              aria-label="Close" className="w-11 h-11 -m-2 grid place-items-center text-slate-500 hover:text-ink hover:bg-slate-100 rounded-md transition"
             >
               <X size={20} />
             </button>
@@ -188,7 +189,7 @@ const StudentInventory = () => {
 
           <div className="p-6 space-y-8">
             {isLoadingProfile ? (
-              <div className="flex flex-col items-center justify-center py-16 text-slate-400">
+              <div className="flex flex-col items-center justify-center py-16 text-slate-500">
                 <Loader2 className="animate-spin mb-2" size={28} />
                 <p className="text-sm font-medium">Loading student record...</p>
               </div>
@@ -208,10 +209,10 @@ const StudentInventory = () => {
                               completedOn ? "bg-green-50 border-green-100" : "bg-slate-50 border-slate-100"
                             }`}
                           >
-                            <p className="text-[11px] font-semibold tracking-tight text-slate-500 leading-tight">
+                            <p className="text-xs font-semibold tracking-tight text-slate-500 leading-tight">
                               {step}
                             </p>
-                            <p className={`text-[11px] mt-1 font-semibold ${completedOn ? "text-green-600" : "text-slate-400"}`}>
+                            <p className={`text-xs mt-1 font-semibold ${completedOn ? "text-green-600" : "text-slate-500"}`}>
                               {completedOn || "Pending"}
                             </p>
                           </div>
@@ -219,7 +220,7 @@ const StudentInventory = () => {
                       })}
                     </div>
                   ) : (
-                    <p className="text-sm text-slate-400 italic">No career plan on record for this student.</p>
+                    <p className="text-sm text-slate-500 italic">No career plan on record for this student.</p>
                   )}
                 </section>
 
@@ -228,7 +229,7 @@ const StudentInventory = () => {
                   <h4 className="text-sm font-semibold text-slate-800 mb-4">
                     Guidance Session History
                     {profile && profile.appointments.length > 0 && (
-                      <span className="ml-2 text-xs font-semibold text-slate-400">
+                      <span className="ml-2 text-xs font-semibold text-slate-500">
                         {profile.appointments.length} record{profile.appointments.length === 1 ? "" : "s"}
                       </span>
                     )}
@@ -242,7 +243,7 @@ const StudentInventory = () => {
                               {appt.appointmentType || "General Session"}
                             </p>
                             <span
-                              className={`text-[11px] font-semibold px-2 py-0.5 rounded ${
+                              className={`text-xs font-semibold px-2 py-0.5 rounded ${
                                 appt.status === "CONFIRMED"
                                   ? "bg-emerald-50 text-emerald-600"
                                   : appt.status === "PENDING"
@@ -263,7 +264,7 @@ const StudentInventory = () => {
                       ))}
                     </div>
                   ) : (
-                    <p className="text-sm text-slate-400 italic">No guidance sessions on record for this student.</p>
+                    <p className="text-sm text-slate-500 italic">No guidance sessions on record for this student.</p>
                   )}
                 </section>
               </>

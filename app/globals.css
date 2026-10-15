@@ -27,8 +27,9 @@
   --color-slate-100: #f0ede5;
   --color-slate-200: #e3dfd4;
   --color-slate-300: #cdc7b9;
-  --color-slate-400: #a29b8b;
-  --color-slate-500: #7a7365;
+  /* 400 is for icons and borders (3.3:1 on paper); 500 is the lightest text tone (5.1:1). */
+  --color-slate-400: #8f8878;
+  --color-slate-500: #6f685b;
   --color-slate-600: #5d574b;
   --color-slate-700: #474238;
   --color-slate-800: #312d26;
@@ -215,5 +216,17 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .animate-rise-in {
     animation: none;
+  }
+}
+
+/* Respect reduced-motion everywhere, not just our own animations. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }

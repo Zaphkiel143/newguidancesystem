@@ -64,7 +64,7 @@ export const MyAppointmentsPage: React.FC = () => {
         {appointments.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 text-center">
             <p className="text-sm font-semibold text-slate-500">No appointments yet</p>
-            <p className="text-xs text-slate-400">Book an appointment with the guidance counselor to get started</p>
+            <p className="text-xs text-slate-500">Book an appointment with the guidance counselor to get started</p>
           </div>
         ) : (
           <div className="p-6 space-y-4">
@@ -87,13 +87,13 @@ export const MyAppointmentsPage: React.FC = () => {
                   </div>
 
                   {/* Sub-row Meta Icons Trackers */}
-                  <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-slate-400 font-mono font-medium pt-0.5">
+                  <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-slate-500 font-mono font-medium pt-0.5">
                     <div className="flex items-center gap-1.5">
-                      <Calendar size={14} className="text-slate-400 shrink-0" />
+                      <Calendar size={14} className="text-slate-500 shrink-0" />
                       <span className="text-slate-600">{new Date(meeting.date).toLocaleDateString()}</span>
                     </div>
                     <div className="flex items-center gap-1.5">
-                      <Clock size={14} className="text-slate-400 shrink-0" />
+                      <Clock size={14} className="text-slate-500 shrink-0" />
                       <span className="text-slate-600">{meeting.time}</span>
                     </div>
                   </div>
@@ -101,7 +101,7 @@ export const MyAppointmentsPage: React.FC = () => {
 
                 {/* Right Column Badge State Triggers */}
                 <div className="self-start sm:self-auto">
-                  <span className={`text-[11px] font-semibold px-3 py-1 rounded flex items-center gap-1.5 font-sans border
+                  <span className={`text-xs font-semibold px-3 py-1 rounded flex items-center gap-1.5 font-sans border
                     ${meeting.status === 'CONFIRMED'
                       ? 'bg-emerald-50 border-emerald-200 text-emerald-600'
                       : 'bg-slate-100 border-slate-200 text-slate-600'

@@ -79,7 +79,7 @@ export const MyAppointments: React.FC = () => {
         {appointments.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 text-center">
             <p className="text-sm font-semibold text-slate-500">No appointments yet</p>
-            <p className="text-xs text-slate-400">Book an appointment with the guidance counselor to get started</p>
+            <p className="text-xs text-slate-500">Book an appointment with the guidance counselor to get started</p>
           </div>
         ) : (
           <div className="p-6 space-y-4">
@@ -99,11 +99,11 @@ export const MyAppointments: React.FC = () => {
                   {/* Embedded Inline Schedule Stamps */}
                   <div className="flex flex-wrap items-center gap-x-4 gap-y-1 pt-1.5 text-xs text-slate-500 font-medium">
                     <div className="flex items-center gap-1.5">
-                      <Calendar size={14} className="text-slate-400" />
+                      <Calendar size={14} className="text-slate-500" />
                       <span className="font-mono">{new Date(apt.date).toLocaleDateString()}</span>
                     </div>
                     <div className="flex items-center gap-1.5">
-                      <Clock size={14} className="text-slate-400" />
+                      <Clock size={14} className="text-slate-500" />
                       <span className="font-mono">{apt.time}</span>
                     </div>
                   </div>

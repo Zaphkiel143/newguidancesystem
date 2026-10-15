@@ -56,9 +56,10 @@ export const MyReferralsPage: React.FC = () => {
         {/* Search Input Bar */}
         <div className="p-5 border-b border-slate-100 bg-slate-50/30">
           <div className="relative">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
             <input
               type="text"
+                aria-label="Search referrals"
               placeholder="Search referrals..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -89,7 +90,7 @@ export const MyReferralsPage: React.FC = () => {
                   {/* Operational Target State Tags */}
                   <div className="flex items-center gap-2">
                     {/* Priority Indicator Badge */}
-                    <span className={`text-[11px] font-semibold px-2.5 py-1 rounded-md
+                    <span className={`text-xs font-semibold px-2.5 py-1 rounded-md
                       ${item.priority === 'Medium' ? 'bg-orange-50 text-orange-700' : ''}
                       ${item.priority === 'Low' ? 'bg-blue-50 text-blue-700' : ''}
                       ${(item.priority === 'High' || item.priority === 'Urgent') ? 'bg-red-50 text-red-700' : ''}
@@ -98,7 +99,7 @@ export const MyReferralsPage: React.FC = () => {
                     </span>
 
                     {/* Dynamic Status Track Pill */}
-                    <span className={`text-[11px] font-semibold px-3 py-1 rounded flex items-center gap-1.5 font-sans
+                    <span className={`text-xs font-semibold px-3 py-1 rounded flex items-center gap-1.5 font-sans
                       ${item.status === 'IN_PROGRESS' ? 'bg-orange-50 border border-orange-100 text-orange-700' : ''}
                       ${item.status === 'CLOSED' ? 'bg-emerald-50 border border-emerald-200 text-emerald-600' : ''}
                       ${item.status === 'OPEN' ? 'bg-red-50 border border-red-100 text-red-600' : ''}
@@ -124,7 +125,7 @@ export const MyReferralsPage: React.FC = () => {
               </div>
             ))
           ) : (
-            <div className="text-center py-12 text-slate-400 font-medium text-sm">
+            <div className="text-center py-12 text-slate-500 font-medium text-sm">
               No matching referrals found.
             </div>
           )}

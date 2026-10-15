@@ -49,7 +49,7 @@ export default function BlockTimeModal({ date, onClose }: ModalProps) {
           </div>
           <button 
             onClick={onClose}
-            className="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg hover:bg-slate-100 transition"
+            className="text-slate-500 hover:text-slate-600 p-1.5 rounded-lg hover:bg-slate-100 transition"
           >
             ✕
           </button>
@@ -68,12 +68,12 @@ export default function BlockTimeModal({ date, onClose }: ModalProps) {
                 onClick={() => handleTimeToggle(time)}
                 className={`py-2.5 px-4 rounded-xl text-xs font-semibold transition text-left flex justify-between items-center ${
                   isLoading 
-                    ? "opacity-50 cursor-wait bg-slate-100 text-slate-400"
+                    ? "opacity-50 cursor-wait bg-slate-100 text-slate-500"
                     : "bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200/60"
                 }`}
               >
                 <span>{time}</span>
-                {isLoading && <span className="animate-pulse text-[11px]">updating...</span>}
+                {isLoading && <span className="animate-pulse text-xs">updating...</span>}
               </button>
             );
           })}
