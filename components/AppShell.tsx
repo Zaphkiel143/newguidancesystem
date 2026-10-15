@@ -2,12 +2,12 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { LogOut, Menu, X } from "lucide-react";
 import { navigationConfig, MenuItem } from "../app/config/navigation";
 import { logout } from "../app/action/auth";
 import { CurrentUserProvider } from "./CurrentUser";
+import { LogoMark } from "./Logo";
 
 type Role = "faculty" | "counselor" | "student" | "parent";
 
@@ -68,7 +68,7 @@ export function AppShell({ role, userName, children }: AppShellProps) {
         </button>
 
         <Link href={menuItems[0]?.path ?? "/"} className="flex items-center gap-3 min-w-0">
-          <Image src="/sti-logo.jpg" alt="STI College Sta. Maria" width={36} height={36} className="rounded-md shrink-0" priority />
+          <LogoMark size={36} tone="light" className="shrink-0" />
           <span className="font-semibold text-[17px] tracking-tight">E-Gabay</span>
           <span aria-hidden className="hidden sm:block w-px h-5 bg-white/30" />
           <span className="hidden sm:block text-[13px] text-white/80 truncate">Guidance and Counseling Office · STI College Sta. Maria</span>
@@ -100,7 +100,7 @@ export function AppShell({ role, userName, children }: AppShellProps) {
         {/* Drawer header, phones only (the top bar carries the brand on wider screens) */}
         <div className="md:hidden px-5 pt-5 pb-4 flex items-center justify-between">
           <span className="inline-flex items-center gap-2.5">
-            <Image src="/sti-logo.jpg" alt="" width={32} height={32} className="rounded-md" />
+            <LogoMark size={32} />
             <span className="font-semibold text-ink">E-Gabay</span>
           </span>
           <button

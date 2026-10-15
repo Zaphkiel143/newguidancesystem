@@ -5,6 +5,7 @@ import { ArrowRight, Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { login, loginAsDemo } from '../action/auth';
+import { LogoMark } from '../../components/Logo';
 import type { UserRole } from '../../lib/generated';
 
 const DEMO_ROLES: { role: UserRole; label: string }[] = [
@@ -47,7 +48,7 @@ const LoginPage = () => {
       {/* STI top bar: navy with the yellow stripe, as on One STI */}
       <header className="h-(--topbar-h) bg-blue-700 text-white border-t-4 border-sti-yellow shadow-md">
         <div className="h-full max-w-5xl mx-auto px-6 sm:px-10 flex items-center gap-3">
-          <Image src="/sti-logo.jpg" alt="STI College Sta. Maria" width={36} height={36} className="rounded-md" priority />
+          <LogoMark size={36} tone="light" className="shrink-0" />
           <span className="font-semibold text-[17px] tracking-tight">E-Gabay</span>
           <span aria-hidden className="hidden sm:block w-px h-5 bg-white/30" />
           <span className="hidden sm:block text-[13px] text-white/80">Guidance and Counseling Office</span>
