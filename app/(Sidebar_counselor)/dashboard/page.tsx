@@ -49,7 +49,7 @@ const Dashboard = async () => {
       </header>
 
       {/* Figures */}
-      <div className="mt-10 grid grid-cols-2 lg:grid-cols-4 gap-px bg-rule border-y border-rule">
+      <div className="mt-10 grid grid-cols-2 lg:grid-cols-4 gap-3">
         <Figure label="Students on record" value={stats.totalStudents} href="/inventory" />
         <Figure label="Appointments today" value={todaysAppointments.length} href="/appointment" />
         <Figure label="Referrals pending" value={stats.pendingReferrals} href="/referral" />
@@ -108,7 +108,7 @@ const Dashboard = async () => {
 export default Dashboard;
 
 const Figure = ({ label, value, href }: { label: string; value: number; href: string }) => (
-  <div className="bg-paper px-5 py-5 first:pl-0">
+  <div className="bg-blue-50 border border-blue-100 rounded-xl px-5 py-5">
     <Link href={href} className="group block">
       <p className="font-serif text-[44px] leading-none text-ink tabular">{value}</p>
       <p className="text-[13px] text-slate-500 mt-2 group-hover:text-blue-700 transition-colors">{label}</p>

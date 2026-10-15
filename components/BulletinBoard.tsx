@@ -49,7 +49,7 @@ export default function BulletinBoard() {
                       onClick={() => setCategory(c)}
                       aria-pressed={category === c}
                       className={`px-3 min-h-9 rounded-md text-[13px] transition-colors ${
-                        category === c ? "bg-ink text-paper" : "text-slate-600 hover:bg-slate-100"
+                        category === c ? "bg-butter-200 text-ink font-medium" : "text-slate-600 hover:bg-blue-100"
                       }`}
                     >
                       {c}
@@ -85,7 +85,7 @@ export default function BulletinBoard() {
                   const d = new Date(e.date);
                   return (
                     <li key={e.id} className="py-4 grid grid-cols-[56px_1fr] gap-4">
-                      <div className="text-center border border-rule rounded-md bg-sheet py-1.5 h-fit">
+                      <div className="text-center border border-butter-200 rounded-lg bg-butter-100 py-1.5 h-fit">
                         <p className="text-[11px] uppercase text-slate-500 leading-none tracking-wide">
                           {d.toLocaleDateString("en-PH", { month: "short", timeZone: "UTC" })}
                         </p>

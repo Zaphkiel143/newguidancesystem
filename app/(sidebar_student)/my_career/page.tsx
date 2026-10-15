@@ -49,8 +49,8 @@ export default function MyCareerPlanPage() {
             <p className="text-slate-600">{plan.grade}</p>
             {plan.facilitator && <p className="text-slate-600">Facilitator: <span className="text-ink">{plan.facilitator}</span></p>}
           </div>
-          <div className="mt-4 h-1 bg-slate-200 rounded-full overflow-hidden">
-            <div className="h-full bg-blue-700 rounded-full" style={{ width: `${(done / CAREER_STEPS.length) * 100}%` }} />
+          <div className="mt-4 h-1.5 bg-blue-100 rounded-full overflow-hidden">
+            <div className="h-full bg-blue-500 rounded-full" style={{ width: `${(done / CAREER_STEPS.length) * 100}%` }} />
           </div>
 
           <ol className="mt-8 border-t border-rule">

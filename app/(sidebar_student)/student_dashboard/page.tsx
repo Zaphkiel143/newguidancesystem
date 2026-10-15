@@ -80,7 +80,7 @@ export const DashboardContent: React.FC = () => {
       {/* E-Gabay invitation: one quiet line, not a banner */}
       <Link
         href="/ai_chat"
-        className="group mt-8 flex items-center justify-between gap-6 border border-rule bg-sheet rounded-xl px-6 py-5 hover:border-blue-300 transition-colors"
+        className="group mt-8 flex items-center justify-between gap-6 border border-butter-200 bg-butter-100 rounded-2xl px-6 py-5 hover:border-butter-300 hover:bg-butter-50 transition-colors"
       >
         <span>
           <span className="block font-serif text-[22px] text-ink leading-snug">Need someone to talk to?</span>
@@ -101,9 +101,9 @@ export const DashboardContent: React.FC = () => {
               Career plan
             </Link>
           </div>
-          <div className="grid grid-cols-3 gap-px bg-rule border-y border-rule">
+          <div className="grid grid-cols-3 gap-3">
             {figures.map((f) => (
-              <div key={f.id} className="bg-paper py-5 px-4 first:pl-0">
+              <div key={f.id} className="bg-blue-50 border border-blue-100 rounded-xl py-5 px-4">
                 <p className="font-serif text-[40px] leading-none text-ink tabular">{data ? f.count : "–"}</p>
                 <p className="text-[13px] text-slate-500 mt-2">{f.label}</p>
               </div>
@@ -113,8 +113,8 @@ export const DashboardContent: React.FC = () => {
           <div className="mt-6 text-[14px] text-slate-600">
             {!data ? null : data.careerPlan ? (
               <>
-                <div className="h-1 bg-slate-200 rounded-full overflow-hidden">
-                  <div className="h-full bg-blue-700 rounded-full" style={{ width: `${(stagesDone / CAREER_STEPS.length) * 100}%` }} />
+                <div className="h-1.5 bg-blue-100 rounded-full overflow-hidden">
+                  <div className="h-full bg-blue-500 rounded-full" style={{ width: `${(stagesDone / CAREER_STEPS.length) * 100}%` }} />
                 </div>
                 <p className="mt-3">
                   {nextStage ? (

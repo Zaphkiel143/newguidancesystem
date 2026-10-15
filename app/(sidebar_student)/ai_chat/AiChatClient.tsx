@@ -122,7 +122,7 @@ export default function AiChatClient() {
               const isMine = m.role === "user";
               return isMine ? (
                 <div key={m.id} className="flex justify-end">
-                  <p className="max-w-[80%] bg-blue-700 text-white rounded-lg rounded-br-sm px-4 py-2.5 text-[15px] leading-relaxed whitespace-pre-wrap">
+                  <p className="max-w-[80%] bg-blue-100 text-ink rounded-2xl rounded-br-md px-4 py-2.5 text-[15px] leading-relaxed whitespace-pre-wrap">
                     {m.content}
                   </p>
                 </div>
@@ -165,13 +165,13 @@ export default function AiChatClient() {
             onChange={(e) => setDraft(e.target.value)}
             placeholder="Write a message"
             disabled={isSending || !conversationId}
-            className="flex-1 bg-sheet border border-slate-300 rounded-md px-4 py-2.5 text-[15px] placeholder:text-slate-400 disabled:opacity-60"
+            className="flex-1 bg-sheet border border-blue-200 rounded-full px-5 py-2.5 text-[15px] placeholder:text-slate-400 disabled:opacity-60"
           />
           <button
             type="submit"
             disabled={isSending || !draft.trim() || !conversationId}
             aria-label="Send message"
-            className="bg-blue-700 hover:bg-blue-800 disabled:bg-slate-200 disabled:text-slate-400 text-white w-11 h-11 grid place-items-center rounded-md transition-colors shrink-0"
+            className="bg-blue-700 hover:bg-blue-800 disabled:bg-slate-200 disabled:text-slate-400 text-white w-11 h-11 grid place-items-center rounded-full transition-colors shrink-0"
           >
             {isSending ? <Loader2 size={17} className="animate-spin" /> : <ArrowUp size={18} />}
           </button>

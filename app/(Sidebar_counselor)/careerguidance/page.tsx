@@ -124,9 +124,9 @@ export default function CareerTracker() {
         </button>
       </header>
 
-      <ol className="mt-8 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-px bg-rule border-y border-rule text-[13px]">
+      <ol className="mt-8 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 text-[13px]">
         {CAREER_STEPS.map((step, i) => (
-          <li key={step} className="bg-paper py-3 pr-3 first:pl-0 pl-3">
+          <li key={step} className="bg-blue-50 border border-blue-100 rounded-lg px-3 py-3">
             <span className="font-mono text-xs text-slate-500">{i + 1}</span>
             <span className="block text-ink">{step}</span>
           </li>
@@ -159,7 +159,7 @@ export default function CareerTracker() {
                 <ol className="mt-3 grid grid-cols-6 gap-1" aria-label={`${plan.studentName}'s stages`}>
                   {CAREER_STEPS.map((step, i) => (
                     <li key={step} title={`${step}: ${plan.stepDates[i] ? `done ${plan.stepDates[i]}` : "not yet"}`}
-                      className={`h-1.5 rounded-full ${plan.stepDates[i] ? "bg-emerald-600" : i === next ? "bg-blue-300" : "bg-slate-200"}`}>
+                      className={`h-1.5 rounded-full ${plan.stepDates[i] ? "bg-blue-500" : i === next ? "bg-butter-300" : "bg-blue-100"}`}>
                       <span className="sr-only">{step}: {plan.stepDates[i] ? `done ${plan.stepDates[i]}` : "not yet"}</span>
                     </li>
                   ))}

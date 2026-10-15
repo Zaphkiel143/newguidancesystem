@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { ArrowRight, Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { login, loginAsDemo } from '../action/auth';
 import type { UserRole } from '../../lib/generated';
 
@@ -44,28 +45,34 @@ const LoginPage = () => {
   return (
     <main className="min-h-dvh bg-paper flex flex-col">
       <header className="px-6 sm:px-10 pt-8">
-        <span className="font-serif text-2xl text-ink tracking-tight">E-Gabay</span>
+        <span className="inline-flex items-center gap-3">
+          <Image src="/sti-logo.jpg" alt="STI College Sta. Maria" width={48} height={48} className="rounded-lg shadow-sm" priority />
+          <span className="font-serif text-2xl text-ink tracking-tight">E-Gabay</span>
+        </span>
       </header>
 
       <div className="flex-1 w-full max-w-5xl mx-auto px-6 sm:px-10 py-12 grid lg:grid-cols-[1fr_400px] gap-14 lg:gap-24 items-center">
         {/* Office context */}
-        <section className="max-w-md">
+        <section className="relative overflow-hidden lg:bg-blue-50 lg:border lg:border-blue-100 lg:rounded-2xl lg:p-10 max-w-md lg:max-w-none">
+          <div className="relative">
+          <Image src="/sti-logo.jpg" alt="STI College Sta. Maria" width={88} height={88} className="hidden lg:block mb-6 rounded-2xl shadow-md" />
           <p className="text-sm text-slate-500">STI College Sta. Maria</p>
           <h1 className="font-serif text-[40px] sm:text-[52px] leading-[1.02] tracking-tight text-ink mt-3">
-            Guidance &amp; <em className="italic text-blue-700">Counseling</em> Office
+            Guidance &amp; <em className="italic text-blue-700 bg-linear-to-b from-transparent from-60% to-butter-200 to-60% px-1 -mx-1">Counseling</em> Office
           </h1>
           <p className="mt-5 text-[15px] leading-relaxed text-slate-600 max-w-[42ch]">
             Book a session with your counselor, send a referral, or follow up on a concern.
             Students can also talk to E-Gabay, our assistant, any time of day.
           </p>
 
-          <p className="mt-10 pt-6 border-t border-rule max-w-sm text-sm text-slate-500">
+          <p className="mt-10 pt-6 border-t border-blue-200 max-w-sm text-sm text-slate-600">
             For students, parents, faculty, and the guidance staff.
           </p>
+          </div>
         </section>
 
         {/* Sign in */}
-        <section className="bg-sheet border border-rule rounded-xl p-7 sm:p-8 animate-rise-in">
+        <section className="bg-sheet border border-rule rounded-2xl shadow-lg p-7 sm:p-8 animate-rise-in">
           <h2 className="text-lg font-semibold text-ink">Sign in</h2>
           <p className="text-sm text-slate-500 mt-1">Use your STI email address.</p>
 

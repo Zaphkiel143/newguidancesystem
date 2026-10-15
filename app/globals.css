@@ -1,40 +1,51 @@
 @import "tailwindcss";
 
 /*
- * E-Gabay design system — "guidance office records"
+ * E-Gabay design system — pastel blue and butter yellow
  *
- * Warm paper surfaces, ink text, one accent (STI ink blue). Status colors are
- * muted and only ever used for meaning (confirmed / pending / urgent), never
- * decoration. Decorative hues used around the codebase (violet, purple) are
- * folded into the neutral ramp so pages stop reading as a rainbow of tiles.
+ * Soft cream page, pastel-blue surfaces (sidebar, chat bubbles, tints) and a
+ * butter-yellow highlight for "you are here" and things worth noticing. Deeper
+ * blues carry buttons and links so text always meets WCAG AA. Status colors
+ * stay muted and are only used for meaning (confirmed / pending / urgent).
+ * Decorative hues (violet, purple) fold into the neutrals.
  */
 @theme {
-  /* Accent: STI ink blue */
-  --color-blue-50: #f1f4fa;
-  --color-blue-100: #e1e7f3;
-  --color-blue-200: #c3cfe6;
-  --color-blue-300: #98abd2;
-  --color-blue-400: #6680b6;
-  --color-blue-500: #42609e;
-  --color-blue-600: #2c4a88;
-  --color-blue-700: #233c70;
-  --color-blue-800: #1d315a;
-  --color-blue-900: #182847;
-  --color-blue-950: #0f1a2f;
+  /* Primary: powder blue, deepening to a readable navy-blue */
+  --color-blue-50: #f1f6fd;
+  --color-blue-100: #e2edfa;
+  --color-blue-200: #c9ddf4;
+  --color-blue-300: #a6c5ea;
+  --color-blue-400: #7ca6dc;
+  --color-blue-500: #5585c9;
+  --color-blue-600: #3d6cb3;
+  --color-blue-700: #2e5590; /* buttons/links: 7.4:1 with white */
+  --color-blue-800: #26467a;
+  --color-blue-900: #213b63;
+  --color-blue-950: #162640;
 
-  /* Neutrals: warm stone, one family everywhere */
-  --color-slate-50: #f8f6f1;
-  --color-slate-100: #f0ede5;
-  --color-slate-200: #e3dfd4;
-  --color-slate-300: #cdc7b9;
-  /* 400 is for icons and borders (3.3:1 on paper); 500 is the lightest text tone (5.1:1). */
-  --color-slate-400: #8f8878;
-  --color-slate-500: #6f685b;
-  --color-slate-600: #5d574b;
-  --color-slate-700: #474238;
-  --color-slate-800: #312d26;
-  --color-slate-900: #211e19;
-  --color-slate-950: #15130f;
+  /* Accent: butter yellow (highlights only; never text on light backgrounds) */
+  --color-butter-50: #fffbec;
+  --color-butter-100: #fff5cc;
+  --color-butter-200: #ffeba3;
+  --color-butter-300: #fcdc71;
+  --color-butter-400: #f6ca45;
+  --color-butter-500: #e3ae20;
+  --color-butter-600: #b98a10;
+  --color-butter-700: #8a660d;
+
+  /* Neutrals: soft blue-grey */
+  --color-slate-50: #f7f9fc;
+  --color-slate-100: #eef2f8;
+  --color-slate-200: #e0e6ef;
+  --color-slate-300: #c7d0dd;
+  /* 400 is for icons and borders (3:1+ on paper); 500 is the lightest text tone (5.4:1). */
+  --color-slate-400: #7d899d;
+  --color-slate-500: #5b677c;
+  --color-slate-600: #475369;
+  --color-slate-700: #364157;
+  --color-slate-800: #263149;
+  --color-slate-900: #1d2a44;
+  --color-slate-950: #121b2e;
 
   /* Decorative hues collapse into neutrals */
   --color-violet-50: var(--color-slate-100);
@@ -47,62 +58,62 @@
   --color-purple-100: var(--color-slate-200);
   --color-purple-600: var(--color-slate-700);
 
-  /* Status: muted, earthy */
-  --color-emerald-50: #eef4ee;
-  --color-emerald-100: #dde9dd;
-  --color-emerald-200: #c2d6c2;
-  --color-emerald-500: #4f7d55;
-  --color-emerald-600: #3f6a45;
-  --color-emerald-700: #335638;
-  --color-green-50: #eef4ee;
-  --color-green-100: #dde9dd;
-  --color-green-600: #3f6a45;
-  --color-green-700: #335638;
+  /* Status: soft pastel fills, deep readable text */
+  --color-emerald-50: #eef7f0;
+  --color-emerald-100: #dcefe0;
+  --color-emerald-200: #bfdfc6;
+  --color-emerald-500: #4f8a5c;
+  --color-emerald-600: #3f6f4a;
+  --color-emerald-700: #335a3c;
+  --color-green-50: #eef7f0;
+  --color-green-100: #dcefe0;
+  --color-green-600: #3f6f4a;
+  --color-green-700: #335a3c;
 
-  --color-orange-50: #f8f0e4;
-  --color-orange-100: #f1e2cc;
-  --color-orange-200: #e6cca6;
-  --color-orange-500: #b5762a;
+  --color-orange-50: #fdf3e6;
+  --color-orange-100: #fae5c9;
+  --color-orange-200: #f2cf9f;
+  --color-orange-500: #c07d2c;
   --color-orange-600: #9a6222;
   --color-orange-700: #7e501d;
   --color-orange-800: #66411a;
-  --color-amber-50: #f8f0e4;
-  --color-amber-100: #f1e2cc;
+  --color-amber-50: #fdf3e6;
+  --color-amber-100: #fae5c9;
   --color-amber-600: #9a6222;
   --color-amber-700: #7e501d;
 
-  --color-rose-50: #f8ecea;
-  --color-rose-100: #f1dad6;
-  --color-rose-500: #a8473b;
+  --color-rose-50: #fdeeec;
+  --color-rose-100: #f8dcd8;
+  --color-rose-500: #b44c40;
   --color-rose-700: #823429;
-  --color-red-50: #f8ecea;
-  --color-red-100: #f1dad6;
-  --color-red-200: #e4bdb6;
-  --color-red-500: #a8473b;
+  --color-red-50: #fdeeec;
+  --color-red-100: #f8dcd8;
+  --color-red-200: #efbfb8;
+  --color-red-500: #b44c40;
   --color-red-600: #943d32;
   --color-red-700: #823429;
 
-  --color-paper: #f8f6f1;
-  --color-sheet: #fffefb;
-  --color-ink: #211e19;
-  --color-rule: #e3dfd4;
+  --color-paper: #fbf9f2;
+  --color-sheet: #ffffff;
+  --color-ink: #1d2a44;
+  --color-rule: #e2e7ef;
 
   --font-sans: var(--font-plex-sans), ui-sans-serif, system-ui, sans-serif;
   --font-serif: var(--font-newsreader), ui-serif, Georgia, serif;
   --font-mono: var(--font-plex-mono), ui-monospace, monospace;
 
-  /* Tighter, varied radii instead of soft blobs everywhere */
-  --radius-md: 0.3rem;
-  --radius-lg: 0.4rem;
-  --radius-xl: 0.5rem;
-  --radius-2xl: 0.625rem;
+  /* Softer corners suit the pastel palette; inner elements stay tighter */
+  --radius-md: 0.5rem;
+  --radius-lg: 0.625rem;
+  --radius-xl: 0.875rem;
+  --radius-2xl: 1.125rem;
 
-  /* Flat by default; elevation only where something actually floats */
-  --shadow-sm: 0 0 #0000;
-  --shadow-md: 0 1px 0 rgb(33 30 25 / 0.04);
-  --shadow-lg: 0 10px 30px -12px rgb(49 45 38 / 0.25);
-  --shadow-xl: 0 18px 40px -16px rgb(49 45 38 / 0.3);
-  --shadow-2xl: 0 24px 60px -20px rgb(49 45 38 / 0.35);
+  /* Flat by default; soft blue-tinted elevation only where something floats */
+  --shadow-sm: 0 1px 2px rgb(46 85 144 / 0.05);
+  --shadow-md: 0 4px 14px -6px rgb(46 85 144 / 0.14);
+  --shadow-lg: 0 12px 30px -12px rgb(46 85 144 / 0.22);
+  --shadow-xl: 0 20px 44px -16px rgb(46 85 144 / 0.26);
+  --shadow-2xl: 0 28px 60px -20px rgb(29 42 68 / 0.3);
 }
 
 :root {
@@ -132,7 +143,7 @@ body {
 }
 
 ::selection {
-  background: var(--color-blue-100);
+  background: var(--color-butter-200);
   color: var(--color-ink);
 }
 
@@ -152,7 +163,7 @@ body {
   textarea:focus-visible {
     outline: none;
     border-color: var(--color-blue-600);
-    box-shadow: 0 0 0 3px rgb(44 74 136 / 0.15);
+    box-shadow: 0 0 0 3px rgb(61 108 179 / 0.18);
   }
 
   button:focus-visible,

@@ -121,7 +121,7 @@ export default function ConversationPanel({
             const time = new Date(m.createdAt).toLocaleString("en-PH", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
             return isMine ? (
               <div key={m.id} className="flex flex-col items-end">
-                <p className="max-w-[75%] bg-blue-700 text-white rounded-lg rounded-br-sm px-4 py-2.5 text-[15px] leading-relaxed whitespace-pre-wrap">
+                <p className="max-w-[75%] bg-blue-100 text-ink rounded-2xl rounded-br-md px-4 py-2.5 text-[15px] leading-relaxed whitespace-pre-wrap">
                   {m.content}
                 </p>
                 <span className="text-xs text-slate-500 mt-1">{time}</span>
@@ -131,7 +131,7 @@ export default function ConversationPanel({
                 <p className="text-[12px] text-slate-500 mb-1">
                   <span className="font-medium text-slate-700">{m.senderName}</span> · {time}
                 </p>
-                <p className="bg-sheet border border-rule rounded-lg rounded-tl-sm px-4 py-2.5 text-[15px] leading-relaxed text-ink whitespace-pre-wrap">
+                <p className="bg-sheet border border-rule rounded-2xl rounded-tl-md px-4 py-2.5 text-[15px] leading-relaxed text-ink whitespace-pre-wrap">
                   {m.content}
                 </p>
               </div>
@@ -151,13 +151,13 @@ export default function ConversationPanel({
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
             placeholder="Write a message"
-            className="flex-1 bg-sheet border border-slate-300 rounded-md px-4 py-2.5 text-[15px] placeholder:text-slate-400"
+            className="flex-1 bg-sheet border border-blue-200 rounded-full px-5 py-2.5 text-[15px] placeholder:text-slate-400"
           />
           <button
             type="submit"
             disabled={isSending || !draft.trim()}
             aria-label="Send message"
-            className="bg-blue-700 hover:bg-blue-800 disabled:bg-slate-200 disabled:text-slate-400 text-white w-11 h-11 grid place-items-center rounded-md transition-colors shrink-0"
+            className="bg-blue-700 hover:bg-blue-800 disabled:bg-slate-200 disabled:text-slate-400 text-white w-11 h-11 grid place-items-center rounded-full transition-colors shrink-0"
           >
             <ArrowUp size={18} />
           </button>

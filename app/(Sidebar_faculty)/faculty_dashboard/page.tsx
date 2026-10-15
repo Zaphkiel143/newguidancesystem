@@ -51,9 +51,9 @@ export const FacultyDashboard = async () => {
         </Link>
       </header>
 
-      <div className="mt-10 grid grid-cols-2 lg:grid-cols-4 gap-px bg-rule border-y border-rule">
+      <div className="mt-10 grid grid-cols-2 lg:grid-cols-4 gap-3">
         {figures.map((f) => (
-          <div key={f.id} className="bg-paper px-5 py-5 first:pl-0">
+          <div key={f.id} className="bg-blue-50 border border-blue-100 rounded-xl px-5 py-5">
             <p className="font-serif text-[44px] leading-none text-ink tabular">{f.value}</p>
             <p className="text-[13px] text-slate-500 mt-2">{f.label}</p>
           </div>

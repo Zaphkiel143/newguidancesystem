@@ -184,8 +184,8 @@ export default function GroupGuidance() {
                             {t.topic}
                           </th>
                           <td className="py-1.5 pr-3">
-                            <div className="h-2 bg-slate-200 rounded-full overflow-hidden">
-                              <div className="h-full bg-blue-700 rounded-full" style={{ width: `${(t.count / max) * 100}%` }} />
+                            <div className="h-2 bg-blue-100 rounded-full overflow-hidden">
+                              <div className="h-full bg-blue-500 rounded-full" style={{ width: `${(t.count / max) * 100}%` }} />
                             </div>
                           </td>
                           <td className="py-1.5 w-10 text-right font-mono text-[13px] text-slate-600 tabular">{t.count}</td>
