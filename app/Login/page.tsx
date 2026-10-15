@@ -55,42 +55,24 @@ const LoginPage = () => {
         </div>
       </header>
 
-      <div className="flex-1 w-full max-w-5xl mx-auto px-6 sm:px-10 py-12 grid lg:grid-cols-[1fr_400px] gap-14 lg:gap-24 items-center">
-        {/* Office context */}
-        <section className="relative overflow-hidden lg:bg-blue-50 lg:border lg:border-blue-100 lg:rounded-2xl lg:p-10 max-w-md lg:max-w-none">
-          {/* Campus photo banner, fading into the panel so the text below stays readable */}
-          <div className="relative h-44 mb-6 rounded-2xl overflow-hidden lg:h-60 lg:-mx-10 lg:-mt-10 lg:mb-0 lg:rounded-none">
+      <div className="flex-1 w-full px-5 py-10 sm:py-14 flex items-center justify-center">
+        {/* One card: campus photo, school logo, then sign in */}
+        <section className="w-full max-w-[420px] bg-sheet border border-rule rounded-2xl shadow-lg overflow-hidden animate-rise-in">
+          <div className="relative h-36 sm:h-40">
             <Image
               src="/campus.jpg"
               alt="STI College Sta. Maria campus"
               fill
               priority
-              sizes="(min-width: 1024px) 560px, 100vw"
+              sizes="420px"
               className="object-cover object-[50%_58%]"
             />
-            <div aria-hidden className="hidden lg:block absolute inset-x-0 bottom-0 h-24 bg-linear-to-t from-blue-50 to-blue-50/0" />
+            <div aria-hidden className="absolute inset-x-0 bottom-0 h-16 bg-linear-to-t from-white to-white/0" />
           </div>
 
-          <div className="relative">
-          <Image src="/sti-logo.jpg" alt="" width={72} height={72} className="hidden lg:block -mt-9 mb-5 rounded-2xl shadow-md ring-4 ring-blue-50" />
-          <p className="text-sm text-slate-500">STI College Sta. Maria</p>
-          <h1 className="font-serif font-bold text-[32px] sm:text-[40px] leading-[1.1] tracking-tight text-ink mt-3">
-            Guidance &amp; <em className="italic text-blue-700 bg-linear-to-b from-transparent from-60% to-butter-200 to-60% px-1 -mx-1">Counseling</em> Office
-          </h1>
-          <p className="mt-5 text-[15px] leading-relaxed text-slate-600 max-w-[42ch]">
-            Book a session with your counselor, send a referral, or follow up on a concern.
-            Students can also talk to E-Gabay, our assistant, any time of day.
-          </p>
-
-          <p className="mt-10 pt-6 border-t border-blue-200 max-w-sm text-sm text-slate-600">
-            For students, parents, faculty, and the guidance staff.
-          </p>
-          </div>
-        </section>
-
-        {/* Sign in */}
-        <section className="bg-sheet border border-rule rounded-2xl shadow-lg p-7 sm:p-8 animate-rise-in">
-          <h2 className="text-lg font-semibold text-ink">Sign in</h2>
+          <div className="relative px-7 sm:px-8 pb-8 -mt-10">
+          <Image src="/sti-logo.jpg" alt="STI College Sta. Maria" width={72} height={72} className="rounded-2xl shadow-md ring-4 ring-white" />
+          <h1 className="mt-4 text-2xl font-bold tracking-tight text-ink">Sign in</h1>
           <p className="text-sm text-slate-500 mt-1">Use your STI email address.</p>
 
           <form onSubmit={handleLogin} className="mt-7 space-y-5" noValidate={false}>
@@ -167,6 +149,7 @@ const LoginPage = () => {
                 </li>
               ))}
             </ul>
+          </div>
           </div>
         </section>
       </div>
