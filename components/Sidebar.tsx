@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation';
 import { LogOut, Menu, X } from 'lucide-react';
 import { navigationConfig, MenuItem } from "../app/config/navigation";; // Adjust this path if your config is located elsewhere
 import { logout } from "../app/action/auth";
+import { LogoMark } from "./Logo";
 
 interface SidebarProps {
   // This explicitly defines the roles your layout files can pass down
@@ -37,7 +38,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ role }) => {
         >
           <Menu size={22} />
         </button>
-        <span className="ml-3 font-bold text-slate-800">E-Gabay STI</span>
+        <LogoMark size={28} className="ml-2" />
+        <span className="ml-2 font-bold text-slate-800">E-Gabay STI</span>
       </div>
 
       {/* Backdrop, mobile only, closes the menu on click */}
@@ -55,7 +57,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ role }) => {
       >
       {/* Platform Branding Header */}
       <div className="p-6 border-b border-slate-50 flex items-center justify-between gap-3">
-        <span className="font-bold text-lg text-slate-800">E-Gabay STI</span>
+        <div className="flex items-center gap-2.5">
+          <LogoMark size={32} />
+          <span className="font-bold text-lg text-slate-800">E-Gabay STI</span>
+        </div>
         <button
           onClick={() => setIsOpen(false)}
           className="md:hidden p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-50 rounded-lg transition-colors"

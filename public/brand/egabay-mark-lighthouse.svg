@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="E-Gabay">
+  <rect width="128" height="128" rx="28" fill="#1d4ed8"/>
+  <path d="M57 44L22 32v24zM71 44l35-12v24z" fill="#fbbf24" opacity=".45"/>
+  <path d="M55 40l9-11 9 11z" fill="#fff"/>
+  <rect x="57" y="40" width="14" height="10" rx="2" fill="#fbbf24"/>
+  <path d="M55 100l4-46h10l4 46z" fill="#fff"/>
+  <path d="M57.4 72h13.2l.6 7H56.8z" fill="#1d4ed8"/>
+  <rect x="40" y="98" width="48" height="7" rx="3.5" fill="#fff"/>
+</svg>

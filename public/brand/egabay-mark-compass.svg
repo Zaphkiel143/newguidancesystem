@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="E-Gabay">
+  <rect width="128" height="128" rx="28" fill="#1d4ed8"/>
+  <circle cx="64" cy="64" r="36" fill="none" stroke="#fff" stroke-width="7"/>
+  <g transform="rotate(40 64 64)">
+    <path d="M64 34l10 30H54z" fill="#fbbf24"/>
+    <path d="M54 64h20L64 94z" fill="#fff"/>
+  </g>
+  <circle cx="64" cy="64" r="5" fill="#1d4ed8"/>
+</svg>

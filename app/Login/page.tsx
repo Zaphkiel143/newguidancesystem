@@ -5,6 +5,7 @@ import { Mail, Lock } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { login, loginAsDemo } from '../action/auth';
 import type { UserRole } from '../../lib/generated';
+import { LogoMark } from '../../components/Logo';
 
 const LoginPage = () => {
   const router = useRouter();
@@ -42,10 +43,8 @@ const LoginPage = () => {
       {/* Main Card */}
       <div className="bg-white w-full max-w-100 rounded-2xl shadow-2xl p-8 flex flex-col items-center">
 
-        {/* STI Logo Box */}
-        <div className="bg-[#2563EB] w-14 h-14 rounded-xl flex items-center justify-center mb-4 shadow-md">
-          <span className="text-white font-bold text-lg">STI</span>
-        </div>
+        {/* E-Gabay Logo */}
+        <LogoMark size={64} className="mb-4 drop-shadow-md" />
 
         {/* Typography */}
         <h1 className="text-2xl font-bold text-slate-800">E-Gabay STI</h1>

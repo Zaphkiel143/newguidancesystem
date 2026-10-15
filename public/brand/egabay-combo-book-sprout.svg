@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="E-Gabay">
+  <rect width="128" height="128" rx="28" fill="#1d4ed8"/>
+  <path d="M64 70V42" stroke="#fff" stroke-width="6" stroke-linecap="round"/>
+  <path d="M64 56c-13 0-21-8-21-20 12 0 21 8 21 20z" fill="#fff"/>
+  <path d="M64 48c0-12 8-21 21-21 0 12-8 21-21 21z" fill="#fbbf24"/>
+  <path d="M24 70c14-5 28-3 37 4v30c-9-7-23-9-37-4zM104 70c-14-5-28-3-37 4v30c9-7 23-9 37-4z" fill="#fff"/>
+</svg>
