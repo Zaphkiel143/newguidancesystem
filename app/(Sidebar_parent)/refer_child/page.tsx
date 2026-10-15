@@ -9,11 +9,13 @@ import {
   ChevronDown
 } from 'lucide-react';
 import { submitReferral } from '../../action/parent';
+import { useMyChildren } from '../useMyChildren';
 
-const CHILD_NAME = "Nhel Belarmino";
-const PARENT_NAME = "Mrs. Belarmino";
 
 export const ReferChildForm: React.FC = () => {
+  const children = useMyChildren();
+  const [childName, setChildName] = useState('');
+  const child = children?.find((c) => c.name === childName) ?? children?.[0];
   // Form Field States
   const [concernType, setConcernType] = useState('');
   const [priorityLevel, setPriorityLevel] = useState('Medium');
@@ -26,7 +28,7 @@ export const ReferChildForm: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!concernType || !description) return;
+    if (!concernType || !description || !child) return;
 
     setIsSaving(true);
     setError(null);
@@ -38,8 +40,7 @@ export const ReferChildForm: React.FC = () => {
     ].filter(Boolean);
 
     const result = await submitReferral({
-      studentName: CHILD_NAME,
-      referrerName: PARENT_NAME,
+      studentName: child.name,
       concernType,
       priority: priorityLevel,
       description: [description, ...detailLines].join("\n\n"),
@@ -69,15 +70,34 @@ export const ReferChildForm: React.FC = () => {
         </p>
       </div>
 
-      {/* Child Information Banner (image_859d3c.png) */}
-      <div className="bg-blue-50 border border-blue-100 px-5 py-4 rounded-xl text-sm font-medium text-slate-600">
-        <span className="text-blue-500 font-semibold block text-xs mb-1">Child Information</span>
-        <span className="text-blue-600 font-semibold">Nhel Belarmino</span>
-        <span className="mx-2 text-slate-300">•</span>
-        <span className="font-mono text-slate-500 text-xs">2024-12345</span>
-        <span className="mx-2 text-slate-300">•</span>
-        <span className="text-slate-700 font-semibold text-xs bg-white px-2 py-0.5 rounded border border-slate-100 shadow-2xs">Grade 12 - STEM-A</span>
-      </div>
+      {/* Child information */}
+      {children === null ? null : children.length === 0 ? (
+        <p className="border-l-2 border-orange-500 bg-orange-50 pl-3 py-2 text-sm text-orange-800">
+          No student is linked to your account yet. Ask the Guidance Office to link your child, then you can refer them here.
+        </p>
+      ) : (
+        <div className="border border-rule bg-sheet px-5 py-4 rounded-xl text-sm text-slate-600">
+          <span className="text-slate-500 block text-xs mb-1">Referral for</span>
+          {children.length > 1 ? (
+            <select
+              aria-label="Choose which child this referral is for"
+              value={child?.name}
+              onChange={(e) => setChildName(e.target.value)}
+              className="bg-sheet border border-slate-300 rounded-md px-3 py-2 text-sm text-ink"
+            >
+              {children.map((c) => (
+                <option key={c.name} value={c.name}>{c.name}</option>
+              ))}
+            </select>
+          ) : (
+            <span className="text-ink font-semibold">{child?.name}</span>
+          )}
+          <span className="mx-2 text-slate-300">•</span>
+          <span className="font-mono text-slate-500 text-xs">{child?.studentId}</span>
+          <span className="mx-2 text-slate-300">•</span>
+          <span className="text-slate-700 text-xs">{child?.gradeSection}</span>
+        </div>
+      )}
 
       {/* Confidentiality Notice Alert Banner (image_859d3c.png) */}
       <div className="bg-emerald-50 border border-emerald-50 p-4 rounded-xl flex items-start gap-3">

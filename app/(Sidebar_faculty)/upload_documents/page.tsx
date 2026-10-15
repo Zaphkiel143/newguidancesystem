@@ -5,7 +5,6 @@ import { UploadCloud, FileText, CheckCircle2, Trash2, Loader2 } from 'lucide-rea
 import { uploadDocument, getMyDocuments, deleteDocument } from '../../action/faculty';
 import InlineError from '../../../components/InlineError';
 
-const FACULTY_NAME = "Cho Sto Domingo";
 const MAX_FILE_BYTES = 5 * 1024 * 1024; // 5MB
 
 interface DocumentMeta {
@@ -42,7 +41,7 @@ export const UploadDocuments: React.FC = () => {
   const [deleteError, setDeleteError] = useState<string | null>(null);
 
   const refresh = async () => {
-    const data = await getMyDocuments(FACULTY_NAME);
+    const data = await getMyDocuments();
     setDocuments(data);
   };
 
@@ -50,7 +49,7 @@ export const UploadDocuments: React.FC = () => {
     let cancelled = false;
 
     (async () => {
-      const data = await getMyDocuments(FACULTY_NAME);
+      const data = await getMyDocuments();
       if (!cancelled) setDocuments(data);
     })();
 
@@ -71,7 +70,6 @@ export const UploadDocuments: React.FC = () => {
       setIsUploading(true);
       const dataBase64 = await fileToBase64(file);
       const result = await uploadDocument({
-        uploaderName: FACULTY_NAME,
         fileName: file.name,
         fileType: file.type || "application/octet-stream",
         fileSize: file.size,

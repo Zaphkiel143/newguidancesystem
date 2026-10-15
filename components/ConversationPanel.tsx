@@ -14,11 +14,8 @@ interface ConversationPanelProps {
   onMessageSent?: () => void;
   getMessages: (conversationId: string) => Promise<DbMessage[]>;
   markConversationRead: (conversationId: string) => Promise<{ success: boolean }>;
-  sendMessage: (formData: {
-    conversationId: string;
-    senderName: string;
-    content: string;
-  }) => Promise<{ success: boolean; error?: string }>;
+  // The server takes the sender from the session; viewerName/viewerRole are only for display.
+  sendMessage: (formData: { conversationId: string; content: string }) => Promise<{ success: boolean; error?: string }>;
 }
 
 const POLL_INTERVAL_MS = 4000;
@@ -77,7 +74,7 @@ export default function ConversationPanel({
     setIsSending(true);
     setSendError(null);
     setDraft("");
-    const result = await sendMessage({ conversationId, senderName: viewerName, content });
+    const result = await sendMessage({ conversationId, content });
     setIsSending(false);
 
     if (result.success) {

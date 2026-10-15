@@ -5,7 +5,6 @@ import { Search, AlertTriangle, Clock, CheckCircle2, FileText } from 'lucide-rea
 import { getMyReferrals } from '../../action/faculty';
 import type { Referral } from '../../../lib/generated';
 
-const FACULTY_NAME = "Cho Sto Domingo";
 
 export const MyReferralsPage: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -15,7 +14,7 @@ export const MyReferralsPage: React.FC = () => {
     let cancelled = false;
 
     (async () => {
-      const data = await getMyReferrals(FACULTY_NAME);
+      const data = await getMyReferrals();
       if (!cancelled) setReferrals(data);
     })();
 

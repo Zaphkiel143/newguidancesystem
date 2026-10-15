@@ -5,9 +5,8 @@ import { Search, MessageSquare, User, X } from 'lucide-react';
 import { listConversations, startConversation, getMessages, markConversationRead, sendMessage } from '../../action/counselor';
 import ConversationPanel from '../../../components/ConversationPanel';
 import InlineError from '../../../components/InlineError';
+import { useCurrentUser } from '../../../components/CurrentUser';
 
-const VIEWER_ROLE = "Counselor";
-const VIEWER_NAME = "Ralph Michael";
 const POLL_INTERVAL_MS = 5000;
 
 interface Conversation {
@@ -20,6 +19,7 @@ interface Conversation {
 }
 
 export const MessagesDashboard: React.FC = () => {
+  const me = useCurrentUser();
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>('');
@@ -69,7 +69,6 @@ export const MessagesDashboard: React.FC = () => {
     const result = await startConversation({
       participantName: newName.trim(),
       participantRole: newRole,
-      senderName: VIEWER_NAME,
       content: newContent.trim(),
     });
     setIsStarting(false);
@@ -190,8 +189,8 @@ export const MessagesDashboard: React.FC = () => {
           <ConversationPanel
             key={selectedConversation.id}
             conversationId={selectedConversation.id}
-            viewerRole={VIEWER_ROLE}
-            viewerName={VIEWER_NAME}
+            viewerRole={me.roleLabel}
+            viewerName={me.name}
             title={selectedConversation.participantName}
             subtitle={selectedConversation.participantRole}
             onMessageSent={refreshConversations}

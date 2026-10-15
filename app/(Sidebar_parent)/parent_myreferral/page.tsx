@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { useEffect, useState } from 'react';
 import {
@@ -10,8 +10,6 @@ import {
 import { getMyReferrals } from '../../action/parent';
 import type { Referral } from '../../../lib/generated';
 
-const PARENT_NAME = "Mrs. Belarmino";
-const CHILD_NAME = "Nhel Belarmino";
 
 export const MyReferralsPage: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -21,7 +19,7 @@ export const MyReferralsPage: React.FC = () => {
     let cancelled = false;
 
     (async () => {
-      const data = await getMyReferrals(PARENT_NAME);
+      const data = await getMyReferrals();
       if (!cancelled) setReferrals(data);
     })();
 
@@ -41,13 +39,8 @@ export const MyReferralsPage: React.FC = () => {
       <div>
         <h1 className="page-title">My Referrals</h1>
         <p className="text-sm text-slate-500 font-medium mt-1">
-          Track referrals submitted for {CHILD_NAME}
+          Track the referrals you&apos;ve submitted and the office&apos;s response
         </p>
-      </div>
-
-      {/* Target Focus Notice Block Banner */}
-      <div className="bg-blue-50 border border-blue-100 px-5 py-3.5 rounded-xl text-sm font-medium text-blue-600">
-        Viewing referrals for: <span className="font-semibold">{CHILD_NAME}</span>
       </div>
 
       {/* Main Container Wrapper */}
@@ -81,8 +74,8 @@ export const MyReferralsPage: React.FC = () => {
                   <div className="space-y-1">
                     <h3 className="text-lg font-semibold text-slate-900 tracking-tight">{item.concernType}</h3>
                     <div className="text-xs text-slate-500 font-medium flex flex-wrap items-center gap-x-4 gap-y-1">
-                      <span>Counselor: <span className="text-slate-700 font-semibold">Ralph Michael</span></span>
-                      <span className="hidden sm:inline text-slate-300">•</span>
+                      <span>For: <span className="text-slate-700 font-semibold">{item.studentName}</span></span>
+                      <span className="hidden sm:inline text-slate-300">â€¢</span>
                       <span className="font-mono">Date Submitted: {new Date(item.createdAt).toLocaleDateString()}</span>
                     </div>
                   </div>

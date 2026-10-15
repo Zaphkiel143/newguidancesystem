@@ -24,6 +24,12 @@ model Appointment {
   notes           String? @db.Text
   requirements    String[] // Array of strings for checklists (Prisma supports this natively in PostgreSQL)
 
+  // Who made the booking (student, faculty, or a parent booking for their child),
+  // so confirmation/change/cancellation emails reach the right person.
+  bookedByName    String?
+  bookedByRole    String?
+  bookedByEmail   String?
+
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 }
@@ -45,6 +51,10 @@ model CareerPlan {
   // "" means that step isn't completed yet; otherwise it holds the completion date (YYYY-MM-DD).
   stepDates   String[]
 
+  // Free-text record of completed activities, one entry per step (same order as stepDates).
+  stepNotes   String[] @default([])
+  facilitator String?
+
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
@@ -56,6 +66,9 @@ model GroupGuidanceProgram {
   date         DateTime
   time         String
   participants Int      @default(0)
+
+  attendees    String[] @default([])
+  outcomes     String?  @db.Text
 
   createdAt    DateTime @default(now())
 }
@@ -112,6 +125,11 @@ model Document {
   fileSize     Int
   data         Bytes
 
+  // For documents students submit to their Individual Inventory record
+  // (excuse letter, medical certificate, ...). Null for faculty uploads.
+  studentName  String?
+  category     String?
+
   createdAt    DateTime @default(now())
 }
 
@@ -158,4 +176,111 @@ model AiMessage {
   content        String   @db.Text
 
   createdAt      DateTime @default(now())
+}
+
+// ---- Individual Inventory ----
+
+model StudentProfile {
+  id                 String   @id @default(uuid())
+  studentId          String   @unique
+  name               String   @unique // records elsewhere are linked by name
+  department         String   // "Senior High School" or "College"
+  gradeSection       String
+  strandOrProgram    String?
+  email              String?
+  phone              String?
+  birthDate          String?
+  address            String?
+  guardianName       String?
+  guardianContact    String?
+  parentName         String?  // the parent account linked to this student
+  familyBackground   String?  @db.Text
+  educationalHistory String?  @db.Text
+  counselorNotes     String?  @db.Text
+
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+}
+
+// ---- Information Service ----
+
+model Announcement {
+  id          String   @id @default(uuid())
+  title       String
+  body        String   @db.Text
+  category    String   // e.g. Seminar, Mental Health, Career, Reminder
+  audience    String   @default("All") // All, Students, Faculty, Parents
+  isPublished Boolean  @default(true)
+
+  views       AnnouncementView[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model AnnouncementView {
+  id             String       @id @default(uuid())
+  announcementId String
+  announcement   Announcement @relation(fields: [announcementId], references: [id], onDelete: Cascade)
+  viewerName     String
+  viewerRole     String
+  viewedAt       DateTime     @default(now())
+
+  @@unique([announcementId, viewerName, viewerRole])
+}
+
+// ---- Events ----
+
+model Event {
+  id          String   @id @default(uuid())
+  title       String
+  description String   @db.Text
+  date        DateTime
+  time        String
+  location    String?
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// ---- Group Guidance: needs assessment ----
+
+model NeedsAssessment {
+  id         String   @id @default(uuid())
+  title      String
+  gradeLevel String   @default("All") // "All" or a grade level from app/config/gradeLevels.ts
+  topics     String[]
+  isOpen     Boolean  @default(true)
+
+  responses  NeedsAssessmentResponse[]
+
+  createdAt  DateTime @default(now())
+}
+
+model NeedsAssessmentResponse {
+  id             String          @id @default(uuid())
+  assessmentId   String
+  assessment     NeedsAssessment @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
+  studentName    String
+  selectedTopics String[]
+  comment        String?         @db.Text
+
+  createdAt      DateTime        @default(now())
+
+  @@unique([assessmentId, studentName])
+}
+
+// ---- Email notifications ----
+
+// Every notification the system tries to send, kept for auditing and so the
+// review copy can show what would have gone out when no SMTP server is set.
+model EmailLog {
+  id        String   @id @default(uuid())
+  to        String
+  subject   String
+  body      String   @db.Text
+  status    String   // SENT, LOGGED (no SMTP configured), FAILED
+  error     String?
+
+  createdAt DateTime @default(now())
 }

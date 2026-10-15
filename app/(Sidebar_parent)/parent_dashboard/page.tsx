@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { Calendar as CalendarIcon, Clock, AlignLeft, Users, CheckCircle } from 'lucide-react';
 import { getBookedTimesForDate, bookAppointment } from '../../action/parent';
 import { STANDARD_DAY_HOURS } from '../../config/timeSlots';
+import { useMyChildren } from '../useMyChildren';
 
 function toDateString(date: Date): string {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
@@ -19,7 +20,9 @@ export const ParentBookAppointment: React.FC = () => {
   const minSelectableDate = getMinSelectableDate();
 
   // State configurations matching parent metrics from image_85ac21.png
-  const [selectedChild, setSelectedChild] = useState<string>('Nhel Belarmino');
+  const children = useMyChildren();
+  const [chosenChild, setChosenChild] = useState<string>('');
+  const selectedChild = chosenChild || children?.[0]?.name || '';
   const [selectedDate, setSelectedDate] = useState<string>(minSelectableDate);
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
   const [purpose, setPurpose] = useState<string>('Academic Counseling');
@@ -96,13 +99,14 @@ export const ParentBookAppointment: React.FC = () => {
             <div className="relative">
               <select
                 value={selectedChild}
-                onChange={(e) => setSelectedChild(e.target.value)}
+                onChange={(e) => setChosenChild(e.target.value)}
                 required
                 className="w-full px-4 py-2.5 bg-white border border-slate-200 text-sm font-semibold rounded-xl text-slate-700 appearance-none focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all"
               >
-                <option value="Nhel Belarmino">Nhel Belarmino</option>
-                {/* Fallback option for multi-child parents */}
-                <option value="Other Child">Other Student</option>
+                {children?.length === 0 && <option value="">No student linked to your account</option>}
+                {children?.map((c) => (
+                  <option key={c.name} value={c.name}>{c.name} · {c.gradeSection}</option>
+                ))}
               </select>
               <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-slate-500 text-xs">
                 ▼

@@ -6,8 +6,6 @@ import { ArrowUp, Loader2 } from "lucide-react";
 import { getMyAiConversation, sendAiMessage } from "../../action/student";
 import type { AiMessage } from "../../../lib/generated";
 
-const STUDENT_NAME = "Nhel Belarmino";
-
 const STARTERS = [
   "I'm stressed about exams",
   "Paano mag-book ng appointment?",
@@ -27,7 +25,7 @@ export default function AiChatClient() {
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      const conversation = await getMyAiConversation(STUDENT_NAME);
+      const conversation = await getMyAiConversation();
       if (cancelled) return;
       setConversationId(conversation?.id ?? null);
       setMessages(conversation?.messages ?? []);

@@ -2,8 +2,8 @@ import React from 'react';
 import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
 import { getMyReferrals, getMyAppointments } from '../../action/faculty';
+import { getCurrentUser } from '../../../lib/auth';
 
-const FACULTY_NAME = "Cho Sto Domingo";
 
 const SHORTCUTS = [
   { title: 'Submit a referral', description: 'Flag a student who may need support', path: '/submit_referral' },
@@ -19,9 +19,10 @@ const STATUS: Record<string, { label: string; dot: string; text: string }> = {
 };
 
 export const FacultyDashboard = async () => {
-  const [referrals, appointments] = await Promise.all([
-    getMyReferrals(FACULTY_NAME),
-    getMyAppointments(FACULTY_NAME),
+  const [referrals, appointments, user] = await Promise.all([
+    getMyReferrals(),
+    getMyAppointments(),
+    getCurrentUser(),
   ]);
 
   const figures = [
@@ -37,7 +38,7 @@ export const FacultyDashboard = async () => {
     <div className="px-5 sm:px-8 lg:px-12 pt-8 lg:pt-12 pb-16 max-w-6xl text-slate-800">
       <header className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-5">
         <div>
-          <h1 className="page-title">Welcome back, {FACULTY_NAME.split(" ")[0]}.</h1>
+          <h1 className="page-title">Welcome back{user ? `, ${user.name.split(" ")[0]}` : ""}.</h1>
           <p className="mt-2 text-slate-600 max-w-[52ch]">
             If a student in your class seems to be struggling, a referral takes about a minute.
           </p>

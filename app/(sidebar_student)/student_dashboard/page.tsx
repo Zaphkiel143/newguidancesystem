@@ -3,35 +3,49 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
-import { getMyAppointments } from '../../action/student';
-import type { Appointment as DbAppointment } from '../../../lib/generated';
-
-const STUDENT_NAME = "Nhel Belarmino";
-
-interface ProgressBarMetric {
-  id: string;
-  label: string;
-  percentage: number;
-}
+import { getMyAppointments, getMyCareerPlan, getMyReferrals } from '../../action/student';
+import { getBulletinPreview } from '../../action/bulletin';
+import { CAREER_STEPS } from '../../config/careerSteps';
+import { useCurrentUser } from '../../../components/CurrentUser';
+import type { Announcement, Appointment as DbAppointment, CareerPlan, Event as DbEvent } from '../../../lib/generated';
 
 const SHORTCUTS = [
   { label: 'Book an appointment', path: '/my_appointments' },
-  { label: 'View my profile', path: '/profile' },
-  { label: 'Refer a classmate', path: '/refer_student' },
-  { label: 'Message my counselor', path: '/my_messages' },
+  { label: 'Answer a needs assessment', path: '/assessments' },
+  { label: 'Refer yourself or a classmate', path: '/refer_student' },
+  { label: 'Message the guidance office', path: '/my_messages' },
 ];
 
+interface DashboardData {
+  appointments: DbAppointment[];
+  careerPlan: CareerPlan | null;
+  openReferrals: number;
+  announcement: Announcement | null;
+  event: DbEvent | null;
+}
+
 export const DashboardContent: React.FC = () => {
-  const [upcoming, setUpcoming] = useState<DbAppointment | null>(null);
+  const me = useCurrentUser();
+  const [data, setData] = useState<DashboardData | null>(null);
 
   useEffect(() => {
     let cancelled = false;
 
     (async () => {
-      const appointments = await getMyAppointments(STUDENT_NAME);
+      const [appointments, careerPlan, referrals, preview] = await Promise.all([
+        getMyAppointments(),
+        getMyCareerPlan(),
+        getMyReferrals(),
+        getBulletinPreview(),
+      ]);
       if (cancelled) return;
-      const next = appointments.find((a) => a.status !== "CANCELLED" && new Date(a.date) >= new Date());
-      setUpcoming(next ?? null);
+      setData({
+        appointments,
+        careerPlan,
+        openReferrals: referrals.filter((r) => r.status !== "CLOSED").length,
+        announcement: preview.announcement,
+        event: preview.event,
+      });
     })();
 
     return () => {
@@ -39,24 +53,27 @@ export const DashboardContent: React.FC = () => {
     };
   }, []);
 
+  // Appointment dates are calendar days stored as UTC midnight; compare as YYYY-MM-DD.
+  const now = new Date();
+  const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+  const day = (d: Date) => new Date(d).toISOString().slice(0, 10);
+  const upcoming = data?.appointments
+    .filter((a) => a.status !== "CANCELLED" && day(a.date) >= today)
+    .sort((a, b) => +new Date(a.date) - +new Date(b.date))[0];
+  const sessionsDone = data?.appointments.filter((a) => a.status === "CONFIRMED" && day(a.date) < today).length ?? 0;
+  const stagesDone = data?.careerPlan?.stepDates.filter(Boolean).length ?? 0;
+  const nextStage = data?.careerPlan ? CAREER_STEPS[data.careerPlan.stepDates.findIndex((d) => !d)] : undefined;
+
   const figures = [
-    { id: 'sessions', count: 8, label: 'Sessions completed' },
-    { id: 'goals', count: 5, label: 'Goals reached' },
-    { id: 'tasks', count: 3, label: 'Tasks coming up' },
+    { id: 'sessions', count: sessionsDone, label: 'Sessions attended' },
+    { id: 'cpp', count: stagesDone, label: `of ${CAREER_STEPS.length} career stages done` },
+    { id: 'referrals', count: data?.openReferrals ?? 0, label: 'Open referrals you sent' },
   ];
-
-  const progressMetrics: ProgressBarMetric[] = [
-    { id: 'career', label: 'Career planning', percentage: 75 },
-    { id: 'personal', label: 'Personal development', percentage: 60 },
-    { id: 'academic', label: 'Academic goals', percentage: 85 },
-  ];
-
-  const firstName = STUDENT_NAME.split(" ")[0];
 
   return (
     <div className="px-5 sm:px-8 lg:px-12 pt-8 lg:pt-12 pb-16 max-w-6xl text-slate-800">
       <header>
-        <h1 className="page-title">Kumusta, {firstName}.</h1>
+        <h1 className="page-title">Kumusta, {me.name.split(" ")[0]}.</h1>
         <p className="mt-2 text-slate-600">Here&apos;s where things stand with the guidance office.</p>
       </header>
 
@@ -77,34 +94,42 @@ export const DashboardContent: React.FC = () => {
       </Link>
 
       <div className="mt-12 grid grid-cols-1 lg:grid-cols-[1.3fr_1fr] gap-12 lg:gap-16">
-        {/* Progress */}
         <section>
-          <h2 className="font-serif text-[22px] text-ink mb-3">My progress</h2>
+          <div className="flex items-baseline justify-between mb-3">
+            <h2 className="font-serif text-[22px] text-ink">My progress</h2>
+            <Link href="/my_career" className="text-[13px] text-slate-500 hover:text-blue-700 transition-colors">
+              Career plan
+            </Link>
+          </div>
           <div className="grid grid-cols-3 gap-px bg-rule border-y border-rule">
             {figures.map((f) => (
               <div key={f.id} className="bg-paper py-5 px-4 first:pl-0">
-                <p className="font-serif text-[40px] leading-none text-ink tabular">{f.count}</p>
+                <p className="font-serif text-[40px] leading-none text-ink tabular">{data ? f.count : "–"}</p>
                 <p className="text-[13px] text-slate-500 mt-2">{f.label}</p>
               </div>
             ))}
           </div>
 
-          <ul className="mt-8 space-y-5">
-            {progressMetrics.map((item) => (
-              <li key={item.id}>
-                <div className="flex justify-between items-baseline text-[14px]">
-                  <span className="text-slate-700">{item.label}</span>
-                  <span className="font-mono text-[12px] text-slate-500 tabular">{item.percentage}%</span>
+          <div className="mt-6 text-[14px] text-slate-600">
+            {!data ? null : data.careerPlan ? (
+              <>
+                <div className="h-1 bg-slate-200 rounded-full overflow-hidden">
+                  <div className="h-full bg-blue-700 rounded-full" style={{ width: `${(stagesDone / CAREER_STEPS.length) * 100}%` }} />
                 </div>
-                <div className="mt-2 h-1 bg-slate-200 rounded-full overflow-hidden">
-                  <div className="h-full bg-blue-700 rounded-full" style={{ width: `${item.percentage}%` }} />
-                </div>
-              </li>
-            ))}
-          </ul>
+                <p className="mt-3">
+                  {nextStage ? (
+                    <>Next stage: <span className="text-ink font-medium">{nextStage}</span></>
+                  ) : (
+                    "You've completed every stage of the Career Planning Program."
+                  )}
+                </p>
+              </>
+            ) : (
+              <p>You&apos;re not enrolled in the Career Planning Program yet. The guidance office adds students to it.</p>
+            )}
+          </div>
         </section>
 
-        {/* Side column */}
         <div className="space-y-12">
           <section>
             <div className="flex items-baseline justify-between mb-3">
@@ -118,9 +143,9 @@ export const DashboardContent: React.FC = () => {
                 <>
                   <p className="font-medium text-ink">{upcoming.appointmentType || "General consultation"}</p>
                   <p className="font-mono text-[13px] text-slate-500 mt-1 tabular">
-                    {new Date(upcoming.date).toLocaleDateString("en-PH", { weekday: "short", month: "short", day: "numeric" })} · {upcoming.time}
+                    {new Date(upcoming.date).toLocaleDateString("en-PH", { timeZone: "UTC", weekday: "short", month: "short", day: "numeric" })} · {upcoming.time}
                   </p>
-                  <p className={`mt-2 inline-flex items-center gap-1.5 text-[12px] ${upcoming.status === "CONFIRMED" ? "text-emerald-700" : "text-orange-700"}`}>
+                  <p className={`mt-2 inline-flex items-center gap-1.5 text-xs ${upcoming.status === "CONFIRMED" ? "text-emerald-700" : "text-orange-700"}`}>
                     <span className={`w-1.5 h-1.5 rounded-full ${upcoming.status === "CONFIRMED" ? "bg-emerald-500" : "bg-orange-500"}`} />
                     {upcoming.status === "CONFIRMED" ? "Confirmed" : "Waiting for confirmation"}
                   </p>
@@ -137,10 +162,31 @@ export const DashboardContent: React.FC = () => {
           </section>
 
           <section>
-            <h2 className="font-serif text-[22px] text-ink mb-3">From the office</h2>
-            <div className="border-t border-rule pt-4">
-              <p className="font-medium text-ink">Career Fair 2026</p>
-              <p className="font-mono text-[13px] text-slate-500 mt-1">April 25, 2026</p>
+            <div className="flex items-baseline justify-between mb-3">
+              <h2 className="font-serif text-[22px] text-ink">From the office</h2>
+              <Link href="/bulletin" className="text-[13px] text-slate-500 hover:text-blue-700 transition-colors">
+                Bulletin
+              </Link>
+            </div>
+            <div className="border-t border-rule pt-4 space-y-4">
+              {data?.announcement && (
+                <div>
+                  <p className="text-xs text-slate-500">{data.announcement.category}</p>
+                  <p className="font-medium text-ink">{data.announcement.title}</p>
+                </div>
+              )}
+              {data?.event && (
+                <div>
+                  <p className="text-xs text-slate-500">Upcoming event</p>
+                  <p className="font-medium text-ink">{data.event.title}</p>
+                  <p className="font-mono text-[13px] text-slate-500 mt-0.5">
+                    {new Date(data.event.date).toLocaleDateString("en-PH", { timeZone: "UTC", month: "long", day: "numeric" })} · {data.event.time}
+                  </p>
+                </div>
+              )}
+              {data && !data.announcement && !data.event && (
+                <p className="text-[14px] text-slate-500">No announcements or events right now.</p>
+              )}
             </div>
           </section>
 
@@ -149,9 +195,9 @@ export const DashboardContent: React.FC = () => {
             <ul className="divide-y divide-rule border-y border-rule">
               {SHORTCUTS.map((s) => (
                 <li key={s.path}>
-                  <Link href={s.path} className="group flex items-center justify-between py-3 text-[14px] text-slate-700 hover:text-blue-700 transition-colors">
+                  <Link href={s.path} className="group flex items-center justify-between min-h-11 text-[14px] text-slate-700 hover:text-blue-700 transition-colors">
                     {s.label}
-                    <ArrowRight size={14} className="text-slate-300 group-hover:text-blue-700 group-hover:translate-x-0.5 transition" />
+                    <ArrowRight size={14} className="text-slate-400 group-hover:text-blue-700 group-hover:translate-x-0.5 transition" />
                   </Link>
                 </li>
               ))}

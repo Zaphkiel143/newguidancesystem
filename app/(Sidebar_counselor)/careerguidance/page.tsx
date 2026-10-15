@@ -1,385 +1,308 @@
 "use client";
 
-import React, { useEffect, useState } from 'react';
-import { CheckCircle2, Circle, X, Loader2 } from 'lucide-react';
+import React, { useCallback, useEffect, useState } from 'react';
+import { Check, X, Loader2, Plus } from 'lucide-react';
 import { CAREER_STEPS } from '../../config/careerSteps';
-import { getCareerPlans, addCareerPlanStudent, advanceCareerPlanProgress, getStudentProfile } from '../../action/counselor';
-import type { Appointment as DbAppointment } from '../../../lib/generated';
+import {
+  getCareerPlans,
+  addCareerPlanStudent,
+  advanceCareerPlanProgress,
+  updateCareerPlanDetails,
+  getStudentProfile,
+  listStudentProfiles,
+} from '../../action/counselor';
 import InlineError from '../../../components/InlineError';
+import type { CareerPlan, Appointment } from '../../../lib/generated';
 
-interface CareerPlan {
-  id: string;
-  studentName: string;
-  studentId: string;
-  grade: string;
-  stepDates: string[];
-}
+type Profile = Awaited<ReturnType<typeof listStudentProfiles>>[number];
 
-const CareerTracker = () => {
-  const [careerPlans, setCareerPlans] = useState<CareerPlan[]>([]);
-  const [updatingId, setUpdatingId] = useState<string | null>(null);
-  const [progressError, setProgressError] = useState<{ id: string; message: string } | null>(null);
+export default function CareerTracker() {
+  const [plans, setPlans] = useState<CareerPlan[] | null>(null);
+  const [profiles, setProfiles] = useState<Profile[]>([]);
 
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
-  const [newStudentName, setNewStudentName] = useState("");
-  const [newStudentId, setNewStudentId] = useState("");
-  const [newGrade, setNewGrade] = useState("Grade 12");
+  // Advancing a stage, with an optional note on what was completed
+  const [advancing, setAdvancing] = useState<{ id: string; note: string } | null>(null);
+  const [isAdvancing, setIsAdvancing] = useState(false);
+  const [rowError, setRowError] = useState<{ id: string; message: string } | null>(null);
+
+  const [isAddOpen, setIsAddOpen] = useState(false);
+  const [newStudent, setNewStudent] = useState("");
+  const [newFacilitator, setNewFacilitator] = useState("");
   const [addError, setAddError] = useState<string | null>(null);
+  const [isAdding, setIsAdding] = useState(false);
 
-  const [viewingPlan, setViewingPlan] = useState<CareerPlan | null>(null);
-  const [isLoadingProfile, setIsLoadingProfile] = useState(false);
-  const [sessionHistory, setSessionHistory] = useState<DbAppointment[]>([]);
+  const [details, setDetails] = useState<{ plan: CareerPlan; facilitator: string; notes: string[]; sessions: Appointment[] | null } | null>(null);
+  const [detailsError, setDetailsError] = useState<string | null>(null);
+  const [isSavingDetails, setIsSavingDetails] = useState(false);
 
-  const refreshCareerPlans = async () => {
-    const data = await getCareerPlans();
-    setCareerPlans(data);
-  };
+  const load = useCallback(async () => setPlans(await getCareerPlans()), []);
 
   useEffect(() => {
     let cancelled = false;
-
     (async () => {
-      const data = await getCareerPlans();
-      if (!cancelled) setCareerPlans(data);
+      const [p, s] = await Promise.all([getCareerPlans(), listStudentProfiles()]);
+      if (cancelled) return;
+      setPlans(p);
+      setProfiles(s);
     })();
-
     return () => {
       cancelled = true;
     };
   }, []);
 
-  const handleAddStudent = async (e: React.FormEvent) => {
+  const enrolled = new Set(plans?.map((p) => p.studentName));
+  const eligible = profiles.filter((s) => s.department === "Senior High School" && !enrolled.has(s.name));
+
+  const confirmAdvance = async () => {
+    if (!advancing) return;
+    setIsAdvancing(true);
+    setRowError(null);
+    const result = await advanceCareerPlanProgress(advancing.id, advancing.note);
+    setIsAdvancing(false);
+    if (result.success) {
+      setAdvancing(null);
+      await load();
+    } else {
+      setRowError({ id: advancing.id, message: `Couldn't update progress: ${result.error || "unknown error"}.` });
+    }
+  };
+
+  const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSaving(true);
+    const student = profiles.find((s) => s.name === newStudent);
+    if (!student) return setAddError("Choose a student from the Individual Inventory.");
+    setIsAdding(true);
     setAddError(null);
-
     const result = await addCareerPlanStudent({
-      studentName: newStudentName,
-      studentId: newStudentId,
-      grade: newGrade,
+      studentName: student.name,
+      studentId: student.studentId,
+      grade: student.gradeSection.split(" - ")[0],
+      facilitator: newFacilitator,
     });
-
-    setIsSaving(false);
+    setIsAdding(false);
     if (result.success) {
-      setIsAddModalOpen(false);
-      setNewStudentName("");
-      setNewStudentId("");
-      setNewGrade("Grade 12");
-      await refreshCareerPlans();
+      setIsAddOpen(false);
+      setNewStudent("");
+      setNewFacilitator("");
+      await load();
     } else {
-      setAddError(`Couldn't add this student: ${result.error || "unknown error"}.`);
+      setAddError(result.error || "Couldn't add this student.");
     }
   };
 
-  const handleUpdateProgress = async (id: string) => {
-    setUpdatingId(id);
-    setProgressError(null);
-    const result = await advanceCareerPlanProgress(id);
-    setUpdatingId(null);
-
-    if (result.success) {
-      await refreshCareerPlans();
-    } else {
-      setProgressError({ id, message: `Couldn't update progress: ${result.error || "unknown error"}.` });
-    }
+  const openDetails = async (plan: CareerPlan) => {
+    setDetailsError(null);
+    setDetails({ plan, facilitator: plan.facilitator ?? "", notes: CAREER_STEPS.map((_, i) => plan.stepNotes[i] ?? ""), sessions: null });
+    const record = await getStudentProfile(plan.studentName);
+    setDetails((d) => (d && d.plan.id === plan.id ? { ...d, sessions: record.appointments } : d));
   };
 
-  const handleViewFullPlan = async (plan: CareerPlan) => {
-    setViewingPlan(plan);
-    setIsLoadingProfile(true);
-    const profile = await getStudentProfile(plan.studentId, plan.studentName);
-    setSessionHistory(profile.appointments);
-    setIsLoadingProfile(false);
+  const saveDetails = async () => {
+    if (!details) return;
+    setIsSavingDetails(true);
+    setDetailsError(null);
+    const result = await updateCareerPlanDetails(details.plan.id, { facilitator: details.facilitator, stepNotes: details.notes });
+    setIsSavingDetails(false);
+    if (result.success) {
+      setDetails(null);
+      await load();
+    } else {
+      setDetailsError(`Couldn't save: ${result.error || "unknown error"}.`);
+    }
   };
 
   return (
-    <div className="px-5 sm:px-8 lg:px-12 pt-8 lg:pt-12 pb-16 min-h-[calc(100dvh-var(--topbar-h))] font-sans text-slate-900">
-      {/* Header */}
-      <header className="mb-8 flex justify-between items-start">
+    <div className="px-5 sm:px-8 lg:px-12 pt-8 lg:pt-12 pb-16 max-w-6xl text-slate-800">
+      <header className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
         <div>
-          <h1 className="page-title">Career Guidance Tracker</h1>
-          <p className="text-slate-500 text-sm">Monitor SHS students&apos; Career Planning Program progress</p>
+          <h1 className="page-title">Career Guidance</h1>
+          <p className="text-sm text-slate-500 mt-1">Senior High School students&apos; progress through the Career Planning Program</p>
         </div>
-        <button
-          onClick={() => { setAddError(null); setIsAddModalOpen(true); }}
-          className="bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm px-5 py-2.5 rounded-xl shadow-sm transition"
-        >
-          + Add Career Guidance Student
+        <button onClick={() => { setAddError(null); setIsAddOpen(true); }}
+          className="self-start sm:self-auto inline-flex items-center gap-2 bg-blue-700 hover:bg-blue-800 text-white text-sm font-medium px-4 min-h-11 rounded-md transition-colors">
+          <Plus size={16} /> Add student
         </button>
       </header>
 
-      {/* Top Legend/Steps Overview */}
-      <div className="bg-white p-8 rounded-xl border border-slate-200 shadow-sm mb-8">
-        <div className="flex justify-between items-start max-w-5xl mx-auto">
-          {CAREER_STEPS.map((step, index) => (
-            <div key={index} className="flex flex-col items-center text-center space-y-3 flex-1 px-2">
-              <div className="w-10 h-10 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center font-semibold text-sm border border-blue-100">
-                {index + 1}
-              </div>
-              <p className="text-xs font-semibold text-slate-500 tracking-tight leading-tight max-w-20">
-                {step}
-              </p>
-            </div>
-          ))}
-        </div>
-      </div>
+      <ol className="mt-8 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-px bg-rule border-y border-rule text-[13px]">
+        {CAREER_STEPS.map((step, i) => (
+          <li key={step} className="bg-paper py-3 pr-3 first:pl-0 pl-3">
+            <span className="font-mono text-xs text-slate-500">{i + 1}</span>
+            <span className="block text-ink">{step}</span>
+          </li>
+        ))}
+      </ol>
 
-      {/* Student Progress List */}
-      <div className="space-y-6">
-        <div className="flex justify-between items-center px-2">
-          <h2 className="text-lg font-semibold">Student Progress</h2>
-          <span className="text-xs font-semibold text-slate-500">{careerPlans.length} Active Career Plans</span>
-        </div>
-
-        {careerPlans.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20 border-2 border-dashed border-slate-200 rounded-2xl bg-white">
-            <span className="text-3xl mb-2">🎯</span>
-            <p className="text-sm font-semibold text-slate-500">No career plans yet</p>
-            <p className="text-xs text-slate-500">Add a student to start tracking their Career Planning Program</p>
-          </div>
-        ) : (
-          careerPlans.map((plan) => {
-            const completedCount = plan.stepDates.filter((date) => date !== "").length;
-            const percentage = Math.round((completedCount / CAREER_STEPS.length) * 100);
-            const isComplete = completedCount === CAREER_STEPS.length;
-
+      {plans === null ? (
+        <div className="py-20 flex justify-center text-slate-500"><Loader2 className="animate-spin" size={20} /></div>
+      ) : plans.length === 0 ? (
+        <p className="mt-10 border-t border-rule pt-4 text-sm text-slate-500">No students in the program yet. Add one from the Individual Inventory.</p>
+      ) : (
+        <ul className="mt-10 divide-y divide-rule border-y border-rule">
+          {plans.map((plan) => {
+            const done = plan.stepDates.filter(Boolean).length;
+            const next = plan.stepDates.findIndex((d) => !d);
+            const isAdvancingThis = advancing?.id === plan.id;
             return (
-              <div key={plan.id} className="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
-                {/* Student Header & Main Progress Bar */}
-                <div className="flex justify-between items-end mb-4">
+              <li key={plan.id} className="py-5">
+                <div className="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-2">
                   <div>
-                    <h3 className="text-lg font-semibold text-slate-800">{plan.studentName}</h3>
-                    <p className="text-xs font-semibold text-slate-500">{plan.studentId} • {plan.grade}</p>
+                    <p className="font-medium text-ink">{plan.studentName}</p>
+                    <p className="text-[13px] text-slate-500">
+                      <span className="font-mono">{plan.studentId}</span> · {plan.grade}
+                      {plan.facilitator && <> · Facilitator: {plan.facilitator}</>}
+                    </p>
                   </div>
-                  <div className="text-right">
-                    <p className="text-2xl font-semibold text-blue-600 leading-none">{percentage}%</p>
-                    <p className="text-xs font-semibold text-slate-500">Complete</p>
-                  </div>
+                  <p className="text-[13px] text-slate-600 tabular">{done}/{CAREER_STEPS.length} stages</p>
                 </div>
 
-                {/* Thick Progress Bar */}
-                <div className="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden mb-8">
-                  <div
-                    className="bg-blue-600 h-full rounded-full transition-all duration-700"
-                    style={{ width: `${percentage}%` }}
-                  />
-                </div>
-
-                {/* Step Indicators */}
-                <div className="flex justify-between items-start mb-8">
+                <ol className="mt-3 grid grid-cols-6 gap-1" aria-label={`${plan.studentName}'s stages`}>
                   {CAREER_STEPS.map((step, i) => (
-                    <div key={i} className="flex flex-col items-center flex-1">
-                      {plan.stepDates[i] ? (
-                        <CheckCircle2 className="text-green-500 mb-2" size={24} />
-                      ) : (
-                        <Circle className="text-slate-200 mb-2" size={24} />
-                      )}
-                      <p className="text-xs font-semibold text-slate-500 text-center tracking-tight">
-                        {step}
-                      </p>
-                      <p className="text-[9px] text-slate-500 mt-0.5">
-                        {plan.stepDates[i] || '—'}
-                      </p>
-                    </div>
+                    <li key={step} title={`${step}: ${plan.stepDates[i] ? `done ${plan.stepDates[i]}` : "not yet"}`}
+                      className={`h-1.5 rounded-full ${plan.stepDates[i] ? "bg-emerald-600" : i === next ? "bg-blue-300" : "bg-slate-200"}`}>
+                      <span className="sr-only">{step}: {plan.stepDates[i] ? `done ${plan.stepDates[i]}` : "not yet"}</span>
+                    </li>
                   ))}
-                </div>
+                </ol>
 
-                {/* Actions */}
-                <div className="flex gap-3">
-                  <button
-                    onClick={() => handleUpdateProgress(plan.id)}
-                    disabled={isComplete || updatingId === plan.id}
-                    className="px-4 py-1.5 bg-blue-50 text-blue-600 text-xs font-semibold rounded-md border border-blue-100 hover:bg-blue-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {isComplete ? "All Steps Complete" : updatingId === plan.id ? "Updating..." : "Update Progress"}
-                  </button>
-                  <button
-                    onClick={() => handleViewFullPlan(plan)}
-                    className="px-4 py-1.5 bg-slate-50 text-slate-600 text-xs font-semibold rounded-md border border-slate-100 hover:bg-slate-100 transition-colors"
-                  >
-                    View Full Plan
-                  </button>
-                </div>
-                <InlineError
-                  message={progressError?.id === plan.id ? progressError.message : null}
-                  onDismiss={() => setProgressError(null)}
-                  className="mt-3"
-                />
-              </div>
+                {isAdvancingThis ? (
+                  <div className="mt-4 flex flex-col sm:flex-row gap-2 sm:items-end">
+                    <div className="flex-1">
+                      <label htmlFor={`note-${plan.id}`} className="block text-[13px] font-medium text-slate-700 mb-1.5">
+                        What was completed for “{CAREER_STEPS[next]}”? (optional)
+                      </label>
+                      <input id={`note-${plan.id}`} value={advancing.note} onChange={(e) => setAdvancing({ ...advancing, note: e.target.value })}
+                        placeholder="e.g. Submitted skills worksheet; attended career talk"
+                        className="w-full bg-sheet border border-slate-300 rounded-md px-3 py-2.5 text-sm" />
+                    </div>
+                    <div className="flex gap-2">
+                      <button onClick={confirmAdvance} disabled={isAdvancing}
+                        className="inline-flex items-center gap-2 bg-blue-700 hover:bg-blue-800 disabled:opacity-60 text-white text-sm font-medium px-4 min-h-11 rounded-md">
+                        {isAdvancing ? <Loader2 size={16} className="animate-spin" /> : <Check size={16} />} Mark done
+                      </button>
+                      <button onClick={() => setAdvancing(null)} className="px-4 min-h-11 rounded-md text-sm text-slate-600 hover:bg-slate-100">Cancel</button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="mt-3 flex flex-wrap gap-1 text-[13px]">
+                    {next === -1 ? (
+                      <span className="text-emerald-700 px-2 min-h-9 -ml-2 inline-flex items-center">All stages complete</span>
+                    ) : (
+                      <button onClick={() => { setRowError(null); setAdvancing({ id: plan.id, note: "" }); }}
+                        className="px-2 min-h-9 -ml-2 rounded-md text-blue-700 hover:bg-blue-50">
+                        Complete “{CAREER_STEPS[next]}”
+                      </button>
+                    )}
+                    <button onClick={() => openDetails(plan)} className="px-2 min-h-9 rounded-md text-slate-600 hover:bg-slate-100">
+                      Activities & facilitator
+                    </button>
+                  </div>
+                )}
+                <InlineError message={rowError?.id === plan.id ? rowError.message : null} onDismiss={() => setRowError(null)} className="mt-2" />
+              </li>
             );
-          })
-        )}
-      </div>
+          })}
+        </ul>
+      )}
 
-      {/* ADD STUDENT MODAL */}
-      {isAddModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-          <div className="bg-white w-full max-w-md p-6 rounded-2xl shadow-xl border border-slate-100 space-y-4">
-            <div>
-              <h3 className="text-lg font-semibold text-slate-900">Add Career Guidance Student</h3>
-              <p className="text-xs text-slate-500">Start tracking a new student&apos;s Career Planning Program</p>
+      {isAddOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/40 p-4" onClick={() => setIsAddOpen(false)}>
+          <form role="dialog" aria-modal="true" aria-labelledby="add-title" onSubmit={handleAdd} onClick={(e) => e.stopPropagation()}
+            className="bg-sheet w-full max-w-md rounded-xl border border-rule shadow-xl p-6 space-y-4">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <h2 id="add-title" className="font-medium text-ink">Add to Career Planning Program</h2>
+                <p className="text-xs text-slate-500 mt-0.5">Senior High School students from the Individual Inventory</p>
+              </div>
+              <button type="button" onClick={() => setIsAddOpen(false)} aria-label="Close" className="w-11 h-11 -m-2 grid place-items-center text-slate-500 hover:text-ink hover:bg-slate-100 rounded-md"><X size={18} /></button>
             </div>
-
-            <form onSubmit={handleAddStudent} className="space-y-4">
-              <div className="space-y-1">
-                <label className="text-xs font-semibold text-slate-700">Student Name</label>
-                <input
-                  type="text"
-                  required
-                  value={newStudentName}
-                  onChange={(e) => setNewStudentName(e.target.value)}
-                  placeholder="e.g., Juan Dela Cruz"
-                  className="w-full text-sm bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 focus:outline-none"
-                />
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-xs font-semibold text-slate-700">Student ID</label>
-                <input
-                  type="text"
-                  required
-                  value={newStudentId}
-                  onChange={(e) => setNewStudentId(e.target.value)}
-                  placeholder="e.g., 2026-00123"
-                  className="w-full text-sm bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 focus:outline-none"
-                />
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-xs font-semibold text-slate-700">Grade Level</label>
-                <select
-                  value={newGrade}
-                  onChange={(e) => setNewGrade(e.target.value)}
-                  className="w-full text-sm bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 focus:outline-none"
-                >
-                  <option value="Grade 11">Grade 11</option>
-                  <option value="Grade 12">Grade 12</option>
-                </select>
-              </div>
-
-              <InlineError message={addError} onDismiss={() => setAddError(null)} />
-
-              <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
-                <button
-                  type="button"
-                  onClick={() => setIsAddModalOpen(false)}
-                  className="px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 rounded-xl transition"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={isSaving}
-                  className="px-5 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 rounded-xl transition"
-                >
-                  {isSaving ? "Saving..." : "Add Student"}
-                </button>
-              </div>
-            </form>
-          </div>
+            <div>
+              <label htmlFor="cpp-student" className="block text-[13px] font-medium text-slate-700 mb-1.5">Student</label>
+              <select id="cpp-student" value={newStudent} onChange={(e) => setNewStudent(e.target.value)} required
+                className="w-full bg-paper border border-slate-300 rounded-md px-3 py-2.5 text-sm">
+                <option value="">{eligible.length ? "Choose a student" : "Everyone is already enrolled"}</option>
+                {eligible.map((s) => <option key={s.id} value={s.name}>{s.name} · {s.gradeSection}</option>)}
+              </select>
+            </div>
+            <div>
+              <label htmlFor="cpp-fac" className="block text-[13px] font-medium text-slate-700 mb-1.5">Facilitator (optional)</label>
+              <input id="cpp-fac" value={newFacilitator} onChange={(e) => setNewFacilitator(e.target.value)} placeholder="Teacher or adviser coordinating with you"
+                className="w-full bg-paper border border-slate-300 rounded-md px-3 py-2.5 text-sm" />
+            </div>
+            <InlineError message={addError} onDismiss={() => setAddError(null)} />
+            <div className="flex justify-end gap-2 pt-2 border-t border-rule">
+              <button type="button" onClick={() => setIsAddOpen(false)} className="px-4 min-h-11 rounded-md text-sm text-slate-600 hover:bg-slate-100">Cancel</button>
+              <button type="submit" disabled={isAdding}
+                className="inline-flex items-center gap-2 bg-blue-700 hover:bg-blue-800 disabled:opacity-60 text-white text-sm font-medium px-4 min-h-11 rounded-md">
+                {isAdding && <Loader2 size={16} className="animate-spin" />} Add student
+              </button>
+            </div>
+          </form>
         </div>
       )}
 
-      {/* VIEW FULL PLAN MODAL */}
-      {viewingPlan && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-          <div className="bg-white w-full max-w-2xl max-h-[85vh] overflow-y-auto rounded-2xl shadow-xl border border-slate-100">
-            <div className="flex justify-between items-start p-6 border-b border-slate-100 sticky top-0 bg-white rounded-t-2xl">
+      {details && (
+        <div className="fixed inset-0 z-50 flex justify-end bg-ink/30" onClick={() => setDetails(null)}>
+          <aside role="dialog" aria-modal="true" aria-labelledby="details-title" onClick={(e) => e.stopPropagation()}
+            className="w-full max-w-xl h-full overflow-y-auto bg-paper border-l border-rule shadow-xl">
+            <div className="sticky top-0 bg-paper border-b border-rule px-6 py-5 flex items-start justify-between gap-4">
               <div>
-                <h3 className="text-lg font-semibold text-slate-900">{viewingPlan.studentName}</h3>
-                <p className="text-xs font-semibold text-slate-500">{viewingPlan.studentId} • {viewingPlan.grade}</p>
+                <h2 id="details-title" className="font-serif text-[26px] leading-tight text-ink">{details.plan.studentName}</h2>
+                <p className="font-mono text-[13px] text-slate-500 mt-0.5">{details.plan.studentId} · {details.plan.grade}</p>
               </div>
-              <button
-                onClick={() => setViewingPlan(null)}
-                aria-label="Close" className="w-11 h-11 -m-2 grid place-items-center text-slate-500 hover:text-ink hover:bg-slate-100 rounded-md transition"
-              >
-                <X size={20} />
-              </button>
+              <button onClick={() => setDetails(null)} aria-label="Close" className="w-11 h-11 grid place-items-center text-slate-500 hover:text-ink hover:bg-slate-100 rounded-md"><X size={18} /></button>
             </div>
-
-            <div className="p-6 space-y-8">
-              {isLoadingProfile ? (
-                <div className="flex flex-col items-center justify-center py-16 text-slate-500">
-                  <Loader2 className="animate-spin mb-2" size={28} />
-                  <p className="text-sm font-medium">Loading student record...</p>
-                </div>
-              ) : (
-                <>
-                  <section>
-                    <h4 className="text-sm font-semibold text-slate-800 mb-4">Career Planning Progress</h4>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                      {CAREER_STEPS.map((step, i) => {
-                        const completedOn = viewingPlan.stepDates[i];
-                        return (
-                          <div
-                            key={step}
-                            className={`rounded-xl border p-3 text-center ${
-                              completedOn ? "bg-green-50 border-green-100" : "bg-slate-50 border-slate-100"
-                            }`}
-                          >
-                            <p className="text-xs font-semibold tracking-tight text-slate-500 leading-tight">
-                              {step}
-                            </p>
-                            <p className={`text-xs mt-1 font-semibold ${completedOn ? "text-green-600" : "text-slate-500"}`}>
-                              {completedOn || "Pending"}
-                            </p>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </section>
-
-                  <section>
-                    <h4 className="text-sm font-semibold text-slate-800 mb-4">
-                      Guidance Session History
-                      {sessionHistory.length > 0 && (
-                        <span className="ml-2 text-xs font-semibold text-slate-500">
-                          {sessionHistory.length} record{sessionHistory.length === 1 ? "" : "s"}
-                        </span>
-                      )}
-                    </h4>
-                    {sessionHistory.length > 0 ? (
-                      <div className="space-y-3">
-                        {sessionHistory.map((appt) => (
-                          <div key={appt.id} className="border border-slate-100 rounded-xl p-4">
-                            <div className="flex justify-between items-start mb-1">
-                              <p className="text-sm font-semibold text-slate-800">
-                                {appt.appointmentType || "General Session"}
-                              </p>
-                              <span
-                                className={`text-xs font-semibold px-2 py-0.5 rounded ${
-                                  appt.status === "CONFIRMED"
-                                    ? "bg-emerald-50 text-emerald-600"
-                                    : appt.status === "PENDING"
-                                    ? "bg-amber-50 text-amber-600"
-                                    : "bg-slate-100 text-slate-500"
-                                }`}
-                              >
-                                {appt.status}
-                              </span>
-                            </div>
-                            <p className="text-xs text-slate-500 mb-2">
-                              {new Date(appt.date).toLocaleDateString()} • {appt.time}
-                            </p>
-                            {appt.notes && (
-                              <p className="text-xs text-slate-600 bg-slate-50 rounded-lg p-2">{appt.notes}</p>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <p className="text-sm text-slate-500 italic">No guidance sessions on record for this student.</p>
-                    )}
-                  </section>
-                </>
-              )}
+            <div className="px-6 py-6 space-y-6">
+              <div>
+                <label htmlFor="d-fac" className="block text-[13px] font-medium text-slate-700 mb-1.5">Facilitator</label>
+                <input id="d-fac" value={details.facilitator} onChange={(e) => setDetails({ ...details, facilitator: e.target.value })}
+                  className="w-full bg-sheet border border-slate-300 rounded-md px-3 py-2.5 text-sm" />
+              </div>
+              <div>
+                <h3 className="font-serif text-xl text-ink mb-3">Completed activities</h3>
+                <ol className="space-y-4">
+                  {CAREER_STEPS.map((step, i) => (
+                    <li key={step}>
+                      <label htmlFor={`d-note-${i}`} className="flex justify-between gap-3 text-[13px] mb-1.5">
+                        <span className="font-medium text-slate-700">{i + 1}. {step}</span>
+                        <span className="text-slate-500">{details.plan.stepDates[i] ? `Done ${details.plan.stepDates[i]}` : "Not yet"}</span>
+                      </label>
+                      <textarea id={`d-note-${i}`} rows={2} value={details.notes[i]}
+                        onChange={(e) => setDetails({ ...details, notes: details.notes.map((n, j) => (j === i ? e.target.value : n)) })}
+                        className="w-full bg-sheet border border-slate-300 rounded-md px-3 py-2 text-sm resize-y" />
+                    </li>
+                  ))}
+                </ol>
+              </div>
+              <InlineError message={detailsError} onDismiss={() => setDetailsError(null)} />
+              <div className="flex justify-end gap-2">
+                <button onClick={() => setDetails(null)} className="px-4 min-h-11 rounded-md text-sm text-slate-600 hover:bg-slate-100">Cancel</button>
+                <button onClick={saveDetails} disabled={isSavingDetails}
+                  className="inline-flex items-center gap-2 bg-blue-700 hover:bg-blue-800 disabled:opacity-60 text-white text-sm font-medium px-4 min-h-11 rounded-md">
+                  {isSavingDetails && <Loader2 size={16} className="animate-spin" />} Save
+                </button>
+              </div>
+              <div>
+                <h3 className="font-serif text-xl text-ink mb-3">Guidance sessions</h3>
+                {details.sessions === null ? (
+                  <Loader2 className="animate-spin text-slate-500" size={18} />
+                ) : details.sessions.length === 0 ? (
+                  <p className="border-t border-rule pt-3 text-sm text-slate-500">No sessions yet.</p>
+                ) : (
+                  <ul className="divide-y divide-rule border-t border-rule text-sm">
+                    {details.sessions.map((s) => (
+                      <li key={s.id} className="py-2.5 flex justify-between gap-3">
+                        <span className="text-ink">{s.appointmentType || "General consultation"}</span>
+                        <span className="font-mono text-[13px] text-slate-500">{new Date(s.date).toLocaleDateString("en-PH", { timeZone: "UTC", month: "short", day: "numeric" })}</span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
             </div>
-          </div>
+          </aside>
         </div>
       )}
     </div>
   );
-};
-
-export default CareerTracker;
+}

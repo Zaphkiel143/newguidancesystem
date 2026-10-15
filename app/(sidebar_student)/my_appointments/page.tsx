@@ -6,7 +6,6 @@ import { getMyAppointments, getBookedTimesForDate, bookAppointment } from '../..
 import BookAppointmentModal from '../../../components/BookAppointmentModal';
 import type { Appointment as DbAppointment } from '../../../lib/generated';
 
-const STUDENT_NAME = "Nhel Belarmino";
 const PURPOSE_OPTIONS = ["Individual Counseling", "Academic Concern", "Career Guidance", "Compliance Interview"];
 
 export const MyAppointments: React.FC = () => {
@@ -14,7 +13,7 @@ export const MyAppointments: React.FC = () => {
   const [isBookingOpen, setIsBookingOpen] = useState(false);
 
   const refresh = async () => {
-    const data = await getMyAppointments(STUDENT_NAME);
+    const data = await getMyAppointments();
     setAppointments(data);
   };
 
@@ -22,7 +21,7 @@ export const MyAppointments: React.FC = () => {
     let cancelled = false;
 
     (async () => {
-      const data = await getMyAppointments(STUDENT_NAME);
+      const data = await getMyAppointments();
       if (!cancelled) setAppointments(data);
     })();
 
@@ -93,14 +92,14 @@ export const MyAppointments: React.FC = () => {
                     {apt.appointmentType || "General Consultation"}
                   </h3>
                   <p className="text-sm text-slate-500 font-medium">
-                    Counselor: <span className="text-slate-700">Ralph Michael</span>
+                    With: <span className="text-slate-700">Guidance Associate</span>
                   </p>
 
                   {/* Embedded Inline Schedule Stamps */}
                   <div className="flex flex-wrap items-center gap-x-4 gap-y-1 pt-1.5 text-xs text-slate-500 font-medium">
                     <div className="flex items-center gap-1.5">
                       <Calendar size={14} className="text-slate-500" />
-                      <span className="font-mono">{new Date(apt.date).toLocaleDateString()}</span>
+                      <span className="font-mono">{new Date(apt.date).toLocaleDateString("en-PH", { timeZone: "UTC" })}</span>
                     </div>
                     <div className="flex items-center gap-1.5">
                       <Clock size={14} className="text-slate-500" />
@@ -123,7 +122,7 @@ export const MyAppointments: React.FC = () => {
         <BookAppointmentModal
           purposeOptions={PURPOSE_OPTIONS}
           getBookedTimesForDate={getBookedTimesForDate}
-          bookAppointment={(data) => bookAppointment({ ...data, studentName: STUDENT_NAME })}
+          bookAppointment={bookAppointment}
           onClose={() => setIsBookingOpen(false)}
           onBooked={refresh}
         />

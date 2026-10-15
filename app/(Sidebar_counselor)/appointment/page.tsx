@@ -285,7 +285,7 @@ export default function AppointmentScheduling() {
         <div className="lg:col-span-8 bg-white border border-slate-100 rounded-2xl p-6 shadow-sm space-y-6 min-h-[460px] flex flex-col justify-between">
           <div>
             <h2 className="text-lg font-semibold text-slate-900 mb-4">
-              Appointments for Tuesday, April 28, 2026
+              Appointments for {new Date(`${selectedDate}T00:00:00`).toLocaleDateString("en-PH", { weekday: "long", month: "long", day: "numeric", year: "numeric" })}
             </h2>
 
             {appointments.length === 0 ? (

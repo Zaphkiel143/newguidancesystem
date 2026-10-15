@@ -4,17 +4,17 @@ import React, { useEffect, useState } from 'react';
 import { MessageSquare } from 'lucide-react';
 import { getMyConversation, getMessages, markConversationRead, sendMessage } from '../../action/parent';
 import ConversationPanel from '../../../components/ConversationPanel';
+import { useCurrentUser } from '../../../components/CurrentUser';
 
-const VIEWER_ROLE = "Parent";
-const VIEWER_NAME = "Mrs. Belarmino";
 
 export const ParentMessagesPage: React.FC = () => {
+  const me = useCurrentUser();
   const [conversationId, setConversationId] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      const conversation = await getMyConversation(VIEWER_NAME);
+      const conversation = await getMyConversation();
       if (!cancelled) setConversationId(conversation?.id ?? null);
     })();
     return () => {
@@ -38,10 +38,10 @@ export const ParentMessagesPage: React.FC = () => {
         {conversationId ? (
           <ConversationPanel
             conversationId={conversationId}
-            viewerRole={VIEWER_ROLE}
-            viewerName={VIEWER_NAME}
+            viewerRole={me.roleLabel}
+            viewerName={me.name}
             title="Guidance Counselor"
-            subtitle="Ralph Michael"
+            subtitle="Guidance Associate"
             getMessages={getMessages}
             markConversationRead={markConversationRead}
             sendMessage={sendMessage}

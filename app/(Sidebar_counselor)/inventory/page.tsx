@@ -1,164 +1,165 @@
 "use client";
 
-import React, { useState } from 'react';
-import { Search, ListFilter, Eye, X, Loader2 } from 'lucide-react';
-import { getStudentProfile } from '../../action/counselor';
+import React, { useCallback, useEffect, useState } from 'react';
+import { Search, X, Loader2, Plus, Download } from 'lucide-react';
+import { listStudentProfiles, getStudentProfile, saveStudentProfile, getDocumentFile, type StudentProfileInput } from '../../action/counselor';
 import { CAREER_STEPS } from '../../config/careerSteps';
-import type { Appointment as DbAppointment, CareerPlan as DbCareerPlan } from '../../../lib/generated';
+import InlineError from '../../../components/InlineError';
 
-// Define the shape of our student data
-interface Student {
-  id: string;
-  name: string;
-  gradeSection: string;
-  lastSession: string;
+type Row = Awaited<ReturnType<typeof listStudentProfiles>>[number];
+type Detail = Awaited<ReturnType<typeof getStudentProfile>>;
+
+const EMPTY: StudentProfileInput = {
+  studentId: "", name: "", department: "Senior High School", gradeSection: "", strandOrProgram: "", email: "", phone: "",
+  birthDate: "", address: "", guardianName: "", guardianContact: "", parentName: "", familyBackground: "",
+  educationalHistory: "", counselorNotes: "",
+};
+
+function toInput(row: Row): StudentProfileInput {
+  return {
+    id: row.id,
+    studentId: row.studentId,
+    name: row.name,
+    department: row.department,
+    gradeSection: row.gradeSection,
+    strandOrProgram: row.strandOrProgram ?? "",
+    email: row.email ?? "",
+    phone: row.phone ?? "",
+    birthDate: row.birthDate ?? "",
+    address: row.address ?? "",
+    guardianName: row.guardianName ?? "",
+    guardianContact: row.guardianContact ?? "",
+    parentName: row.parentName ?? "",
+    familyBackground: row.familyBackground ?? "",
+    educationalHistory: row.educationalHistory ?? "",
+    counselorNotes: row.counselorNotes ?? "",
+  };
 }
 
-interface StudentProfile {
-  appointments: DbAppointment[];
-  careerPlan: DbCareerPlan | null;
-}
+export default function StudentInventory() {
+  const [rows, setRows] = useState<Row[] | null>(null);
+  const [query, setQuery] = useState("");
+  const [department, setDepartment] = useState("All");
+  const [viewing, setViewing] = useState<Row | null>(null);
+  const [detail, setDetail] = useState<Detail | null>(null);
+  const [form, setForm] = useState<StudentProfileInput | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
+  const [downloadError, setDownloadError] = useState<string | null>(null);
 
-const StudentInventory = () => {
-  // Sample data based on the provided image
-  const [students] = useState<Student[]>([
-    { id: "2024-12345", name: "Nhel Belarmino", gradeSection: "Grade 12 - STEM-A", lastSession: "2026-04-20" },
-    { id: "2024-12346", name: "Dexter Glorioso", gradeSection: "Grade 11 - HUMSS-B", lastSession: "2026-04-25" },
-    { id: "2024-12347", name: "Justine Casano", gradeSection: "Grade 12 - ABM-A", lastSession: "2026-04-18" },
-    { id: "2024-12348", name: "Kurt Aquino", gradeSection: "Grade 11 - ICT-A", lastSession: "2026-04-22" },
-  ]);
+  const load = useCallback(async () => setRows(await listStudentProfiles()), []);
 
-  const [searchQuery, setSearchQuery] = useState("");
-  const [isFiltersOpen, setIsFiltersOpen] = useState(false);
-  const [gradeFilter, setGradeFilter] = useState("All");
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const data = await listStudentProfiles();
+      if (!cancelled) setRows(data);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
-  const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
-  const [isProfileOpen, setIsProfileOpen] = useState(false);
-  const [isLoadingProfile, setIsLoadingProfile] = useState(false);
-  const [profile, setProfile] = useState<StudentProfile | null>(null);
+  const q = query.trim().toLowerCase();
+  const filtered = (rows ?? []).filter(
+    (r) =>
+      (department === "All" || r.department === department) &&
+      (!q || r.name.toLowerCase().includes(q) || r.studentId.toLowerCase().includes(q) || r.gradeSection.toLowerCase().includes(q))
+  );
 
-  const gradeOptions = ["All", ...Array.from(new Set(students.map((s) => s.gradeSection.split(" - ")[0])))];
-
-  const filteredStudents = students.filter((student) => {
-    if (gradeFilter !== "All" && !student.gradeSection.startsWith(gradeFilter)) return false;
-
-    const query = searchQuery.trim().toLowerCase();
-    if (!query) return true;
-    return (
-      student.name.toLowerCase().includes(query) ||
-      student.id.toLowerCase().includes(query)
-    );
-  });
-
-  const handleViewStudent = async (student: Student) => {
-    setSelectedStudent(student);
-    setIsProfileOpen(true);
-    setIsLoadingProfile(true);
-    const data = await getStudentProfile(student.id, student.name);
-    setProfile(data);
-    setIsLoadingProfile(false);
+  const openStudent = async (row: Row) => {
+    setViewing(row);
+    setDetail(null);
+    setDownloadError(null);
+    setDetail(await getStudentProfile(row.name));
   };
 
-  const closeProfile = () => {
-    setIsProfileOpen(false);
-    setSelectedStudent(null);
-    setProfile(null);
+  const handleSave = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!form) return;
+    setIsSaving(true);
+    setFormError(null);
+    const result = await saveStudentProfile(form);
+    setIsSaving(false);
+    if (result.success) {
+      setForm(null);
+      await load();
+      if (viewing) {
+        setViewing(null);
+        setDetail(null);
+      }
+    } else {
+      setFormError(result.error || "Couldn't save this record.");
+    }
+  };
+
+  const download = async (id: string) => {
+    setDownloadError(null);
+    const file = await getDocumentFile(id);
+    if (!file) return setDownloadError("Couldn't download that file. Try again.");
+    const a = document.createElement("a");
+    a.href = `data:${file.fileType};base64,${file.dataBase64}`;
+    a.download = file.fileName;
+    a.click();
   };
 
   return (
-    <main>
-    <div className="px-5 sm:px-8 lg:px-12 pt-8 lg:pt-12 pb-16 min-h-[calc(100dvh-var(--topbar-h))] font-sans">
-      {/* Header Section */}
-      <header className="mb-6">
-        <h1 className="page-title">Individual Inventory</h1>
-        <p className="text-slate-500 text-sm">Centralized student profiles and guidance history</p>
+    <div className="px-5 sm:px-8 lg:px-12 pt-8 lg:pt-12 pb-16 max-w-7xl text-slate-800">
+      <header className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
+        <div>
+          <h1 className="page-title">Individual Inventory</h1>
+          <p className="text-sm text-slate-500 mt-1">One record per student: profile, family background, sessions, career plan, referrals, and documents</p>
+        </div>
+        <button onClick={() => { setForm({ ...EMPTY }); setFormError(null); }}
+          className="self-start sm:self-auto inline-flex items-center gap-2 bg-blue-700 hover:bg-blue-800 text-white text-sm font-medium px-4 min-h-11 rounded-md transition-colors">
+          <Plus size={16} /> Add student
+        </button>
       </header>
 
-      {/* Main Table Container */}
-      <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-
-        {/* Search and Filter Bar */}
-        <div className="p-6 space-y-3">
-          <div className="flex items-center gap-4">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
-              <input
-                type="text"
-                aria-label="Search by name or student ID"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search by name or student ID..."
-                className="w-full pl-10 pr-4 py-2 bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all text-sm"
-              />
-            </div>
-            <button
-              onClick={() => setIsFiltersOpen((prev) => !prev)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors text-sm font-medium border ${
-                isFiltersOpen ? "bg-blue-50 text-blue-600 border-blue-200" : "bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-200"
-              }`}
-            >
-              <ListFilter size={18} />
-              Filters
-            </button>
-          </div>
-
-          {isFiltersOpen && (
-            <div className="flex items-center gap-2 flex-wrap pt-1">
-              <span className="text-xs font-semibold text-slate-500">Grade Level:</span>
-              {gradeOptions.map((grade) => (
-                <button
-                  key={grade}
-                  onClick={() => setGradeFilter(grade)}
-                  className={`px-3 py-1 rounded text-xs font-semibold border transition-colors ${
-                    gradeFilter === grade
-                      ? "bg-blue-600 text-white border-blue-600"
-                      : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
-                  }`}
-                >
-                  {grade}
-                </button>
-              ))}
-            </div>
-          )}
+      <div className="mt-8 flex flex-col sm:flex-row gap-3">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={17} />
+          <input type="text" aria-label="Search by name, student ID, or section" placeholder="Search by name, student ID, or section"
+            value={query} onChange={(e) => setQuery(e.target.value)}
+            className="w-full pl-10 pr-4 py-2.5 bg-sheet border border-slate-300 rounded-md text-sm" />
         </div>
+        <select aria-label="Filter by department" value={department} onChange={(e) => setDepartment(e.target.value)}
+          className="bg-sheet border border-slate-300 rounded-md px-3 py-2.5 text-sm">
+          <option value="All">All departments</option>
+          <option>Senior High School</option>
+          <option>College</option>
+        </select>
+      </div>
 
-        {/* Inventory Table */}
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="border-b border-slate-100">
-                <th className="px-6 py-4 text-xs font-semibold text-slate-800">Student ID</th>
-                <th className="px-6 py-4 text-xs font-semibold text-slate-800">Name</th>
-                <th className="px-6 py-4 text-xs font-semibold text-slate-800">Grade & Section</th>
-                <th className="px-6 py-4 text-xs font-semibold text-slate-800">Last Session</th>
-                <th className="px-6 py-4 text-xs font-semibold text-slate-800">Actions</th>
+      {rows === null ? (
+        <div className="py-20 flex justify-center text-slate-500"><Loader2 className="animate-spin" size={20} /></div>
+      ) : (
+        <div className="mt-6 overflow-x-auto border-y border-rule">
+          <table className="w-full text-sm text-left">
+            <thead className="text-[13px] text-slate-500">
+              <tr className="border-b border-rule">
+                <th className="py-3 pr-4 font-medium">Student ID</th>
+                <th className="py-3 pr-4 font-medium">Name</th>
+                <th className="py-3 pr-4 font-medium">Grade & section</th>
+                <th className="py-3 pr-4 font-medium">Last session</th>
+                <th className="py-3 font-medium"><span className="sr-only">Actions</span></th>
               </tr>
             </thead>
-            <tbody>
-              {filteredStudents.length === 0 ? (
-                <tr>
-                  <td colSpan={5} className="px-6 py-10 text-center text-sm text-slate-500">
-                    No students match &quot;{searchQuery}&quot;
-                  </td>
-                </tr>
+            <tbody className="divide-y divide-rule">
+              {filtered.length === 0 ? (
+                <tr><td colSpan={5} className="py-6 text-slate-500">{rows.length === 0 ? "No student records yet. Add one to get started." : "No students match your search."}</td></tr>
               ) : (
-                filteredStudents.map((student) => (
-                  <tr
-                    key={student.id}
-                    className="hover:bg-slate-50/80 transition-colors bg-white"
-                  >
-                    <td className="px-6 py-4 text-sm text-slate-600">{student.id}</td>
-                    <td className="px-6 py-4 text-sm font-medium text-slate-900">{student.name}</td>
-                    <td className="px-6 py-4 text-sm text-slate-600">{student.gradeSection}</td>
-                    <td className="px-6 py-4 text-sm text-slate-600">{student.lastSession}</td>
-                    <td className="px-6 py-4">
-                      <button
-                        onClick={() => handleViewStudent(student)}
-                        className="flex items-center gap-2 px-3 py-1.5 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-md transition-all text-sm font-semibold border border-blue-100"
-                      >
-                        <Eye size={16} />
-                        View
-                      </button>
+                filtered.map((r) => (
+                  <tr key={r.id}>
+                    <td className="py-3 pr-4 font-mono text-[13px] text-slate-600">{r.studentId}</td>
+                    <td className="py-3 pr-4 font-medium text-ink">{r.name}</td>
+                    <td className="py-3 pr-4 text-slate-600">{r.gradeSection}</td>
+                    <td className="py-3 pr-4 font-mono text-[13px] text-slate-600">
+                      {r.lastSession ? new Date(r.lastSession).toLocaleDateString("en-PH", { timeZone: "UTC", month: "short", day: "numeric", year: "numeric" }) : "—"}
+                    </td>
+                    <td className="py-2 text-right whitespace-nowrap">
+                      <button onClick={() => openStudent(r)} className="px-3 min-h-9 rounded-md text-blue-700 hover:bg-blue-50">Open</button>
+                      <button onClick={() => { setForm(toInput(r)); setFormError(null); }} className="px-3 min-h-9 rounded-md text-slate-600 hover:bg-slate-100">Edit</button>
                     </td>
                   </tr>
                 ))
@@ -166,115 +167,218 @@ const StudentInventory = () => {
             </tbody>
           </table>
         </div>
-      </div>
-    </div>
+      )}
 
-    {/* STUDENT PROFILE MODAL */}
-    {isProfileOpen && selectedStudent && (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-        <div className="bg-white w-full max-w-2xl max-h-[85vh] overflow-y-auto rounded-2xl shadow-xl border border-slate-100">
-          {/* Header */}
-          <div className="flex justify-between items-start p-6 border-b border-slate-100 sticky top-0 bg-white rounded-t-2xl">
-            <div>
-              <h3 className="text-lg font-semibold text-slate-900">{selectedStudent.name}</h3>
-              <p className="text-xs font-semibold text-slate-500">{selectedStudent.id} • {selectedStudent.gradeSection}</p>
-            </div>
-            <button
-              onClick={closeProfile}
-              aria-label="Close" className="w-11 h-11 -m-2 grid place-items-center text-slate-500 hover:text-ink hover:bg-slate-100 rounded-md transition"
-            >
-              <X size={20} />
-            </button>
-          </div>
-
-          <div className="p-6 space-y-8">
-            {isLoadingProfile ? (
-              <div className="flex flex-col items-center justify-center py-16 text-slate-500">
-                <Loader2 className="animate-spin mb-2" size={28} />
-                <p className="text-sm font-medium">Loading student record...</p>
+      {/* Student record panel */}
+      {viewing && (
+        <div className="fixed inset-0 z-50 flex justify-end bg-ink/30" onClick={() => setViewing(null)}>
+          <aside role="dialog" aria-modal="true" aria-labelledby="student-title" onClick={(e) => e.stopPropagation()}
+            className="w-full max-w-2xl h-full overflow-y-auto bg-paper border-l border-rule shadow-xl">
+            <div className="sticky top-0 bg-paper border-b border-rule px-6 py-5 flex items-start justify-between gap-4">
+              <div>
+                <h2 id="student-title" className="font-serif text-[26px] leading-tight text-ink">{viewing.name}</h2>
+                <p className="font-mono text-[13px] text-slate-500 mt-0.5">{viewing.studentId} · {viewing.gradeSection}</p>
               </div>
+              <div className="flex gap-1">
+                <button onClick={() => { setForm(toInput(viewing)); setFormError(null); }} className="px-3 min-h-11 rounded-md text-sm text-slate-700 hover:bg-slate-100">Edit</button>
+                <button onClick={() => setViewing(null)} aria-label="Close" className="w-11 h-11 grid place-items-center text-slate-500 hover:text-ink hover:bg-slate-100 rounded-md"><X size={18} /></button>
+              </div>
+            </div>
+
+            {!detail ? (
+              <div className="py-20 flex justify-center text-slate-500"><Loader2 className="animate-spin" size={20} /></div>
             ) : (
-              <>
-                {/* Career Planning Progress */}
-                <section>
-                  <h4 className="text-sm font-semibold text-slate-800 mb-4">Career Planning Progress</h4>
-                  {profile?.careerPlan ? (
-                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                      {CAREER_STEPS.map((step, i) => {
-                        const completedOn = profile.careerPlan!.stepDates[i];
-                        return (
-                          <div
-                            key={step}
-                            className={`rounded-xl border p-3 text-center ${
-                              completedOn ? "bg-green-50 border-green-100" : "bg-slate-50 border-slate-100"
-                            }`}
-                          >
-                            <p className="text-xs font-semibold tracking-tight text-slate-500 leading-tight">
-                              {step}
-                            </p>
-                            <p className={`text-xs mt-1 font-semibold ${completedOn ? "text-green-600" : "text-slate-500"}`}>
-                              {completedOn || "Pending"}
-                            </p>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  ) : (
-                    <p className="text-sm text-slate-500 italic">No career plan on record for this student.</p>
-                  )}
-                </section>
+              <div className="px-6 py-6 space-y-9">
+                <Section title="Personal & family">
+                  <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4 text-sm">
+                    <Field label="Department" value={detail.profile?.department} />
+                    <Field label="Strand / program" value={detail.profile?.strandOrProgram} />
+                    <Field label="Email" value={detail.profile?.email} />
+                    <Field label="Phone" value={detail.profile?.phone} />
+                    <Field label="Date of birth" value={detail.profile?.birthDate} />
+                    <Field label="Address" value={detail.profile?.address} />
+                    <Field label="Guardian" value={detail.profile?.guardianName} />
+                    <Field label="Guardian contact" value={detail.profile?.guardianContact} />
+                    <Field label="Linked parent account" value={detail.profile?.parentName} />
+                  </dl>
+                  <LongField label="Family background" value={detail.profile?.familyBackground} />
+                  <LongField label="Educational history" value={detail.profile?.educationalHistory} />
+                  <LongField label="Counselor notes (only you can see these)" value={detail.profile?.counselorNotes} />
+                </Section>
 
-                {/* Guidance Session History */}
-                <section>
-                  <h4 className="text-sm font-semibold text-slate-800 mb-4">
-                    Guidance Session History
-                    {profile && profile.appointments.length > 0 && (
-                      <span className="ml-2 text-xs font-semibold text-slate-500">
-                        {profile.appointments.length} record{profile.appointments.length === 1 ? "" : "s"}
-                      </span>
-                    )}
-                  </h4>
-                  {profile && profile.appointments.length > 0 ? (
-                    <div className="space-y-3">
-                      {profile.appointments.map((appt) => (
-                        <div key={appt.id} className="border border-slate-100 rounded-xl p-4">
-                          <div className="flex justify-between items-start mb-1">
-                            <p className="text-sm font-semibold text-slate-800">
-                              {appt.appointmentType || "General Session"}
-                            </p>
-                            <span
-                              className={`text-xs font-semibold px-2 py-0.5 rounded ${
-                                appt.status === "CONFIRMED"
-                                  ? "bg-emerald-50 text-emerald-600"
-                                  : appt.status === "PENDING"
-                                  ? "bg-amber-50 text-amber-600"
-                                  : "bg-slate-100 text-slate-500"
-                              }`}
-                            >
-                              {appt.status}
-                            </span>
-                          </div>
-                          <p className="text-xs text-slate-500 mb-2">
-                            {new Date(appt.date).toLocaleDateString()} • {appt.time}
+                <Section title={`Sessions (${detail.appointments.length})`}>
+                  {detail.appointments.length === 0 ? <Empty>No sessions yet.</Empty> : (
+                    <ul className="divide-y divide-rule border-t border-rule">
+                      {detail.appointments.map((a) => (
+                        <li key={a.id} className="py-3 text-sm">
+                          <p className="flex justify-between gap-3">
+                            <span className="text-ink font-medium">{a.appointmentType || "General consultation"}</span>
+                            <span className="font-mono text-[13px] text-slate-500">{new Date(a.date).toLocaleDateString("en-PH", { timeZone: "UTC", month: "short", day: "numeric", year: "numeric" })} · {a.time}</span>
                           </p>
-                          {appt.notes && (
-                            <p className="text-xs text-slate-600 bg-slate-50 rounded-lg p-2">{appt.notes}</p>
-                          )}
-                        </div>
+                          {a.notes && <p className="text-slate-600 mt-1 whitespace-pre-wrap">{a.notes}</p>}
+                        </li>
                       ))}
-                    </div>
-                  ) : (
-                    <p className="text-sm text-slate-500 italic">No guidance sessions on record for this student.</p>
+                    </ul>
                   )}
-                </section>
-              </>
-            )}
-          </div>
-        </div>
-      </div>
-    )}
-    </main>
-  );
-};
+                </Section>
 
-export default StudentInventory;
+                <Section title="Career Planning Program">
+                  {!detail.careerPlan ? <Empty>Not in the Career Planning Program.</Empty> : (
+                    <ol className="divide-y divide-rule border-t border-rule text-sm">
+                      {CAREER_STEPS.map((step, i) => (
+                        <li key={step} className="py-2.5 flex justify-between gap-3">
+                          <span className={detail.careerPlan!.stepDates[i] ? "text-ink" : "text-slate-500"}>{i + 1}. {step}</span>
+                          <span className="text-xs text-slate-500">{detail.careerPlan!.stepDates[i] || "Not yet"}</span>
+                        </li>
+                      ))}
+                    </ol>
+                  )}
+                </Section>
+
+                <Section title={`Referrals (${detail.referrals.length})`}>
+                  {detail.referrals.length === 0 ? <Empty>No referrals.</Empty> : (
+                    <ul className="divide-y divide-rule border-t border-rule text-sm">
+                      {detail.referrals.map((r) => (
+                        <li key={r.id} className="py-3">
+                          <p className="text-ink font-medium">{r.concernType} <span className="text-slate-500 font-normal">· {r.status.replace("_", " ").toLowerCase()}</span></p>
+                          <p className="text-[13px] text-slate-500">From {r.referrerName} ({r.referrerRole}) · {new Date(r.createdAt).toLocaleDateString("en-PH", { month: "short", day: "numeric" })}</p>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </Section>
+
+                <Section title={`Documents (${detail.documents.length})`}>
+                  {detail.documents.length === 0 ? <Empty>No documents submitted.</Empty> : (
+                    <ul className="divide-y divide-rule border-t border-rule text-sm">
+                      {detail.documents.map((d) => (
+                        <li key={d.id} className="py-2.5 flex items-center justify-between gap-3">
+                          <span className="min-w-0">
+                            <span className="block text-ink truncate">{d.fileName}</span>
+                            <span className="block text-xs text-slate-500">{d.category ?? "Document"} · {new Date(d.createdAt).toLocaleDateString("en-PH", { month: "short", day: "numeric" })}</span>
+                          </span>
+                          <button onClick={() => download(d.id)} aria-label={`Download ${d.fileName}`}
+                            className="w-11 h-11 shrink-0 grid place-items-center rounded-md text-slate-600 hover:bg-slate-100"><Download size={16} /></button>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                  <InlineError message={downloadError} onDismiss={() => setDownloadError(null)} className="mt-2" />
+                </Section>
+              </div>
+            )}
+          </aside>
+        </div>
+      )}
+
+      {/* Add / edit form */}
+      {form && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-ink/40 p-4" onClick={() => setForm(null)}>
+          <form role="dialog" aria-modal="true" aria-labelledby="form-title" onSubmit={handleSave} onClick={(e) => e.stopPropagation()}
+            className="bg-sheet w-full max-w-3xl max-h-[90vh] overflow-y-auto rounded-xl border border-rule shadow-xl">
+            <div className="sticky top-0 bg-sheet border-b border-rule px-6 py-4 flex items-center justify-between">
+              <h2 id="form-title" className="font-medium text-ink">{form.id ? `Edit ${form.name}` : "Add a student"}</h2>
+              <button type="button" onClick={() => setForm(null)} aria-label="Close" className="w-11 h-11 -m-2 grid place-items-center text-slate-500 hover:text-ink hover:bg-slate-100 rounded-md"><X size={18} /></button>
+            </div>
+            <div className="p-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <Input label="Student ID *" value={form.studentId} onChange={(v) => setForm({ ...form, studentId: v })} required />
+              <Input label="Full name *" value={form.name} onChange={(v) => setForm({ ...form, name: v })} required
+                hint={form.id ? "Renaming doesn't update past appointments or referrals, which are linked by name." : undefined} />
+              <div>
+                <label htmlFor="f-dept" className="block text-[13px] font-medium text-slate-700 mb-1.5">Department *</label>
+                <select id="f-dept" value={form.department} onChange={(e) => setForm({ ...form, department: e.target.value })}
+                  className="w-full bg-paper border border-slate-300 rounded-md px-3 py-2.5 text-sm">
+                  <option>Senior High School</option>
+                  <option>College</option>
+                </select>
+              </div>
+              <Input label="Grade & section *" placeholder="e.g. Grade 12 - STEM-A" value={form.gradeSection} onChange={(v) => setForm({ ...form, gradeSection: v })} required />
+              <Input label="Strand / program" value={form.strandOrProgram} onChange={(v) => setForm({ ...form, strandOrProgram: v })} />
+              <Input label="School email" type="email" value={form.email} onChange={(v) => setForm({ ...form, email: v })} />
+              <Input label="Phone" value={form.phone} onChange={(v) => setForm({ ...form, phone: v })} />
+              <Input label="Date of birth" type="date" value={form.birthDate} onChange={(v) => setForm({ ...form, birthDate: v })} />
+              <div className="sm:col-span-2"><Input label="Address" value={form.address} onChange={(v) => setForm({ ...form, address: v })} /></div>
+              <Input label="Guardian name" value={form.guardianName} onChange={(v) => setForm({ ...form, guardianName: v })} />
+              <Input label="Guardian contact" value={form.guardianContact} onChange={(v) => setForm({ ...form, guardianContact: v })} />
+              <div className="sm:col-span-2">
+                <Input label="Linked parent account (name)" value={form.parentName} onChange={(v) => setForm({ ...form, parentName: v })}
+                  hint="Exactly the parent's E-Gabay account name. That parent can then book for, refer, and view this student." />
+              </div>
+              <TextArea label="Family background" value={form.familyBackground} onChange={(v) => setForm({ ...form, familyBackground: v })} />
+              <TextArea label="Educational history" value={form.educationalHistory} onChange={(v) => setForm({ ...form, educationalHistory: v })} />
+              <div className="sm:col-span-2">
+                <TextArea label="Counselor notes (confidential)" value={form.counselorNotes} onChange={(v) => setForm({ ...form, counselorNotes: v })} />
+              </div>
+            </div>
+            <div className="sticky bottom-0 bg-sheet border-t border-rule px-6 py-4 space-y-3">
+              <InlineError message={formError} onDismiss={() => setFormError(null)} />
+              <div className="flex justify-end gap-2">
+                <button type="button" onClick={() => setForm(null)} className="px-4 min-h-11 rounded-md text-sm text-slate-600 hover:bg-slate-100">Cancel</button>
+                <button type="submit" disabled={isSaving}
+                  className="inline-flex items-center gap-2 bg-blue-700 hover:bg-blue-800 disabled:opacity-60 text-white text-sm font-medium px-4 min-h-11 rounded-md transition-colors">
+                  {isSaving && <Loader2 size={16} className="animate-spin" />} Save record
+                </button>
+              </div>
+            </div>
+          </form>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function Section({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <section>
+      <h3 className="font-serif text-xl text-ink mb-3">{title}</h3>
+      <div className="space-y-4">{children}</div>
+    </section>
+  );
+}
+
+function Empty({ children }: { children: React.ReactNode }) {
+  return <p className="border-t border-rule pt-3 text-sm text-slate-500">{children}</p>;
+}
+
+function Field({ label, value }: { label: string; value: string | null | undefined }) {
+  return (
+    <div>
+      <dt className="text-xs text-slate-500">{label}</dt>
+      <dd className="text-ink mt-0.5">{value || "—"}</dd>
+    </div>
+  );
+}
+
+function LongField({ label, value }: { label: string; value: string | null | undefined }) {
+  return (
+    <div className="text-sm">
+      <p className="text-xs text-slate-500">{label}</p>
+      <p className="text-ink mt-0.5 whitespace-pre-wrap">{value || "—"}</p>
+    </div>
+  );
+}
+
+function Input({ label, value, onChange, type = "text", required, placeholder, hint }: {
+  label: string; value: string; onChange: (v: string) => void; type?: string; required?: boolean; placeholder?: string; hint?: string;
+}) {
+  const id = `f-${label.replace(/\W+/g, "-").toLowerCase()}`;
+  return (
+    <div>
+      <label htmlFor={id} className="block text-[13px] font-medium text-slate-700 mb-1.5">{label}</label>
+      <input id={id} type={type} value={value} required={required} placeholder={placeholder} onChange={(e) => onChange(e.target.value)}
+        className="w-full bg-paper border border-slate-300 rounded-md px-3 py-2.5 text-sm" />
+      {hint && <p className="text-xs text-slate-500 mt-1">{hint}</p>}
+    </div>
+  );
+}
+
+function TextArea({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {
+  const id = `f-${label.replace(/\W+/g, "-").toLowerCase()}`;
+  return (
+    <div>
+      <label htmlFor={id} className="block text-[13px] font-medium text-slate-700 mb-1.5">{label}</label>
+      <textarea id={id} rows={3} value={value} onChange={(e) => onChange(e.target.value)}
+        className="w-full bg-paper border border-slate-300 rounded-md px-3 py-2.5 text-sm resize-y" />
+    </div>
+  );
+}

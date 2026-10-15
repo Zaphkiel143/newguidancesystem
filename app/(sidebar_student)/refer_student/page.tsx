@@ -4,10 +4,9 @@ import React, { useState, FormEvent } from 'react';
 import { Send } from 'lucide-react';
 import { submitReferral } from '../../action/student';
 
-const REFERRER_NAME = "Nhel Belarmino";
-
 // Form state interface definition
 interface ReferralFormData {
+  aboutMyself: boolean;
   studentName: string;
   studentId: string;
   grade: string;
@@ -19,6 +18,7 @@ interface ReferralFormData {
 }
 
 const EMPTY_FORM: ReferralFormData = {
+  aboutMyself: false,
   studentName: '',
   studentId: '',
   grade: '',
@@ -49,15 +49,15 @@ export const ReferStudentForm: React.FC = () => {
     setError(null);
     setSuccessMessage(null);
 
-    const detailLines = [
+    const detailLines = formData.aboutMyself ? [formData.observedBehaviors && `What I've noticed: ${formData.observedBehaviors}`].filter(Boolean) : [
       formData.studentId && `Student ID: ${formData.studentId}`,
       (formData.grade || formData.section) && `Grade & Section: ${formData.grade} ${formData.section}`.trim(),
       formData.observedBehaviors && `Observed Behaviors: ${formData.observedBehaviors}`,
     ].filter(Boolean);
 
     const result = await submitReferral({
+      aboutMyself: formData.aboutMyself,
       studentName: formData.studentName,
-      referrerName: REFERRER_NAME,
       concernType: formData.concernType,
       priority: formData.priorityLevel,
       description: [formData.description, ...detailLines].join("\n\n"),
@@ -80,7 +80,7 @@ export const ReferStudentForm: React.FC = () => {
       <header className="mb-6">
         <h1 className="page-title">Refer a Student</h1>
         <p className="text-sm text-slate-500 mt-1">
-          Help a fellow student by referring them to the Guidance Office
+          Ask the Guidance Office to reach out to you, or to a classmate who may need support
         </p>
       </header>
 
@@ -100,6 +100,38 @@ export const ReferStudentForm: React.FC = () => {
         {/* 3. Main Form Card Panel (Stitched seamlessly between images) */}
         <form onSubmit={handleSubmit} className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 space-y-5 mt-6">
           
+          {/* Who the referral is about */}
+          <fieldset>
+            <legend className="text-xs font-semibold text-slate-700 mb-2">Who is this referral about?</legend>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              {[
+                { value: false, label: "A classmate", hint: "Someone you're worried about" },
+                { value: true, label: "Myself", hint: "You'd like the counselor to reach out" },
+              ].map((opt) => (
+                <label
+                  key={opt.label}
+                  className={`flex items-start gap-3 rounded-lg border px-4 py-3 cursor-pointer transition-colors ${
+                    formData.aboutMyself === opt.value ? "border-blue-600 bg-blue-50" : "border-slate-300 hover:border-slate-400"
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="aboutMyself"
+                    checked={formData.aboutMyself === opt.value}
+                    onChange={() => setFormData((prev) => ({ ...prev, aboutMyself: opt.value }))}
+                    className="mt-1 accent-blue-700"
+                  />
+                  <span>
+                    <span className="block text-sm font-medium text-ink">{opt.label}</span>
+                    <span className="block text-xs text-slate-500">{opt.hint}</span>
+                  </span>
+                </label>
+              ))}
+            </div>
+          </fieldset>
+
+          {!formData.aboutMyself && (
+          <>
           {/* Row 1: Student Name & Student ID */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             <div className="space-y-1.5">
@@ -178,6 +210,9 @@ export const ReferStudentForm: React.FC = () => {
               </div>
             </div>
           </div>
+
+          </>
+          )}
 
           {/* Row 3: Type of Concern & Priority Level */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">

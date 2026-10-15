@@ -6,7 +6,6 @@ import { getMyAppointments, getBookedTimesForDate, bookAppointment } from '../..
 import BookAppointmentModal from '../../../components/BookAppointmentModal';
 import type { Appointment as DbAppointment } from '../../../lib/generated';
 
-const FACULTY_NAME = "Cho Sto Domingo";
 const PURPOSE_OPTIONS = ["Consultation", "Student Discussion", "Academic Concern", "General Consultation"];
 
 export const MyAppointmentsPage: React.FC = () => {
@@ -14,7 +13,7 @@ export const MyAppointmentsPage: React.FC = () => {
   const [isBookingOpen, setIsBookingOpen] = useState(false);
 
   const refresh = async () => {
-    const data = await getMyAppointments(FACULTY_NAME);
+    const data = await getMyAppointments();
     setAppointments(data);
   };
 
@@ -22,7 +21,7 @@ export const MyAppointmentsPage: React.FC = () => {
     let cancelled = false;
 
     (async () => {
-      const data = await getMyAppointments(FACULTY_NAME);
+      const data = await getMyAppointments();
       if (!cancelled) setAppointments(data);
     })();
 
@@ -81,8 +80,8 @@ export const MyAppointmentsPage: React.FC = () => {
                       {meeting.appointmentType || "General Consultation"}
                     </h3>
                     <p className="text-xs text-slate-500 font-medium flex items-center gap-1">
-                      <span>Counselor:</span>
-                      <span className="text-slate-700 font-semibold">Ralph Michael</span>
+                      <span>With:</span>
+                      <span className="text-slate-700 font-semibold">Guidance Associate</span>
                     </p>
                   </div>
 
@@ -90,7 +89,7 @@ export const MyAppointmentsPage: React.FC = () => {
                   <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-slate-500 font-mono font-medium pt-0.5">
                     <div className="flex items-center gap-1.5">
                       <Calendar size={14} className="text-slate-500 shrink-0" />
-                      <span className="text-slate-600">{new Date(meeting.date).toLocaleDateString()}</span>
+                      <span className="text-slate-600">{new Date(meeting.date).toLocaleDateString("en-PH", { timeZone: "UTC" })}</span>
                     </div>
                     <div className="flex items-center gap-1.5">
                       <Clock size={14} className="text-slate-500 shrink-0" />
@@ -127,7 +126,7 @@ export const MyAppointmentsPage: React.FC = () => {
         <BookAppointmentModal
           purposeOptions={PURPOSE_OPTIONS}
           getBookedTimesForDate={getBookedTimesForDate}
-          bookAppointment={(data) => bookAppointment({ ...data, facultyName: FACULTY_NAME })}
+          bookAppointment={bookAppointment}
           onClose={() => setIsBookingOpen(false)}
           onBooked={refresh}
         />

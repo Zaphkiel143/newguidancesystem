@@ -49,3 +49,4 @@ next-env.d.ts
 nlp_service/.venv
 nlp_service/__pycache__
 nlp_service/model/*.joblib
+

@@ -4,7 +4,6 @@ import React, { useState, FormEvent } from 'react';
 import { Send } from 'lucide-react';
 import { submitReferral } from '../../action/faculty';
 
-const FACULTY_NAME = "Cho Sto Domingo";
 
 interface ReferralFormData {
   studentName: string;
@@ -53,7 +52,6 @@ export const SubmitReferralForm: React.FC = () => {
 
     const result = await submitReferral({
       studentName: formData.studentName,
-      referrerName: FACULTY_NAME,
       concernType: formData.concernType,
       priority: formData.priorityLevel,
       description: [formData.description, ...detailLines].join("\n\n"),

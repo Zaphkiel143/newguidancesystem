@@ -1,27 +1,24 @@
 "use client";
 
-import { useEffect, useState } from 'react';
-import { Users, Calendar, Download, Send, BarChart3 } from 'lucide-react';
+import React, { useCallback, useEffect, useState } from 'react';
+import { Loader2, Plus, X, Users } from 'lucide-react';
 import { GRADE_LEVELS } from '../../config/gradeLevels';
-import { getGroupGuidancePrograms, addGroupGuidanceProgram } from '../../action/counselor';
+import {
+  getGroupGuidancePrograms,
+  addGroupGuidanceProgram,
+  recordGroupSession,
+  listNeedsAssessments,
+  createNeedsAssessment,
+  setNeedsAssessmentOpen,
+} from '../../action/counselor';
 import InlineError from '../../../components/InlineError';
+import type { GroupGuidanceProgram } from '../../../lib/generated';
 
-interface Program {
-  id: string;
-  title: string;
-  gradeLevel: string;
-  date: string;
-  time: string;
-  participants: number;
-}
+type Assessment = Awaited<ReturnType<typeof listNeedsAssessments>>[number];
 
 // Local (not UTC) YYYY-MM-DD — avoids comparisons rolling back a day near midnight in timezones behind UTC
 function toDateString(date: Date): string {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
-}
-
-function getProgramStatus(dateString: string): "Completed" | "Upcoming" {
-  return dateString < toDateString(new Date()) ? "Completed" : "Upcoming";
 }
 
 function getMinSelectableDate(): string {
@@ -30,292 +27,345 @@ function getMinSelectableDate(): string {
   return toDateString(tomorrow);
 }
 
-const GroupGuidance = () => {
+const DEFAULT_TOPICS = [
+  "Study habits and time management",
+  "Stress and anxiety",
+  "Friendships and peer pressure",
+  "Family concerns",
+  "Bullying",
+  "Self-esteem",
+  "Choosing a course or career",
+  "Online safety",
+].join("\n");
+
+export default function GroupGuidance() {
   const minSelectableDate = getMinSelectableDate();
-  const [programs, setPrograms] = useState<Program[]>([]);
+  const [programs, setPrograms] = useState<GroupGuidanceProgram[] | null>(null);
+  const [assessments, setAssessments] = useState<Assessment[] | null>(null);
 
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
-  const [saveError, setSaveError] = useState<string | null>(null);
-  const [title, setTitle] = useState("");
-  const [gradeLevel, setGradeLevel] = useState<string>(GRADE_LEVELS[0]);
-  const [date, setDate] = useState(minSelectableDate);
-  const [time, setTime] = useState("");
+  // New program
+  const [isProgramOpen, setIsProgramOpen] = useState(false);
+  const [program, setProgram] = useState({ title: "", gradeLevel: GRADE_LEVELS[0] as string, dateString: minSelectableDate, time: "" });
+  const [programError, setProgramError] = useState<string | null>(null);
+  const [isSavingProgram, setIsSavingProgram] = useState(false);
 
-  const refreshPrograms = async () => {
-    const data = await getGroupGuidancePrograms();
-    setPrograms(
-      data.map((p) => ({
-        id: p.id,
-        title: p.title,
-        gradeLevel: p.gradeLevel,
-        date: toDateString(new Date(p.date)),
-        time: p.time,
-        participants: p.participants,
-      }))
-    );
-  };
+  // Record attendance + outcomes
+  const [recording, setRecording] = useState<{ id: string; title: string; attendees: string; outcomes: string } | null>(null);
+  const [recordError, setRecordError] = useState<string | null>(null);
+  const [isSavingRecord, setIsSavingRecord] = useState(false);
+
+  // New needs assessment
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [form, setForm] = useState({ title: "", gradeLevel: "All", topics: DEFAULT_TOPICS });
+  const [formError, setFormError] = useState<string | null>(null);
+  const [isSavingForm, setIsSavingForm] = useState(false);
+  const [toggleError, setToggleError] = useState<{ id: string; message: string } | null>(null);
+
+  const loadPrograms = useCallback(async () => setPrograms(await getGroupGuidancePrograms()), []);
+  const loadAssessments = useCallback(async () => setAssessments(await listNeedsAssessments()), []);
 
   useEffect(() => {
     let cancelled = false;
-
     (async () => {
-      const data = await getGroupGuidancePrograms();
+      const [p, a] = await Promise.all([getGroupGuidancePrograms(), listNeedsAssessments()]);
       if (cancelled) return;
-      setPrograms(
-        data.map((p) => ({
-          id: p.id,
-          title: p.title,
-          gradeLevel: p.gradeLevel,
-          date: toDateString(new Date(p.date)),
-          time: p.time,
-          participants: p.participants,
-        }))
-      );
+      setPrograms(p);
+      setAssessments(a);
     })();
-
     return () => {
       cancelled = true;
     };
   }, []);
 
-  const handleNewProgram = () => {
-    setTitle("");
-    setGradeLevel(GRADE_LEVELS[0]);
-    setDate(minSelectableDate);
-    setTime("");
-    setSaveError(null);
-    setIsModalOpen(true);
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
+  const saveProgram = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSaving(true);
-    setSaveError(null);
-
-    const result = await addGroupGuidanceProgram({
-      title,
-      gradeLevel,
-      dateString: date,
-      time,
-    });
-
-    setIsSaving(false);
+    setIsSavingProgram(true);
+    setProgramError(null);
+    const result = await addGroupGuidanceProgram(program);
+    setIsSavingProgram(false);
     if (result.success) {
-      setIsModalOpen(false);
-      await refreshPrograms();
+      setIsProgramOpen(false);
+      await loadPrograms();
     } else {
-      setSaveError(`Couldn't save this program: ${result.error || "unknown error"}.`);
+      setProgramError(`Couldn't save this program: ${result.error || "unknown error"}.`);
     }
   };
 
+  const saveRecord = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!recording) return;
+    setIsSavingRecord(true);
+    setRecordError(null);
+    const result = await recordGroupSession(recording.id, { attendees: recording.attendees.split("\n"), outcomes: recording.outcomes });
+    setIsSavingRecord(false);
+    if (result.success) {
+      setRecording(null);
+      await loadPrograms();
+    } else {
+      setRecordError(`Couldn't save the session record: ${result.error || "unknown error"}.`);
+    }
+  };
+
+  const saveForm = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSavingForm(true);
+    setFormError(null);
+    const result = await createNeedsAssessment({ title: form.title, gradeLevel: form.gradeLevel, topics: form.topics.split("\n") });
+    setIsSavingForm(false);
+    if (result.success) {
+      setIsFormOpen(false);
+      setForm({ title: "", gradeLevel: "All", topics: DEFAULT_TOPICS });
+      await loadAssessments();
+    } else {
+      setFormError(result.error || "Couldn't create the form.");
+    }
+  };
+
+  const toggleOpen = async (a: Assessment) => {
+    setToggleError(null);
+    const result = await setNeedsAssessmentOpen(a.id, !a.isOpen);
+    if (result.success) await loadAssessments();
+    else setToggleError({ id: a.id, message: "Couldn't change this form. Try again." });
+  };
+
+  const today = toDateString(new Date());
+
   return (
-    <div className="px-5 sm:px-8 lg:px-12 pt-8 lg:pt-12 pb-16 min-h-[calc(100dvh-var(--topbar-h))] font-sans text-slate-900">
-      {/* Header */}
-      <header className="mb-8">
-        <h1 className="page-title">Group Guidance & Needs Assessment</h1>
-        <p className="text-slate-500 text-sm">Plan and track group guidance programs</p>
+    <div className="px-5 sm:px-8 lg:px-12 pt-8 lg:pt-12 pb-16 max-w-6xl text-slate-800">
+      <header>
+        <h1 className="page-title">Group Guidance</h1>
+        <p className="text-sm text-slate-500 mt-1">Find out what students need, then plan and record group sessions</p>
       </header>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+      {/* ---- Needs assessment ---- */}
+      <section className="mt-10">
+        <div className="flex flex-wrap items-baseline justify-between gap-3 mb-3">
+          <h2 className="font-serif text-[22px] text-ink">Needs assessment</h2>
+          <button onClick={() => { setFormError(null); setIsFormOpen(true); }}
+            className="inline-flex items-center gap-2 bg-blue-700 hover:bg-blue-800 text-white text-sm font-medium px-4 min-h-11 rounded-md transition-colors">
+            <Plus size={16} /> New form
+          </button>
+        </div>
+        <p className="text-sm text-slate-500 max-w-[65ch]">
+          Students answer in E-Gabay under Needs Assessment. Responses are tallied automatically, most-requested topics first.
+        </p>
 
-        {/* Left Column: Guidance Programs */}
-        <div className="lg:col-span-7 space-y-6">
-          <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm min-h-125">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-lg font-semibold">Guidance Programs</h2>
-              <button
-                onClick={handleNewProgram}
-                className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-blue-700 transition-colors"
-              >
-                New Program
-              </button>
-            </div>
+        {assessments === null ? (
+          <div className="py-12 flex justify-center text-slate-500"><Loader2 className="animate-spin" size={20} /></div>
+        ) : assessments.length === 0 ? (
+          <p className="mt-4 border-t border-rule pt-4 text-sm text-slate-500">No forms yet. Create one to start collecting student needs.</p>
+        ) : (
+          <div className="mt-4 space-y-8">
+            {assessments.map((a) => {
+              const max = Math.max(1, ...a.tally.map((t) => t.count));
+              return (
+                <article key={a.id} className="border-t border-rule pt-5">
+                  <div className="flex flex-wrap items-baseline justify-between gap-3">
+                    <div>
+                      <h3 className="font-medium text-ink">{a.title}</h3>
+                      <p className="text-[13px] text-slate-500">
+                        {a.gradeLevel === "All" ? "All students" : a.gradeLevel} · {a.responseCount} {a.responseCount === 1 ? "response" : "responses"} ·{" "}
+                        <span className={a.isOpen ? "text-emerald-700" : ""}>{a.isOpen ? "Open" : "Closed"}</span>
+                      </p>
+                    </div>
+                    <button onClick={() => toggleOpen(a)} className="px-3 min-h-9 rounded-md text-[13px] text-slate-600 hover:bg-slate-100">
+                      {a.isOpen ? "Close form" : "Reopen form"}
+                    </button>
+                  </div>
+                  <InlineError message={toggleError?.id === a.id ? toggleError.message : null} onDismiss={() => setToggleError(null)} className="mt-2" />
 
-            {programs.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-20 border-2 border-dashed border-slate-100 rounded-2xl bg-slate-50/40">
-                <span className="text-3xl mb-2">📋</span>
-                <p className="text-sm font-semibold text-slate-500">No guidance programs scheduled yet</p>
-                <p className="text-xs text-slate-500">Click &quot;New Program&quot; to schedule one</p>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {programs.map((program) => (
-                  <ProgramCard
-                    key={program.id}
-                    title={program.title}
-                    grade={program.gradeLevel}
-                    participants={program.participants}
-                    date={program.date}
-                    status={getProgramStatus(program.date)}
-                  />
-                ))}
-              </div>
-            )}
+                  <table className="mt-4 w-full text-sm">
+                    <caption className="sr-only">Responses per topic for {a.title}</caption>
+                    <tbody>
+                      {a.tally.map((t, i) => (
+                        <tr key={t.topic}>
+                          <th scope="row" className="py-1.5 pr-4 text-left font-normal text-ink w-1/2">
+                            {i === 0 && t.count > 0 && <span className="text-xs text-blue-700 mr-2">Top</span>}
+                            {t.topic}
+                          </th>
+                          <td className="py-1.5 pr-3">
+                            <div className="h-2 bg-slate-200 rounded-full overflow-hidden">
+                              <div className="h-full bg-blue-700 rounded-full" style={{ width: `${(t.count / max) * 100}%` }} />
+                            </div>
+                          </td>
+                          <td className="py-1.5 w-10 text-right font-mono text-[13px] text-slate-600 tabular">{t.count}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+
+                  {a.comments.length > 0 && (
+                    <details className="mt-3 text-sm">
+                      <summary className="cursor-pointer text-blue-700 min-h-9 inline-flex items-center">Student comments ({a.comments.length})</summary>
+                      <ul className="mt-2 divide-y divide-rule border-y border-rule">
+                        {a.comments.map((c, i) => (
+                          <li key={i} className="py-2.5">
+                            <p className="text-ink whitespace-pre-wrap">{c.comment}</p>
+                            <p className="text-xs text-slate-500 mt-0.5">{c.studentName}</p>
+                          </li>
+                        ))}
+                      </ul>
+                    </details>
+                  )}
+                </article>
+              );
+            })}
           </div>
+        )}
+      </section>
+
+      {/* ---- Programs ---- */}
+      <section className="mt-14">
+        <div className="flex flex-wrap items-baseline justify-between gap-3 mb-3">
+          <h2 className="font-serif text-[22px] text-ink">Group sessions</h2>
+          <button onClick={() => { setProgram({ title: "", gradeLevel: GRADE_LEVELS[0], dateString: minSelectableDate, time: "" }); setProgramError(null); setIsProgramOpen(true); }}
+            className="inline-flex items-center gap-2 border border-slate-300 hover:bg-slate-100 text-sm font-medium px-4 min-h-11 rounded-md transition-colors">
+            <Plus size={16} /> Schedule a session
+          </button>
         </div>
 
-        {/* Right Column: Needs Assessment Results */}
-        <div className="lg:col-span-5">
-          <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-lg font-semibold">Needs Assessment Results</h2>
-              <button className="flex items-center gap-2 px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-md text-xs font-semibold hover:bg-slate-100">
-                <Download size={14} />
-                Export
-              </button>
+        {programs === null ? (
+          <div className="py-12 flex justify-center text-slate-500"><Loader2 className="animate-spin" size={20} /></div>
+        ) : programs.length === 0 ? (
+          <p className="border-t border-rule pt-4 text-sm text-slate-500">No sessions scheduled yet.</p>
+        ) : (
+          <ul className="divide-y divide-rule border-y border-rule">
+            {programs.map((p) => {
+              const d = new Date(p.date).toISOString().slice(0, 10); // calendar day, stored as UTC midnight
+              const isPast = d < today;
+              return (
+                <li key={p.id} className="py-4 grid grid-cols-1 sm:grid-cols-[1fr_auto] gap-x-6 gap-y-2">
+                  <div>
+                    <p className="font-medium text-ink">{p.title}</p>
+                    <p className="text-[13px] text-slate-500">
+                      {p.gradeLevel} · <span className="font-mono">{new Date(p.date).toLocaleDateString("en-PH", { timeZone: "UTC", month: "short", day: "numeric", year: "numeric" })} · {p.time}</span>
+                    </p>
+                    {p.outcomes && <p className="text-sm text-slate-700 mt-1.5 whitespace-pre-wrap">{p.outcomes}</p>}
+                  </div>
+                  <div className="flex items-center gap-3 sm:justify-end">
+                    <span className="inline-flex items-center gap-1.5 text-[13px] text-slate-600"><Users size={14} /> {p.participants} attended</span>
+                    <span className={`text-xs ${isPast ? "text-slate-500" : "text-blue-700"}`}>{isPast ? "Held" : "Upcoming"}</span>
+                    <button onClick={() => { setRecordError(null); setRecording({ id: p.id, title: p.title, attendees: p.attendees.join("\n"), outcomes: p.outcomes ?? "" }); }}
+                      className="px-3 min-h-9 rounded-md text-[13px] text-blue-700 hover:bg-blue-50">
+                      {p.attendees.length || p.outcomes ? "Edit record" : "Record attendance"}
+                    </button>
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </section>
+
+      {/* New needs assessment */}
+      {isFormOpen && (
+        <Dialog title="New needs assessment form" onClose={() => setIsFormOpen(false)}>
+          <form onSubmit={saveForm} className="space-y-4">
+            <Field id="na-title" label="Title">
+              <input id="na-title" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} required placeholder="e.g. 2nd semester needs assessment"
+                className="w-full bg-paper border border-slate-300 rounded-md px-3 py-2.5 text-sm" />
+            </Field>
+            <Field id="na-grade" label="Who should answer">
+              <select id="na-grade" value={form.gradeLevel} onChange={(e) => setForm({ ...form, gradeLevel: e.target.value })}
+                className="w-full bg-paper border border-slate-300 rounded-md px-3 py-2.5 text-sm">
+                <option value="All">All students</option>
+                {GRADE_LEVELS.map((g) => <option key={g} value={g}>{g}</option>)}
+              </select>
+            </Field>
+            <Field id="na-topics" label="Topics students can choose (one per line)">
+              <textarea id="na-topics" rows={8} value={form.topics} onChange={(e) => setForm({ ...form, topics: e.target.value })}
+                className="w-full bg-paper border border-slate-300 rounded-md px-3 py-2.5 text-sm resize-y" />
+            </Field>
+            <InlineError message={formError} onDismiss={() => setFormError(null)} />
+            <DialogButtons onCancel={() => setIsFormOpen(false)} isSaving={isSavingForm} label="Send to students" />
+          </form>
+        </Dialog>
+      )}
+
+      {/* New program */}
+      {isProgramOpen && (
+        <Dialog title="Schedule a group session" onClose={() => setIsProgramOpen(false)}>
+          <form onSubmit={saveProgram} className="space-y-4">
+            <Field id="gp-title" label="Title">
+              <input id="gp-title" value={program.title} onChange={(e) => setProgram({ ...program, title: e.target.value })} required
+                className="w-full bg-paper border border-slate-300 rounded-md px-3 py-2.5 text-sm" />
+            </Field>
+            <Field id="gp-grade" label="Grade level">
+              <select id="gp-grade" value={program.gradeLevel} onChange={(e) => setProgram({ ...program, gradeLevel: e.target.value })}
+                className="w-full bg-paper border border-slate-300 rounded-md px-3 py-2.5 text-sm">
+                {GRADE_LEVELS.map((g) => <option key={g} value={g}>{g}</option>)}
+              </select>
+            </Field>
+            <div className="grid grid-cols-2 gap-3">
+              <Field id="gp-date" label="Date">
+                <input id="gp-date" type="date" min={minSelectableDate} value={program.dateString} onChange={(e) => setProgram({ ...program, dateString: e.target.value })} required
+                  className="w-full bg-paper border border-slate-300 rounded-md px-3 py-2.5 text-sm" />
+              </Field>
+              <Field id="gp-time" label="Time">
+                <input id="gp-time" value={program.time} onChange={(e) => setProgram({ ...program, time: e.target.value })} required placeholder="e.g. 10:00 AM"
+                  className="w-full bg-paper border border-slate-300 rounded-md px-3 py-2.5 text-sm" />
+              </Field>
             </div>
+            <InlineError message={programError} onDismiss={() => setProgramError(null)} />
+            <DialogButtons onCancel={() => setIsProgramOpen(false)} isSaving={isSavingProgram} label="Schedule" />
+          </form>
+        </Dialog>
+      )}
 
-            <div className="mb-8">
-              <p className="text-xs text-slate-500 font-medium">Total Responses</p>
-              <p className="text-3xl font-semibold">0</p>
-            </div>
-
-            <div className="flex flex-col items-center justify-center py-10 mb-8 border-2 border-dashed border-slate-100 rounded-2xl bg-slate-50/40">
-              <p className="text-sm font-semibold text-slate-500">No assessment responses yet</p>
-              <p className="text-xs text-slate-500 text-center px-4">Send an assessment form to start collecting student concerns</p>
-            </div>
-
-            <button className="w-full flex items-center justify-center gap-2 bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors shadow-md">
-              <Send size={18} />
-              Send New Assessment Form
-            </button>
-          </div>
-        </div>
-
-        {/* Bottom Section: Timeline Placeholder */}
-        <div className="lg:col-span-12">
-          <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-            <div className="p-4 border-b border-slate-100 bg-white">
-              <h2 className="font-semibold text-slate-800">Assessment Submissions Timeline</h2>
-            </div>
-            <div className="h-48 flex flex-col items-center justify-center text-slate-500 bg-white">
-              <BarChart3 size={32} className="mb-2 opacity-30" />
-              <p className="text-sm">Visual analytics coming soon</p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* NEW PROGRAM MODAL */}
-      {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-          <div className="bg-white w-full max-w-md p-6 rounded-2xl shadow-xl border border-slate-100 space-y-4">
-            <div>
-              <h3 className="text-lg font-semibold text-slate-900">Group Guidance</h3>
-              <p className="text-xs text-slate-500">Schedule a new group guidance program</p>
-            </div>
-
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="space-y-1">
-                <label className="text-xs font-semibold text-slate-700">Program Title</label>
-                <input
-                  type="text"
-                  required
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  placeholder="e.g., Mental Health Awareness"
-                  className="w-full text-sm bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 focus:outline-none"
-                />
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-xs font-semibold text-slate-700">Grade Level</label>
-                <select
-                  value={gradeLevel}
-                  onChange={(e) => setGradeLevel(e.target.value)}
-                  className="w-full text-sm bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 focus:outline-none"
-                >
-                  {GRADE_LEVELS.map((level) => (
-                    <option key={level} value={level}>{level}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1">
-                  <label className="text-xs font-semibold text-slate-700">Date</label>
-                  <input
-                    type="date"
-                    required
-                    value={date}
-                    min={minSelectableDate}
-                    onChange={(e) => {
-                      if (e.target.value >= minSelectableDate) {
-                        setDate(e.target.value);
-                      }
-                    }}
-                    className="w-full text-sm bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 focus:outline-none"
-                  />
-                </div>
-                <div className="space-y-1">
-                  <label className="text-xs font-semibold text-slate-700">Time</label>
-                  <input
-                    type="time"
-                    required
-                    value={time}
-                    onChange={(e) => setTime(e.target.value)}
-                    className="w-full text-sm bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 focus:outline-none"
-                  />
-                </div>
-              </div>
-
-              <InlineError message={saveError} onDismiss={() => setSaveError(null)} />
-
-              <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
-                <button
-                  type="button"
-                  onClick={() => setIsModalOpen(false)}
-                  className="px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 rounded-xl transition"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={isSaving}
-                  className="px-5 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 rounded-xl transition"
-                >
-                  {isSaving ? "Saving..." : "Schedule Program"}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
+      {/* Attendance + outcomes */}
+      {recording && (
+        <Dialog title={`Session record: ${recording.title}`} onClose={() => setRecording(null)}>
+          <form onSubmit={saveRecord} className="space-y-4">
+            <Field id="rec-att" label="Attendees (one name per line)">
+              <textarea id="rec-att" rows={8} value={recording.attendees} onChange={(e) => setRecording({ ...recording, attendees: e.target.value })}
+                className="w-full bg-paper border border-slate-300 rounded-md px-3 py-2.5 text-sm resize-y" />
+            </Field>
+            <Field id="rec-out" label="Session outcomes">
+              <textarea id="rec-out" rows={4} value={recording.outcomes} onChange={(e) => setRecording({ ...recording, outcomes: e.target.value })}
+                placeholder="What was covered, how students responded, follow-ups needed"
+                className="w-full bg-paper border border-slate-300 rounded-md px-3 py-2.5 text-sm resize-y" />
+            </Field>
+            <InlineError message={recordError} onDismiss={() => setRecordError(null)} />
+            <DialogButtons onCancel={() => setRecording(null)} isSaving={isSavingRecord} label="Save record" />
+          </form>
+        </Dialog>
       )}
     </div>
   );
-};
+}
 
-/* Sub-component for Program Cards */
-const ProgramCard = ({ title, grade, participants, date, status }: {
-  title: string;
-  grade: string;
-  participants: number;
-  date: string;
-  status: "Completed" | "Upcoming";
-}) => (
-  <div className="p-5 border border-slate-100 rounded-xl hover:border-blue-100 hover:bg-blue-50/20 transition-all group">
-    <div className="flex justify-between items-start mb-2">
-      <h3 className="font-semibold text-slate-800">{title}</h3>
-      <span className={`text-xs font-semibold px-3 py-1 rounded ${
-        status === 'Completed' ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'
-      }`}>
-        {status}
-      </span>
-    </div>
-    <p className="text-xs text-slate-500 mb-4">{grade}</p>
-    <div className="flex items-center gap-6 text-xs text-slate-500 mb-4">
-      <div className="flex items-center gap-2">
-        <Users size={14} /> {participants} participants
-      </div>
-      <div className="flex items-center gap-2">
-        <Calendar size={14} /> Date: {date}
+function Dialog({ title, onClose, children }: { title: string; onClose: () => void; children: React.ReactNode }) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/40 p-4" onClick={onClose}>
+      <div role="dialog" aria-modal="true" aria-label={title} onClick={(e) => e.stopPropagation()}
+        className="bg-sheet w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-xl border border-rule shadow-xl p-6">
+        <div className="flex items-start justify-between gap-4 mb-4">
+          <h2 className="font-medium text-ink">{title}</h2>
+          <button type="button" onClick={onClose} aria-label="Close" className="w-11 h-11 -m-2 grid place-items-center text-slate-500 hover:text-ink hover:bg-slate-100 rounded-md"><X size={18} /></button>
+        </div>
+        {children}
       </div>
     </div>
-    <button className="text-blue-600 bg-blue-50 px-3 py-1.5 rounded-md text-xs font-semibold hover:bg-blue-100 transition-colors">
-      View Details
-    </button>
-  </div>
-);
+  );
+}
 
-export default GroupGuidance;
+function Field({ id, label, children }: { id: string; label: string; children: React.ReactNode }) {
+  return (
+    <div>
+      <label htmlFor={id} className="block text-[13px] font-medium text-slate-700 mb-1.5">{label}</label>
+      {children}
+    </div>
+  );
+}
+
+function DialogButtons({ onCancel, isSaving, label }: { onCancel: () => void; isSaving: boolean; label: string }) {
+  return (
+    <div className="flex justify-end gap-2 pt-2 border-t border-rule">
+      <button type="button" onClick={onCancel} className="px-4 min-h-11 rounded-md text-sm text-slate-600 hover:bg-slate-100">Cancel</button>
+      <button type="submit" disabled={isSaving}
+        className="inline-flex items-center gap-2 bg-blue-700 hover:bg-blue-800 disabled:opacity-60 text-white text-sm font-medium px-4 min-h-11 rounded-md">
+        {isSaving && <Loader2 size={16} className="animate-spin" />} {label}
+      </button>
+    </div>
+  );
+}

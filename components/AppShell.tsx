@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { LogOut, Menu, X } from "lucide-react";
 import { navigationConfig, MenuItem } from "../app/config/navigation";
 import { logout } from "../app/action/auth";
+import { CurrentUserProvider } from "./CurrentUser";
 
 type Role = "faculty" | "counselor" | "student" | "parent";
 
@@ -14,6 +15,14 @@ interface AppShellProps {
   userName: string;
   children: React.ReactNode;
 }
+
+// Matches the labels stored on records (lib/session.ts ROLE_LABEL).
+const RECORD_ROLE: Record<Role, string> = {
+  counselor: "Counselor",
+  student: "Student",
+  faculty: "Faculty",
+  parent: "Parent",
+};
 
 const ROLE_LABEL: Record<Role, string> = {
   counselor: "Guidance counselor",
@@ -148,7 +157,9 @@ export function AppShell({ role, userName, children }: AppShellProps) {
         </div>
       </aside>
 
-      <main className="md:pl-(--sidebar-w) min-w-0">{children}</main>
+      <main className="md:pl-(--sidebar-w) min-w-0">
+        <CurrentUserProvider user={{ name: userName, roleLabel: RECORD_ROLE[role] }}>{children}</CurrentUserProvider>
+      </main>
     </div>
   );
 }
