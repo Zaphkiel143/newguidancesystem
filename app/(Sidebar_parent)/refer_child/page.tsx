@@ -59,7 +59,7 @@ export const ReferChildForm: React.FC = () => {
   };
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8 max-w-4xl mx-auto font-sans antialiased text-slate-800 space-y-6">
+    <div className="px-5 sm:px-8 lg:px-12 pt-8 lg:pt-12 pb-16 max-w-4xl font-sans antialiased text-slate-800 space-y-6">
       
       {/* Page Header Titles (image_859d3c.png) */}
       <div>
@@ -71,8 +71,8 @@ export const ReferChildForm: React.FC = () => {
 
       {/* Child Information Banner (image_859d3c.png) */}
       <div className="bg-blue-50 border border-blue-100 px-5 py-4 rounded-xl text-sm font-medium text-slate-600">
-        <span className="text-blue-500 font-bold block text-xs uppercase tracking-wider mb-1">Child Information</span>
-        <span className="text-blue-600 font-bold">Nhel Belarmino</span>
+        <span className="text-blue-500 font-semibold block text-xs mb-1">Child Information</span>
+        <span className="text-blue-600 font-semibold">Nhel Belarmino</span>
         <span className="mx-2 text-slate-300">•</span>
         <span className="font-mono text-slate-500 text-xs">2024-12345</span>
         <span className="mx-2 text-slate-300">•</span>
@@ -96,7 +96,7 @@ export const ReferChildForm: React.FC = () => {
             
             {/* Type of Concern Select Dropdown */}
             <div className="space-y-2">
-              <label className="text-sm font-bold text-slate-700 block">
+              <label className="text-sm font-semibold text-slate-700 block">
                 Type of Concern <span className="text-red-500">*</span>
               </label>
               <div className="relative">
@@ -118,7 +118,7 @@ export const ReferChildForm: React.FC = () => {
 
             {/* Priority Level Select Dropdown */}
             <div className="space-y-2">
-              <label className="text-sm font-bold text-slate-700 block">
+              <label className="text-sm font-semibold text-slate-700 block">
                 Priority Level <span className="text-red-500">*</span>
               </label>
               <div className="relative">
@@ -140,7 +140,7 @@ export const ReferChildForm: React.FC = () => {
 
           {/* Textarea: Description of Concern */}
           <div className="space-y-2">
-            <label className="text-sm font-bold text-slate-700 block">
+            <label className="text-sm font-semibold text-slate-700 block">
               Description of Concern <span className="text-red-500">*</span>
             </label>
             <textarea
@@ -155,7 +155,7 @@ export const ReferChildForm: React.FC = () => {
 
           {/* Textarea: Observed Behaviors or Changes (Optional) */}
           <div className="space-y-2">
-            <label className="text-sm font-bold text-slate-700 block">
+            <label className="text-sm font-semibold text-slate-700 block">
               Observed Behaviors or Changes (Optional)
             </label>
             <textarea
@@ -169,7 +169,7 @@ export const ReferChildForm: React.FC = () => {
 
           {/* Input: Preferred Contact Time */}
           <div className="space-y-2">
-            <label className="text-sm font-bold text-slate-700 block">
+            <label className="text-sm font-semibold text-slate-700 block">
               Preferred Contact Time
             </label>
             <input
@@ -185,20 +185,20 @@ export const ReferChildForm: React.FC = () => {
           <div className="bg-orange-50 border border-orange-100 p-4 rounded-xl flex items-start gap-3">
             <AlertCircle className="text-orange-600 shrink-0 mt-0.5" size={18} />
             <p className="text-xs sm:text-sm text-orange-800 font-medium leading-relaxed">
-              <span className="font-bold text-orange-900">Note:</span> For emergency situations or immediate safety concerns, please contact the school office directly or call emergency services.
+              <span className="font-semibold text-orange-900">Note:</span> For emergency situations or immediate safety concerns, please contact the school office directly or call emergency services.
             </p>
           </div>
 
           {/* Action Form Confirmation Feedback */}
           {successMessage && (
-            <div className="p-4 bg-emerald-50 border border-emerald-200 text-emerald-600 text-sm font-bold rounded-xl flex items-center gap-2">
+            <div className="p-4 bg-emerald-50 border border-emerald-200 text-emerald-600 text-sm font-semibold rounded-xl flex items-center gap-2">
               <Info size={16} />
               <span>{successMessage}</span>
             </div>
           )}
 
           {error && (
-            <div className="p-4 bg-red-50 border border-red-100 text-red-600 text-sm font-bold rounded-xl flex items-center gap-2">
+            <div className="p-4 bg-red-50 border border-red-100 text-red-600 text-sm font-semibold rounded-xl flex items-center gap-2">
               <AlertCircle size={16} />
               <span>{error}</span>
             </div>
@@ -214,14 +214,14 @@ export const ReferChildForm: React.FC = () => {
                 setObservedBehaviors('');
                 setPreferredTime('');
               }}
-              className="w-full sm:w-auto px-8 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold rounded-xl text-sm transition-colors text-center"
+              className="w-full sm:w-auto px-8 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-800 font-semibold rounded-xl text-sm transition-colors text-center"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isSaving}
-              className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-bold py-2.5 px-8 rounded-xl transition-colors text-sm shadow-sm text-center flex items-center justify-center gap-2"
+              className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-semibold py-2.5 px-8 rounded-xl transition-colors text-sm shadow-sm text-center flex items-center justify-center gap-2"
             >
               <Send size={15} />
               {isSaving ? "Submitting..." : "Submit Referral"}

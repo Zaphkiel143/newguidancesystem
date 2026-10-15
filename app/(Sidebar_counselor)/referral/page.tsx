@@ -95,7 +95,7 @@ const ReferralManagement = () => {
   };
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8 min-h-[calc(100dvh-var(--topbar-h))] font-sans text-slate-900">
+    <div className="px-5 sm:px-8 lg:px-12 pt-8 lg:pt-12 pb-16 min-h-[calc(100dvh-var(--topbar-h))] font-sans text-slate-900">
       {/* Header */}
       <header className="mb-8">
         <h1 className="page-title">Referral Management</h1>
@@ -158,7 +158,7 @@ const ReferralManagement = () => {
           <div className="bg-white w-full max-w-md p-6 rounded-2xl shadow-xl border border-slate-100 space-y-4">
             <div className="flex items-start justify-between">
               <div>
-                <h3 className="text-lg font-bold text-slate-900">
+                <h3 className="text-lg font-semibold text-slate-900">
                   {modal.type === 'notes' ? 'Add Internal Notes' : 'Send Feedback'}
                 </h3>
                 <p className="text-xs text-slate-500">
@@ -228,19 +228,19 @@ const ReferralCard = ({ referral, isUpdating, onAdvanceStatus, onAddNotes, onSen
         {/* Card Header Tags */}
         <div className="flex justify-between items-start mb-4">
           <div>
-            <h3 className="text-lg font-bold text-slate-800">{referral.studentName}</h3>
-            <p className="text-xs font-semibold text-slate-500 uppercase tracking-tight">
+            <h3 className="text-lg font-semibold text-slate-800">{referral.studentName}</h3>
+            <p className="text-xs font-semibold text-slate-500 tracking-tight">
               Referred by {referral.referrerName} ({referral.referrerRole})
             </p>
           </div>
 
           <div className="flex gap-2">
-            <span className={`px-3 py-1 rounded-full text-[10px] font-bold border uppercase ${
+            <span className={`px-3 py-1 rounded text-[11px] font-semibold border ${
               isHigh ? 'bg-red-50 text-red-600 border-red-100' : 'bg-orange-50 text-orange-600 border-orange-100'
             }`}>
               {referral.priority}
             </span>
-            <span className={`flex items-center gap-1 px-3 py-1 rounded-full text-[10px] font-bold border ${
+            <span className={`flex items-center gap-1 px-3 py-1 rounded text-[11px] font-semibold border ${
               isOpen ? 'bg-red-50 text-red-600 border-red-100' : isClosed ? 'bg-green-50 text-green-600 border-green-100' : 'bg-orange-50 text-orange-600 border-orange-100'
             }`}>
               {isOpen ? <AlertTriangle size={12}/> : isClosed ? <CheckCircle size={12} /> : <Clock size={12}/>}
@@ -253,7 +253,7 @@ const ReferralCard = ({ referral, isUpdating, onAdvanceStatus, onAddNotes, onSen
         <div className="space-y-1 mb-4">
           <p className="text-sm text-slate-600"><span className="text-slate-400">Concern type:</span> {referral.concernType}</p>
           <p className="text-sm text-slate-600"><span className="text-slate-400">Date:</span> {new Date(referral.createdAt).toLocaleDateString()}</p>
-          <p className="text-xs font-bold text-slate-400 mt-2 uppercase">Description:</p>
+          <p className="text-xs font-semibold text-slate-400 mt-2">Description:</p>
         </div>
 
         {/* Reason Box */}
@@ -263,7 +263,7 @@ const ReferralCard = ({ referral, isUpdating, onAdvanceStatus, onAddNotes, onSen
 
         {referral.notes && (
           <div className="bg-blue-50/60 p-4 rounded-lg border border-blue-100 mb-6 text-sm text-slate-700">
-            <p className="text-[10px] font-bold text-blue-600 uppercase tracking-wide mb-1">Internal Notes</p>
+            <p className="text-[11px] font-semibold text-blue-600 mb-1">Internal Notes</p>
             {referral.notes}
           </div>
         )}
@@ -275,7 +275,7 @@ const ReferralCard = ({ referral, isUpdating, onAdvanceStatus, onAddNotes, onSen
               <button
                 onClick={() => onAdvanceStatus(referral, "IN_PROGRESS")}
                 disabled={isUpdating}
-                className="px-4 py-2 bg-orange-50 text-orange-600 text-xs font-bold rounded-lg border border-orange-100 hover:bg-orange-100 transition-colors disabled:opacity-50"
+                className="px-4 py-2 bg-orange-50 text-orange-600 text-xs font-semibold rounded-lg border border-orange-100 hover:bg-orange-100 transition-colors disabled:opacity-50"
               >
                 {isUpdating ? "Updating..." : "Start Intervention"}
               </button>
@@ -283,7 +283,7 @@ const ReferralCard = ({ referral, isUpdating, onAdvanceStatus, onAddNotes, onSen
               <button
                 onClick={() => onAdvanceStatus(referral, "CLOSED")}
                 disabled={isUpdating}
-                className="px-4 py-2 bg-green-50 text-green-600 text-xs font-bold rounded-lg border border-green-100 hover:bg-green-100 transition-colors disabled:opacity-50"
+                className="px-4 py-2 bg-green-50 text-green-600 text-xs font-semibold rounded-lg border border-green-100 hover:bg-green-100 transition-colors disabled:opacity-50"
               >
                 {isUpdating ? "Updating..." : "Mark as Resolved"}
               </button>
@@ -291,13 +291,13 @@ const ReferralCard = ({ referral, isUpdating, onAdvanceStatus, onAddNotes, onSen
           )}
           <button
             onClick={onAddNotes}
-            className="px-4 py-2 bg-blue-50 text-blue-600 text-xs font-bold rounded-lg border border-blue-100 hover:bg-blue-100 transition-colors"
+            className="px-4 py-2 bg-blue-50 text-blue-600 text-xs font-semibold rounded-lg border border-blue-100 hover:bg-blue-100 transition-colors"
           >
             Add Notes
           </button>
           <button
             onClick={onSendFeedback}
-            className="px-4 py-2 bg-slate-50 text-slate-600 text-xs font-bold rounded-lg border border-slate-100 hover:bg-slate-100 transition-colors"
+            className="px-4 py-2 bg-slate-50 text-slate-600 text-xs font-semibold rounded-lg border border-slate-100 hover:bg-slate-100 transition-colors"
           >
             Send Feedback
           </button>

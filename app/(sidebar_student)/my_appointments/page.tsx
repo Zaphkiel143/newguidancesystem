@@ -34,14 +34,14 @@ export const MyAppointments: React.FC = () => {
   const renderStatusBadge = (status: string) => {
     if (status === "CONFIRMED") {
       return (
-        <span className="inline-flex items-center gap-1.5 bg-emerald-50 text-emerald-600 text-xs font-bold px-3 py-1 rounded-full border border-emerald-200">
+        <span className="inline-flex items-center gap-1.5 bg-emerald-50 text-emerald-600 text-xs font-semibold px-3 py-1 rounded border border-emerald-200">
           <CheckCircle2 size={14} className="stroke-[2.5]" />
           Confirmed
         </span>
       );
     }
     return (
-      <span className="inline-flex items-center gap-1.5 bg-orange-50 text-orange-600 text-xs font-bold px-3 py-1 rounded-full border border-orange-200">
+      <span className="inline-flex items-center gap-1.5 bg-orange-50 text-orange-600 text-xs font-semibold px-3 py-1 rounded border border-orange-200">
         <AlertCircle size={14} className="stroke-[2.5]" />
         Pending
       </span>
@@ -49,7 +49,7 @@ export const MyAppointments: React.FC = () => {
   };
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8 min-h-[calc(100dvh-var(--topbar-h))] font-sans antialiased text-slate-800">
+    <div className="px-5 sm:px-8 lg:px-12 pt-8 lg:pt-12 pb-16 min-h-[calc(100dvh-var(--topbar-h))] font-sans antialiased text-slate-800">
 
       {/* Top Header Row with Action Button */}
       <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
@@ -72,7 +72,7 @@ export const MyAppointments: React.FC = () => {
       {/* Appointment History Main Card Panel */}
       <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden max-w-6xl">
         <div className="px-6 py-5 border-b border-slate-100">
-          <h2 className="font-bold text-slate-900 text-base">Appointment History</h2>
+          <h2 className="font-semibold text-slate-900 text-base">Appointment History</h2>
         </div>
 
         {/* List of Historical Rows */}
@@ -89,7 +89,7 @@ export const MyAppointments: React.FC = () => {
                 className="bg-white rounded-xl p-5 border border-slate-200/80 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 transition-all hover:border-slate-300"
               >
                 <div className="space-y-1">
-                  <h3 className="font-bold text-slate-800 text-[16px] tracking-wide">
+                  <h3 className="font-semibold text-slate-800 text-[16px]">
                     {apt.appointmentType || "General Consultation"}
                   </h3>
                   <p className="text-sm text-slate-500 font-medium">

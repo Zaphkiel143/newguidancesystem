@@ -37,7 +37,7 @@ export const StudentProfile: React.FC = () => {
   ];
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8 min-h-[calc(100dvh-var(--topbar-h))] font-sans antialiased text-slate-800">
+    <div className="px-5 sm:px-8 lg:px-12 pt-8 lg:pt-12 pb-16 min-h-[calc(100dvh-var(--topbar-h))] font-sans antialiased text-slate-800">
       
       {/* Page Title & Subtitle Header */}
       <header className="mb-6">
@@ -52,21 +52,21 @@ export const StudentProfile: React.FC = () => {
         {/* 1. Profile Banner & Personal Information Card (from image_9102a1.png) */}
         <section className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
           {/* Blue Hero Banner Area */}
-          <div className="relative overflow-hidden bg-navy px-6 py-8 flex items-center gap-5 bg-[radial-gradient(circle_at_85%_-20%,rgb(58_99_240/0.55),transparent_55%)]">
-            <div className="w-16 h-16 rounded-2xl bg-gold-400 flex items-center justify-center text-navy shrink-0 shadow-lg">
-              <User size={32} className="stroke-[2]" />
+          <div className="px-6 py-6 flex items-center gap-5 border-b border-rule">
+            <div className="w-14 h-14 rounded-md bg-slate-200 flex items-center justify-center text-slate-600 shrink-0">
+              <User size={26} strokeWidth={1.5} />
             </div>
             <div>
-              <h2 className="text-2xl font-bold text-white tracking-wide">Nhel Belarmino</h2>
-              <p className="text-blue-100 text-sm mt-0.5 font-medium opacity-90">
-                Student ID: 2024-12345
+              <h2 className="font-serif text-[28px] leading-tight text-ink">Nhel Belarmino</h2>
+              <p className="font-mono text-[13px] text-slate-500 mt-0.5">
+                Student ID 2024-12345
               </p>
             </div>
           </div>
 
           {/* Grid Metadata Body */}
           <div className="p-6">
-            <h3 className="font-bold text-slate-900 mb-4 text-base">Personal Information</h3>
+            <h3 className="font-semibold text-slate-900 mb-4 text-base">Personal Information</h3>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-y-5 gap-x-8">
               {/* Email Block */}
@@ -120,7 +120,7 @@ export const StudentProfile: React.FC = () => {
         <section className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
           <div className="flex items-center gap-2 border-b border-slate-100 pb-4 mb-5">
             <GraduationCap className="text-slate-800" size={22} />
-            <h3 className="font-bold text-slate-900 text-base">Academic Information</h3>
+            <h3 className="font-semibold text-slate-900 text-base">Academic Information</h3>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-y-5 gap-x-8">
@@ -144,7 +144,7 @@ export const StudentProfile: React.FC = () => {
         {/* 3. My Guidance Sessions List Card (from image_910549.png) */}
         <section className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
           <div className="px-6 py-5 border-b border-slate-100">
-            <h3 className="font-bold text-slate-900 text-base">My Guidance Sessions</h3>
+            <h3 className="font-semibold text-slate-900 text-base">My Guidance Sessions</h3>
           </div>
 
           <div className="p-6 space-y-4">
@@ -154,7 +154,7 @@ export const StudentProfile: React.FC = () => {
                 className="bg-slate-50 rounded-xl p-5 border border-slate-50 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 transition-all hover:border-slate-200"
               >
                 <div>
-                  <h4 className="font-bold text-slate-800 text-[15px] tracking-wide">
+                  <h4 className="font-semibold text-slate-800 text-[15px]">
                     {session.title}
                   </h4>
                   <p className="text-sm text-slate-500 mt-1 leading-relaxed">

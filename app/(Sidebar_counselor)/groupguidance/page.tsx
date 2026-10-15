@@ -106,7 +106,7 @@ const GroupGuidance = () => {
   };
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8 min-h-[calc(100dvh-var(--topbar-h))] font-sans text-slate-900">
+    <div className="px-5 sm:px-8 lg:px-12 pt-8 lg:pt-12 pb-16 min-h-[calc(100dvh-var(--topbar-h))] font-sans text-slate-900">
       {/* Header */}
       <header className="mb-8">
         <h1 className="page-title">Group Guidance & Needs Assessment</h1>
@@ -119,7 +119,7 @@ const GroupGuidance = () => {
         <div className="lg:col-span-7 space-y-6">
           <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm min-h-125">
             <div className="flex justify-between items-center mb-6">
-              <h2 className="text-lg font-bold">Guidance Programs</h2>
+              <h2 className="text-lg font-semibold">Guidance Programs</h2>
               <button
                 onClick={handleNewProgram}
                 className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-blue-700 transition-colors"
@@ -155,7 +155,7 @@ const GroupGuidance = () => {
         <div className="lg:col-span-5">
           <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
             <div className="flex justify-between items-center mb-6">
-              <h2 className="text-lg font-bold">Needs Assessment Results</h2>
+              <h2 className="text-lg font-semibold">Needs Assessment Results</h2>
               <button className="flex items-center gap-2 px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-md text-xs font-semibold hover:bg-slate-100">
                 <Download size={14} />
                 Export
@@ -164,7 +164,7 @@ const GroupGuidance = () => {
 
             <div className="mb-8">
               <p className="text-xs text-slate-500 font-medium">Total Responses</p>
-              <p className="text-3xl font-bold">0</p>
+              <p className="text-3xl font-semibold">0</p>
             </div>
 
             <div className="flex flex-col items-center justify-center py-10 mb-8 border-2 border-dashed border-slate-100 rounded-2xl bg-slate-50/40">
@@ -183,7 +183,7 @@ const GroupGuidance = () => {
         <div className="lg:col-span-12">
           <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
             <div className="p-4 border-b border-slate-100 bg-white">
-              <h2 className="font-bold text-slate-800">Assessment Submissions Timeline</h2>
+              <h2 className="font-semibold text-slate-800">Assessment Submissions Timeline</h2>
             </div>
             <div className="h-48 flex flex-col items-center justify-center text-slate-400 bg-white">
               <BarChart3 size={32} className="mb-2 opacity-30" />
@@ -198,7 +198,7 @@ const GroupGuidance = () => {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
           <div className="bg-white w-full max-w-md p-6 rounded-2xl shadow-xl border border-slate-100 space-y-4">
             <div>
-              <h3 className="text-lg font-bold text-slate-900">Group Guidance</h3>
+              <h3 className="text-lg font-semibold text-slate-900">Group Guidance</h3>
               <p className="text-xs text-slate-500">Schedule a new group guidance program</p>
             </div>
 
@@ -290,8 +290,8 @@ const ProgramCard = ({ title, grade, participants, date, status }: {
 }) => (
   <div className="p-5 border border-slate-100 rounded-xl hover:border-blue-100 hover:bg-blue-50/20 transition-all group">
     <div className="flex justify-between items-start mb-2">
-      <h3 className="font-bold text-slate-800">{title}</h3>
-      <span className={`text-[10px] font-bold px-3 py-1 rounded-full ${
+      <h3 className="font-semibold text-slate-800">{title}</h3>
+      <span className={`text-[11px] font-semibold px-3 py-1 rounded ${
         status === 'Completed' ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'
       }`}>
         {status}
@@ -306,7 +306,7 @@ const ProgramCard = ({ title, grade, participants, date, status }: {
         <Calendar size={14} /> Date: {date}
       </div>
     </div>
-    <button className="text-blue-600 bg-blue-50 px-3 py-1.5 rounded-md text-xs font-bold hover:bg-blue-100 transition-colors">
+    <button className="text-blue-600 bg-blue-50 px-3 py-1.5 rounded-md text-xs font-semibold hover:bg-blue-100 transition-colors">
       View Details
     </button>
   </div>

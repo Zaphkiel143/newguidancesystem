@@ -92,7 +92,7 @@ export default function BookAppointmentModal({
       <div className="bg-white w-full max-w-lg max-h-[85vh] overflow-y-auto rounded-2xl shadow-xl border border-slate-100">
         <div className="flex items-start justify-between p-6 border-b border-slate-100 sticky top-0 bg-white rounded-t-2xl">
           <div>
-            <h3 className="text-lg font-bold text-slate-900">Book Appointment</h3>
+            <h3 className="text-lg font-semibold text-slate-900">Book Appointment</h3>
             <p className="text-xs text-slate-500">Schedule a meeting with the guidance counselor</p>
           </div>
           <button

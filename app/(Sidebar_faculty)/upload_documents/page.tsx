@@ -117,7 +117,7 @@ export const UploadDocuments: React.FC = () => {
   };
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8 max-w-4xl mx-auto font-sans antialiased text-slate-800 space-y-6">
+    <div className="px-5 sm:px-8 lg:px-12 pt-8 lg:pt-12 pb-16 max-w-4xl font-sans antialiased text-slate-800 space-y-6">
 
       {/* 1. Header Section */}
       <div>
@@ -153,7 +153,7 @@ export const UploadDocuments: React.FC = () => {
             {isUploading ? <Loader2 size={32} className="animate-spin" /> : <UploadCloud size={32} className="stroke-[2]" />}
           </div>
 
-          <h3 className="font-bold text-slate-800 text-base">
+          <h3 className="font-semibold text-slate-800 text-base">
             {isUploading ? "Uploading..." : (
               <>Drag and drop files here, or <span className="text-blue-600 hover:underline">browse</span></>
             )}
@@ -174,7 +174,7 @@ export const UploadDocuments: React.FC = () => {
         {documents.length > 0 && (
           <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
             <div className="px-6 py-4 border-b border-slate-50 bg-slate-50/30">
-              <h4 className="font-bold text-slate-800 text-sm">Uploaded Documents</h4>
+              <h4 className="font-semibold text-slate-800 text-sm">Uploaded Documents</h4>
             </div>
 
             <div className="p-4 space-y-3">
@@ -191,14 +191,14 @@ export const UploadDocuments: React.FC = () => {
 
                     <div className="min-w-0 flex-1">
                       <div className="flex items-baseline gap-2 flex-wrap">
-                        <span className="font-bold text-slate-800 text-sm truncate max-w-[280px] sm:max-w-md">
+                        <span className="font-semibold text-slate-800 text-sm truncate max-w-[280px] sm:max-w-md">
                           {file.fileName}
                         </span>
                         <span className="text-xs text-slate-400 font-mono font-medium">
                           ({formatSize(file.fileSize)})
                         </span>
                       </div>
-                      <span className="text-[10px] text-slate-400 font-mono">
+                      <span className="text-[11px] text-slate-400 font-mono">
                         {new Date(file.createdAt).toLocaleString()}
                       </span>
                     </div>
@@ -207,7 +207,7 @@ export const UploadDocuments: React.FC = () => {
                   {/* Status Indicator & Action Triggers Column */}
                   <div className="flex items-center justify-between sm:justify-end gap-4 shrink-0 border-t border-slate-50 pt-2 sm:pt-0 sm:border-0">
                     <div className="text-xs">
-                      <span className="inline-flex items-center gap-1.5 bg-emerald-50 text-emerald-600 font-bold px-2.5 py-1 rounded-full border border-emerald-200">
+                      <span className="inline-flex items-center gap-1.5 bg-emerald-50 text-emerald-600 font-semibold px-2.5 py-1 rounded-full border border-emerald-200">
                         <CheckCircle2 size={13} className="stroke-[2.5]" />
                         Uploaded
                       </span>

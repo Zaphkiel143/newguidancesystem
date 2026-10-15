@@ -47,7 +47,7 @@ export const MyReferralsPage: React.FC = () => {
   };
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto font-sans antialiased text-slate-800 space-y-6">
+    <div className="px-5 sm:px-8 lg:px-12 pt-8 lg:pt-12 pb-16 max-w-7xl font-sans antialiased text-slate-800 space-y-6">
 
       {/* Page Heading Headers Section */}
       <div>
@@ -82,16 +82,16 @@ export const MyReferralsPage: React.FC = () => {
               {/* Card Title Bar Segment Containing Identification Metadata */}
               <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
                 <div className="space-y-0.5">
-                  <h3 className="text-lg font-bold text-slate-900 tracking-tight">{log.studentName}</h3>
+                  <h3 className="text-lg font-semibold text-slate-900 tracking-tight">{log.studentName}</h3>
                 </div>
 
                 {/* Priority and Progress Badges Row Section */}
                 <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
-                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md tracking-wider uppercase ${getPriorityStyles(log.priority)}`}>
+                  <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-md ${getPriorityStyles(log.priority)}`}>
                     {log.priority}
                   </span>
 
-                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md tracking-wider flex items-center gap-1.5 ${getStatusStyles(log.status)}`}>
+                  <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-md flex items-center gap-1.5 ${getStatusStyles(log.status)}`}>
                     {log.status === 'OPEN' && <AlertTriangle size={12} className="stroke-[2.5]" />}
                     {log.status === 'IN_PROGRESS' && <Clock size={12} className="stroke-[2.5]" />}
                     {log.status === 'CLOSED' && <CheckCircle2 size={12} className="stroke-[2.5]" />}
@@ -115,7 +115,7 @@ export const MyReferralsPage: React.FC = () => {
               {/* Conditional Nested Office Feedback Container */}
               {log.notes && (
                 <div className="bg-blue-50/50 border border-blue-100 rounded-xl p-4 mt-2">
-                  <span className="text-xs font-bold text-blue-900 flex items-center gap-2">
+                  <span className="text-xs font-semibold text-blue-900 flex items-center gap-2">
                     <FileText size={14} className="text-blue-600" />
                     Feedback from Guidance Office:
                   </span>

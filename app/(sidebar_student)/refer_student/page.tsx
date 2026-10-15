@@ -74,7 +74,7 @@ export const ReferStudentForm: React.FC = () => {
   };
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8 min-h-[calc(100dvh-var(--topbar-h))] font-sans antialiased text-slate-800">
+    <div className="px-5 sm:px-8 lg:px-12 pt-8 lg:pt-12 pb-16 min-h-[calc(100dvh-var(--topbar-h))] font-sans antialiased text-slate-800">
       
       {/* 1. Header Section (from image_90f762.png) */}
       <header className="mb-6">
@@ -89,7 +89,7 @@ export const ReferStudentForm: React.FC = () => {
         {/* 2. Informational Banner Blocks (from image_90f762.png) */}
         {/* Blue Info Banner */}
         <div className="bg-blue-50 border border-blue-200 text-blue-600 rounded-xl p-4 text-sm leading-relaxed">
-          <span className="font-bold">Peer Support:</span> If you notice a fellow student who may need support, you can refer them to the Guidance Office. All referrals are confidential and will be handled with care.
+          <span className="font-semibold">Peer Support:</span> If you notice a fellow student who may need support, you can refer them to the Guidance Office. All referrals are confidential and will be handled with care.
         </div>
 
         {/* Green Info Banner */}
@@ -103,7 +103,7 @@ export const ReferStudentForm: React.FC = () => {
           {/* Row 1: Student Name & Student ID */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-700 block">
+              <label className="text-xs font-semibold text-slate-700 block">
                 Student Name <span className="text-rose-500">*</span>
               </label>
               <input
@@ -117,7 +117,7 @@ export const ReferStudentForm: React.FC = () => {
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-700 block">
+              <label className="text-xs font-semibold text-slate-700 block">
                 Student ID <span className="text-rose-500">*</span>
               </label>
               <input
@@ -134,7 +134,7 @@ export const ReferStudentForm: React.FC = () => {
           {/* Row 2: Grade & Section */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-700 block">
+              <label className="text-xs font-semibold text-slate-700 block">
                 Grade <span className="text-rose-500">*</span>
               </label>
               <div className="relative">
@@ -156,7 +156,7 @@ export const ReferStudentForm: React.FC = () => {
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-700 block">
+              <label className="text-xs font-semibold text-slate-700 block">
                 Section <span className="text-rose-500">*</span>
               </label>
               <div className="relative">
@@ -182,7 +182,7 @@ export const ReferStudentForm: React.FC = () => {
           {/* Row 3: Type of Concern & Priority Level */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-700 block">
+              <label className="text-xs font-semibold text-slate-700 block">
                 Type of Concern <span className="text-rose-500">*</span>
               </label>
               <div className="relative">
@@ -205,7 +205,7 @@ export const ReferStudentForm: React.FC = () => {
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-700 block">
+              <label className="text-xs font-semibold text-slate-700 block">
                 Priority Level <span className="text-rose-500">*</span>
               </label>
               <div className="relative">
@@ -229,7 +229,7 @@ export const ReferStudentForm: React.FC = () => {
 
           {/* Text Area 1: Description of Concern */}
           <div className="space-y-1.5">
-            <label className="text-xs font-bold text-slate-700 block">
+            <label className="text-xs font-semibold text-slate-700 block">
               Description of Concern <span className="text-rose-500">*</span>
             </label>
             <textarea
@@ -245,7 +245,7 @@ export const ReferStudentForm: React.FC = () => {
 
           {/* Text Area 2: Observed Behaviors (Optional) */}
           <div className="space-y-1.5">
-            <label className="text-xs font-bold text-slate-700 block">
+            <label className="text-xs font-semibold text-slate-700 block">
               Observed Behaviors (Optional)
             </label>
             <textarea
@@ -260,20 +260,20 @@ export const ReferStudentForm: React.FC = () => {
 
           {/* 4. Emergency Alert Box (from image_90fa09.png) */}
           <div className="bg-orange-50 border border-orange-200 rounded-xl p-4 text-sm leading-relaxed">
-            <span className="font-bold text-orange-800">Emergency Situations:</span>{' '}
+            <span className="font-semibold text-orange-800">Emergency Situations:</span>{' '}
             <span className="text-orange-800/90">
               If this is an emergency or the student is in immediate danger, please notify a teacher, school staff, or go directly to the Guidance Office right away.
             </span>
           </div>
 
           {successMessage && (
-            <div className="p-4 bg-emerald-50 border border-emerald-200 text-emerald-600 text-sm font-bold rounded-xl">
+            <div className="p-4 bg-emerald-50 border border-emerald-200 text-emerald-600 text-sm font-semibold rounded-xl">
               {successMessage}
             </div>
           )}
 
           {error && (
-            <div className="p-4 bg-red-50 border border-red-100 text-red-600 text-sm font-bold rounded-xl">
+            <div className="p-4 bg-red-50 border border-red-100 text-red-600 text-sm font-semibold rounded-xl">
               {error}
             </div>
           )}

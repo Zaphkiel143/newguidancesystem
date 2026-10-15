@@ -84,9 +84,9 @@ export const MessagesDashboard: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col h-[calc(100dvh-var(--topbar-h))] bg-white font-sans antialiased text-slate-800">
+    <div className="flex flex-col h-[calc(100dvh-var(--topbar-h))] bg-paper font-sans antialiased text-slate-800">
       {/* Header Section */}
-      <header className="px-8 pt-6 pb-4 border-b border-slate-100">
+      <header className="px-5 sm:px-8 lg:px-12 pt-8 pb-5 border-b border-rule">
         <h1 className="page-title">Messages</h1>
         <p className="text-sm text-slate-500 mt-1">
           Communicate with students, faculty, and parents
@@ -156,7 +156,7 @@ export const MessagesDashboard: React.FC = () => {
 
                         {/* Unread Pill Indicator */}
                         {chat.unreadCount > 0 && (
-                          <span className="bg-blue-600 text-white text-xs font-bold min-w-[18px] h-[18px] px-1 rounded-full flex items-center justify-center shrink-0">
+                          <span className="bg-blue-600 text-white text-xs font-semibold min-w-[18px] h-[18px] px-1 rounded flex items-center justify-center shrink-0">
                             {chat.unreadCount}
                           </span>
                         )}
@@ -166,7 +166,7 @@ export const MessagesDashboard: React.FC = () => {
                         {chat.lastMessage || "No messages yet"}
                       </p>
 
-                      <span className="text-[10px] text-slate-400 block mt-1 font-mono">
+                      <span className="text-[11px] text-slate-400 block mt-1 font-mono">
                         {new Date(chat.lastMessageAt).toLocaleString()}
                       </span>
                     </div>
@@ -230,7 +230,7 @@ export const MessagesDashboard: React.FC = () => {
           <div className="bg-white w-full max-w-md p-6 rounded-2xl shadow-xl border border-slate-100 space-y-4">
             <div className="flex items-start justify-between">
               <div>
-                <h3 className="text-lg font-bold text-slate-900">New Message</h3>
+                <h3 className="text-lg font-semibold text-slate-900">New Message</h3>
                 <p className="text-xs text-slate-500">Start a conversation with a student, faculty member, or parent</p>
               </div>
               <button

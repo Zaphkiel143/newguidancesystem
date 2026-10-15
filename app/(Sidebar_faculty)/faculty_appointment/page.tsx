@@ -32,7 +32,7 @@ export const MyAppointmentsPage: React.FC = () => {
   }, []);
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8 max-w-5xl mx-auto font-sans antialiased text-slate-800 space-y-6">
+    <div className="px-5 sm:px-8 lg:px-12 pt-8 lg:pt-12 pb-16 max-w-5xl font-sans antialiased text-slate-800 space-y-6">
 
       {/* Upper Main Action Header Bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -46,7 +46,7 @@ export const MyAppointmentsPage: React.FC = () => {
         <button
           type="button"
           onClick={() => setIsBookingOpen(true)}
-          className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 px-5 rounded-xl transition-colors text-sm shadow-sm flex items-center justify-center gap-1.5 self-start sm:self-auto shrink-0"
+          className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 px-5 rounded-xl transition-colors text-sm shadow-sm flex items-center justify-center gap-1.5 self-start sm:self-auto shrink-0"
         >
           <Plus size={16} className="stroke-[3]" />
           <span>Book Appointment</span>
@@ -58,7 +58,7 @@ export const MyAppointmentsPage: React.FC = () => {
 
         {/* Panel Section Sub-header Title */}
         <div className="px-6 py-5 border-b border-slate-100 bg-slate-50/20">
-          <h2 className="font-bold text-slate-900 text-lg tracking-tight">Appointment History</h2>
+          <h2 className="font-semibold text-slate-900 text-lg tracking-tight">Appointment History</h2>
         </div>
 
         {appointments.length === 0 ? (
@@ -77,7 +77,7 @@ export const MyAppointmentsPage: React.FC = () => {
                 {/* Left Column Description Context Info */}
                 <div className="space-y-2">
                   <div className="space-y-0.5">
-                    <h3 className="text-lg font-bold text-slate-900 tracking-tight">
+                    <h3 className="text-lg font-semibold text-slate-900 tracking-tight">
                       {meeting.appointmentType || "General Consultation"}
                     </h3>
                     <p className="text-xs text-slate-500 font-medium flex items-center gap-1">
@@ -101,7 +101,7 @@ export const MyAppointmentsPage: React.FC = () => {
 
                 {/* Right Column Badge State Triggers */}
                 <div className="self-start sm:self-auto">
-                  <span className={`text-[11px] font-bold px-3 py-1 rounded-full flex items-center gap-1.5 font-sans tracking-wide border
+                  <span className={`text-[11px] font-semibold px-3 py-1 rounded flex items-center gap-1.5 font-sans border
                     ${meeting.status === 'CONFIRMED'
                       ? 'bg-emerald-50 border-emerald-200 text-emerald-600'
                       : 'bg-slate-100 border-slate-200 text-slate-600'

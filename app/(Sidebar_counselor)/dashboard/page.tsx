@@ -1,14 +1,16 @@
 import React from 'react';
 import Link from 'next/link';
-import { Users, Calendar, FileText, Briefcase, ArrowUpRight, Clock, AlertTriangle } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import { getAppointmentsByDate, getDashboardStats, listReferrals } from '../../action/counselor';
+import { getCurrentUser } from '../../../lib/auth';
 
 const Dashboard = async () => {
   const today = new Date().toISOString().split("T")[0];
-  const [todaysAppointments, stats, referrals] = await Promise.all([
+  const [todaysAppointments, stats, referrals, user] = await Promise.all([
     getAppointmentsByDate(today),
     getDashboardStats(),
     listReferrals(),
+    getCurrentUser(),
   ]);
 
   const urgentReferrals = referrals
@@ -17,83 +19,87 @@ const Dashboard = async () => {
 
   const hour = new Date().getHours();
   const greeting = hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
+  const firstName = user?.name.split(" ")[0];
+  const dateLabel = new Date().toLocaleDateString("en-PH", { weekday: "long", month: "long", day: "numeric" });
+
+  const summary =
+    todaysAppointments.length === 0
+      ? "Nothing on the calendar today."
+      : `${todaysAppointments.length} ${todaysAppointments.length === 1 ? "session" : "sessions"} on the calendar today.`;
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8 space-y-6 max-w-7xl">
-      {/* Greeting banner */}
-      <section className="relative overflow-hidden rounded-2xl bg-navy text-white p-6 sm:p-8">
-        <div className="pointer-events-none absolute -top-24 -right-10 w-80 h-80 rounded-full bg-blue-600/40 blur-3xl" />
-        <div className="pointer-events-none absolute -bottom-28 right-40 w-64 h-64 rounded-full bg-gold-400/15 blur-3xl" />
-        <div className="relative flex flex-col md:flex-row md:items-end md:justify-between gap-6">
-          <div>
-            <p className="text-gold-300 text-xs font-bold uppercase tracking-[0.14em]">{greeting}</p>
-            <h1 className="text-2xl sm:text-[28px] font-extrabold tracking-tight mt-2">
-              Here&apos;s your guidance overview
-            </h1>
-            <p className="text-white/60 text-sm mt-1.5">
-              {todaysAppointments.length === 0
-                ? "Your calendar is clear today."
-                : `You have ${todaysAppointments.length} session${todaysAppointments.length === 1 ? "" : "s"} on the calendar today.`}
-              {urgentReferrals.length > 0 && ` ${urgentReferrals.length} referral${urgentReferrals.length === 1 ? " needs" : "s need"} attention.`}
-            </p>
-          </div>
-          <div className="flex gap-2">
-            <Link href="/appointment" className="inline-flex items-center gap-1.5 bg-white text-navy text-sm font-semibold px-4 py-2.5 rounded-xl hover:bg-gold-50 transition-colors">
-              Open schedule <ArrowUpRight size={16} />
-            </Link>
-            <Link href="/referral" className="inline-flex items-center gap-1.5 bg-white/10 ring-1 ring-white/15 text-white text-sm font-semibold px-4 py-2.5 rounded-xl hover:bg-white/15 transition-colors">
-              Referrals
-            </Link>
-          </div>
-        </div>
-      </section>
+    <div className="px-5 sm:px-8 lg:px-12 pt-8 lg:pt-12 pb-16 max-w-6xl">
+      <header>
+        <p className="text-sm text-slate-500">{dateLabel}</p>
+        <h1 className="page-title mt-2">
+          {greeting}{firstName ? `, ${firstName}` : ""}.
+        </h1>
+        <p className="mt-2 text-slate-600">
+          {summary}
+          {urgentReferrals.length > 0 && (
+            <>
+              {" "}
+              <Link href="/referral" className="text-red-700 underline underline-offset-4 decoration-red-200 hover:decoration-red-500">
+                {urgentReferrals.length} high-priority {urgentReferrals.length === 1 ? "referral" : "referrals"}
+              </Link>{" "}
+              still open.
+            </>
+          )}
+        </p>
+      </header>
 
-      {/* Stats */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard icon={Users} value={stats.totalStudents} label="Total students" tone="bg-blue-50 text-blue-600" />
-        <StatCard icon={Calendar} value={todaysAppointments.length} label="Today's appointments" tone="bg-emerald-50 text-emerald-600" />
-        <StatCard icon={FileText} value={stats.pendingReferrals} label="Pending referrals" tone="bg-orange-50 text-orange-600" />
-        <StatCard icon={Briefcase} value={stats.activeCareerPlans} label="Active career plans" tone="bg-violet-50 text-violet-600" />
+      {/* Figures */}
+      <div className="mt-10 grid grid-cols-2 lg:grid-cols-4 gap-px bg-rule border-y border-rule">
+        <Figure label="Students on record" value={stats.totalStudents} href="/inventory" />
+        <Figure label="Appointments today" value={todaysAppointments.length} href="/appointment" />
+        <Figure label="Referrals pending" value={stats.pendingReferrals} href="/referral" />
+        <Figure label="Active career plans" value={stats.activeCareerPlans} href="/careerguidance" />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Appointments */}
-        <Panel title="Today's appointments" href="/appointment">
+      <div className="mt-12 grid grid-cols-1 lg:grid-cols-[1.2fr_1fr] gap-12 lg:gap-16">
+        <section>
+          <SectionHeading title="Today's schedule" href="/appointment" linkLabel="Open calendar" />
           {todaysAppointments.length === 0 ? (
-            <EmptyState icon={Calendar} text="No appointments scheduled for today." />
+            <Empty>
+              No sessions booked for today. Students can request a slot from their own dashboard.
+            </Empty>
           ) : (
-            <ul className="divide-y divide-slate-100">
+            <ol className="divide-y divide-rule border-t border-rule">
               {todaysAppointments.map((appointment) => (
-                <AppointmentRow
-                  key={appointment.id}
-                  name={appointment.studentName || "Unnamed Student"}
-                  type={appointment.appointmentType || "General"}
-                  time={appointment.time}
-                  status={appointment.status === "CONFIRMED" ? "Confirmed" : "Pending"}
-                />
+                <li key={appointment.id} className="grid grid-cols-[72px_1fr_auto] items-baseline gap-4 py-3.5">
+                  <span className="font-mono text-[13px] text-slate-500 tabular">{appointment.time}</span>
+                  <span className="min-w-0">
+                    <span className="block font-medium text-ink truncate">{appointment.studentName || "Unnamed student"}</span>
+                    <span className="block text-[13px] text-slate-500 truncate">{appointment.appointmentType || "General"}</span>
+                  </span>
+                  <Status confirmed={appointment.status === "CONFIRMED"} />
+                </li>
               ))}
-            </ul>
+            </ol>
           )}
-        </Panel>
+        </section>
 
-        {/* Referrals */}
-        <Panel title="Urgent referrals" href="/referral">
+        <section>
+          <SectionHeading title="Needs attention" href="/referral" linkLabel="All referrals" />
           {urgentReferrals.length === 0 ? (
-            <EmptyState icon={AlertTriangle} text="No urgent referrals right now." />
+            <Empty>No high-priority referrals are open.</Empty>
           ) : (
-            <ul className="space-y-3">
+            <ul className="divide-y divide-rule border-t border-rule">
               {urgentReferrals.map((referral) => (
-                <ReferralCard
-                  key={referral.id}
-                  name={referral.studentName}
-                  referrer={referral.referrerName}
-                  reason={referral.concernType}
-                  date={new Date(referral.createdAt).toLocaleDateString()}
-                />
+                <li key={referral.id} className="py-4">
+                  <div className="flex items-baseline justify-between gap-3">
+                    <p className="font-medium text-ink">{referral.studentName}</p>
+                    <span className="text-[12px] text-red-700 font-medium shrink-0">{referral.priority}</span>
+                  </div>
+                  <p className="text-[14px] text-slate-600 mt-0.5">{referral.concernType}</p>
+                  <p className="text-[12px] text-slate-400 mt-1.5">
+                    From {referral.referrerName} · {new Date(referral.createdAt).toLocaleDateString("en-PH", { month: "short", day: "numeric" })}
+                  </p>
+                </li>
               ))}
             </ul>
           )}
-        </Panel>
+        </section>
       </div>
     </div>
   );
@@ -101,60 +107,31 @@ const Dashboard = async () => {
 
 export default Dashboard;
 
-const StatCard = ({ icon: Icon, value, label, tone }: { icon: React.ElementType; value: number; label: string; tone: string }) => (
-  <div className="bg-white p-5 rounded-2xl border border-slate-200/70 shadow-sm">
-    <div className={`w-10 h-10 rounded-xl grid place-items-center ${tone}`}>
-      <Icon size={19} />
-    </div>
-    <p className="text-[28px] font-extrabold tracking-tight text-slate-900 mt-4 leading-none">{value}</p>
-    <p className="text-[13px] text-slate-500 mt-1.5 font-medium">{label}</p>
+const Figure = ({ label, value, href }: { label: string; value: number; href: string }) => (
+  <div className="bg-paper px-5 py-5 first:pl-0">
+    <Link href={href} className="group block">
+      <p className="font-serif text-[44px] leading-none text-ink tabular">{value}</p>
+      <p className="text-[13px] text-slate-500 mt-2 group-hover:text-blue-700 transition-colors">{label}</p>
+    </Link>
   </div>
 );
 
-const Panel = ({ title, href, children }: { title: string; href: string; children: React.ReactNode }) => (
-  <section className="bg-white rounded-2xl border border-slate-200/70 shadow-sm">
-    <div className="flex items-center justify-between px-6 pt-5 pb-4">
-      <h2 className="text-base font-bold text-slate-900">{title}</h2>
-      <Link href={href} className="text-xs font-semibold text-blue-600 hover:text-blue-700 inline-flex items-center gap-1">
-        View all <ArrowUpRight size={14} />
-      </Link>
-    </div>
-    <div className="px-6 pb-6">{children}</div>
-  </section>
-);
-
-const EmptyState = ({ icon: Icon, text }: { icon: React.ElementType; text: string }) => (
-  <div className="flex flex-col items-center justify-center text-center py-10 rounded-xl bg-slate-50 border border-dashed border-slate-200">
-    <Icon size={22} className="text-slate-300" />
-    <p className="text-sm text-slate-400 mt-2">{text}</p>
+const SectionHeading = ({ title, href, linkLabel }: { title: string; href: string; linkLabel: string }) => (
+  <div className="flex items-baseline justify-between mb-3">
+    <h2 className="font-serif text-[22px] text-ink">{title}</h2>
+    <Link href={href} className="group text-[13px] text-slate-500 hover:text-blue-700 inline-flex items-center gap-1 transition-colors">
+      {linkLabel} <ArrowRight size={13} className="group-hover:translate-x-0.5 transition-transform" />
+    </Link>
   </div>
 );
 
-const AppointmentRow = ({ name, type, time, status }: { name: string; type: string; time: string; status: 'Confirmed' | 'Pending' }) => (
-  <li className="flex items-center gap-4 py-3.5 first:pt-0 last:pb-0">
-    <div className="w-14 shrink-0 text-center rounded-xl bg-slate-50 py-2">
-      <Clock size={14} className="mx-auto text-slate-400" />
-      <p className="text-[11px] font-bold text-slate-700 mt-1 font-mono">{time}</p>
-    </div>
-    <div className="min-w-0 flex-1">
-      <p className="font-semibold text-slate-900 truncate">{name}</p>
-      <p className="text-[13px] text-slate-500 truncate">{type}</p>
-    </div>
-    <span className={`text-[11px] font-bold px-2.5 py-1 rounded-full ${
-      status === 'Confirmed' ? 'bg-emerald-50 text-emerald-700' : 'bg-orange-50 text-orange-700'
-    }`}>
-      {status}
-    </span>
-  </li>
+const Empty = ({ children }: { children: React.ReactNode }) => (
+  <p className="border-t border-rule pt-4 text-[14px] text-slate-500 max-w-[46ch]">{children}</p>
 );
 
-const ReferralCard = ({ name, referrer, reason, date }: { name: string; referrer: string; reason: string; date: string }) => (
-  <li className="p-4 rounded-xl border border-rose-100 bg-rose-50/40">
-    <div className="flex items-start justify-between gap-3">
-      <p className="font-semibold text-slate-900">{name}</p>
-      <span className="text-[10px] font-bold text-rose-700 bg-rose-100 px-2 py-0.5 rounded-full uppercase tracking-wide shrink-0">Urgent</span>
-    </div>
-    <p className="text-[13px] text-slate-600 mt-1">{reason}</p>
-    <p className="text-xs text-slate-400 mt-2">Referred by {referrer} · {date}</p>
-  </li>
+const Status = ({ confirmed }: { confirmed: boolean }) => (
+  <span className={`inline-flex items-center gap-1.5 text-[12px] ${confirmed ? "text-emerald-700" : "text-orange-700"}`}>
+    <span className={`w-1.5 h-1.5 rounded-full ${confirmed ? "bg-emerald-500" : "bg-orange-500"}`} />
+    {confirmed ? "Confirmed" : "Pending"}
+  </span>
 );

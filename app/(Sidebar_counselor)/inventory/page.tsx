@@ -67,7 +67,7 @@ const StudentInventory = () => {
 
   return (
     <main>
-    <div className="p-4 sm:p-6 lg:p-8 min-h-[calc(100dvh-var(--topbar-h))] font-sans">
+    <div className="px-5 sm:px-8 lg:px-12 pt-8 lg:pt-12 pb-16 min-h-[calc(100dvh-var(--topbar-h))] font-sans">
       {/* Header Section */}
       <header className="mb-6">
         <h1 className="page-title">Individual Inventory</h1>
@@ -108,7 +108,7 @@ const StudentInventory = () => {
                 <button
                   key={grade}
                   onClick={() => setGradeFilter(grade)}
-                  className={`px-3 py-1 rounded-full text-xs font-semibold border transition-colors ${
+                  className={`px-3 py-1 rounded text-xs font-semibold border transition-colors ${
                     gradeFilter === grade
                       ? "bg-blue-600 text-white border-blue-600"
                       : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
@@ -126,11 +126,11 @@ const StudentInventory = () => {
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="border-b border-slate-100">
-                <th className="px-6 py-4 text-xs font-bold text-slate-800 uppercase tracking-wider">Student ID</th>
-                <th className="px-6 py-4 text-xs font-bold text-slate-800 uppercase tracking-wider">Name</th>
-                <th className="px-6 py-4 text-xs font-bold text-slate-800 uppercase tracking-wider">Grade & Section</th>
-                <th className="px-6 py-4 text-xs font-bold text-slate-800 uppercase tracking-wider">Last Session</th>
-                <th className="px-6 py-4 text-xs font-bold text-slate-800 uppercase tracking-wider">Actions</th>
+                <th className="px-6 py-4 text-xs font-semibold text-slate-800">Student ID</th>
+                <th className="px-6 py-4 text-xs font-semibold text-slate-800">Name</th>
+                <th className="px-6 py-4 text-xs font-semibold text-slate-800">Grade & Section</th>
+                <th className="px-6 py-4 text-xs font-semibold text-slate-800">Last Session</th>
+                <th className="px-6 py-4 text-xs font-semibold text-slate-800">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -175,7 +175,7 @@ const StudentInventory = () => {
           {/* Header */}
           <div className="flex justify-between items-start p-6 border-b border-slate-100 sticky top-0 bg-white rounded-t-2xl">
             <div>
-              <h3 className="text-lg font-bold text-slate-900">{selectedStudent.name}</h3>
+              <h3 className="text-lg font-semibold text-slate-900">{selectedStudent.name}</h3>
               <p className="text-xs font-semibold text-slate-500">{selectedStudent.id} • {selectedStudent.gradeSection}</p>
             </div>
             <button
@@ -196,7 +196,7 @@ const StudentInventory = () => {
               <>
                 {/* Career Planning Progress */}
                 <section>
-                  <h4 className="text-sm font-bold text-slate-800 mb-4">Career Planning Progress</h4>
+                  <h4 className="text-sm font-semibold text-slate-800 mb-4">Career Planning Progress</h4>
                   {profile?.careerPlan ? (
                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                       {CAREER_STEPS.map((step, i) => {
@@ -208,10 +208,10 @@ const StudentInventory = () => {
                               completedOn ? "bg-green-50 border-green-100" : "bg-slate-50 border-slate-100"
                             }`}
                           >
-                            <p className="text-[10px] font-bold uppercase tracking-tight text-slate-500 leading-tight">
+                            <p className="text-[11px] font-semibold tracking-tight text-slate-500 leading-tight">
                               {step}
                             </p>
-                            <p className={`text-[10px] mt-1 font-semibold ${completedOn ? "text-green-600" : "text-slate-400"}`}>
+                            <p className={`text-[11px] mt-1 font-semibold ${completedOn ? "text-green-600" : "text-slate-400"}`}>
                               {completedOn || "Pending"}
                             </p>
                           </div>
@@ -225,7 +225,7 @@ const StudentInventory = () => {
 
                 {/* Guidance Session History */}
                 <section>
-                  <h4 className="text-sm font-bold text-slate-800 mb-4">
+                  <h4 className="text-sm font-semibold text-slate-800 mb-4">
                     Guidance Session History
                     {profile && profile.appointments.length > 0 && (
                       <span className="ml-2 text-xs font-semibold text-slate-400">
@@ -238,11 +238,11 @@ const StudentInventory = () => {
                       {profile.appointments.map((appt) => (
                         <div key={appt.id} className="border border-slate-100 rounded-xl p-4">
                           <div className="flex justify-between items-start mb-1">
-                            <p className="text-sm font-bold text-slate-800">
+                            <p className="text-sm font-semibold text-slate-800">
                               {appt.appointmentType || "General Session"}
                             </p>
                             <span
-                              className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase ${
+                              className={`text-[11px] font-semibold px-2 py-0.5 rounded ${
                                 appt.status === "CONFIRMED"
                                   ? "bg-emerald-50 text-emerald-600"
                                   : appt.status === "PENDING"

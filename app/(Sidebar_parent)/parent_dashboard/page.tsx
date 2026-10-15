@@ -73,7 +73,7 @@ export const ParentBookAppointment: React.FC = () => {
   };
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8 max-w-3xl mx-auto font-sans antialiased text-slate-800 space-y-6">
+    <div className="px-5 sm:px-8 lg:px-12 pt-8 lg:pt-12 pb-16 max-w-3xl font-sans antialiased text-slate-800 space-y-6">
       
       {/* Page Context Branding Header */}
       <div>
@@ -89,7 +89,7 @@ export const ParentBookAppointment: React.FC = () => {
           
           {/* 1. Select Child Field Segment (Parent Specific Attribute from image_85ac21.png) */}
           <div className="space-y-2">
-            <label className="text-xs font-bold text-slate-700 flex items-center gap-2 uppercase tracking-wider">
+            <label className="text-xs font-semibold text-slate-700 flex items-center gap-2">
               <Users size={14} className="text-slate-400" />
               Select Child <span className="text-red-500">*</span>
             </label>
@@ -115,7 +115,7 @@ export const ParentBookAppointment: React.FC = () => {
             
             {/* Left: Interactive Date Field */}
             <div className="space-y-2">
-              <label className="text-xs font-bold text-slate-700 flex items-center gap-2 uppercase tracking-wider">
+              <label className="text-xs font-semibold text-slate-700 flex items-center gap-2">
                 <CalendarIcon size={14} className="text-slate-400" />
                 Select Date <span className="text-red-500">*</span>
               </label>
@@ -133,7 +133,7 @@ export const ParentBookAppointment: React.FC = () => {
 
             {/* Right: Available Slots Tracker */}
             <div className="space-y-2">
-              <label className="text-xs font-bold text-slate-700 flex items-center gap-2 uppercase tracking-wider">
+              <label className="text-xs font-semibold text-slate-700 flex items-center gap-2">
                 <Clock size={14} className="text-slate-400" />
                 Available Time Slots <span className="text-red-500">*</span>
               </label>
@@ -171,7 +171,7 @@ export const ParentBookAppointment: React.FC = () => {
             
             {/* Meeting Purpose Selection */}
             <div className="space-y-2">
-              <label className="text-xs font-bold text-slate-700 block uppercase tracking-wider">
+              <label className="text-xs font-semibold text-slate-700 block">
                 Purpose of Appointment <span className="text-red-500">*</span>
               </label>
               <div className="relative">
@@ -194,7 +194,7 @@ export const ParentBookAppointment: React.FC = () => {
 
             {/* Optional Context Textarea Description */}
             <div className="space-y-2">
-              <label className="text-xs font-bold text-slate-700 flex items-center gap-2 uppercase tracking-wider">
+              <label className="text-xs font-semibold text-slate-700 flex items-center gap-2">
                 <AlignLeft size={14} className="text-slate-400" />
                 Description / Notes (Optional)
               </label>

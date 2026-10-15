@@ -35,7 +35,7 @@ export const MyReferralsPage: React.FC = () => {
   );
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8 max-w-5xl mx-auto font-sans antialiased text-slate-800 space-y-6">
+    <div className="px-5 sm:px-8 lg:px-12 pt-8 lg:pt-12 pb-16 max-w-5xl font-sans antialiased text-slate-800 space-y-6">
 
       {/* Page Title & Context Header Copy */}
       <div>
@@ -47,7 +47,7 @@ export const MyReferralsPage: React.FC = () => {
 
       {/* Target Focus Notice Block Banner */}
       <div className="bg-blue-50 border border-blue-100 px-5 py-3.5 rounded-xl text-sm font-medium text-blue-600">
-        Viewing referrals for: <span className="font-bold">{CHILD_NAME}</span>
+        Viewing referrals for: <span className="font-semibold">{CHILD_NAME}</span>
       </div>
 
       {/* Main Container Wrapper */}
@@ -78,7 +78,7 @@ export const MyReferralsPage: React.FC = () => {
                 {/* Row Header Segment: Title + Badges */}
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div className="space-y-1">
-                    <h3 className="text-lg font-bold text-slate-900 tracking-tight">{item.concernType}</h3>
+                    <h3 className="text-lg font-semibold text-slate-900 tracking-tight">{item.concernType}</h3>
                     <div className="text-xs text-slate-500 font-medium flex flex-wrap items-center gap-x-4 gap-y-1">
                       <span>Counselor: <span className="text-slate-700 font-semibold">Ralph Michael</span></span>
                       <span className="hidden sm:inline text-slate-300">•</span>
@@ -89,7 +89,7 @@ export const MyReferralsPage: React.FC = () => {
                   {/* Operational Target State Tags */}
                   <div className="flex items-center gap-2">
                     {/* Priority Indicator Badge */}
-                    <span className={`text-[10px] font-bold px-2.5 py-1 rounded-md tracking-wider uppercase
+                    <span className={`text-[11px] font-semibold px-2.5 py-1 rounded-md
                       ${item.priority === 'Medium' ? 'bg-orange-50 text-orange-700' : ''}
                       ${item.priority === 'Low' ? 'bg-blue-50 text-blue-700' : ''}
                       ${(item.priority === 'High' || item.priority === 'Urgent') ? 'bg-red-50 text-red-700' : ''}
@@ -98,7 +98,7 @@ export const MyReferralsPage: React.FC = () => {
                     </span>
 
                     {/* Dynamic Status Track Pill */}
-                    <span className={`text-[11px] font-bold px-3 py-1 rounded-full flex items-center gap-1.5 uppercase font-sans tracking-wide
+                    <span className={`text-[11px] font-semibold px-3 py-1 rounded flex items-center gap-1.5 font-sans
                       ${item.status === 'IN_PROGRESS' ? 'bg-orange-50 border border-orange-100 text-orange-700' : ''}
                       ${item.status === 'CLOSED' ? 'bg-emerald-50 border border-emerald-200 text-emerald-600' : ''}
                       ${item.status === 'OPEN' ? 'bg-red-50 border border-red-100 text-red-600' : ''}
@@ -114,7 +114,7 @@ export const MyReferralsPage: React.FC = () => {
                 {/* Counselor Feedback Collateral Block Frame */}
                 {item.notes && (
                   <div className="bg-emerald-50 border border-emerald-50 rounded-xl p-4 space-y-1">
-                    <h4 className="text-xs font-bold text-emerald-600 uppercase tracking-wider">Counselor Feedback:</h4>
+                    <h4 className="text-xs font-semibold text-emerald-600">Counselor Feedback:</h4>
                     <p className="text-sm text-slate-700 font-medium leading-relaxed">
                       {item.notes}
                     </p>
@@ -133,12 +133,12 @@ export const MyReferralsPage: React.FC = () => {
 
       {/* Referral Status Guide Explainer Panel */}
       <div className="bg-white border border-slate-100 rounded-2xl p-6 shadow-sm space-y-4">
-        <h3 className="text-base font-bold text-slate-900 tracking-tight">Referral Status Guide</h3>
+        <h3 className="text-base font-semibold text-slate-900 tracking-tight">Referral Status Guide</h3>
 
         <div className="space-y-4 text-sm font-medium leading-relaxed">
           {/* Row 1: Open */}
           <div className="flex items-start gap-4">
-            <span className="w-24 text-center shrink-0 bg-red-50 border border-red-100 text-red-600 font-bold py-1 rounded text-xs tracking-wider uppercase">
+            <span className="w-24 text-center shrink-0 bg-red-50 border border-red-100 text-red-600 font-semibold py-1 rounded text-xs">
               Open
             </span>
             <p className="text-slate-600 pt-0.5">
@@ -148,7 +148,7 @@ export const MyReferralsPage: React.FC = () => {
 
           {/* Row 2: In Progress */}
           <div className="flex items-start gap-4">
-            <span className="w-24 text-center shrink-0 bg-orange-50 border border-orange-100 text-orange-700 font-bold py-1 rounded text-xs tracking-wide uppercase leading-tight">
+            <span className="w-24 text-center shrink-0 bg-orange-50 border border-orange-100 text-orange-700 font-semibold py-1 rounded text-xs leading-tight">
               In Progress
             </span>
             <p className="text-slate-600 pt-0.5">
@@ -158,7 +158,7 @@ export const MyReferralsPage: React.FC = () => {
 
           {/* Row 3: Closed */}
           <div className="flex items-start gap-4">
-            <span className="w-24 text-center shrink-0 bg-emerald-50 border border-emerald-200 text-emerald-600 font-bold py-1 rounded text-xs tracking-wider uppercase">
+            <span className="w-24 text-center shrink-0 bg-emerald-50 border border-emerald-200 text-emerald-600 font-semibold py-1 rounded text-xs">
               Closed
             </span>
             <p className="text-slate-600 pt-0.5">

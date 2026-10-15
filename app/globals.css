@@ -1,95 +1,162 @@
 @import "tailwindcss";
 
 /*
- * E-Gabay design system
- * - Brand: deep "STI blue" ramp, replacing Tailwind's default blue so every
- *   existing blue-* utility picks up the new brand automatically.
- * - Accent: STI gold, used sparingly (active nav, highlights, logo mark).
- * - Neutrals: a slightly cooler, ink-tinted slate.
+ * E-Gabay design system — "guidance office records"
+ *
+ * Warm paper surfaces, ink text, one accent (STI ink blue). Status colors are
+ * muted and only ever used for meaning (confirmed / pending / urgent), never
+ * decoration. Decorative hues used around the codebase (violet, purple) are
+ * folded into the neutral ramp so pages stop reading as a rainbow of tiles.
  */
 @theme {
-  --color-blue-50: #eef4ff;
-  --color-blue-100: #dbe6ff;
-  --color-blue-200: #bfd2ff;
-  --color-blue-300: #93b3ff;
-  --color-blue-400: #5f88fa;
-  --color-blue-500: #3a63f0;
-  --color-blue-600: #2348d8;
-  --color-blue-700: #1c39b0;
-  --color-blue-800: #1b328c;
-  --color-blue-900: #1a2c6c;
-  --color-blue-950: #111b44;
+  /* Accent: STI ink blue */
+  --color-blue-50: #f1f4fa;
+  --color-blue-100: #e1e7f3;
+  --color-blue-200: #c3cfe6;
+  --color-blue-300: #98abd2;
+  --color-blue-400: #6680b6;
+  --color-blue-500: #42609e;
+  --color-blue-600: #2c4a88;
+  --color-blue-700: #233c70;
+  --color-blue-800: #1d315a;
+  --color-blue-900: #182847;
+  --color-blue-950: #0f1a2f;
 
-  --color-gold-50: #fffbea;
-  --color-gold-100: #fff3c4;
-  --color-gold-200: #ffe68a;
-  --color-gold-300: #ffd84f;
-  --color-gold-400: #ffc81f;
-  --color-gold-500: #f5ad00;
-  --color-gold-600: #d68700;
+  /* Neutrals: warm stone, one family everywhere */
+  --color-slate-50: #f8f6f1;
+  --color-slate-100: #f0ede5;
+  --color-slate-200: #e3dfd4;
+  --color-slate-300: #cdc7b9;
+  --color-slate-400: #a29b8b;
+  --color-slate-500: #7a7365;
+  --color-slate-600: #5d574b;
+  --color-slate-700: #474238;
+  --color-slate-800: #312d26;
+  --color-slate-900: #211e19;
+  --color-slate-950: #15130f;
 
-  --color-slate-50: #f6f7fb;
-  --color-slate-100: #eef0f6;
-  --color-slate-200: #e1e5ef;
-  --color-slate-300: #c9cfdd;
-  --color-slate-400: #949db3;
-  --color-slate-500: #667089;
-  --color-slate-600: #4a536b;
-  --color-slate-700: #363e55;
-  --color-slate-800: #232a40;
-  --color-slate-900: #141a2e;
-  --color-slate-950: #0b1020;
+  /* Decorative hues collapse into neutrals */
+  --color-violet-50: var(--color-slate-100);
+  --color-violet-100: var(--color-slate-200);
+  --color-violet-200: var(--color-slate-300);
+  --color-violet-500: var(--color-slate-600);
+  --color-violet-600: var(--color-slate-700);
+  --color-violet-700: var(--color-slate-800);
+  --color-purple-50: var(--color-slate-100);
+  --color-purple-100: var(--color-slate-200);
+  --color-purple-600: var(--color-slate-700);
 
-  --color-navy: #0e1838;
-  --color-canvas: #f4f6fb;
+  /* Status: muted, earthy */
+  --color-emerald-50: #eef4ee;
+  --color-emerald-100: #dde9dd;
+  --color-emerald-200: #c2d6c2;
+  --color-emerald-500: #4f7d55;
+  --color-emerald-600: #3f6a45;
+  --color-emerald-700: #335638;
+  --color-green-50: #eef4ee;
+  --color-green-100: #dde9dd;
+  --color-green-600: #3f6a45;
+  --color-green-700: #335638;
 
-  --font-sans: var(--font-jakarta), ui-sans-serif, system-ui, sans-serif;
-  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+  --color-orange-50: #f8f0e4;
+  --color-orange-100: #f1e2cc;
+  --color-orange-200: #e6cca6;
+  --color-orange-500: #b5762a;
+  --color-orange-600: #9a6222;
+  --color-orange-700: #7e501d;
+  --color-orange-800: #66411a;
+  --color-amber-50: #f8f0e4;
+  --color-amber-100: #f1e2cc;
+  --color-amber-600: #9a6222;
+  --color-amber-700: #7e501d;
 
-  --radius-xl: 0.875rem;
-  --radius-2xl: 1.125rem;
+  --color-rose-50: #f8ecea;
+  --color-rose-100: #f1dad6;
+  --color-rose-500: #a8473b;
+  --color-rose-700: #823429;
+  --color-red-50: #f8ecea;
+  --color-red-100: #f1dad6;
+  --color-red-200: #e4bdb6;
+  --color-red-500: #a8473b;
+  --color-red-600: #943d32;
+  --color-red-700: #823429;
 
-  --shadow-sm: 0 1px 2px rgb(20 26 46 / 0.04), 0 1px 3px rgb(20 26 46 / 0.04);
-  --shadow-md: 0 4px 12px -2px rgb(20 26 46 / 0.08), 0 2px 4px -2px rgb(20 26 46 / 0.04);
-  --shadow-lg: 0 12px 28px -6px rgb(20 26 46 / 0.12), 0 4px 8px -4px rgb(20 26 46 / 0.05);
-  --shadow-xl: 0 24px 48px -12px rgb(20 26 46 / 0.18);
-  --shadow-2xl: 0 32px 64px -16px rgb(14 24 56 / 0.35);
+  --color-paper: #f8f6f1;
+  --color-sheet: #fffefb;
+  --color-ink: #211e19;
+  --color-rule: #e3dfd4;
+
+  --font-sans: var(--font-plex-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-serif: var(--font-newsreader), ui-serif, Georgia, serif;
+  --font-mono: var(--font-plex-mono), ui-monospace, monospace;
+
+  /* Tighter, varied radii instead of soft blobs everywhere */
+  --radius-md: 0.3rem;
+  --radius-lg: 0.4rem;
+  --radius-xl: 0.5rem;
+  --radius-2xl: 0.625rem;
+
+  /* Flat by default; elevation only where something actually floats */
+  --shadow-sm: 0 0 #0000;
+  --shadow-md: 0 1px 0 rgb(33 30 25 / 0.04);
+  --shadow-lg: 0 10px 30px -12px rgb(49 45 38 / 0.25);
+  --shadow-xl: 0 18px 40px -16px rgb(49 45 38 / 0.3);
+  --shadow-2xl: 0 24px 60px -20px rgb(49 45 38 / 0.35);
 }
 
 :root {
-  --topbar-h: 4rem;
-  --sidebar-w: 17rem;
+  --topbar-h: 3.5rem;
+  --sidebar-w: 15.5rem;
+}
+
+@media (min-width: 768px) {
+  :root {
+    --topbar-h: 0rem;
+  }
 }
 
 html {
-  background: var(--color-canvas);
+  background: var(--color-paper);
 }
 
 body {
-  background: var(--color-canvas);
+  background: var(--color-paper);
   color: var(--color-slate-800);
   font-family: var(--font-sans);
-  font-feature-settings: "ss01", "cv11";
+}
+
+/* Cards across the app sit on paper as slightly brighter sheets. */
+.bg-white {
+  background-color: var(--color-sheet);
 }
 
 ::selection {
-  background: var(--color-gold-200);
-  color: var(--color-slate-900);
+  background: var(--color-blue-100);
+  color: var(--color-ink);
 }
 
 @layer base {
-  /* Unified focus treatment for every form control in the app. */
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
   input:not([type="checkbox"]):not([type="radio"]):focus-visible,
   select:focus-visible,
   textarea:focus-visible {
     outline: none;
-    border-color: var(--color-blue-500);
-    box-shadow: 0 0 0 4px rgb(58 99 240 / 0.14);
+    border-color: var(--color-blue-600);
+    box-shadow: 0 0 0 3px rgb(44 74 136 / 0.15);
   }
 
   button:focus-visible,
   a:focus-visible {
-    outline: 2px solid var(--color-blue-500);
+    outline: 2px solid var(--color-blue-600);
     outline-offset: 2px;
   }
 
@@ -97,33 +164,34 @@ body {
   [role="button"]:not(:disabled) {
     cursor: pointer;
   }
+
+  button:not(:disabled):active {
+    transform: translateY(1px);
+  }
 }
 
 @layer components {
+  /* Page titles are set in the serif — the one place the type gets to speak. */
   .page-title {
-    font-size: 1.75rem;
-    line-height: 1.15;
-    font-weight: 800;
-    letter-spacing: -0.025em;
-    color: var(--color-slate-900);
+    font-family: var(--font-serif);
+    font-size: 2.125rem;
+    line-height: 1.1;
+    font-weight: 500;
+    letter-spacing: -0.015em;
+    color: var(--color-ink);
   }
 
   @media (max-width: 640px) {
     .page-title {
-      font-size: 1.45rem;
+      font-size: 1.75rem;
     }
   }
 
-  .nav-scroll::-webkit-scrollbar {
-    width: 6px;
-  }
-  .nav-scroll::-webkit-scrollbar-thumb {
-    background: rgb(255 255 255 / 0.12);
-    border-radius: 999px;
+  .tabular {
+    font-variant-numeric: tabular-nums;
   }
 }
 
-/* Thin, quiet scrollbars for content panes. */
 * {
   scrollbar-width: thin;
   scrollbar-color: var(--color-slate-300) transparent;
@@ -132,7 +200,7 @@ body {
 @keyframes rise-in {
   from {
     opacity: 0;
-    transform: translateY(6px);
+    transform: translateY(4px);
   }
   to {
     opacity: 1;
@@ -141,7 +209,7 @@ body {
 }
 
 .animate-rise-in {
-  animation: rise-in 0.35s ease-out both;
+  animation: rise-in 0.3s ease-out both;
 }
 
 @media (prefers-reduced-motion: reduce) {

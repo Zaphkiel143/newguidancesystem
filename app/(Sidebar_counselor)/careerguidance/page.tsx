@@ -89,7 +89,7 @@ const CareerTracker = () => {
   };
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8 min-h-[calc(100dvh-var(--topbar-h))] font-sans text-slate-900">
+    <div className="px-5 sm:px-8 lg:px-12 pt-8 lg:pt-12 pb-16 min-h-[calc(100dvh-var(--topbar-h))] font-sans text-slate-900">
       {/* Header */}
       <header className="mb-8 flex justify-between items-start">
         <div>
@@ -109,10 +109,10 @@ const CareerTracker = () => {
         <div className="flex justify-between items-start max-w-5xl mx-auto">
           {CAREER_STEPS.map((step, index) => (
             <div key={index} className="flex flex-col items-center text-center space-y-3 flex-1 px-2">
-              <div className="w-10 h-10 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-sm border border-blue-100">
+              <div className="w-10 h-10 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center font-semibold text-sm border border-blue-100">
                 {index + 1}
               </div>
-              <p className="text-[10px] font-bold text-slate-500 uppercase tracking-tight leading-tight max-w-20">
+              <p className="text-[11px] font-semibold text-slate-500 tracking-tight leading-tight max-w-20">
                 {step}
               </p>
             </div>
@@ -123,7 +123,7 @@ const CareerTracker = () => {
       {/* Student Progress List */}
       <div className="space-y-6">
         <div className="flex justify-between items-center px-2">
-          <h2 className="text-lg font-bold">Student Progress</h2>
+          <h2 className="text-lg font-semibold">Student Progress</h2>
           <span className="text-xs font-semibold text-slate-400">{careerPlans.length} Active Career Plans</span>
         </div>
 
@@ -144,12 +144,12 @@ const CareerTracker = () => {
                 {/* Student Header & Main Progress Bar */}
                 <div className="flex justify-between items-end mb-4">
                   <div>
-                    <h3 className="text-lg font-bold text-slate-800">{plan.studentName}</h3>
+                    <h3 className="text-lg font-semibold text-slate-800">{plan.studentName}</h3>
                     <p className="text-xs font-semibold text-slate-500">{plan.studentId} • {plan.grade}</p>
                   </div>
                   <div className="text-right">
-                    <p className="text-2xl font-bold text-blue-600 leading-none">{percentage}%</p>
-                    <p className="text-[10px] font-bold text-slate-400 uppercase">Complete</p>
+                    <p className="text-2xl font-semibold text-blue-600 leading-none">{percentage}%</p>
+                    <p className="text-[11px] font-semibold text-slate-400">Complete</p>
                   </div>
                 </div>
 
@@ -170,7 +170,7 @@ const CareerTracker = () => {
                       ) : (
                         <Circle className="text-slate-200 mb-2" size={24} />
                       )}
-                      <p className="text-[10px] font-bold text-slate-500 text-center uppercase tracking-tight">
+                      <p className="text-[11px] font-semibold text-slate-500 text-center tracking-tight">
                         {step}
                       </p>
                       <p className="text-[9px] text-slate-400 mt-0.5">
@@ -185,13 +185,13 @@ const CareerTracker = () => {
                   <button
                     onClick={() => handleUpdateProgress(plan.id)}
                     disabled={isComplete || updatingId === plan.id}
-                    className="px-4 py-1.5 bg-blue-50 text-blue-600 text-xs font-bold rounded-md border border-blue-100 hover:bg-blue-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="px-4 py-1.5 bg-blue-50 text-blue-600 text-xs font-semibold rounded-md border border-blue-100 hover:bg-blue-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {isComplete ? "All Steps Complete" : updatingId === plan.id ? "Updating..." : "Update Progress"}
                   </button>
                   <button
                     onClick={() => handleViewFullPlan(plan)}
-                    className="px-4 py-1.5 bg-slate-50 text-slate-600 text-xs font-bold rounded-md border border-slate-100 hover:bg-slate-100 transition-colors"
+                    className="px-4 py-1.5 bg-slate-50 text-slate-600 text-xs font-semibold rounded-md border border-slate-100 hover:bg-slate-100 transition-colors"
                   >
                     View Full Plan
                   </button>
@@ -207,7 +207,7 @@ const CareerTracker = () => {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
           <div className="bg-white w-full max-w-md p-6 rounded-2xl shadow-xl border border-slate-100 space-y-4">
             <div>
-              <h3 className="text-lg font-bold text-slate-900">Add Career Guidance Student</h3>
+              <h3 className="text-lg font-semibold text-slate-900">Add Career Guidance Student</h3>
               <p className="text-xs text-slate-500">Start tracking a new student&apos;s Career Planning Program</p>
             </div>
 
@@ -275,7 +275,7 @@ const CareerTracker = () => {
           <div className="bg-white w-full max-w-2xl max-h-[85vh] overflow-y-auto rounded-2xl shadow-xl border border-slate-100">
             <div className="flex justify-between items-start p-6 border-b border-slate-100 sticky top-0 bg-white rounded-t-2xl">
               <div>
-                <h3 className="text-lg font-bold text-slate-900">{viewingPlan.studentName}</h3>
+                <h3 className="text-lg font-semibold text-slate-900">{viewingPlan.studentName}</h3>
                 <p className="text-xs font-semibold text-slate-500">{viewingPlan.studentId} • {viewingPlan.grade}</p>
               </div>
               <button
@@ -295,7 +295,7 @@ const CareerTracker = () => {
               ) : (
                 <>
                   <section>
-                    <h4 className="text-sm font-bold text-slate-800 mb-4">Career Planning Progress</h4>
+                    <h4 className="text-sm font-semibold text-slate-800 mb-4">Career Planning Progress</h4>
                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                       {CAREER_STEPS.map((step, i) => {
                         const completedOn = viewingPlan.stepDates[i];
@@ -306,10 +306,10 @@ const CareerTracker = () => {
                               completedOn ? "bg-green-50 border-green-100" : "bg-slate-50 border-slate-100"
                             }`}
                           >
-                            <p className="text-[10px] font-bold uppercase tracking-tight text-slate-500 leading-tight">
+                            <p className="text-[11px] font-semibold tracking-tight text-slate-500 leading-tight">
                               {step}
                             </p>
-                            <p className={`text-[10px] mt-1 font-semibold ${completedOn ? "text-green-600" : "text-slate-400"}`}>
+                            <p className={`text-[11px] mt-1 font-semibold ${completedOn ? "text-green-600" : "text-slate-400"}`}>
                               {completedOn || "Pending"}
                             </p>
                           </div>
@@ -319,7 +319,7 @@ const CareerTracker = () => {
                   </section>
 
                   <section>
-                    <h4 className="text-sm font-bold text-slate-800 mb-4">
+                    <h4 className="text-sm font-semibold text-slate-800 mb-4">
                       Guidance Session History
                       {sessionHistory.length > 0 && (
                         <span className="ml-2 text-xs font-semibold text-slate-400">
@@ -332,11 +332,11 @@ const CareerTracker = () => {
                         {sessionHistory.map((appt) => (
                           <div key={appt.id} className="border border-slate-100 rounded-xl p-4">
                             <div className="flex justify-between items-start mb-1">
-                              <p className="text-sm font-bold text-slate-800">
+                              <p className="text-sm font-semibold text-slate-800">
                                 {appt.appointmentType || "General Session"}
                               </p>
                               <span
-                                className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase ${
+                                className={`text-[11px] font-semibold px-2 py-0.5 rounded ${
                                   appt.status === "CONFIRMED"
                                     ? "bg-emerald-50 text-emerald-600"
                                     : appt.status === "PENDING"

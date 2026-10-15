@@ -52,7 +52,7 @@ export const ChildProfilePage: React.FC = () => {
   ];
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8 max-w-5xl mx-auto font-sans antialiased text-slate-800 space-y-6">
+    <div className="px-5 sm:px-8 lg:px-12 pt-8 lg:pt-12 pb-16 max-w-5xl font-sans antialiased text-slate-800 space-y-6">
       
       {/* Page Context Description Typography */}
       <div>
@@ -66,21 +66,21 @@ export const ChildProfilePage: React.FC = () => {
       <div className="bg-white border border-slate-100 rounded-2xl shadow-sm overflow-hidden">
         
         {/* Top Accent Blue Header Panel banner area */}
-        <div className="relative overflow-hidden bg-navy p-6 flex items-center gap-5 text-white bg-[radial-gradient(circle_at_85%_-20%,rgb(58_99_240/0.55),transparent_55%)]">
-          <div className="w-16 h-16 bg-gold-400 text-navy rounded-2xl flex items-center justify-center shrink-0 shadow-lg">
-            <User size={32} className="stroke-[2]" />
+        <div className="px-6 py-6 flex items-center gap-5 border-b border-rule">
+          <div className="w-14 h-14 bg-slate-200 text-slate-600 rounded-md flex items-center justify-center shrink-0">
+            <User size={26} strokeWidth={1.5} />
           </div>
-          <div className="space-y-1">
-            <h2 className="text-2xl font-bold tracking-tight">{profile.name}</h2>
-            <p className="text-xs font-mono font-medium text-blue-100 opacity-90">
-              Student ID: {profile.studentId}
+          <div>
+            <h2 className="font-serif text-[28px] leading-tight text-ink">{profile.name}</h2>
+            <p className="font-mono text-[13px] text-slate-500 mt-0.5">
+              Student ID {profile.studentId}
             </p>
           </div>
         </div>
 
         {/* Bottom Content Area Grid Details */}
         <div className="p-6">
-          <h3 className="text-base font-bold text-slate-900 mb-5 tracking-tight">Personal Information</h3>
+          <h3 className="text-base font-semibold text-slate-900 mb-5 tracking-tight">Personal Information</h3>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5 text-sm">
             {/* Email Field Column Segment */}
@@ -127,7 +127,7 @@ export const ChildProfilePage: React.FC = () => {
       <div className="bg-white border border-slate-100 rounded-2xl shadow-sm overflow-hidden">
         <div className="px-6 py-4 border-b border-slate-50 flex items-center gap-2 bg-slate-50/20">
           <GraduationCap size={18} className="text-slate-700" />
-          <h3 className="text-base font-bold text-slate-900 tracking-tight">Academic Information</h3>
+          <h3 className="text-base font-semibold text-slate-900 tracking-tight">Academic Information</h3>
         </div>
 
         <div className="p-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 text-sm">
@@ -152,7 +152,7 @@ export const ChildProfilePage: React.FC = () => {
       <div className="bg-white border border-slate-100 rounded-2xl shadow-sm overflow-hidden">
         <div className="px-6 py-5 border-b border-slate-50 flex items-center gap-2 bg-slate-50/20">
           <Bookmark size={18} className="text-slate-700" />
-          <h3 className="text-base font-bold text-slate-900 tracking-tight">Guidance Sessions</h3>
+          <h3 className="text-base font-semibold text-slate-900 tracking-tight">Guidance Sessions</h3>
         </div>
 
         <div className="p-6 space-y-4">
@@ -162,7 +162,7 @@ export const ChildProfilePage: React.FC = () => {
               className="bg-slate-50 hover:bg-slate-50 border border-slate-100 rounded-xl p-4 flex flex-col sm:flex-row sm:items-start justify-between gap-3 transition-colors group"
             >
               <div className="space-y-1 min-w-0 flex-1">
-                <h4 className="font-bold text-slate-800 text-sm group-hover:text-blue-600 transition-colors flex items-center gap-2">
+                <h4 className="font-semibold text-slate-800 text-sm group-hover:text-blue-600 transition-colors flex items-center gap-2">
                   <FileText size={15} className="text-slate-400 shrink-0" />
                   {session.type}
                 </h4>

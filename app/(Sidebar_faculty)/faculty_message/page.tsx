@@ -23,7 +23,7 @@ export const MessagesPage: React.FC = () => {
   }, []);
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto font-sans antialiased text-slate-800 space-y-6">
+    <div className="px-5 sm:px-8 lg:px-12 pt-8 lg:pt-12 pb-16 max-w-7xl font-sans antialiased text-slate-800 space-y-6">
 
       {/* Page Heading Section Header */}
       <div>

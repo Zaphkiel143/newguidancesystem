@@ -44,7 +44,7 @@ export default function BlockTimeModal({ date, onClose }: ModalProps) {
       <div className="relative bg-white/90 backdrop-blur-lg border border-slate-200/80 rounded-2xl shadow-2xl w-full max-w-md overflow-hidden transform transition-all p-6">
         <div className="flex justify-between items-center mb-4">
           <div>
-            <h3 className="text-lg font-bold text-slate-900">Manage Availability</h3>
+            <h3 className="text-lg font-semibold text-slate-900">Manage Availability</h3>
             <p className="text-xs text-slate-500">Block or release custom slots for {date}</p>
           </div>
           <button 
@@ -57,7 +57,7 @@ export default function BlockTimeModal({ date, onClose }: ModalProps) {
 
         <hr className="border-slate-100 my-3" />
 
-        <p className="text-xs text-slate-500 font-medium mb-3 uppercase tracking-wider">Select Hourly Blocks</p>
+        <p className="text-xs text-slate-500 font-medium mb-3">Select Hourly Blocks</p>
         <div className="grid grid-cols-2 gap-2">
           {STANDARD_DAY_HOURS.map((time) => {
             const isLoading = togglingHours.includes(time);
@@ -73,7 +73,7 @@ export default function BlockTimeModal({ date, onClose }: ModalProps) {
                 }`}
               >
                 <span>{time}</span>
-                {isLoading && <span className="animate-pulse text-[10px]">updating...</span>}
+                {isLoading && <span className="animate-pulse text-[11px]">updating...</span>}
               </button>
             );
           })}
