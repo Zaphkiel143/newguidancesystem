@@ -1,11 +1,13 @@
-import React from "react";
+"use client";
+
+import React, { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { ExternalLink } from "lucide-react";
 
-// Links out to the school's Facebook page and posts instead of embedding them.
-// Facebook's Page/Post plugins only showed the page header (no posts) for this
-// page, so plain links are the version that always works. They also load
-// nothing from Facebook, so no Facebook scripts or cookies reach viewers.
+// Facebook's Page Plugin (whole feed) only shows this page's header, so the
+// page itself is a link card. Single public posts DO render without logging in
+// through the Post Plugin, so posts attached to announcements are embedded,
+// with a "View on Facebook" link as a fallback.
 
 function FacebookMark({ size = 18 }: { size?: number }) {
   return (
@@ -53,6 +55,50 @@ export function FacebookPageCard({ pageUrl, pageName }: { pageUrl: string; pageN
         See latest posts on Facebook <ExternalLink size={13} />
       </span>
     </a>
+  );
+}
+
+// Facebook's post widget doesn't resize itself; a photo post at 500px wide is
+// about 600px tall, so size the frame to the available width at that ratio.
+export function FacebookPost({ postUrl }: { postUrl: string }) {
+  const box = useRef<HTMLDivElement>(null);
+  const [width, setWidth] = useState<number | null>(null);
+
+  useEffect(() => {
+    const el = box.current;
+    if (!el) return;
+    const measure = () => setWidth(Math.max(320, Math.min(500, Math.floor(el.clientWidth))));
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
+  if (!isFacebookUrl(postUrl)) return null;
+
+  const src = width
+    ? "https://www.facebook.com/plugins/post.php?" + new URLSearchParams({ href: postUrl, width: String(width), show_text: "true" }).toString()
+    : null;
+
+  return (
+    <div className="mt-3 max-w-[500px]">
+      <div ref={box} className="w-full">
+        {src && (
+          <iframe
+            key={width}
+            title="Post from STI College Sta. Maria on Facebook"
+            src={src}
+            width={width!}
+            height={Math.round(width! * 1.2)}
+            className="max-w-full rounded-xl border border-rule bg-sheet"
+            style={{ overflow: "hidden" }}
+            allow="encrypted-media; clipboard-write; picture-in-picture; web-share"
+            loading="lazy"
+          />
+        )}
+      </div>
+      <FacebookPostLink postUrl={postUrl} />
+    </div>
   );
 }
 
