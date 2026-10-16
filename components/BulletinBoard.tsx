@@ -3,14 +3,14 @@
 import React, { useEffect, useState } from "react";
 import { Loader2, MapPin } from "lucide-react";
 import { getBulletin } from "../app/action/bulletin";
-import type { Announcement, Event as DbEvent } from "../lib/generated";
+
 import { FacebookPageCard, FacebookPost } from "./FacebookEmbed";
 import { FACEBOOK_PAGE_URL } from "../app/config/school";
 
 // Information Service board + upcoming events, shared by the student, faculty
 // and parent routes. Announcements can be filtered by category.
 export default function BulletinBoard() {
-  const [data, setData] = useState<{ announcements: Announcement[]; events: DbEvent[] } | null>(null);
+  const [data, setData] = useState<Awaited<ReturnType<typeof getBulletin>> | null>(null);
   const [category, setCategory] = useState("All");
 
   useEffect(() => {
@@ -71,6 +71,15 @@ export default function BulletinBoard() {
                     </p>
                     <h3 className="font-serif text-xl text-ink mt-1">{a.title}</h3>
                     <p className="text-[15px] leading-relaxed text-slate-700 mt-2 whitespace-pre-wrap max-w-[65ch]">{a.body}</p>
+                    {a.hasImage && (
+                      // eslint-disable-next-line @next/next/no-img-element -- private, session-checked image route
+                      <img
+                        src={`/api/announcements/${a.id}/image?v=${new Date(a.updatedAt).getTime()}`}
+                        alt={`Photo for ${a.title}`}
+                        loading="lazy"
+                        className="mt-3 w-full max-w-[560px] max-h-[640px] object-contain rounded-xl border border-rule bg-slate-50"
+                      />
+                    )}
                     {a.facebookUrl && <FacebookPost postUrl={a.facebookUrl} />}
                   </li>
                 ))}

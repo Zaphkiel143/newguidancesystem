@@ -7,7 +7,9 @@ import { getMyAppointments, getMyCareerPlan, getMyReferrals } from '../../action
 import { getBulletinPreview } from '../../action/bulletin';
 import { CAREER_STEPS } from '../../config/careerSteps';
 import { useCurrentUser } from '../../../components/CurrentUser';
-import type { Announcement, Appointment as DbAppointment, CareerPlan, Event as DbEvent } from '../../../lib/generated';
+import type { Appointment as DbAppointment, CareerPlan, Event as DbEvent } from '../../../lib/generated';
+
+type Announcement = NonNullable<Awaited<ReturnType<typeof getBulletinPreview>>["announcement"]>;
 
 const SHORTCUTS = [
   { label: 'Book an appointment', path: '/my_appointments' },

@@ -27,6 +27,7 @@ export async function getBulletin() {
     const [announcements, events] = await Promise.all([
       db.announcement.findMany({
         where: { isPublished: true, audience: { in: ["All", AUDIENCE_FOR[me.role]] } },
+        omit: { imageData: true },
         orderBy: { createdAt: "desc" },
       }),
       db.event.findMany({ where: { date: { gte: today } }, orderBy: [{ date: "asc" }, { time: "asc" }] }),
@@ -39,7 +40,8 @@ export async function getBulletin() {
       });
     }
 
-    return { announcements, events };
+    // Photos load from /api/announcements/[id]/image instead of travelling here.
+    return { announcements: announcements.map(({ imageType, ...a }) => ({ ...a, hasImage: Boolean(imageType) })), events };
   } catch (error) {
     console.error("[bulletin] Failed to load:", error);
     return { announcements: [], events: [] };
@@ -54,6 +56,7 @@ export async function getBulletinPreview() {
     const [announcement, event] = await Promise.all([
       db.announcement.findFirst({
         where: { isPublished: true, audience: { in: ["All", AUDIENCE_FOR[me.role]] } },
+        omit: { imageData: true },
         orderBy: { createdAt: "desc" },
       }),
       db.event.findFirst({ where: { date: { gte: today } }, orderBy: [{ date: "asc" }, { time: "asc" }] }),

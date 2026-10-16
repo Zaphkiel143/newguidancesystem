@@ -8,6 +8,7 @@ import { Prisma } from "../../lib/generated";
 import { requireActionUser } from "../../lib/session";
 import { formatAppointmentWhen, sendEmail } from "../../lib/email";
 import { normalizeFacebookPostUrl } from "../../lib/facebook";
+import { checkImage } from "../../lib/image";
 
 // Every action here requires a signed-in Guidance Associate (COUNSELOR role).
 const counselorOnly = () => requireActionUser("COUNSELOR");
@@ -508,10 +509,13 @@ export async function setNeedsAssessmentOpen(id: string, isOpen: boolean) {
 export async function listAnnouncements() {
   try {
     await counselorOnly();
-    return await db.announcement.findMany({
+    // Photos are fetched separately from /api/announcements/[id]/image.
+    const rows = await db.announcement.findMany({
+      omit: { imageData: true },
       include: { views: { orderBy: { viewedAt: "desc" } } },
       orderBy: { createdAt: "desc" },
     });
+    return rows.map(({ imageType, ...a }) => ({ ...a, hasImage: Boolean(imageType) }));
   } catch (error) {
     console.error("Failed to list announcements:", error);
     return [];
@@ -526,6 +530,8 @@ export async function saveAnnouncement(formData: {
   audience: string;
   isPublished: boolean;
   facebookUrl?: string;
+  // undefined: keep the current photo; null: remove it; object: replace it.
+  image?: { dataBase64: string } | null;
 }) {
   try {
     await counselorOnly();
@@ -539,6 +545,15 @@ export async function saveAnnouncement(formData: {
       fb = parsed.url;
     }
 
+    let imageFields: { imageData: Uint8Array<ArrayBuffer> | null; imageType: string | null } | Record<string, never> = {};
+    if (formData.image === null) {
+      imageFields = { imageData: null, imageType: null };
+    } else if (formData.image) {
+      const img = checkImage(formData.image.dataBase64);
+      if (!img.ok) return { success: false, error: img.error };
+      imageFields = { imageData: new Uint8Array(img.bytes), imageType: img.type };
+    }
+
     const data = {
       title: formData.title.trim(),
       body: formData.body.trim(),
@@ -546,6 +561,7 @@ export async function saveAnnouncement(formData: {
       audience: formData.audience,
       isPublished: formData.isPublished,
       facebookUrl: fb,
+      ...imageFields,
     };
     if (formData.id) await db.announcement.update({ where: { id: formData.id }, data });
     else await db.announcement.create({ data });
