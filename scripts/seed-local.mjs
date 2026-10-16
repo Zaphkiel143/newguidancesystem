@@ -1,7 +1,9 @@
 // Fills the LOCAL review database with sample records so every feature has
-// something to show. Refuses to run against anything but localhost.
+// something to show. Refuses to run against anything but localhost unless
+// told it's a separate demo database.
 //
 //   node scripts/seed-local.mjs
+//   node --env-file=.env.deploy scripts/seed-local.mjs --demo-database   (separate demo DB)
 //
 // Demo logins are created by the "Continue as …" buttons on the login page;
 // this script only adds the records those accounts will see.
@@ -9,8 +11,11 @@ import "dotenv/config";
 import pg from "pg";
 
 const url = process.env.DATABASE_URL ?? "";
-if (!/@(localhost|127\.0\.0\.1)(:\d+)?\//.test(url)) {
-  console.error("Refusing to seed: DATABASE_URL is not a localhost database.");
+// A hosted database is only seeded with an explicit --demo-database flag, meant
+// for a separate demo/preview database. Never point this at the live database.
+const isLocal = /@(localhost|127\.0\.0\.1)(:\d+)?\//.test(url);
+if (!isLocal && !process.argv.includes("--demo-database")) {
+  console.error("Refusing to seed: DATABASE_URL is not a localhost database (add --demo-database for a separate demo database).");
   process.exit(1);
 }
 

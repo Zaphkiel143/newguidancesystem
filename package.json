@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "prisma generate && next build",
     "start": "next start",
     "lint": "eslint"
   },
@@ -20,7 +20,6 @@
     "react-dom": "19.2.4"
   },
   "devDependencies": {
-    "@embedded-postgres/windows-x64": "^17.5.0-beta.15",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/nodemailer": "^6.4.17",
@@ -37,5 +36,8 @@
     "@prisma/engines@7.8.0": true,
     "prisma@7.8.0": true,
     "sharp@0.34.5": true
+  },
+  "optionalDependencies": {
+    "@embedded-postgres/windows-x64": "^17.5.0-beta.15"
   }
 }
