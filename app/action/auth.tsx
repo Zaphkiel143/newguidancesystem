@@ -4,7 +4,7 @@ import { randomInt } from "crypto";
 import { redirect } from "next/navigation";
 import db from "../../lib/db";
 import { createSession, destroySession, dashboardPathForRole, hashPassword, verifyPassword } from "../../lib/auth";
-import { sendEmail } from "../../lib/email";
+import { emailConfigured, sendEmail } from "../../lib/email";
 import type { UserRole } from "../../lib/generated";
 import { SCHOOL_EMAIL_DOMAIN } from "../config/school";
 
@@ -76,6 +76,12 @@ export async function requestLoginCode(rawEmail: string): Promise<CodeRequestRes
     const email = normalizeEmail(rawEmail);
     if (!isSchoolEmail(email)) {
       return { success: false, error: `Use your school email (it ends with @${SCHOOL_DOMAIN}).` };
+    }
+
+    // In production a code that can never arrive is useless; locally the code is
+    // printed to the dev server console for testing.
+    if (!emailConfigured && process.env.NODE_ENV === "production") {
+      return { success: false, error: "Email sign-in isn't set up on this site yet, so codes can't be delivered. Use a demo account below." };
     }
 
     const lastHour = new Date(Date.now() - 60 * 60 * 1000);

@@ -16,6 +16,9 @@ const transporter = process.env.SMTP_HOST
     })
   : null;
 
+// Sign-in codes can only be delivered when SMTP is configured.
+export const emailConfigured = transporter !== null;
+
 const FROM = process.env.SMTP_FROM ?? "E-Gabay STI <no-reply@egabay.local>";
 
 export type EmailStatus = "SENT" | "LOGGED" | "FAILED";
@@ -43,7 +46,7 @@ export async function sendEmail(
       console.error("[email] Failed to send:", err);
     }
   } else {
-    console.log(`[email] (not sent, no SMTP configured) to=${to} subject="${subject}"\n${body}`);
+    console.log(`[email] (not sent, no SMTP configured) to=${to} subject="${subject}"\n${process.env.NODE_ENV === "production" ? options.logBody ?? body : body}`);
   }
 
   try {
