@@ -4,6 +4,8 @@ import React, { useEffect, useState } from "react";
 import { Loader2, MapPin } from "lucide-react";
 import { getBulletin } from "../app/action/bulletin";
 import type { Announcement, Event as DbEvent } from "../lib/generated";
+import { FacebookPageFeed, FacebookPost } from "./FacebookEmbed";
+import { FACEBOOK_PAGE_URL } from "../app/config/school";
 
 // Information Service board + upcoming events, shared by the student, faculty
 // and parent routes. Announcements can be filtered by category.
@@ -48,7 +50,7 @@ export default function BulletinBoard() {
                       key={c}
                       onClick={() => setCategory(c)}
                       aria-pressed={category === c}
-                      className={`px-3 min-h-9 rounded-md text-[13px] transition-colors ${
+                      className={`px-3.5 min-h-9 rounded-full text-[13px] transition-colors ${
                         category === c ? "bg-butter-200 text-ink font-medium" : "text-slate-600 hover:bg-blue-100"
                       }`}
                     >
@@ -69,6 +71,7 @@ export default function BulletinBoard() {
                     </p>
                     <h3 className="font-serif text-xl text-ink mt-1">{a.title}</h3>
                     <p className="text-[15px] leading-relaxed text-slate-700 mt-2 whitespace-pre-wrap max-w-[65ch]">{a.body}</p>
+                    {a.facebookUrl && <FacebookPost postUrl={a.facebookUrl} />}
                   </li>
                 ))}
               </ul>
@@ -108,6 +111,9 @@ export default function BulletinBoard() {
                 })}
               </ul>
             )}
+
+            <h2 className="font-serif text-[22px] text-ink mt-12 mb-3">On Facebook</h2>
+            <FacebookPageFeed pageUrl={FACEBOOK_PAGE_URL} pageName="STI College Sta. Maria" />
           </section>
         </div>
       )}

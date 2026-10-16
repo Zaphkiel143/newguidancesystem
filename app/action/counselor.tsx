@@ -524,10 +524,22 @@ export async function saveAnnouncement(formData: {
   category: string;
   audience: string;
   isPublished: boolean;
+  facebookUrl?: string;
 }) {
   try {
     await counselorOnly();
     if (!formData.title.trim() || !formData.body.trim()) return { success: false, error: "Add a title and a message." };
+
+    // Optional Facebook post: only real https facebook.com / fb.watch links are kept.
+    const fb = formData.facebookUrl?.trim() || null;
+    if (fb) {
+      let ok = false;
+      try {
+        const u = new URL(fb);
+        ok = u.protocol === "https:" && /(^|.)facebook.com$|(^|.)fb.watch$/.test(u.hostname);
+      } catch {}
+      if (!ok) return { success: false, error: "The Facebook link should start with https://www.facebook.com/." };
+    }
 
     const data = {
       title: formData.title.trim(),
@@ -535,6 +547,7 @@ export async function saveAnnouncement(formData: {
       category: formData.category,
       audience: formData.audience,
       isPublished: formData.isPublished,
+      facebookUrl: fb,
     };
     if (formData.id) await db.announcement.update({ where: { id: formData.id }, data });
     else await db.announcement.create({ data });

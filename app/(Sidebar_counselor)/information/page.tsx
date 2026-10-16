@@ -10,7 +10,7 @@ type Announcement = Awaited<ReturnType<typeof listAnnouncements>>[number];
 const CATEGORIES = ["General", "Seminar", "Mental Health", "Career", "Reminder", "Awareness Month"];
 const AUDIENCES = ["All", "Students", "Faculty", "Parents"];
 
-const EMPTY = { title: "", body: "", category: CATEGORIES[0], audience: "All", isPublished: true };
+const EMPTY = { title: "", body: "", category: CATEGORIES[0], audience: "All", isPublished: true, facebookUrl: "" };
 
 export default function InformationServicePage() {
   const [items, setItems] = useState<Announcement[] | null>(null);
@@ -49,7 +49,7 @@ export default function InformationServicePage() {
 
   const togglePublished = async (a: Announcement) => {
     setRowError(null);
-    const result = await saveAnnouncement({ ...a, isPublished: !a.isPublished });
+    const result = await saveAnnouncement({ ...a, facebookUrl: a.facebookUrl ?? "", isPublished: !a.isPublished });
     if (result.success) await load();
     else setRowError({ id: a.id, message: "Couldn't change visibility. Try again." });
   };
@@ -103,6 +103,13 @@ export default function InformationServicePage() {
                 </select>
               </div>
             </div>
+            <div>
+              <label htmlFor="a-fb" className="block text-[13px] font-medium text-slate-700 mb-1.5">Facebook post link (optional)</label>
+              <input id="a-fb" type="url" inputMode="url" placeholder="https://www.facebook.com/stamaria.sti.edu/posts/…"
+                value={editing.facebookUrl} onChange={(e) => setEditing({ ...editing, facebookUrl: e.target.value })}
+                className="w-full bg-sheet border border-slate-300 rounded-md px-3 py-2.5 text-sm" />
+              <p className="text-xs text-slate-500 mt-1">On Facebook, open the post, click ⋯ → Copy link, and paste it here. Viewers can show it under this announcement.</p>
+            </div>
             <label className="flex items-center gap-2 text-sm text-slate-700 min-h-11">
               <input type="checkbox" checked={editing.isPublished} onChange={(e) => setEditing({ ...editing, isPublished: e.target.checked })}
                 className="accent-blue-700 w-4 h-4" />
@@ -146,11 +153,12 @@ export default function InformationServicePage() {
                   </div>
                   <p className="font-medium text-ink mt-1">{a.title}</p>
                   <p className="text-sm text-slate-600 mt-1 line-clamp-2">{a.body}</p>
+                  {a.facebookUrl && <p className="text-xs text-blue-700 mt-1">Facebook post attached</p>}
                   <div className="mt-2 flex flex-wrap items-center gap-x-1 text-[13px]">
                     <button onClick={() => setViewersOf(a)} className="px-2 min-h-9 -ml-2 rounded-full text-blue-700 hover:bg-blue-50">
                       Seen by {a.views.length}
                     </button>
-                    <button onClick={() => { setEditing({ id: a.id, title: a.title, body: a.body, category: a.category, audience: a.audience, isPublished: a.isPublished }); setFormError(null); }}
+                    <button onClick={() => { setEditing({ id: a.id, title: a.title, body: a.body, category: a.category, audience: a.audience, isPublished: a.isPublished, facebookUrl: a.facebookUrl ?? "" }); setFormError(null); }}
                       className="px-2 min-h-9 rounded-full text-slate-600 hover:bg-slate-100">Edit</button>
                     <button onClick={() => togglePublished(a)} className="px-2 min-h-9 rounded-full text-slate-600 hover:bg-slate-100">
                       {a.isPublished ? "Hide" : "Publish"}
