@@ -7,6 +7,7 @@ import { CAREER_STEPS } from "../config/careerSteps";
 import { Prisma } from "../../lib/generated";
 import { requireActionUser } from "../../lib/session";
 import { formatAppointmentWhen, sendEmail } from "../../lib/email";
+import { normalizeFacebookPostUrl } from "../../lib/facebook";
 
 // Every action here requires a signed-in Guidance Associate (COUNSELOR role).
 const counselorOnly = () => requireActionUser("COUNSELOR");
@@ -530,15 +531,12 @@ export async function saveAnnouncement(formData: {
     await counselorOnly();
     if (!formData.title.trim() || !formData.body.trim()) return { success: false, error: "Add a title and a message." };
 
-    // Optional Facebook post: only real https facebook.com / fb.watch links are kept.
-    const fb = formData.facebookUrl?.trim() || null;
-    if (fb) {
-      let ok = false;
-      try {
-        const u = new URL(fb);
-        ok = u.protocol === "https:" && /(^|.)facebook.com$|(^|.)fb.watch$/.test(u.hostname);
-      } catch {}
-      if (!ok) return { success: false, error: "The Facebook link should start with https://www.facebook.com/." };
+    // Optional Facebook post: a permalink or the post's embed code (see lib/facebook.ts).
+    let fb: string | null = null;
+    if (formData.facebookUrl?.trim()) {
+      const parsed = normalizeFacebookPostUrl(formData.facebookUrl);
+      if (!parsed.ok) return { success: false, error: parsed.error };
+      fb = parsed.url;
     }
 
     const data = {

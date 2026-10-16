@@ -104,11 +104,14 @@ export default function InformationServicePage() {
               </div>
             </div>
             <div>
-              <label htmlFor="a-fb" className="block text-[13px] font-medium text-slate-700 mb-1.5">Facebook post link (optional)</label>
-              <input id="a-fb" type="url" inputMode="url" placeholder="https://www.facebook.com/stamaria.sti.edu/posts/…"
+              <label htmlFor="a-fb" className="block text-[13px] font-medium text-slate-700 mb-1.5">Facebook post (optional)</label>
+              <textarea id="a-fb" rows={2} placeholder="https://www.facebook.com/stamaria.sti.edu/posts/…"
                 value={editing.facebookUrl} onChange={(e) => setEditing({ ...editing, facebookUrl: e.target.value })}
-                className="w-full bg-sheet border border-slate-300 rounded-md px-3 py-2.5 text-sm" />
-              <p className="text-xs text-slate-500 mt-1">On Facebook, open the post, click ⋯ → Copy link, and paste it here. The post is shown under this announcement, with a “View on Facebook” link.</p>
+                className="w-full bg-sheet border border-slate-300 rounded-md px-3 py-2.5 text-sm resize-y" />
+              <p className="text-xs text-slate-500 mt-1">
+                On Facebook, click the post&apos;s date or time (like “1d”) and copy that link, or use ⋯ → <span className="font-medium">Embed</span> and
+                paste the code. “Copy link” share links don&apos;t work. The post is shown under this announcement.
+              </p>
             </div>
             <label className="flex items-center gap-2 text-sm text-slate-700 min-h-11">
               <input type="checkbox" checked={editing.isPublished} onChange={(e) => setEditing({ ...editing, isPublished: e.target.checked })}
