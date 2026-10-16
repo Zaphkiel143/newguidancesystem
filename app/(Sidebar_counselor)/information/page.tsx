@@ -108,7 +108,7 @@ export default function InformationServicePage() {
               <input id="a-fb" type="url" inputMode="url" placeholder="https://www.facebook.com/stamaria.sti.edu/posts/…"
                 value={editing.facebookUrl} onChange={(e) => setEditing({ ...editing, facebookUrl: e.target.value })}
                 className="w-full bg-sheet border border-slate-300 rounded-md px-3 py-2.5 text-sm" />
-              <p className="text-xs text-slate-500 mt-1">On Facebook, open the post, click ⋯ → Copy link, and paste it here. Viewers can show it under this announcement.</p>
+              <p className="text-xs text-slate-500 mt-1">On Facebook, open the post, click ⋯ → Copy link, and paste it here. A “View on Facebook” button appears under this announcement.</p>
             </div>
             <label className="flex items-center gap-2 text-sm text-slate-700 min-h-11">
               <input type="checkbox" checked={editing.isPublished} onChange={(e) => setEditing({ ...editing, isPublished: e.target.checked })}

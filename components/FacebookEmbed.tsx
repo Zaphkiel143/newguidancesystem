@@ -1,15 +1,15 @@
-"use client";
-
-import React, { useState } from "react";
+import React from "react";
+import Image from "next/image";
 import { ExternalLink } from "lucide-react";
 
-// Facebook's official Page and Post plugins, loaded only when the viewer asks.
-// Until then nothing is requested from Facebook, so no Facebook scripts or
-// cookies reach students who don't choose to see the posts (RA 10173).
+// Links out to the school's Facebook page and posts instead of embedding them.
+// Facebook's Page/Post plugins only showed the page header (no posts) for this
+// page, so plain links are the version that always works. They also load
+// nothing from Facebook, so no Facebook scripts or cookies reach viewers.
 
-function FacebookMark() {
+function FacebookMark({ size = 18 }: { size?: number }) {
   return (
-    <svg aria-hidden viewBox="0 0 24 24" width="18" height="18" className="shrink-0">
+    <svg aria-hidden viewBox="0 0 24 24" width={size} height={size} className="shrink-0">
       <circle cx="12" cy="12" r="12" fill="#1877F2" />
       <path
         fill="#fff"
@@ -19,7 +19,7 @@ function FacebookMark() {
   );
 }
 
-// Only real facebook.com / fb.watch https links are embedded.
+// Only real facebook.com / fb.watch https links are shown.
 export function isFacebookUrl(value: string): boolean {
   try {
     const url = new URL(value);
@@ -29,99 +29,43 @@ export function isFacebookUrl(value: string): boolean {
   }
 }
 
-export function FacebookPageFeed({ pageUrl, pageName }: { pageUrl: string; pageName: string }) {
-  const [show, setShow] = useState(false);
-
-  const src =
-    "https://www.facebook.com/plugins/page.php?" +
-    new URLSearchParams({
-      href: pageUrl,
-      tabs: "timeline",
-      width: "500",
-      height: "720",
-      small_header: "true",
-      adapt_container_width: "true",
-      hide_cover: "false",
-      show_facepile: "false",
-    }).toString();
-
+export function FacebookPageCard({ pageUrl, pageName }: { pageUrl: string; pageName: string }) {
   return (
-    <div>
-      {show ? (
-        <iframe
-          title={`Latest posts from ${pageName} on Facebook`}
-          src={src}
-          width="500"
-          height="720"
-          className="w-full max-w-[500px] rounded-xl border border-rule bg-sheet"
-          style={{ border: "none", overflow: "hidden" }}
-          allow="encrypted-media; clipboard-write; picture-in-picture; web-share"
-          loading="lazy"
-        />
-      ) : (
-        <div className="rounded-xl border border-blue-100 bg-blue-50 p-5 max-w-[500px]">
-          <p className="text-sm text-slate-600">
-            See the latest posts from <span className="font-medium text-ink">{pageName}</span> here. This loads content from Facebook.
-          </p>
-          <button
-            type="button"
-            onClick={() => setShow(true)}
-            className="mt-3 inline-flex items-center gap-2 bg-sheet border border-slate-300 hover:bg-slate-100 text-sm font-medium px-4 min-h-11 rounded-full transition-colors"
-          >
-            <FacebookMark /> Show Facebook posts
-          </button>
-        </div>
-      )}
-      <a
-        href={pageUrl}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="mt-2 inline-flex items-center gap-1.5 px-2 min-h-9 -ml-2 rounded-full text-[13px] text-blue-700 hover:bg-blue-50"
-      >
-        Open the page on Facebook <ExternalLink size={13} />
-      </a>
-    </div>
+    <a
+      href={pageUrl}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="group block rounded-2xl border border-blue-100 bg-blue-50 p-4 hover:border-blue-200 hover:bg-blue-100/60 transition-colors"
+    >
+      <span className="flex items-center gap-3.5">
+        <span className="relative shrink-0">
+          <Image src="/sti-logo.jpg" alt="" width={52} height={52} className="rounded-xl shadow-sm" />
+          <span className="absolute -bottom-1 -right-1 rounded-full ring-2 ring-blue-50">
+            <FacebookMark size={20} />
+          </span>
+        </span>
+        <span className="min-w-0">
+          <span className="block font-semibold text-ink leading-snug">{pageName}</span>
+          <span className="block text-[13px] text-slate-600 leading-snug mt-0.5">News, events, and announcements</span>
+        </span>
+      </span>
+      <span className="mt-4 w-full inline-flex items-center justify-center gap-1.5 bg-blue-700 group-hover:bg-blue-800 text-white text-[13px] font-medium px-4 min-h-10 rounded-full transition-colors">
+        See latest posts on Facebook <ExternalLink size={13} />
+      </span>
+    </a>
   );
 }
 
-export function FacebookPost({ postUrl }: { postUrl: string }) {
-  const [show, setShow] = useState(false);
+export function FacebookPostLink({ postUrl }: { postUrl: string }) {
   if (!isFacebookUrl(postUrl)) return null;
-
-  const src =
-    "https://www.facebook.com/plugins/post.php?" +
-    new URLSearchParams({ href: postUrl, width: "500", show_text: "true" }).toString();
-
   return (
-    <div className="mt-3">
-      {show ? (
-        <iframe
-          title="Facebook post"
-          src={src}
-          width="500"
-          height="600"
-          className="w-full max-w-[500px] rounded-xl border border-rule bg-sheet"
-          style={{ border: "none", overflow: "hidden" }}
-          allow="encrypted-media; clipboard-write; picture-in-picture; web-share"
-          loading="lazy"
-        />
-      ) : (
-        <button
-          type="button"
-          onClick={() => setShow(true)}
-          className="inline-flex items-center gap-2 bg-sheet border border-slate-300 hover:bg-slate-100 text-[13px] font-medium px-3.5 min-h-10 rounded-full transition-colors"
-        >
-          <FacebookMark /> Show the Facebook post
-        </button>
-      )}
-      <a
-        href={postUrl}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="ml-1 inline-flex items-center gap-1.5 px-2 min-h-9 rounded-full text-[13px] text-blue-700 hover:bg-blue-50"
-      >
-        Open on Facebook <ExternalLink size={13} />
-      </a>
-    </div>
+    <a
+      href={postUrl}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="mt-3 inline-flex items-center gap-2 bg-sheet border border-slate-300 hover:bg-slate-100 text-[13px] font-medium text-ink px-4 min-h-10 rounded-full transition-colors"
+    >
+      <FacebookMark /> View on Facebook <ExternalLink size={13} className="text-slate-500" />
+    </a>
   );
 }

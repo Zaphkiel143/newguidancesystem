@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import { Loader2, MapPin } from "lucide-react";
 import { getBulletin } from "../app/action/bulletin";
 import type { Announcement, Event as DbEvent } from "../lib/generated";
-import { FacebookPageFeed, FacebookPost } from "./FacebookEmbed";
+import { FacebookPageCard, FacebookPostLink } from "./FacebookEmbed";
 import { FACEBOOK_PAGE_URL } from "../app/config/school";
 
 // Information Service board + upcoming events, shared by the student, faculty
@@ -71,7 +71,7 @@ export default function BulletinBoard() {
                     </p>
                     <h3 className="font-serif text-xl text-ink mt-1">{a.title}</h3>
                     <p className="text-[15px] leading-relaxed text-slate-700 mt-2 whitespace-pre-wrap max-w-[65ch]">{a.body}</p>
-                    {a.facebookUrl && <FacebookPost postUrl={a.facebookUrl} />}
+                    {a.facebookUrl && <FacebookPostLink postUrl={a.facebookUrl} />}
                   </li>
                 ))}
               </ul>
@@ -113,7 +113,7 @@ export default function BulletinBoard() {
             )}
 
             <h2 className="font-serif text-[22px] text-ink mt-12 mb-3">On Facebook</h2>
-            <FacebookPageFeed pageUrl={FACEBOOK_PAGE_URL} pageName="STI College Sta. Maria" />
+            <FacebookPageCard pageUrl={FACEBOOK_PAGE_URL} pageName="STI College Sta. Maria" />
           </section>
         </div>
       )}
