@@ -4,6 +4,7 @@ import db from "../../lib/db";
 import { revalidatePath } from "next/cache";
 import { requireActionUser } from "../../lib/session";
 import { counselorEmails, formatAppointmentWhen, sendEmail } from "../../lib/email";
+import { isBookableTime } from "../config/timeSlots";
 
 // Every action here acts as the signed-in parent. A parent's children are the
 // student profiles whose parentName matches the parent's account name.
@@ -58,6 +59,9 @@ export async function bookAppointment(formData: {
   try {
     const { me, child } = await requireOwnChild(formData.childName);
     const date = new Date(formData.dateString);
+    if (!isBookableTime(formData.timeSlot)) {
+      return { success: false, error: "Pick one of the available times (8:00 AM to 3:00 PM, no sessions 12:00–1:00 PM)." };
+    }
 
     const taken = await db.appointment.findFirst({
       where: { date, time: formData.timeSlot, status: { not: "CANCELLED" } },

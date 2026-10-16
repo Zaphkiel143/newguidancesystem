@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { X, CheckCircle2 } from "lucide-react";
-import { STANDARD_DAY_HOURS } from "../app/config/timeSlots";
+import { DAY_SCHEDULE } from "../app/config/timeSlots";
 
 interface BookingPayload {
   dateString: string;
@@ -122,7 +122,17 @@ export default function BookAppointmentModal({
           <div className="space-y-1">
             <label className="text-xs font-semibold text-slate-700">Available Time Slots</label>
             <div className="grid grid-cols-3 gap-2">
-              {STANDARD_DAY_HOURS.map((slot) => {
+              {DAY_SCHEDULE.map((entry) => {
+                if (entry.kind === "lunch") {
+                  return (
+                    <div key="lunch" role="note" aria-label={`Lunch break, ${entry.label}, no sessions`}
+                      className="min-h-11 py-1.5 px-2 rounded-xl border border-dashed border-butter-300 bg-butter-50 text-center leading-tight">
+                      <span className="block text-xs font-semibold text-slate-700">Lunch break</span>
+                      <span className="block text-[11px] text-slate-500 font-mono">{entry.label}</span>
+                    </div>
+                  );
+                }
+                const slot = entry.time;
                 const isTaken = bookedTimes.includes(slot);
                 const isSelected = time === slot;
                 return (

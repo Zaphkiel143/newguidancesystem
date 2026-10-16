@@ -3,10 +3,9 @@
 import { useState, useEffect } from "react";
 import { saveAppointmentDetails, getAppointmentsByDate, getDateStats, updateAppointmentStatus } from "../../action/counselor";
 import type { Appointment as DbAppointment } from "../../../lib/generated";
-import { STANDARD_DAY_HOURS, parseTimeToMinutes, formatMinutesToTime } from "../../config/timeSlots";
+import { STANDARD_DAY_HOURS, SLOT_MINUTES, LUNCH_BREAK_LABEL, parseTimeToMinutes, formatMinutesToTime } from "../../config/timeSlots";
 import InlineError from "../../../components/InlineError";
 
-const MAX_BLOCK_MINUTES = 60;
 
 interface Appointment {
   id: string;
@@ -66,26 +65,24 @@ export default function AppointmentScheduling() {
   const [editDate, setEditDate] = useState("");
   const [editTime, setEditTime] = useState("");
 
-  // Block Time Slot scheduling — end time is capped at MAX_BLOCK_MINUTES after start
+  // Block Time Slot: a block covers exactly one hourly slot, saved under that slot's
+  // start time so the slot shows as taken for students, faculty and parents.
   const [blockStartTime, setBlockStartTime] = useState<string>(STANDARD_DAY_HOURS[0]);
   const [blockEndTime, setBlockEndTime] = useState<string>(
-    formatMinutesToTime(parseTimeToMinutes(STANDARD_DAY_HOURS[0]) + 30)
+    formatMinutesToTime(parseTimeToMinutes(STANDARD_DAY_HOURS[0]) + SLOT_MINUTES)
   );
   const isBlockMode = selectedAppointment?.id.startsWith("block-") ?? false;
 
-  // Only offer end times within (start, start + MAX_BLOCK_MINUTES]
-  const blockEndTimeOptions = Array.from(
-    { length: MAX_BLOCK_MINUTES / 30 },
-    (_, i) => formatMinutesToTime(parseTimeToMinutes(blockStartTime) + (i + 1) * 30)
-  );
+  const blockEndTimeOptions = [formatMinutesToTime(parseTimeToMinutes(blockStartTime) + SLOT_MINUTES)];
 
-  const applyBlockTimeRange = (startTime: string, endTime: string) => {
-    setSelectedAppointment((prev) => (prev ? { ...prev, time: `${startTime} - ${endTime}` } : prev));
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- end time is always start + 1 hour
+  const applyBlockTimeRange = (startTime: string, _endTime: string) => {
+    setSelectedAppointment((prev) => (prev ? { ...prev, time: startTime } : prev));
   };
 
   const handleBlockStartTimeChange = (value: string) => {
     setBlockStartTime(value);
-    const defaultEndTime = formatMinutesToTime(parseTimeToMinutes(value) + 30);
+    const defaultEndTime = formatMinutesToTime(parseTimeToMinutes(value) + SLOT_MINUTES);
     setBlockEndTime(defaultEndTime);
     applyBlockTimeRange(value, defaultEndTime);
   };
@@ -140,7 +137,7 @@ export default function AppointmentScheduling() {
   // NEW: Handler to open the modal specifically for blocking out a schedule slot
   const handleBlockTimeSlot = () => {
     const startTime = STANDARD_DAY_HOURS[0];
-    const endTime = formatMinutesToTime(parseTimeToMinutes(startTime) + 30);
+    const endTime = formatMinutesToTime(parseTimeToMinutes(startTime) + SLOT_MINUTES);
 
     setBlockStartTime(startTime);
     setBlockEndTime(endTime);
@@ -148,7 +145,7 @@ export default function AppointmentScheduling() {
       id: `block-${Date.now()}`,
       studentName: "ADMINISTRATIVE BLOCK",
       appointmentType: "Unavailable / Reserved Slot",
-      time: `${startTime} - ${endTime}`,
+      time: startTime,
       date: selectedDate,
       status: "CONFIRMED"
     });
@@ -428,10 +425,14 @@ export default function AppointmentScheduling() {
                       onChange={(e) => setEditTime(e.target.value)}
                       className="w-full text-sm bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 focus:outline-none"
                     >
+                      {editTime && !STANDARD_DAY_HOURS.includes(editTime) && (
+                        <option value={editTime}>{editTime} (outside current hours)</option>
+                      )}
                       {STANDARD_DAY_HOURS.map((slot) => (
                         <option key={slot} value={slot}>{slot}</option>
                       ))}
                     </select>
+                    <p className="text-xs text-slate-500">No sessions during lunch, {LUNCH_BREAK_LABEL}.</p>
                   </div>
                 </div>
               )}

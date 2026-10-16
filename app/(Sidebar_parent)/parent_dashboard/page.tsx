@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { Calendar as CalendarIcon, Clock, AlignLeft, Users, CheckCircle } from 'lucide-react';
 import { getBookedTimesForDate, bookAppointment } from '../../action/parent';
-import { STANDARD_DAY_HOURS } from '../../config/timeSlots';
+import { DAY_SCHEDULE } from '../../config/timeSlots';
 import { useMyChildren } from '../useMyChildren';
 
 function toDateString(date: Date): string {
@@ -143,7 +143,17 @@ export const ParentBookAppointment: React.FC = () => {
               </label>
               
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                {STANDARD_DAY_HOURS.map((slot) => {
+                {DAY_SCHEDULE.map((entry) => {
+                  if (entry.kind === "lunch") {
+                    return (
+                      <div key="lunch" role="note" aria-label={`Lunch break, ${entry.label}, no sessions`}
+                        className="min-h-11 py-1.5 px-2 rounded-xl border border-dashed border-butter-300 bg-butter-50 text-center leading-tight">
+                        <span className="block text-xs font-semibold text-slate-700">Lunch break</span>
+                        <span className="block text-[11px] text-slate-500 font-mono">{entry.label}</span>
+                      </div>
+                    );
+                  }
+                  const slot = entry.time;
                   const isTaken = bookedTimes.includes(slot);
                   const isSelected = selectedTime === slot;
                   return (
