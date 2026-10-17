@@ -142,6 +142,26 @@ export default function AiChatThread({ compact = false }: { compact?: boolean })
       </div>
 
       <div className={`border-t border-rule bg-paper shrink-0 ${compact ? "px-3 py-3" : "px-5 sm:px-8 py-4"}`}>
+        {/* Suggested questions stay available after the chat has started. */}
+        {messages.length > 0 && (
+          <div className={compact ? "mb-2" : "max-w-2xl mx-auto mb-3"}>
+            <p className="text-[12px] text-slate-500 mb-1.5">Suggested questions</p>
+            <ul className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1" aria-label="Suggested questions">
+              {STARTERS.map((starter) => (
+                <li key={starter} className="shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => send(starter)}
+                    disabled={!conversationId || isSending}
+                    className="px-3 min-h-9 rounded-full border border-blue-200 bg-white text-[13px] text-slate-700 hover:border-blue-400 hover:text-blue-700 disabled:opacity-50 whitespace-nowrap transition-colors"
+                  >
+                    {starter}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
         <form
           onSubmit={(e) => {
             e.preventDefault();
