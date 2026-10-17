@@ -197,7 +197,7 @@ export default function AccountsPage() {
               <thead className="text-[13px] text-slate-500">
                 <tr className="border-b border-rule">
                   <th className="py-3 pr-4 font-medium">Name</th>
-                  <th className="py-3 pr-4 font-medium">Signs in with</th>
+                  <th className="py-3 pr-4 font-medium hidden sm:table-cell">Signs in with</th>
                   <th className="py-3 pr-4 font-medium">Role</th>
                   <th className="py-3 font-medium">Status</th>
                 </tr>
@@ -211,8 +211,11 @@ export default function AccountsPage() {
                       <td className="py-3 pr-4 font-medium text-ink">
                         {a.name}
                         {a.isMe && <span className="ml-2 text-xs font-normal text-slate-500">(you)</span>}
+                        <span className="sm:hidden block text-[12px] font-normal text-slate-500 break-all">
+                          {a.role === "PARENT" ? formatPhone(a.phone) || a.email : a.email}
+                        </span>
                       </td>
-                      <td className="py-3 pr-4 text-slate-600 break-all">{a.role === "PARENT" ? formatPhone(a.phone) || a.email : a.email}</td>
+                      <td className="py-3 pr-4 text-slate-600 break-all hidden sm:table-cell">{a.role === "PARENT" ? formatPhone(a.phone) || a.email : a.email}</td>
                       <td className="py-2 pr-4 min-w-44">
                         {a.role === "PARENT" ? (
                           <span className="inline-block py-2 text-slate-700">{ROLE_LABEL.PARENT}</span>

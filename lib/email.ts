@@ -21,6 +21,10 @@ export const emailConfigured = transporter !== null;
 
 const FROM = process.env.SMTP_FROM ?? "E-Gabay STI <no-reply@egabay.local>";
 
+// Every email is automated, so say so; replies go nowhere useful.
+const NO_REPLY_NOTE =
+  "\n\n—\nThis is an automated message from E-Gabay. Please don't reply to this email. To reach the Guidance and Counseling Office, message them in E-Gabay or visit the office.";
+
 export type EmailStatus = "SENT" | "LOGGED" | "FAILED";
 
 // Never throws: a failed email must not undo the booking that triggered it.
@@ -38,7 +42,14 @@ export async function sendEmail(
 
   if (transporter) {
     try {
-      await transporter.sendMail({ from: FROM, to, subject, text: body });
+      await transporter.sendMail({
+        from: FROM,
+        to,
+        subject,
+        text: body + NO_REPLY_NOTE,
+        // Tells mail apps this is a bulk/automatic message (no auto-replies back).
+        headers: { "Auto-Submitted": "auto-generated", "X-Auto-Response-Suppress": "All" },
+      });
       status = "SENT";
     } catch (err) {
       status = "FAILED";

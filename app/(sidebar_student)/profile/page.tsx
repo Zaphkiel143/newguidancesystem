@@ -5,6 +5,7 @@ import { Loader2, Upload, FileText } from 'lucide-react';
 import { completeMyStudentInfo, getMyProfile, submitStudentDocument } from '../../action/student';
 import InlineError from '../../../components/InlineError';
 import PhotoPicker from '../../../components/PhotoPicker';
+import AuthenticatorSetup from '../../../components/AuthenticatorSetup';
 import { ACCEPTED_FILE_TYPES, STUDENT_DOCUMENT_CATEGORIES as DOCUMENT_CATEGORIES } from '../../config/documents';
 import { DEPARTMENTS, SHS, programsFor, yearLevelsFor } from '../../config/studentLevels';
 
@@ -190,6 +191,8 @@ export const StudentProfile: React.FC = () => {
             )}
             <p className="px-6 pb-5 text-xs text-slate-500">Something wrong? Message the guidance office to have it corrected.</p>
           </section>
+
+          <AuthenticatorSetup />
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
             <section>

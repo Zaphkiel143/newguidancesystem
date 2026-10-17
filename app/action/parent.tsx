@@ -3,6 +3,7 @@
 import db from "../../lib/db";
 import { revalidatePath } from "next/cache";
 import { requireActionUser } from "../../lib/session";
+import { allow, DAY, HOUR, MINUTE, SLOW_DOWN } from "../../lib/rateLimit";
 import { hashPassword, verifyPassword } from "../../lib/auth";
 import { notifyCounselors } from "../../lib/notify";
 import { normalizePhone } from "../../lib/phone";
@@ -75,6 +76,11 @@ export async function bookAppointment(formData: {
     const { me, child } = await requireOwnChild(formData.childName);
     const checked = await checkBooking(formData);
     if ("error" in checked) return { success: false, error: checked.error };
+    const pending = await db.appointment.count({
+      where: { bookedByName: me.name, bookedByRole: me.roleLabel, status: "PENDING", date: { gte: checked.date } },
+    });
+    if (pending >= 3) return { success: false, error: "You already have 3 requests waiting for confirmation. Wait for the guidance office to confirm them first." };
+    if (!(await allow(`booking:${me.id}`, 5, HOUR))) return { success: false, error: SLOW_DOWN };
     const { date } = checked;
 
     await db.appointment.create({
@@ -169,6 +175,10 @@ export async function markConversationRead(conversationId: string) {
 export async function sendMessage(formData: { conversationId: string; content: string }) {
   try {
     const me = await ownConversation(formData.conversationId);
+    const content = formData.content.trim().slice(0, 2000);
+    if (!content) return { success: false, error: "Write a message first." };
+    if (!(await allow(`message:${me.id}`, 20, 10 * MINUTE))) return { success: false, error: SLOW_DOWN };
+    formData = { ...formData, content };
     const message = await db.message.create({
       data: {
         conversationId: formData.conversationId,
@@ -201,6 +211,9 @@ export async function submitReferral(formData: {
     const { me, child } = await requireOwnChild(formData.studentName);
     const checked = checkReferral({ ...formData, studentName: child.name });
     if ("error" in checked) return { success: false, error: checked.error };
+    if (!(await allow(`referral:${me.id}`, 5, HOUR)) || !(await allow(`referral-day:${me.id}`, 15, DAY))) {
+      return { success: false, error: SLOW_DOWN };
+    }
 
     await db.referral.create({
       data: { ...checked.value, referrerName: me.name, referrerRole: "Parent", status: "OPEN" },
@@ -335,6 +348,7 @@ export async function requestChildLink(formData: { childStudentId: string; child
     if (childName.length < 3) return { success: false, error: "Enter your child's full name." };
     if (!formData.relationship.trim()) return { success: false, error: "Choose your relationship to the student." };
 
+    if (!(await allow(`child-link:${me.id}`, 5, DAY))) return { success: false, error: SLOW_DOWN };
     const existing = await db.parentChildLink.findUnique({ where: { parentId_studentIdNumber: { parentId: me.id, studentIdNumber } } });
     if (existing && existing.status !== "REJECTED") return { success: false, error: "You already asked to link this student." };
 

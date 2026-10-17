@@ -153,10 +153,10 @@ export default function StudentInventory() {
           <table className="w-full text-sm text-left">
             <thead className="text-[13px] text-slate-500">
               <tr className="border-b border-rule">
-                <th className="py-3 pr-4 font-medium">Student ID</th>
+                <th className="py-3 pr-4 font-medium hidden sm:table-cell">Student ID</th>
                 <th className="py-3 pr-4 font-medium">Name</th>
-                <th className="py-3 pr-4 font-medium">Grade & section</th>
-                <th className="py-3 pr-4 font-medium">Last session</th>
+                <th className="py-3 pr-4 font-medium hidden sm:table-cell">Grade & section</th>
+                <th className="py-3 pr-4 font-medium hidden md:table-cell">Last session</th>
                 <th className="py-3 font-medium"><span className="sr-only">Actions</span></th>
               </tr>
             </thead>
@@ -166,10 +166,15 @@ export default function StudentInventory() {
               ) : (
                 filtered.map((r) => (
                   <tr key={r.id}>
-                    <td className="py-3 pr-4 font-mono text-[13px] text-slate-600">{r.studentId}</td>
-                    <td className="py-3 pr-4 font-medium text-ink">{r.name}</td>
-                    <td className="py-3 pr-4 text-slate-600">{r.gradeSection}</td>
-                    <td className="py-3 pr-4 font-mono text-[13px] text-slate-600">
+                    <td className="py-3 pr-4 font-mono text-[13px] text-slate-600 hidden sm:table-cell">{r.studentId}</td>
+                    <td className="py-3 pr-4 font-medium text-ink">
+                      {r.name}
+                      <span className="sm:hidden block text-[12px] font-normal text-slate-500">
+                        <span className="font-mono">{r.studentId}</span> · {r.gradeSection}
+                      </span>
+                    </td>
+                    <td className="py-3 pr-4 text-slate-600 hidden sm:table-cell">{r.gradeSection}</td>
+                    <td className="py-3 pr-4 font-mono text-[13px] text-slate-600 hidden md:table-cell">
                       {r.lastSession ? new Date(r.lastSession).toLocaleDateString("en-PH", { timeZone: "UTC", month: "short", day: "numeric", year: "numeric" }) : "—"}
                     </td>
                     <td className="py-2 text-right whitespace-nowrap">

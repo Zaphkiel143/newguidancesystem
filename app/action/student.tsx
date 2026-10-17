@@ -4,6 +4,7 @@ import db from "../../lib/db";
 import { revalidatePath } from "next/cache";
 import { getNlpReply } from "../../lib/nlp";
 import { requireActionUser } from "../../lib/session";
+import { allow, DAY, HOUR, MINUTE, SLOW_DOWN } from "../../lib/rateLimit";
 import { counselorEmails, formatAppointmentWhen, sendEmail } from "../../lib/email";
 import { announceNewBooking, checkBooking } from "../../lib/booking";
 import { parseTimeToMinutes } from "../config/timeSlots";
@@ -56,6 +57,11 @@ export async function bookAppointment(formData: {
     const me = await requireActionUser("STUDENT");
     const checked = await checkBooking(formData);
     if ("error" in checked) return { success: false, error: checked.error };
+    const pending = await db.appointment.count({
+      where: { bookedByName: me.name, bookedByRole: me.roleLabel, status: "PENDING", date: { gte: checked.date } },
+    });
+    if (pending >= 3) return { success: false, error: "You already have 3 requests waiting for confirmation. Wait for the guidance office to confirm them first." };
+    if (!(await allow(`booking:${me.id}`, 5, HOUR))) return { success: false, error: SLOW_DOWN };
     const { date } = checked;
 
     await db.appointment.create({
@@ -149,6 +155,10 @@ export async function markConversationRead(conversationId: string) {
 export async function sendMessage(formData: { conversationId: string; content: string }) {
   try {
     const me = await ownConversation(formData.conversationId);
+    const content = formData.content.trim().slice(0, 2000);
+    if (!content) return { success: false, error: "Write a message first." };
+    if (!(await allow(`message:${me.id}`, 20, 10 * MINUTE))) return { success: false, error: SLOW_DOWN };
+    formData = { ...formData, content };
     const message = await db.message.create({
       data: {
         conversationId: formData.conversationId,
@@ -183,6 +193,9 @@ export async function submitReferral(formData: {
     const me = await requireActionUser("STUDENT");
     const checked = checkReferral({ ...formData, studentName: formData.aboutMyself ? me.name : formData.studentName });
     if ("error" in checked) return { success: false, error: checked.error };
+    if (!(await allow(`referral:${me.id}`, 5, HOUR)) || !(await allow(`referral-day:${me.id}`, 15, DAY))) {
+      return { success: false, error: SLOW_DOWN };
+    }
 
     await db.referral.create({
       data: { ...checked.value, referrerName: me.name, referrerRole: "Student", status: "OPEN" },
@@ -384,6 +397,7 @@ export async function sendAiMessage(formData: { conversationId: string; content:
     if (!conversation) throw new Error("This chat was closed. Start a new one.");
     const content = formData.content.trim().slice(0, 1000);
     if (!content) throw new Error("Write a message first.");
+    if (!(await allow(`ai:${me.id}`, 30, 10 * MINUTE))) throw new Error(SLOW_DOWN);
     formData = { ...formData, content };
 
     await db.aiMessage.create({
@@ -395,7 +409,7 @@ export async function sendAiMessage(formData: { conversationId: string; content:
     const reply = await getNlpReply(formData.content);
 
     const assistantMessage = await db.aiMessage.create({
-      data: { conversationId: formData.conversationId, role: "assistant", content: reply },
+      data: { conversationId: formData.conversationId, role: "assistant", content: reply.response, intent: reply.intent },
     });
 
     await db.aiConversation.update({ where: { id: formData.conversationId }, data: { updatedAt: new Date() } });
@@ -504,5 +518,46 @@ export async function getMyAiHistoryChat(conversationId: string) {
   } catch (error) {
     console.error("[student] Failed to load AI chat:", error);
     return null;
+  }
+}
+
+// When E-Gabay doesn't understand a question, the student can send it to the
+// Guidance Associate: it arrives in their Messages thread with the office, and
+// the office gets a notification. Each unanswered question can be sent once.
+export async function forwardAiQuestion(assistantMessageId: string) {
+  try {
+    const me = await requireActionUser("STUDENT");
+    const reply = await db.aiMessage.findFirst({
+      where: { id: assistantMessageId, role: "assistant", intent: "fallback", conversation: { studentName: me.name } },
+    });
+    if (!reply) return { success: false, error: "That question can't be sent." };
+    if (reply.forwardedAt) return { success: true };
+    const question = await db.aiMessage.findFirst({
+      where: { conversationId: reply.conversationId, role: "user", createdAt: { lte: reply.createdAt } },
+      orderBy: { createdAt: "desc" },
+    });
+    if (!question) return { success: false, error: "That question can't be sent." };
+    if (!(await allow(`forward:${me.id}`, 5, HOUR))) return { success: false, error: SLOW_DOWN };
+
+    let conversation = await db.conversation.findFirst({ where: { participantName: me.name, participantRole: "Student" } });
+    if (!conversation) conversation = await db.conversation.create({ data: { participantName: me.name, participantRole: "Student" } });
+    await db.message.create({
+      data: {
+        conversationId: conversation.id,
+        senderRole: "Student",
+        senderName: me.name,
+        content: `[Asked E-Gabay, which couldn't answer] ${question.content}`,
+      },
+    });
+    await db.conversation.update({ where: { id: conversation.id }, data: { updatedAt: new Date() } });
+    await db.aiMessage.update({ where: { id: reply.id }, data: { forwardedAt: new Date() } });
+    await notifyCounselors({ title: "A student's question for you (from E-Gabay)", body: `${me.name}: ${question.content.slice(0, 120)}`, href: "/message" });
+
+    revalidatePath("/my_messages");
+    revalidatePath("/message");
+    return { success: true };
+  } catch (error) {
+    console.error("[student] Failed to forward question:", error);
+    return { success: false, error: "Couldn't send it. Try again." };
   }
 }

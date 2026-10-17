@@ -40,6 +40,7 @@ faculty: [
     { name: 'Messages', icon: MessageSquare, path: '/faculty_message'},
     { name: 'Upload Documents', icon: Upload, path: '/upload_documents' },
     { name: 'Announcements & Events', icon: Megaphone, path: '/faculty_bulletin' },
+    { name: 'My Account', icon: UserCog, path: '/faculty_account' },
     ],
 counselor: [
     { name: 'Dashboard', icon: LayoutDashboard, path: '/dashboard' },
@@ -54,6 +55,7 @@ counselor: [
     { name: 'Events', icon: CalendarDays, path: '/events' },
     { name: 'Messages', icon: MessageSquare, path: '/message' },
     { name: 'Accounts & Approvals', icon: UserCog, path: '/accounts' },
+    { name: 'My Account', icon: User, path: '/my_account' },
 ],
 
 parent: [

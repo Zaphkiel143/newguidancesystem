@@ -5,7 +5,10 @@ import db from "./db";
 import type { UserRole } from "./generated";
 
 const SESSION_COOKIE = "session";
-const SESSION_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
+// Signed-in sessions last 30 days and renew while the person keeps using the
+// site (proxy.ts renews the cookie; getCurrentUser renews the database row).
+const SESSION_TTL_MS = 30 * 24 * 60 * 60 * 1000;
+const RENEW_WHEN_LEFT_MS = 29 * 24 * 60 * 60 * 1000;
 
 export function hashPassword(password: string): string {
   const salt = randomBytes(16).toString("hex");
@@ -52,11 +55,18 @@ export async function getCurrentUser() {
   if (!token) return null;
 
   // The photo bytes are left out here; /api/me/avatar loads them on their own.
-  const session = await db.session.findUnique({ where: { token }, include: { user: { omit: { avatarData: true } } } });
+  const session = await db.session.findUnique({ where: { token }, include: { user: { omit: { avatarData: true, totpSecret: true, totpPending: true } } } });
   if (!session || session.expiresAt < new Date()) return null;
   // An account the guidance office hasn't approved (or has turned off) can't
   // use an old session either.
   if (session.user.status !== "ACTIVE") return null;
+
+  // Sliding expiry, at most about once a day per session.
+  if (session.expiresAt.getTime() - Date.now() < RENEW_WHEN_LEFT_MS) {
+    await db.session
+      .update({ where: { token }, data: { expiresAt: new Date(Date.now() + SESSION_TTL_MS) } })
+      .catch(() => {});
+  }
 
   return session.user;
 }

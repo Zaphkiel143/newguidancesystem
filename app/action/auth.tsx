@@ -7,6 +7,7 @@ import { createSession, destroySession, dashboardPathForRole, hashPassword, veri
 import { emailConfigured, sendEmail } from "../../lib/email";
 import { notifyCounselors } from "../../lib/notify";
 import { normalizePhone } from "../../lib/phone";
+import { allow, clientIp, HOUR, MINUTE } from "../../lib/rateLimit";
 import type { UserRole } from "../../lib/generated";
 import { SCHOOL_EMAIL_DOMAIN } from "../config/school";
 import { DEPARTMENTS, gradeSectionLabel, programsFor, yearLevelsFor } from "../config/studentLevels";
@@ -43,6 +44,11 @@ export async function login(formData: { identifier: string; password: string }):
   try {
     const raw = formData.identifier.trim();
     const phone = normalizePhone(raw);
+    // Slows down password guessing: 5 tries per account and 20 per device every 15 minutes.
+    const ip = await clientIp();
+    if (!(await allow(`login:${phone ?? raw.toLowerCase()}`, 5, 15 * MINUTE)) || !(await allow(`login-ip:${ip}`, 20, 15 * MINUTE))) {
+      return { success: false, error: "Too many sign-in attempts. Wait 15 minutes and try again." };
+    }
     const user = phone
       ? await db.user.findUnique({ where: { phone } })
       : await db.user.findUnique({ where: { email: raw.toLowerCase() } });
@@ -110,6 +116,11 @@ export async function requestLoginCode(rawEmail: string): Promise<CodeRequestRes
     // printed to the dev server console for testing.
     if (!emailConfigured && process.env.NODE_ENV === "production") {
       return { success: false, error: "Email sign-in isn't set up on this site yet, so codes can't be delivered." };
+    }
+
+    // Per-device limit on top of the per-email one below.
+    if (!(await allow(`code-ip:${await clientIp()}`, 15, HOUR))) {
+      return { success: false, error: "Too many codes requested from this device. Try again in an hour." };
     }
 
     const lastHour = new Date(Date.now() - 60 * 60 * 1000);
@@ -324,8 +335,14 @@ export async function registerParent(formData: {
   childStudentId: string;
   childName: string;
   relationship: string;
+  // Hidden field people never see; bots that fill every field get caught.
+  website?: string;
 }): Promise<{ success: true } | { success: false; error: string }> {
   try {
+    if (formData.website) return { success: true }; // quietly ignore bots
+    if (!(await allow(`register-ip:${await clientIp()}`, 3, HOUR))) {
+      return { success: false, error: "Too many sign-ups from this device. Try again in an hour." };
+    }
     const name = cleanName([formData.firstName, formData.lastName, formData.nameExtension].filter(Boolean).join(" "));
     const phone = normalizePhone(formData.phone);
     const email = formData.email.trim().toLowerCase();

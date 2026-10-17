@@ -100,6 +100,12 @@ model User {
   // Optional profile photo (validated image bytes, see lib/image.ts).
   avatarData   Bytes?
   avatarType   String?
+  // Authenticator app sign-in (Microsoft/Google Authenticator), optional.
+  // totpPending holds a new secret until the person confirms a code from the app.
+  totpSecret   String?
+  totpPending  String?
+  totpLastStep Int?     // last code step used, so a code can't be reused
+  totpEnabledAt DateTime?
 
   sessions      Session[]
   notifications Notification[]
@@ -202,6 +208,10 @@ model AiMessage {
 
   role           String   // "user" or "assistant"
   content        String   @db.Text
+  // For E-Gabay's replies: the topic it recognised ("fallback" = not understood).
+  intent         String?
+  // Set when the student sent the unanswered question to the guidance office.
+  forwardedAt    DateTime?
 
   createdAt      DateTime @default(now())
 }
@@ -391,4 +401,17 @@ model Attachment {
   createdAt DateTime @default(now())
 
   @@index([kind, refId])
+}
+
+// ---- Anti-spam ----
+
+// One row per limited action (sign-in try, referral, message, ...), keyed by
+// what it's limiting, e.g. "login:+639171234567" or "referral:<userId>".
+// See lib/rateLimit.ts. Rows older than a day are cleared automatically.
+model RateEvent {
+  id        String   @id @default(uuid())
+  key       String
+  createdAt DateTime @default(now())
+
+  @@index([key, createdAt])
 }

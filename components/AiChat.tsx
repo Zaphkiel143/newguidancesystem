@@ -4,6 +4,7 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import { ArrowLeft, ArrowUp, History, Loader2, RotateCcw } from "lucide-react";
 import {
   endMyAiConversation,
+  forwardAiQuestion,
   getMyAiConversation,
   getMyAiHistory,
   getMyAiHistoryChat,
@@ -85,6 +86,8 @@ export default function AiChatThread({ compact = false }: { compact?: boolean })
       id: `pending-${crypto.randomUUID()}`,
       conversationId,
       role: "user",
+      intent: null,
+      forwardedAt: null,
       content,
       createdAt: new Date(),
     };
@@ -123,10 +126,19 @@ export default function AiChatThread({ compact = false }: { compact?: boolean })
     setViewing({ title: `${item.title} · ${when(item.endedAt)}`, messages: chat?.messages ?? [] });
   };
 
+  const forward = async (m: AiMessage) => {
+    const result = await forwardAiQuestion(m.id);
+    if (result.success) {
+      setMessages((prev) => prev.map((x) => (x.id === m.id ? { ...x, forwardedAt: new Date() } : x)));
+    } else {
+      setError(result.error ?? "Couldn't send it.");
+    }
+  };
+
   const text = compact ? "text-[14px]" : "text-[15px]";
   const toolButton = "inline-flex items-center gap-1.5 px-3 min-h-9 rounded-full text-[13px] text-slate-700 hover:bg-blue-50 hover:text-blue-700 disabled:opacity-50";
 
-  const bubbles = (list: AiMessage[]) =>
+  const bubbles = (list: AiMessage[], live = false) =>
     list.map((m) =>
       m.role === "user" ? (
         <div key={m.id} className="flex justify-end">
@@ -138,6 +150,15 @@ export default function AiChatThread({ compact = false }: { compact?: boolean })
         <div key={m.id} className="max-w-[92%]">
           <p className="font-serif italic text-[12px] text-slate-500 mb-0.5">E-Gabay</p>
           <p className={`${text} leading-relaxed text-ink whitespace-pre-wrap break-words`}>{m.content}</p>
+          {m.intent === "fallback" &&
+            (m.forwardedAt ? (
+              <p className="mt-1.5 text-[12px] text-emerald-700">Sent to the guidance office. They&apos;ll reply in My Messages.</p>
+            ) : live ? (
+              <button type="button" onClick={() => forward(m)}
+                className="mt-2 inline-flex items-center px-3 min-h-9 rounded-full border border-blue-300 text-[13px] text-blue-700 hover:bg-blue-50">
+                Send this question to the guidance office
+              </button>
+            ) : null)}
         </div>
       )
     );
@@ -225,7 +246,7 @@ export default function AiChatThread({ compact = false }: { compact?: boolean })
                   </ul>
                 </div>
               ) : (
-                bubbles(messages)
+                bubbles(messages, true)
               )}
 
               {isSending && (

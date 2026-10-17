@@ -7,6 +7,7 @@ import Image from 'next/image';
 import { login, loginAsDemo, registerParent, requestLoginCode, verifyLoginCode, type SignInAs } from '../action/auth';
 import { SCHOOL_EMAIL_DOMAIN } from '../config/school';
 import { LogoMark } from '../../components/Logo';
+import { signInWithTotp } from '../action/totp';
 import { DEPARTMENTS, programsFor, SHS, yearLevelsFor } from '../config/studentLevels';
 import type { UserRole } from '../../lib/generated';
 
@@ -29,7 +30,8 @@ const RELATIONSHIPS = ["Mother", "Father", "Guardian", "Grandparent", "Sibling",
 // "parent"   → parents sign in with mobile number + password
 // "register" → parents create an account (approved by the guidance office)
 // "waiting"  → account created/exists but needs approval
-type Step = "who" | "email" | "code" | "details" | "parent" | "register" | "waiting";
+// "totp"     → school email + code from Microsoft Authenticator (if set up)
+type Step = "who" | "email" | "code" | "details" | "parent" | "register" | "waiting" | "totp";
 
 const RESEND_SECONDS = 60;
 
@@ -50,7 +52,7 @@ const LoginPage = () => {
   const [student, setStudent] = useState({ studentId: '', department: SHS as string, yearLevel: '', program: '', section: '' });
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
-  const [reg, setReg] = useState({ email: '', password: '', confirm: '', childStudentId: '', childName: '', relationship: '' });
+  const [reg, setReg] = useState({ email: '', password: '', confirm: '', childStudentId: '', childName: '', relationship: '', website: '' });
   const [waitingMessage, setWaitingMessage] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -119,6 +121,16 @@ const LoginPage = () => {
     }
   };
 
+  const handleTotpLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    setError(null);
+    const result = await signInWithTotp({ email, code });
+    setIsSubmitting(false);
+    if (result.success) router.push(result.redirectTo);
+    else setError(result.error);
+  };
+
   const handleParentLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -150,6 +162,7 @@ const LoginPage = () => {
       childStudentId: reg.childStudentId,
       childName: reg.childName,
       relationship: reg.relationship,
+      website: reg.website,
     });
     setIsSubmitting(false);
     if (result.success) {
@@ -157,7 +170,7 @@ const LoginPage = () => {
         "Thank you. The guidance office will check your child's student ID and confirm your account. Once it's approved, sign in with your mobile number and password."
       );
       setPassword('');
-      setReg({ email: '', password: '', confirm: '', childStudentId: '', childName: '', relationship: '' });
+      setReg({ email: '', password: '', confirm: '', childStudentId: '', childName: '', relationship: '', website: '' });
       go("waiting");
     } else {
       setError(result.error);
@@ -182,6 +195,7 @@ const LoginPage = () => {
     parent: ["Parent or guardian", "Sign in with your mobile number."],
     register: ["Create a parent account", "The guidance office confirms every parent account before it can be used."],
     waiting: ["Almost there", waitingMessage],
+    totp: ["Use your authenticator app", "Enter your school email and the 6-digit code shown in Microsoft Authenticator."],
   };
 
   const nameFields = (
@@ -268,8 +282,40 @@ const LoginPage = () => {
                 <button type="submit" disabled={isSubmitting} className={primaryButton}>
                   {isSubmitting ? <><Loader2 size={16} className="animate-spin" /> Sending code</> : "Send code"}
                 </button>
-                <button type="button" onClick={() => go("who")} className={backButton}>
-                  <ArrowLeft size={14} /> Back
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <button type="button" onClick={() => go("who")} className={backButton}>
+                    <ArrowLeft size={14} /> Back
+                  </button>
+                  <button type="button" onClick={() => { setCode(''); go("totp"); }}
+                    className="px-2 min-h-9 rounded-full text-[13px] text-blue-700 font-medium hover:bg-blue-50">
+                    Use authenticator app instead
+                  </button>
+                </div>
+              </form>
+            )}
+
+            {step === "totp" && (
+              <form onSubmit={handleTotpLogin} className="mt-7 space-y-5">
+                <div>
+                  <label htmlFor="t-email" className={labelClass}>School email</label>
+                  <input id="t-email" type="email" autoComplete="email" inputMode="email" className={inputClass} value={email}
+                    onChange={(e) => setEmail(e.target.value)} required />
+                </div>
+                <div>
+                  <label htmlFor="t-code" className={labelClass}>Code from the app</label>
+                  <input id="t-code" type="text" inputMode="numeric" autoComplete="one-time-code" maxLength={6} placeholder="000000"
+                    className={`${inputClass} font-mono text-center text-xl tracking-[0.5em]`} value={code}
+                    onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 6))} required autoFocus />
+                </div>
+                <ErrorLine error={error} />
+                <button type="submit" disabled={isSubmitting || code.length !== 6} className={primaryButton}>
+                  {isSubmitting ? <><Loader2 size={16} className="animate-spin" /> Checking</> : "Sign in"}
+                </button>
+                <p className="text-xs text-slate-500">
+                  Haven&apos;t set it up? Sign in with an email code first, then turn it on from your Profile or My Account page.
+                </p>
+                <button type="button" onClick={() => go("email")} className={backButton}>
+                  <ArrowLeft size={14} /> Use an email code instead
                 </button>
               </form>
             )}
@@ -386,6 +432,12 @@ const LoginPage = () => {
 
             {step === "register" && (
               <form onSubmit={handleRegister} className="mt-7 space-y-4">
+                {/* Bot trap: hidden from people and screen readers; only bots fill it. */}
+                <div aria-hidden="true" className="absolute -left-[9999px] w-px h-px overflow-hidden">
+                  <label htmlFor="r-website">Website</label>
+                  <input id="r-website" type="text" tabIndex={-1} autoComplete="off" value={reg.website}
+                    onChange={(e) => setReg({ ...reg, website: e.target.value })} />
+                </div>
                 {nameFields}
                 <div>
                   <label htmlFor="r-phone" className={labelClass}>Mobile number</label>

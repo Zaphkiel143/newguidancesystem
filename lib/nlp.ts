@@ -6,7 +6,7 @@ interface NlpChatResponse {
   response: string;
 }
 
-export async function getNlpReply(message: string): Promise<string> {
+export async function getNlpReply(message: string): Promise<{ response: string; intent: string }> {
   const res = await fetch(`${NLP_SERVICE_URL}/chat`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -18,5 +18,5 @@ export async function getNlpReply(message: string): Promise<string> {
   }
 
   const data: NlpChatResponse = await res.json();
-  return data.response;
+  return { response: data.response, intent: data.intent };
 }
