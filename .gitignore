@@ -50,3 +50,6 @@ nlp_service/.venv
 nlp_service/__pycache__
 nlp_service/model/*.joblib
 
+
+# /feature agent handoff files
+.pipeline/
