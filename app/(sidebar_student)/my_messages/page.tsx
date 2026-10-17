@@ -4,17 +4,17 @@ import React, { useEffect, useState } from 'react';
 import { MessageSquare } from 'lucide-react';
 import { getMyConversation, getMessages, markConversationRead, sendMessage } from '../../action/student';
 import ConversationPanel from '../../../components/ConversationPanel';
+import { useCurrentUser } from '../../../components/CurrentUser';
 
-const VIEWER_ROLE = "Student";
-const VIEWER_NAME = "Nhel Belarmino";
 
 export const StudentMessagesDashboard: React.FC = () => {
+  const me = useCurrentUser();
   const [conversationId, setConversationId] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      const conversation = await getMyConversation(VIEWER_NAME);
+      const conversation = await getMyConversation();
       if (!cancelled) setConversationId(conversation?.id ?? null);
     })();
     return () => {
@@ -23,10 +23,10 @@ export const StudentMessagesDashboard: React.FC = () => {
   }, []);
 
   return (
-    <div className="flex flex-col h-screen bg-white font-sans antialiased text-slate-800">
+    <div className="flex flex-col h-[calc(100dvh-var(--topbar-h))] bg-paper font-sans antialiased text-slate-800">
       {/* Header Section */}
-      <header className="px-8 pt-6 pb-4 border-b border-slate-100">
-        <h1 className="text-3xl font-bold text-[#0d2343]">Messages</h1>
+      <header className="px-5 sm:px-8 lg:px-12 pt-8 pb-5 border-b border-rule">
+        <h1 className="page-title">Messages</h1>
         <p className="text-sm text-slate-500 mt-1">
           Communicate with your guidance counselor
         </p>
@@ -37,10 +37,10 @@ export const StudentMessagesDashboard: React.FC = () => {
         {conversationId ? (
           <ConversationPanel
             conversationId={conversationId}
-            viewerRole={VIEWER_ROLE}
-            viewerName={VIEWER_NAME}
+            viewerRole={me.roleLabel}
+            viewerName={me.name}
             title="Guidance Counselor"
-            subtitle="Ralph Michael"
+            subtitle="Guidance Associate"
             getMessages={getMessages}
             markConversationRead={markConversationRead}
             sendMessage={sendMessage}

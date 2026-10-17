@@ -6,7 +6,6 @@ import { getMyAppointments, getBookedTimesForDate, bookAppointment } from '../..
 import BookAppointmentModal from '../../../components/BookAppointmentModal';
 import type { Appointment as DbAppointment } from '../../../lib/generated';
 
-const FACULTY_NAME = "Cho Sto Domingo";
 const PURPOSE_OPTIONS = ["Consultation", "Student Discussion", "Academic Concern", "General Consultation"];
 
 export const MyAppointmentsPage: React.FC = () => {
@@ -14,7 +13,7 @@ export const MyAppointmentsPage: React.FC = () => {
   const [isBookingOpen, setIsBookingOpen] = useState(false);
 
   const refresh = async () => {
-    const data = await getMyAppointments(FACULTY_NAME);
+    const data = await getMyAppointments();
     setAppointments(data);
   };
 
@@ -22,7 +21,7 @@ export const MyAppointmentsPage: React.FC = () => {
     let cancelled = false;
 
     (async () => {
-      const data = await getMyAppointments(FACULTY_NAME);
+      const data = await getMyAppointments();
       if (!cancelled) setAppointments(data);
     })();
 
@@ -32,12 +31,12 @@ export const MyAppointmentsPage: React.FC = () => {
   }, []);
 
   return (
-    <div className="max-w-5xl mx-auto font-sans antialiased text-slate-800 space-y-6">
+    <div className="px-5 sm:px-8 lg:px-12 pt-8 lg:pt-12 pb-16 max-w-5xl font-sans antialiased text-slate-800 space-y-6">
 
       {/* Upper Main Action Header Bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-blue-900 tracking-tight">My Appointments</h1>
+          <h1 className="page-title">My Appointments</h1>
           <p className="text-sm text-slate-500 font-medium mt-1">
             Schedule and manage meetings with the guidance counselor
           </p>
@@ -46,7 +45,7 @@ export const MyAppointmentsPage: React.FC = () => {
         <button
           type="button"
           onClick={() => setIsBookingOpen(true)}
-          className="bg-[#1d63ff] hover:bg-blue-700 text-white font-bold py-2.5 px-5 rounded-xl transition-colors text-sm shadow-sm flex items-center justify-center gap-1.5 self-start sm:self-auto shrink-0"
+          className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 px-5 rounded-full transition-colors text-sm shadow-sm flex items-center justify-center gap-1.5 self-start sm:self-auto shrink-0"
         >
           <Plus size={16} className="stroke-[3]" />
           <span>Book Appointment</span>
@@ -58,13 +57,13 @@ export const MyAppointmentsPage: React.FC = () => {
 
         {/* Panel Section Sub-header Title */}
         <div className="px-6 py-5 border-b border-slate-100 bg-slate-50/20">
-          <h2 className="font-bold text-slate-900 text-lg tracking-tight">Appointment History</h2>
+          <h2 className="font-semibold text-slate-900 text-lg tracking-tight">Appointment History</h2>
         </div>
 
         {appointments.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 text-center">
             <p className="text-sm font-semibold text-slate-500">No appointments yet</p>
-            <p className="text-xs text-slate-400">Book an appointment with the guidance counselor to get started</p>
+            <p className="text-xs text-slate-500">Book an appointment with the guidance counselor to get started</p>
           </div>
         ) : (
           <div className="p-6 space-y-4">
@@ -77,23 +76,23 @@ export const MyAppointmentsPage: React.FC = () => {
                 {/* Left Column Description Context Info */}
                 <div className="space-y-2">
                   <div className="space-y-0.5">
-                    <h3 className="text-lg font-bold text-slate-900 tracking-tight">
+                    <h3 className="text-lg font-semibold text-slate-900 tracking-tight">
                       {meeting.appointmentType || "General Consultation"}
                     </h3>
                     <p className="text-xs text-slate-500 font-medium flex items-center gap-1">
-                      <span>Counselor:</span>
-                      <span className="text-slate-700 font-semibold">Ralph Michael</span>
+                      <span>With:</span>
+                      <span className="text-slate-700 font-semibold">Guidance Associate</span>
                     </p>
                   </div>
 
                   {/* Sub-row Meta Icons Trackers */}
-                  <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-slate-400 font-mono font-medium pt-0.5">
+                  <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-slate-500 font-mono font-medium pt-0.5">
                     <div className="flex items-center gap-1.5">
-                      <Calendar size={14} className="text-slate-400 shrink-0" />
-                      <span className="text-slate-600">{new Date(meeting.date).toLocaleDateString()}</span>
+                      <Calendar size={14} className="text-slate-500 shrink-0" />
+                      <span className="text-slate-600">{new Date(meeting.date).toLocaleDateString("en-PH", { timeZone: "UTC" })}</span>
                     </div>
                     <div className="flex items-center gap-1.5">
-                      <Clock size={14} className="text-slate-400 shrink-0" />
+                      <Clock size={14} className="text-slate-500 shrink-0" />
                       <span className="text-slate-600">{meeting.time}</span>
                     </div>
                   </div>
@@ -101,9 +100,9 @@ export const MyAppointmentsPage: React.FC = () => {
 
                 {/* Right Column Badge State Triggers */}
                 <div className="self-start sm:self-auto">
-                  <span className={`text-[11px] font-bold px-3 py-1 rounded-full flex items-center gap-1.5 font-sans tracking-wide border
+                  <span className={`text-xs font-semibold px-3 py-1 rounded flex items-center gap-1.5 font-sans border
                     ${meeting.status === 'CONFIRMED'
-                      ? 'bg-[#e8fbf0] border-[#bbf7d0] text-[#00c853]'
+                      ? 'bg-emerald-50 border-emerald-200 text-emerald-600'
                       : 'bg-slate-100 border-slate-200 text-slate-600'
                     }
                   `}>
@@ -127,7 +126,7 @@ export const MyAppointmentsPage: React.FC = () => {
         <BookAppointmentModal
           purposeOptions={PURPOSE_OPTIONS}
           getBookedTimesForDate={getBookedTimesForDate}
-          bookAppointment={(data) => bookAppointment({ ...data, facultyName: FACULTY_NAME })}
+          bookAppointment={bookAppointment}
           onClose={() => setIsBookingOpen(false)}
           onBooked={refresh}
         />

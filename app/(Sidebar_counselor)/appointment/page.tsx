@@ -3,9 +3,9 @@
 import { useState, useEffect } from "react";
 import { saveAppointmentDetails, getAppointmentsByDate, getDateStats, updateAppointmentStatus } from "../../action/counselor";
 import type { Appointment as DbAppointment } from "../../../lib/generated";
-import { STANDARD_DAY_HOURS, parseTimeToMinutes, formatMinutesToTime } from "../../config/timeSlots";
+import { STANDARD_DAY_HOURS, SLOT_MINUTES, LUNCH_BREAK_LABEL, parseTimeToMinutes, formatMinutesToTime } from "../../config/timeSlots";
+import InlineError from "../../../components/InlineError";
 
-const MAX_BLOCK_MINUTES = 60;
 
 interface Appointment {
   id: string;
@@ -59,29 +59,30 @@ export default function AppointmentScheduling() {
   const [newRequirementInput, setNewRequirementInput] = useState("");
   const [confirmingId, setConfirmingId] = useState<string | null>(null);
   const [cancelingId, setCancelingId] = useState<string | null>(null);
+  // Errors are shown where they happened: on the appointment card, or in the edit form.
+  const [rowError, setRowError] = useState<{ id: string; message: string } | null>(null);
+  const [formError, setFormError] = useState<string | null>(null);
   const [editDate, setEditDate] = useState("");
   const [editTime, setEditTime] = useState("");
 
-  // Block Time Slot scheduling — end time is capped at MAX_BLOCK_MINUTES after start
+  // Block Time Slot: a block covers exactly one hourly slot, saved under that slot's
+  // start time so the slot shows as taken for students, faculty and parents.
   const [blockStartTime, setBlockStartTime] = useState<string>(STANDARD_DAY_HOURS[0]);
   const [blockEndTime, setBlockEndTime] = useState<string>(
-    formatMinutesToTime(parseTimeToMinutes(STANDARD_DAY_HOURS[0]) + 30)
+    formatMinutesToTime(parseTimeToMinutes(STANDARD_DAY_HOURS[0]) + SLOT_MINUTES)
   );
   const isBlockMode = selectedAppointment?.id.startsWith("block-") ?? false;
 
-  // Only offer end times within (start, start + MAX_BLOCK_MINUTES]
-  const blockEndTimeOptions = Array.from(
-    { length: MAX_BLOCK_MINUTES / 30 },
-    (_, i) => formatMinutesToTime(parseTimeToMinutes(blockStartTime) + (i + 1) * 30)
-  );
+  const blockEndTimeOptions = [formatMinutesToTime(parseTimeToMinutes(blockStartTime) + SLOT_MINUTES)];
 
-  const applyBlockTimeRange = (startTime: string, endTime: string) => {
-    setSelectedAppointment((prev) => (prev ? { ...prev, time: `${startTime} - ${endTime}` } : prev));
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- end time is always start + 1 hour
+  const applyBlockTimeRange = (startTime: string, _endTime: string) => {
+    setSelectedAppointment((prev) => (prev ? { ...prev, time: startTime } : prev));
   };
 
   const handleBlockStartTimeChange = (value: string) => {
     setBlockStartTime(value);
-    const defaultEndTime = formatMinutesToTime(parseTimeToMinutes(value) + 30);
+    const defaultEndTime = formatMinutesToTime(parseTimeToMinutes(value) + SLOT_MINUTES);
     setBlockEndTime(defaultEndTime);
     applyBlockTimeRange(value, defaultEndTime);
   };
@@ -122,20 +123,21 @@ export default function AppointmentScheduling() {
 
   const handleStartSession = async (appointment: Appointment) => {
     setConfirmingId(appointment.id);
+    setRowError(null);
     const result = await updateAppointmentStatus(appointment.id, "CONFIRMED");
     setConfirmingId(null);
 
     if (result.success) {
       await refreshData(selectedDate);
     } else {
-      alert("Failed to start the session.");
+      setRowError({ id: appointment.id, message: "Couldn't start this session. Try again." });
     }
   };
 
   // NEW: Handler to open the modal specifically for blocking out a schedule slot
   const handleBlockTimeSlot = () => {
     const startTime = STANDARD_DAY_HOURS[0];
-    const endTime = formatMinutesToTime(parseTimeToMinutes(startTime) + 30);
+    const endTime = formatMinutesToTime(parseTimeToMinutes(startTime) + SLOT_MINUTES);
 
     setBlockStartTime(startTime);
     setBlockEndTime(endTime);
@@ -143,12 +145,13 @@ export default function AppointmentScheduling() {
       id: `block-${Date.now()}`,
       studentName: "ADMINISTRATIVE BLOCK",
       appointmentType: "Unavailable / Reserved Slot",
-      time: `${startTime} - ${endTime}`,
+      time: startTime,
       date: selectedDate,
       status: "CONFIRMED"
     });
     setAppointmentType("Unavailable / Reserved Slot");
     setNotes("Time slot manually blocked by counselor.");
+    setFormError(null);
     setRequirements([]);
     setIsFormOpen(true);
   };
@@ -158,6 +161,7 @@ export default function AppointmentScheduling() {
     setAppointmentType(appointment.appointmentType || "Individual Counseling");
     setNotes(appointment.notes || "");
     setRequirements(appointment.requirements || []);
+    setFormError(null);
     setEditDate(appointment.date);
     setEditTime(appointment.time);
     setIsFormOpen(true);
@@ -167,13 +171,14 @@ export default function AppointmentScheduling() {
     if (!window.confirm(`Cancel the appointment for ${appointment.studentName}?`)) return;
 
     setCancelingId(appointment.id);
+    setRowError(null);
     const result = await updateAppointmentStatus(appointment.id, "CANCELLED");
     setCancelingId(null);
 
     if (result.success) {
       await refreshData(selectedDate);
     } else {
-      alert("Failed to cancel the appointment.");
+      setRowError({ id: appointment.id, message: "Couldn't cancel this appointment. Try again." });
     }
   };
 
@@ -191,6 +196,7 @@ export default function AppointmentScheduling() {
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSaving(true);
+    setFormError(null);
 
     // Blocks use a fake client-side id ("block-<timestamp>") that doesn't exist
     // in the database yet — sending it as appointmentId would make the server
@@ -219,14 +225,14 @@ export default function AppointmentScheduling() {
       setNotes("");
       setRequirements([]);
     } else {
-      alert(`Database Error: ${result.error || "Failed to save appointment"}`);
+      setFormError(`Couldn't save: ${result.error || "unknown error"}.`);
     }
   };
 
   return (
-    <div className="p-6 max-w-7xl mx-auto bg-transparent text-slate-900">
+    <div className="px-5 sm:px-8 lg:px-12 pt-8 lg:pt-12 pb-16 max-w-7xl text-slate-900">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-slate-900">Appointment Scheduling</h1>
+        <h1 className="page-title">Appointment Scheduling</h1>
         <p className="text-slate-500 text-sm">Manage student appointments and counseling sessions</p>
       </div>
 
@@ -234,7 +240,7 @@ export default function AppointmentScheduling() {
         {/* LEFT COLUMN PANEL */}
         <div className="lg:col-span-4 bg-white border border-slate-100 rounded-2xl p-5 shadow-sm space-y-5">
           <div>
-            <label className="block text-sm font-bold text-slate-800 mb-2">Calendar</label>
+            <label className="block text-sm font-semibold text-slate-800 mb-2">Calendar</label>
             <input
               type="date"
               value={selectedDate}
@@ -248,25 +254,25 @@ export default function AppointmentScheduling() {
             />
           </div>
 
-          <div className="space-y-3">
-            <div className="bg-blue-50/40 border border-blue-100/50 p-4 rounded-xl">
-              <span className="text-xs font-semibold text-slate-500 block mb-1">Available Slots</span>
-              <span className="text-2xl font-bold text-blue-600">{stats.available}</span>
+          <dl className="divide-y divide-rule border-y border-rule text-[14px]">
+            <div className="flex items-baseline justify-between py-3">
+              <dt className="text-slate-600">Open slots</dt>
+              <dd className="font-serif text-2xl text-ink tabular">{stats.available}</dd>
             </div>
-            <div className="bg-emerald-50/40 border border-emerald-100/50 p-4 rounded-xl">
-              <span className="text-xs font-semibold text-slate-500 block mb-1">Confirmed</span>
-              <span className="text-2xl font-bold text-emerald-600">{stats.confirmed}</span>
+            <div className="flex items-baseline justify-between py-3">
+              <dt className="text-slate-600">Confirmed</dt>
+              <dd className="font-serif text-2xl text-emerald-700 tabular">{stats.confirmed}</dd>
             </div>
-            <div className="bg-amber-50/40 border border-amber-100/50 p-4 rounded-xl">
-              <span className="text-xs font-semibold text-slate-500 block mb-1">Pending</span>
-              <span className="text-2xl font-bold text-amber-600">{stats.pending}</span>
+            <div className="flex items-baseline justify-between py-3">
+              <dt className="text-slate-600">Pending</dt>
+              <dd className="font-serif text-2xl text-orange-700 tabular">{stats.pending}</dd>
             </div>
-          </div>
+          </dl>
 
           {/* Connected Button click target */}
           <button 
             onClick={handleBlockTimeSlot}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-xl shadow-sm transition text-sm text-center"
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-full shadow-sm transition text-sm text-center"
           >
             Block Time Slot
           </button>
@@ -275,15 +281,14 @@ export default function AppointmentScheduling() {
         {/* RIGHT COLUMN PANEL */}
         <div className="lg:col-span-8 bg-white border border-slate-100 rounded-2xl p-6 shadow-sm space-y-6 min-h-[460px] flex flex-col justify-between">
           <div>
-            <h2 className="text-lg font-bold text-slate-900 mb-4">
-              Appointments for Tuesday, April 28, 2026
+            <h2 className="text-lg font-semibold text-slate-900 mb-4">
+              Appointments for {new Date(`${selectedDate}T00:00:00`).toLocaleDateString("en-PH", { weekday: "long", month: "long", day: "numeric", year: "numeric" })}
             </h2>
 
             {appointments.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-20 border-2 border-dashed border-slate-100 rounded-2xl bg-slate-50/40">
-                <span className="text-3xl mb-2">📅</span>
                 <p className="text-sm font-semibold text-slate-500">No active sessions scheduled yet</p>
-                <p className="text-xs text-slate-400">Newly placed student appointment records will render here automatically</p>
+                <p className="text-xs text-slate-500">Newly placed student appointment records will render here automatically</p>
               </div>
             ) : (
               <div className="space-y-4">
@@ -294,27 +299,27 @@ export default function AppointmentScheduling() {
                   >
                     <div className="absolute top-5 right-5">
                       {appointment.status === "CONFIRMED" ? (
-                        <span className="inline-flex items-center gap-1 bg-emerald-50 text-emerald-600 font-bold text-2xs px-2.5 py-1 rounded-full border border-emerald-100">
-                          ✓ CONFIRMED
+                        <span className="inline-flex items-center gap-1 bg-emerald-50 text-emerald-600 font-semibold text-[12px] px-2 py-0.5 rounded border border-emerald-100">
+                          Confirmed
                         </span>
                       ) : (
-                        <span className="inline-flex items-center gap-1 bg-amber-50 text-amber-600 font-bold text-2xs px-2.5 py-1 rounded-full border border-amber-100">
-                          ⚠ PENDING
+                        <span className="inline-flex items-center gap-1 bg-amber-50 text-amber-600 font-semibold text-[12px] px-2 py-0.5 rounded border border-amber-100">
+                          Pending
                         </span>
                       )}
                     </div>
 
                     <div className="flex items-start gap-4">
-                      <div className="w-11 h-11 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center font-bold">👤</div>
+                      <div className="w-10 h-10 bg-slate-200 text-slate-600 rounded-md grid place-items-center text-xs font-semibold">{appointment.studentName?.split(" ").map((p) => p[0]).slice(0, 2).join("")}</div>
                       <div>
-                        <h3 className="font-bold text-slate-900 text-base">{appointment.studentName}</h3>
-                        <p className="text-slate-400 text-sm">{appointment.appointmentType}</p>
+                        <h3 className="font-semibold text-slate-900 text-base">{appointment.studentName}</h3>
+                        <p className="text-slate-500 text-sm">{appointment.appointmentType}</p>
                       </div>
                     </div>
 
                     <div className="flex items-center gap-6 text-slate-500 text-sm">
-                      <span className="flex items-center gap-1.5 font-medium text-slate-700">🕒 {appointment.time}</span>
-                      <span className="flex items-center gap-1.5 font-medium text-slate-700">📅 {appointment.date}</span>
+                      <span className="flex items-center gap-1.5 font-medium text-slate-700">{appointment.time}</span>
+                      <span className="flex items-center gap-1.5 font-medium text-slate-700">{appointment.date}</span>
                     </div>
 
                     <div className="flex items-center gap-2 pt-2">
@@ -322,32 +327,36 @@ export default function AppointmentScheduling() {
                         <button
                           onClick={() => handleStartSession(appointment)}
                           disabled={confirmingId === appointment.id}
-                          className="bg-emerald-50 hover:bg-emerald-100 text-emerald-600 font-bold text-xs px-4 py-2 rounded-xl transition disabled:opacity-50"
+                          className="bg-emerald-50 hover:bg-emerald-100 text-emerald-600 font-semibold text-xs px-4 py-2 rounded-full transition disabled:opacity-50"
                         >
                           {confirmingId === appointment.id ? "Starting..." : "Start Session"}
                         </button>
                       ) : (
                         <button
                           onClick={() => handleOpenConfigurator(appointment)}
-                          className="bg-blue-50 hover:bg-blue-100 text-blue-600 font-bold text-xs px-4 py-2 rounded-xl transition"
+                          className="bg-blue-50 hover:bg-blue-100 text-blue-600 font-semibold text-xs px-4 py-2 rounded-full transition"
                         >
                           Manage
                         </button>
                       )}
                       <button
                         onClick={() => handleOpenConfigurator(appointment)}
-                        className="bg-slate-50 hover:bg-slate-100 text-slate-600 font-semibold text-xs px-4 py-2 rounded-xl transition"
+                        className="bg-slate-50 hover:bg-slate-100 text-slate-600 font-semibold text-xs px-4 py-2 rounded-full transition"
                       >
                         Reschedule
                       </button>
                       <button
                         onClick={() => handleCancelAppointment(appointment)}
                         disabled={cancelingId === appointment.id}
-                        className="bg-red-50 hover:bg-red-100 text-red-600 font-semibold text-xs px-4 py-2 rounded-xl transition disabled:opacity-50"
+                        className="bg-red-50 hover:bg-red-100 text-red-600 font-semibold text-xs px-4 py-2 rounded-full transition disabled:opacity-50"
                       >
                         {cancelingId === appointment.id ? "Canceling..." : "Cancel"}
                       </button>
                     </div>
+                    <InlineError
+                      message={rowError?.id === appointment.id ? rowError.message : null}
+                      onDismiss={() => setRowError(null)}
+                    />
                   </div>
                 ))}
               </div>
@@ -361,7 +370,7 @@ export default function AppointmentScheduling() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
           <div className="bg-white w-full max-w-lg p-6 rounded-2xl shadow-xl border border-slate-100 space-y-4">
             <div>
-              <h3 className="text-lg font-bold text-slate-900">Configure Appointment Parameters</h3>
+              <h3 className="text-lg font-semibold text-slate-900">Configure Appointment Parameters</h3>
               <p className="text-xs text-slate-500">Target Session: {selectedAppointment?.studentName}</p>
             </div>
 
@@ -416,10 +425,14 @@ export default function AppointmentScheduling() {
                       onChange={(e) => setEditTime(e.target.value)}
                       className="w-full text-sm bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 focus:outline-none"
                     >
+                      {editTime && !STANDARD_DAY_HOURS.includes(editTime) && (
+                        <option value={editTime}>{editTime} (outside current hours)</option>
+                      )}
                       {STANDARD_DAY_HOURS.map((slot) => (
                         <option key={slot} value={slot}>{slot}</option>
                       ))}
                     </select>
+                    <p className="text-xs text-slate-500">No sessions during lunch, {LUNCH_BREAK_LABEL}.</p>
                   </div>
                 </div>
               )}
@@ -452,7 +465,7 @@ export default function AppointmentScheduling() {
                   <button
                     type="button"
                     onClick={handleAddRequirement}
-                    className="bg-slate-900 text-white font-medium text-xs px-4 rounded-xl hover:bg-slate-800 transition"
+                    className="bg-slate-900 text-white font-medium text-xs px-4 rounded-full hover:bg-slate-800 transition"
                   >
                     Add
                   </button>
@@ -463,7 +476,7 @@ export default function AppointmentScheduling() {
                     {requirements.map((req, idx) => (
                       <span key={idx} className="inline-flex items-center gap-1 bg-white text-xs text-slate-700 font-medium px-2.5 py-1 rounded-lg border border-slate-200 shadow-sm">
                         {req}
-                        <button type="button" onClick={() => handleRemoveRequirement(idx)} className="text-red-500 font-bold hover:text-red-700">×</button>
+                        <button type="button" onClick={() => handleRemoveRequirement(idx)} className="text-red-500 font-semibold hover:text-red-700">×</button>
                       </span>
                     ))}
                   </div>
@@ -481,18 +494,20 @@ export default function AppointmentScheduling() {
                 />
               </div>
 
+              <InlineError message={formError} onDismiss={() => setFormError(null)} />
+
               <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
                 <button
                   type="button"
                   onClick={() => setIsFormOpen(false)}
-                  className="px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 rounded-xl transition"
+                  className="px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 rounded-full transition"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={isSaving}
-                  className="px-5 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 rounded-xl transition flex items-center gap-2"
+                  className="px-5 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 rounded-full transition flex items-center gap-2"
                 >
                   {isSaving ? "Saving..." : "Save Specifications"}
                 </button>

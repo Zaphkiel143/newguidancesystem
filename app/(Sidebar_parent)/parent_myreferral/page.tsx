@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { useEffect, useState } from 'react';
 import {
@@ -10,8 +10,6 @@ import {
 import { getMyReferrals } from '../../action/parent';
 import type { Referral } from '../../../lib/generated';
 
-const PARENT_NAME = "Mrs. Belarmino";
-const CHILD_NAME = "Nhel Belarmino";
 
 export const MyReferralsPage: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -21,7 +19,7 @@ export const MyReferralsPage: React.FC = () => {
     let cancelled = false;
 
     (async () => {
-      const data = await getMyReferrals(PARENT_NAME);
+      const data = await getMyReferrals();
       if (!cancelled) setReferrals(data);
     })();
 
@@ -35,19 +33,14 @@ export const MyReferralsPage: React.FC = () => {
   );
 
   return (
-    <div className="max-w-5xl mx-auto font-sans antialiased text-slate-800 space-y-6">
+    <div className="px-5 sm:px-8 lg:px-12 pt-8 lg:pt-12 pb-16 max-w-5xl font-sans antialiased text-slate-800 space-y-6">
 
       {/* Page Title & Context Header Copy */}
       <div>
-        <h1 className="text-3xl font-bold text-blue-900 tracking-tight">My Referrals</h1>
+        <h1 className="page-title">My Referrals</h1>
         <p className="text-sm text-slate-500 font-medium mt-1">
-          Track referrals submitted for {CHILD_NAME}
+          Track the referrals you&apos;ve submitted and the office&apos;s response
         </p>
-      </div>
-
-      {/* Target Focus Notice Block Banner */}
-      <div className="bg-[#f0f6ff] border border-[#d8e7fe] px-5 py-3.5 rounded-xl text-sm font-medium text-[#1d63ff]">
-        Viewing referrals for: <span className="font-bold">{CHILD_NAME}</span>
       </div>
 
       {/* Main Container Wrapper */}
@@ -56,9 +49,10 @@ export const MyReferralsPage: React.FC = () => {
         {/* Search Input Bar */}
         <div className="p-5 border-b border-slate-100 bg-slate-50/30">
           <div className="relative">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
             <input
               type="text"
+                aria-label="Search referrals"
               placeholder="Search referrals..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -78,10 +72,10 @@ export const MyReferralsPage: React.FC = () => {
                 {/* Row Header Segment: Title + Badges */}
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div className="space-y-1">
-                    <h3 className="text-lg font-bold text-slate-900 tracking-tight">{item.concernType}</h3>
+                    <h3 className="text-lg font-semibold text-slate-900 tracking-tight">{item.concernType}</h3>
                     <div className="text-xs text-slate-500 font-medium flex flex-wrap items-center gap-x-4 gap-y-1">
-                      <span>Counselor: <span className="text-slate-700 font-semibold">Ralph Michael</span></span>
-                      <span className="hidden sm:inline text-slate-300">•</span>
+                      <span>For: <span className="text-slate-700 font-semibold">{item.studentName}</span></span>
+                      <span className="hidden sm:inline text-slate-300">â€¢</span>
                       <span className="font-mono">Date Submitted: {new Date(item.createdAt).toLocaleDateString()}</span>
                     </div>
                   </div>
@@ -89,7 +83,7 @@ export const MyReferralsPage: React.FC = () => {
                   {/* Operational Target State Tags */}
                   <div className="flex items-center gap-2">
                     {/* Priority Indicator Badge */}
-                    <span className={`text-[10px] font-bold px-2.5 py-1 rounded-md tracking-wider uppercase
+                    <span className={`text-xs font-semibold px-2.5 py-1 rounded-md
                       ${item.priority === 'Medium' ? 'bg-orange-50 text-orange-700' : ''}
                       ${item.priority === 'Low' ? 'bg-blue-50 text-blue-700' : ''}
                       ${(item.priority === 'High' || item.priority === 'Urgent') ? 'bg-red-50 text-red-700' : ''}
@@ -98,9 +92,9 @@ export const MyReferralsPage: React.FC = () => {
                     </span>
 
                     {/* Dynamic Status Track Pill */}
-                    <span className={`text-[11px] font-bold px-3 py-1 rounded-full flex items-center gap-1.5 uppercase font-sans tracking-wide
+                    <span className={`text-xs font-semibold px-3 py-1 rounded flex items-center gap-1.5 font-sans
                       ${item.status === 'IN_PROGRESS' ? 'bg-orange-50 border border-orange-100 text-orange-700' : ''}
-                      ${item.status === 'CLOSED' ? 'bg-[#e8fbf0] border border-[#bbf7d0] text-[#00c853]' : ''}
+                      ${item.status === 'CLOSED' ? 'bg-emerald-50 border border-emerald-200 text-emerald-600' : ''}
                       ${item.status === 'OPEN' ? 'bg-red-50 border border-red-100 text-red-600' : ''}
                     `}>
                       {item.status === 'IN_PROGRESS' && <Clock size={13} className="stroke-[2.5]" />}
@@ -113,8 +107,8 @@ export const MyReferralsPage: React.FC = () => {
 
                 {/* Counselor Feedback Collateral Block Frame */}
                 {item.notes && (
-                  <div className="bg-[#f4fbf7] border border-[#e2f7ec] rounded-xl p-4 space-y-1">
-                    <h4 className="text-xs font-bold text-[#00c853] uppercase tracking-wider">Counselor Feedback:</h4>
+                  <div className="bg-emerald-50 border border-emerald-50 rounded-xl p-4 space-y-1">
+                    <h4 className="text-xs font-semibold text-emerald-600">Counselor Feedback:</h4>
                     <p className="text-sm text-slate-700 font-medium leading-relaxed">
                       {item.notes}
                     </p>
@@ -124,7 +118,7 @@ export const MyReferralsPage: React.FC = () => {
               </div>
             ))
           ) : (
-            <div className="text-center py-12 text-slate-400 font-medium text-sm">
+            <div className="text-center py-12 text-slate-500 font-medium text-sm">
               No matching referrals found.
             </div>
           )}
@@ -133,12 +127,12 @@ export const MyReferralsPage: React.FC = () => {
 
       {/* Referral Status Guide Explainer Panel */}
       <div className="bg-white border border-slate-100 rounded-2xl p-6 shadow-sm space-y-4">
-        <h3 className="text-base font-bold text-slate-900 tracking-tight">Referral Status Guide</h3>
+        <h3 className="text-base font-semibold text-slate-900 tracking-tight">Referral Status Guide</h3>
 
         <div className="space-y-4 text-sm font-medium leading-relaxed">
           {/* Row 1: Open */}
           <div className="flex items-start gap-4">
-            <span className="w-24 text-center shrink-0 bg-red-50 border border-red-100 text-red-600 font-bold py-1 rounded text-xs tracking-wider uppercase">
+            <span className="w-24 text-center shrink-0 bg-red-50 border border-red-100 text-red-600 font-semibold py-1 rounded text-xs">
               Open
             </span>
             <p className="text-slate-600 pt-0.5">
@@ -148,7 +142,7 @@ export const MyReferralsPage: React.FC = () => {
 
           {/* Row 2: In Progress */}
           <div className="flex items-start gap-4">
-            <span className="w-24 text-center shrink-0 bg-orange-50 border border-orange-100 text-orange-700 font-bold py-1 rounded text-xs tracking-wide uppercase leading-tight">
+            <span className="w-24 text-center shrink-0 bg-orange-50 border border-orange-100 text-orange-700 font-semibold py-1 rounded text-xs leading-tight">
               In Progress
             </span>
             <p className="text-slate-600 pt-0.5">
@@ -158,7 +152,7 @@ export const MyReferralsPage: React.FC = () => {
 
           {/* Row 3: Closed */}
           <div className="flex items-start gap-4">
-            <span className="w-24 text-center shrink-0 bg-[#e8fbf0] border border-[#bbf7d0] text-[#00c853] font-bold py-1 rounded text-xs tracking-wider uppercase">
+            <span className="w-24 text-center shrink-0 bg-emerald-50 border border-emerald-200 text-emerald-600 font-semibold py-1 rounded text-xs">
               Closed
             </span>
             <p className="text-slate-600 pt-0.5">

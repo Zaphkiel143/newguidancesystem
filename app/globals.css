@@ -1,19 +1,246 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/*
+ * E-Gabay design system — STI College
+ *
+ * Follows STI's own sites (eLMS, One STI): Poppins, STI navy #0B5793 for the
+ * top bar, buttons and links, STI sky blue #28A0DE as a fill/accent (too light
+ * for text), and STI yellow for the stripe and highlights. Surfaces stay soft
+ * and pastel: light grey-blue page (as on eLMS), pale sky tints, butter
+ * yellow for "you are here". Status colors are only used for meaning.
+ */
+@theme {
+  /* Primary: STI sky blue deepening to STI navy */
+  --color-blue-50: #eaf5fc;
+  --color-blue-100: #d6ecf9;
+  --color-blue-200: #b0daf3;
+  --color-blue-300: #79c1ea;
+  --color-blue-400: #28a0de; /* STI sky blue: fills and accents only */
+  --color-blue-500: #1683c2;
+  --color-blue-600: #0e6aa8;
+  --color-blue-700: #0b5793; /* STI navy: top bar, buttons, links (7.5:1 with white) */
+  --color-blue-800: #0a4878;
+  --color-blue-900: #0a3b61;
+  --color-blue-950: #072742;
+
+  --color-sti-yellow: #ffd200;
+
+  /* Accent: butter yellow (highlights only; never text on light backgrounds) */
+  --color-butter-50: #fffbec;
+  --color-butter-100: #fff5cc;
+  --color-butter-200: #ffeba3;
+  --color-butter-300: #fcdc71;
+  --color-butter-400: #f6ca45;
+  --color-butter-500: #e3ae20;
+  --color-butter-600: #b98a10;
+  --color-butter-700: #8a660d;
+
+  /* Neutrals: cool grey-blue */
+  --color-slate-50: #f6f8fb;
+  --color-slate-100: #edf1f6;
+  --color-slate-200: #dfe5ee;
+  --color-slate-300: #c5cfdc;
+  /* 400 is for icons and borders (3.2:1 on paper); 500 is the lightest text tone (5:1). */
+  --color-slate-400: #7b8ba0;
+  --color-slate-500: #5a6b80;
+  --color-slate-600: #45546a;
+  --color-slate-700: #334156;
+  --color-slate-800: #222f45;
+  --color-slate-900: #13233b;
+  --color-slate-950: #0b1628;
+
+  /* Decorative hues collapse into neutrals */
+  --color-violet-50: var(--color-slate-100);
+  --color-violet-100: var(--color-slate-200);
+  --color-violet-200: var(--color-slate-300);
+  --color-violet-500: var(--color-slate-600);
+  --color-violet-600: var(--color-slate-700);
+  --color-violet-700: var(--color-slate-800);
+  --color-purple-50: var(--color-slate-100);
+  --color-purple-100: var(--color-slate-200);
+  --color-purple-600: var(--color-slate-700);
+
+  /* Status: soft pastel fills, deep readable text */
+  --color-emerald-50: #eef7f0;
+  --color-emerald-100: #dcefe0;
+  --color-emerald-200: #bfdfc6;
+  --color-emerald-500: #4f8a5c;
+  --color-emerald-600: #3f6f4a;
+  --color-emerald-700: #335a3c;
+  --color-green-50: #eef7f0;
+  --color-green-100: #dcefe0;
+  --color-green-600: #3f6f4a;
+  --color-green-700: #335a3c;
+
+  --color-orange-50: #fdf3e6;
+  --color-orange-100: #fae5c9;
+  --color-orange-200: #f2cf9f;
+  --color-orange-500: #c07d2c;
+  --color-orange-600: #9a6222;
+  --color-orange-700: #7e501d;
+  --color-orange-800: #66411a;
+  --color-amber-50: #fdf3e6;
+  --color-amber-100: #fae5c9;
+  --color-amber-600: #9a6222;
+  --color-amber-700: #7e501d;
+
+  --color-rose-50: #fdeeec;
+  --color-rose-100: #f8dcd8;
+  --color-rose-500: #b44c40;
+  --color-rose-700: #823429;
+  --color-red-50: #fdeeec;
+  --color-red-100: #f8dcd8;
+  --color-red-200: #efbfb8;
+  --color-red-500: #b44c40;
+  --color-red-600: #943d32;
+  --color-red-700: #823429;
+
+  --color-paper: #f3f6fa;
+  --color-sheet: #ffffff;
+  --color-ink: #13233b;
+  --color-rule: #dfe5ee;
+
+  --font-sans: var(--font-poppins), ui-sans-serif, system-ui, sans-serif;
+  /* Headings that used the old serif now use Poppins too (semibold, see below). */
+  --font-serif: var(--font-poppins), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-plex-mono), ui-monospace, monospace;
+
+  /* Softer corners suit the pastel palette; inner elements stay tighter */
+  --radius-md: 0.5rem;
+  --radius-lg: 0.625rem;
+  --radius-xl: 0.875rem;
+  --radius-2xl: 1.125rem;
+
+  /* Flat by default; soft blue-tinted elevation only where something floats */
+  --shadow-sm: 0 1px 2px rgb(11 87 147 / 0.05);
+  --shadow-md: 0 4px 14px -6px rgb(11 87 147 / 0.14);
+  --shadow-lg: 0 12px 30px -12px rgb(11 87 147 / 0.22);
+  --shadow-xl: 0 20px 44px -16px rgb(11 87 147 / 0.26);
+  --shadow-2xl: 0 28px 60px -20px rgb(29 42 68 / 0.3);
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+:root {
+  --topbar-h: 3.75rem;
+  --sidebar-w: 16rem;
+}
+
+html {
+  background: var(--color-paper);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-paper);
+  color: var(--color-slate-800);
+  font-family: var(--font-sans);
+}
+
+/* Cards across the app sit on paper as slightly brighter sheets. */
+.bg-white {
+  background-color: var(--color-sheet);
+}
+
+::selection {
+  background: var(--color-butter-200);
+  color: var(--color-ink);
+}
+
+@layer base {
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  input:not([type="checkbox"]):not([type="radio"]):focus-visible,
+  select:focus-visible,
+  textarea:focus-visible {
+    outline: none;
+    border-color: var(--color-blue-600);
+    box-shadow: 0 0 0 3px rgb(14 106 168 / 0.2);
+  }
+
+  button:focus-visible,
+  a:focus-visible {
+    outline: 2px solid var(--color-blue-600);
+    outline-offset: 2px;
+  }
+
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+
+  button:not(:disabled):active {
+    transform: translateY(1px);
+  }
+}
+
+@layer components {
+  /* Former serif headings (section titles, figures) read best semibold in Poppins. */
+  .font-serif {
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+
+  /* Page titles are set in the serif — the one place the type gets to speak. */
+  .page-title {
+    font-family: var(--font-serif);
+    font-size: 1.875rem;
+    line-height: 1.15;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: var(--color-ink);
+  }
+
+  @media (max-width: 640px) {
+    .page-title {
+      font-size: 1.5rem;
+    }
+  }
+
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-slate-300) transparent;
+}
+
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-rise-in {
+  animation: rise-in 0.3s ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-rise-in {
+    animation: none;
+  }
+}
+
+/* Respect reduced-motion everywhere, not just our own animations. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

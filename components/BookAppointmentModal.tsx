@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { X, CheckCircle2 } from "lucide-react";
-import { STANDARD_DAY_HOURS } from "../app/config/timeSlots";
+import { DAY_SCHEDULE } from "../app/config/timeSlots";
 
 interface BookingPayload {
   dateString: string;
@@ -92,13 +92,13 @@ export default function BookAppointmentModal({
       <div className="bg-white w-full max-w-lg max-h-[85vh] overflow-y-auto rounded-2xl shadow-xl border border-slate-100">
         <div className="flex items-start justify-between p-6 border-b border-slate-100 sticky top-0 bg-white rounded-t-2xl">
           <div>
-            <h3 className="text-lg font-bold text-slate-900">Book Appointment</h3>
+            <h3 className="text-lg font-semibold text-slate-900">Book Appointment</h3>
             <p className="text-xs text-slate-500">Schedule a meeting with the guidance counselor</p>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg p-1.5 transition"
+            aria-label="Close" className="w-11 h-11 -m-2 grid place-items-center text-slate-500 hover:text-ink hover:bg-slate-100 rounded-full transition"
           >
             <X size={18} />
           </button>
@@ -122,7 +122,17 @@ export default function BookAppointmentModal({
           <div className="space-y-1">
             <label className="text-xs font-semibold text-slate-700">Available Time Slots</label>
             <div className="grid grid-cols-3 gap-2">
-              {STANDARD_DAY_HOURS.map((slot) => {
+              {DAY_SCHEDULE.map((entry) => {
+                if (entry.kind === "lunch") {
+                  return (
+                    <div key="lunch" role="note" aria-label={`Lunch break, ${entry.label}, no sessions`}
+                      className="min-h-11 py-1.5 px-2 rounded-xl border border-dashed border-butter-300 bg-butter-50 text-center leading-tight">
+                      <span className="block text-xs font-semibold text-slate-700">Lunch break</span>
+                      <span className="block text-[11px] text-slate-500 font-mono">{entry.label}</span>
+                    </div>
+                  );
+                }
+                const slot = entry.time;
                 const isTaken = bookedTimes.includes(slot);
                 const isSelected = time === slot;
                 return (
@@ -131,7 +141,7 @@ export default function BookAppointmentModal({
                     type="button"
                     disabled={isTaken}
                     onClick={() => setTime(slot)}
-                    className={`py-2 px-2 border text-xs font-semibold font-mono rounded-xl transition-all text-center ${
+                    className={`min-h-11 py-2 px-2 border text-xs font-semibold font-mono rounded-xl transition-all text-center ${
                       isTaken
                         ? "bg-slate-50 border-slate-100 text-slate-300 cursor-not-allowed line-through"
                         : isSelected
@@ -180,14 +190,14 @@ export default function BookAppointmentModal({
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 rounded-xl transition"
+              className="px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 rounded-full transition"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isSaving}
-              className="px-5 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 rounded-xl transition flex items-center gap-2"
+              className="px-5 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 rounded-full transition flex items-center gap-2"
             >
               {isSaving ? "Booking..." : (
                 <>

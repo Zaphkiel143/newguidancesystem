@@ -1,57 +1,53 @@
 "use client";
 
 import React, { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import {
-  Calendar,
-  FileText,
-  Send,
-  MessageSquare,
-  Award,
-  Target,
-  TrendingUp
-} from 'lucide-react';
-import { getMyAppointments } from '../../action/student';
-import type { Appointment as DbAppointment } from '../../../lib/generated';
+import Link from 'next/link';
+import { ArrowRight } from 'lucide-react';
+import { getMyAppointments, getMyCareerPlan, getMyReferrals } from '../../action/student';
+import { getBulletinPreview } from '../../action/bulletin';
+import { CAREER_STEPS } from '../../config/careerSteps';
+import { useCurrentUser } from '../../../components/CurrentUser';
+import type { Appointment as DbAppointment, CareerPlan, Event as DbEvent } from '../../../lib/generated';
 
-const STUDENT_NAME = "Nhel Belarmino";
+type Announcement = NonNullable<Awaited<ReturnType<typeof getBulletinPreview>>["announcement"]>;
 
-//Interfaces for structured data matching the UI
-interface QuickAction {
-  id: string;
-  label: string;
-  icon: React.ReactNode;
-  iconBg: string;
-  path: string;
-}
+const SHORTCUTS = [
+  { label: 'Book an appointment', path: '/my_appointments' },
+  { label: 'Answer a needs assessment', path: '/assessments' },
+  { label: 'Refer yourself or a classmate', path: '/refer_student' },
+  { label: 'Message the guidance office', path: '/my_messages' },
+];
 
-interface MetricCard {
-  id: string;
-  count: number;
-  label: string;
-  icon: React.ReactNode;
-  iconBg: string;
-}
-
-interface ProgressBarMetric {
-  id: string;
-  label: string;
-  percentage: number;
-  colorClass: string;
+interface DashboardData {
+  appointments: DbAppointment[];
+  careerPlan: CareerPlan | null;
+  openReferrals: number;
+  announcement: Announcement | null;
+  event: DbEvent | null;
 }
 
 export const DashboardContent: React.FC = () => {
-  const router = useRouter();
-  const [upcoming, setUpcoming] = useState<DbAppointment | null>(null);
+  const me = useCurrentUser();
+  const [data, setData] = useState<DashboardData | null>(null);
 
   useEffect(() => {
     let cancelled = false;
 
     (async () => {
-      const appointments = await getMyAppointments(STUDENT_NAME);
+      const [appointments, careerPlan, referrals, preview] = await Promise.all([
+        getMyAppointments(),
+        getMyCareerPlan(),
+        getMyReferrals(),
+        getBulletinPreview(),
+      ]);
       if (cancelled) return;
-      const next = appointments.find((a) => a.status !== "CANCELLED" && new Date(a.date) >= new Date());
-      setUpcoming(next ?? null);
+      setData({
+        appointments,
+        careerPlan,
+        openReferrals: referrals.filter((r) => r.status !== "CLOSED").length,
+        announcement: preview.announcement,
+        event: preview.event,
+      });
     })();
 
     return () => {
@@ -59,127 +55,157 @@ export const DashboardContent: React.FC = () => {
     };
   }, []);
 
-  const quickActions: QuickAction[] = [
-    { id: 'book', label: 'Book Appointment', icon: <Calendar size={20} />, iconBg: 'bg-[#1d63ff]', path: '/my_appointments' },
-    { id: 'profile', label: 'View My Profile', icon: <FileText size={20} />, iconBg: 'bg-[#00c853]', path: '/profile' },
-    { id: 'refer', label: 'Refer a Student', icon: <Send size={20} />, iconBg: 'bg-[#ff2b3d]', path: '/refer_student' },
-    { id: 'chat', label: 'Chat with E-Gabay', icon: <MessageSquare size={20} />, iconBg: 'bg-[#ff7d00]', path: '/ai_chat' },
-  ];
+  // Appointment dates are calendar days stored as UTC midnight; compare as YYYY-MM-DD.
+  const now = new Date();
+  const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+  const day = (d: Date) => new Date(d).toISOString().slice(0, 10);
+  const upcoming = data?.appointments
+    .filter((a) => a.status !== "CANCELLED" && day(a.date) >= today)
+    .sort((a, b) => +new Date(a.date) - +new Date(b.date))[0];
+  const sessionsDone = data?.appointments.filter((a) => a.status === "CONFIRMED" && day(a.date) < today).length ?? 0;
+  const stagesDone = data?.careerPlan?.stepDates.filter(Boolean).length ?? 0;
+  const nextStage = data?.careerPlan ? CAREER_STEPS[data.careerPlan.stepDates.findIndex((d) => !d)] : undefined;
 
-  const metricCards: MetricCard[] = [
-    { id: 'sessions', count: 8, label: 'Sessions Completed', icon: <Award size={18} />, iconBg: 'bg-[#1d63ff]' },
-    { id: 'goals', count: 5, label: 'Goals Achieved', icon: <Target size={18} />, iconBg: 'bg-[#00c853]' },
-    { id: 'tasks', count: 3, label: 'Upcoming Tasks', icon: <TrendingUp size={18} />, iconBg: 'bg-[#a855f7]' },
-  ];
-
-  const progressMetrics: ProgressBarMetric[] = [
-    { id: 'career', label: 'Career Planning', percentage: 75, colorClass: 'bg-[#1d63ff]' },
-    { id: 'personal', label: 'Personal Development', percentage: 60, colorClass: 'bg-[#00c853]' },
-    { id: 'academic', label: 'Academic Goals', percentage: 85, colorClass: 'bg-[#a855f7]' },
+  const figures = [
+    { id: 'sessions', count: sessionsDone, label: 'Sessions attended' },
+    { id: 'cpp', count: stagesDone, label: `of ${CAREER_STEPS.length} career stages done` },
+    { id: 'referrals', count: data?.openReferrals ?? 0, label: 'Open referrals you sent' },
   ];
 
   return (
-    <div className="flex-1 bg-[#f8fafc] p-8 space-y-6 overflow-y-auto min-h-screen font-sans text-slate-800">
+    <div className="px-5 sm:px-8 lg:px-12 pt-8 lg:pt-12 pb-16 max-w-6xl text-slate-800">
+      <header>
+        <h1 className="page-title">Kumusta, {me.name.split(" ")[0]}.</h1>
+        <p className="mt-2 text-slate-600">Here&apos;s where things stand with the guidance office.</p>
+      </header>
 
-      {/* 1. Top Quick Action Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {quickActions.map((action) => (
-          <button
-            key={action.id}
-            onClick={() => router.push(action.path)}
-            className="flex flex-col items-start bg-white p-5 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-all group text-left"
-          >
-            <div className={`p-3 rounded-xl text-white ${action.iconBg} mb-4 shrink-0 shadow-sm`}>
-              {action.icon}
-            </div>
-            <span className="font-semibold text-[15px] text-slate-700 group-hover:text-[#1d63ff] transition-colors">
-              {action.label}
-            </span>
-          </button>
-        ))}
-      </div>
+      {/* E-Gabay invitation: one quiet line, not a banner */}
+      <Link
+        href="/ai_chat"
+        className="group mt-8 flex items-center justify-between gap-6 border border-butter-200 bg-butter-100 rounded-full px-6 py-5 hover:border-butter-300 hover:bg-butter-50 transition-colors"
+      >
+        <span>
+          <span className="block font-serif text-[22px] text-ink leading-snug">Need someone to talk to?</span>
+          <span className="block text-[14px] text-slate-500 mt-1">
+            E-Gabay listens in English or Filipino. Your counselor is still a message away.
+          </span>
+        </span>
+        <span className="shrink-0 inline-flex items-center gap-2 text-[14px] font-medium text-blue-700">
+          Open chat <ArrowRight size={16} className="group-hover:translate-x-0.5 transition-transform" />
+        </span>
+      </Link>
 
-      {/* 2. Progress Overview Section Card */}
-      <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
-        <h2 className="text-lg font-bold text-[#0d2343] mb-5">My Progress Overview</h2>
-
-        {/* Metric Pill Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-          {metricCards.map((metric) => (
-            <div
-              key={metric.id}
-              className="bg-[#f8fafc] rounded-xl p-4 flex items-center gap-4 border border-slate-50"
-            >
-              <div className={`w-9 h-9 rounded-lg text-white flex items-center justify-center ${metric.iconBg} shrink-0`}>
-                {metric.icon}
-              </div>
-              <div>
-                <div className="text-2xl font-bold text-slate-900 leading-tight">{metric.count}</div>
-                <div className="text-xs text-slate-500 font-medium">{metric.label}</div>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Customized Progress Bars */}
-        <div className="space-y-5">
-          {progressMetrics.map((item) => (
-            <div key={item.id} className="space-y-2">
-              <div className="flex justify-between items-center text-sm">
-                <span className="font-semibold text-slate-700">{item.label}</span>
-                <span className="font-bold text-slate-500 text-xs">{item.percentage}%</span>
-              </div>
-              {/* Outer track */}
-              <div className="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden">
-                {/* Inner progress fill */}
-                <div
-                  className={`h-full rounded-full ${item.colorClass} transition-all duration-500`}
-                  style={{ width: `${item.percentage}%` }}
-                />
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* 3. Bottom Columns Layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-
-        {/* Left Column: Upcoming Appointments */}
-        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 flex flex-col">
-          <h2 className="text-lg font-bold text-[#0d2343] mb-4">Upcoming Appointments</h2>
-          {upcoming ? (
-            <div className="bg-[#f0f6ff] rounded-xl p-4 border border-blue-50 flex-1">
-              <h3 className="font-semibold text-slate-800 text-[15px]">{upcoming.appointmentType || "General Consultation"}</h3>
-              <p className="text-xs font-mono text-slate-500 mt-1">
-                {new Date(upcoming.date).toLocaleDateString()} at {upcoming.time}
-              </p>
-              <div className="mt-3">
-                <span className={`inline-flex items-center text-[11px] font-bold px-2.5 py-1 rounded-full border ${
-                  upcoming.status === "CONFIRMED"
-                    ? "bg-[#e8fbf0] text-[#00c853] border-[#bbf7d0]"
-                    : "bg-orange-50 text-orange-600 border-orange-100"
-                }`}>
-                  {upcoming.status === "CONFIRMED" ? "Confirmed" : "Pending"}
-                </span>
-              </div>
-            </div>
-          ) : (
-            <div className="bg-slate-50 rounded-xl p-4 border border-slate-100 flex-1 flex items-center justify-center text-sm text-slate-400 font-medium">
-              No upcoming appointments
-            </div>
-          )}
-        </div>
-
-        {/* Right Column: Recent Announcements */}
-        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 flex flex-col">
-          <h2 className="text-lg font-bold text-[#0d2343] mb-4">Recent Announcements</h2>
-          <div className="bg-[#f8fafc] rounded-xl p-4 border border-slate-100 flex-1">
-            <h3 className="font-semibold text-slate-800 text-[15px]">Career Fair 2026</h3>
-            <p className="text-xs font-mono text-slate-400 mt-1">2026-04-25</p>
+      <div className="mt-12 grid grid-cols-1 lg:grid-cols-[1.3fr_1fr] gap-12 lg:gap-16">
+        <section>
+          <div className="flex items-baseline justify-between mb-3">
+            <h2 className="font-serif text-[22px] text-ink">My progress</h2>
+            <Link href="/my_career" className="text-[13px] text-slate-500 hover:text-blue-700 transition-colors">
+              Career plan
+            </Link>
           </div>
-        </div>
+          <div className="grid grid-cols-3 gap-3">
+            {figures.map((f) => (
+              <div key={f.id} className="bg-blue-50 border border-blue-100 rounded-xl py-5 px-4">
+                <p className="font-serif text-[40px] leading-none text-ink tabular">{data ? f.count : "–"}</p>
+                <p className="text-[13px] text-slate-500 mt-2">{f.label}</p>
+              </div>
+            ))}
+          </div>
 
+          <div className="mt-6 text-[14px] text-slate-600">
+            {!data ? null : data.careerPlan ? (
+              <>
+                <div className="h-1.5 bg-blue-100 rounded-full overflow-hidden">
+                  <div className="h-full bg-blue-500 rounded-full" style={{ width: `${(stagesDone / CAREER_STEPS.length) * 100}%` }} />
+                </div>
+                <p className="mt-3">
+                  {nextStage ? (
+                    <>Next stage: <span className="text-ink font-medium">{nextStage}</span></>
+                  ) : (
+                    "You've completed every stage of the Career Planning Program."
+                  )}
+                </p>
+              </>
+            ) : (
+              <p>You&apos;re not enrolled in the Career Planning Program yet. The guidance office adds students to it.</p>
+            )}
+          </div>
+        </section>
+
+        <div className="space-y-12">
+          <section>
+            <div className="flex items-baseline justify-between mb-3">
+              <h2 className="font-serif text-[22px] text-ink">Next appointment</h2>
+              <Link href="/my_appointments" className="text-[13px] text-slate-500 hover:text-blue-700 transition-colors">
+                All appointments
+              </Link>
+            </div>
+            <div className="border-t border-rule pt-4">
+              {upcoming ? (
+                <>
+                  <p className="font-medium text-ink">{upcoming.appointmentType || "General consultation"}</p>
+                  <p className="font-mono text-[13px] text-slate-500 mt-1 tabular">
+                    {new Date(upcoming.date).toLocaleDateString("en-PH", { timeZone: "UTC", weekday: "short", month: "short", day: "numeric" })} · {upcoming.time}
+                  </p>
+                  <p className={`mt-2 inline-flex items-center gap-1.5 text-xs ${upcoming.status === "CONFIRMED" ? "text-emerald-700" : "text-orange-700"}`}>
+                    <span className={`w-1.5 h-1.5 rounded-full ${upcoming.status === "CONFIRMED" ? "bg-emerald-500" : "bg-orange-500"}`} />
+                    {upcoming.status === "CONFIRMED" ? "Confirmed" : "Waiting for confirmation"}
+                  </p>
+                </>
+              ) : (
+                <p className="text-[14px] text-slate-500">
+                  Nothing booked.{" "}
+                  <Link href="/my_appointments" className="text-blue-700 underline underline-offset-4 decoration-blue-200 hover:decoration-blue-600">
+                    Book a session
+                  </Link>
+                </p>
+              )}
+            </div>
+          </section>
+
+          <section>
+            <div className="flex items-baseline justify-between mb-3">
+              <h2 className="font-serif text-[22px] text-ink">From the office</h2>
+              <Link href="/bulletin" className="text-[13px] text-slate-500 hover:text-blue-700 transition-colors">
+                Bulletin
+              </Link>
+            </div>
+            <div className="border-t border-rule pt-4 space-y-4">
+              {data?.announcement && (
+                <div>
+                  <p className="text-xs text-slate-500">{data.announcement.category}</p>
+                  <p className="font-medium text-ink">{data.announcement.title}</p>
+                </div>
+              )}
+              {data?.event && (
+                <div>
+                  <p className="text-xs text-slate-500">Upcoming event</p>
+                  <p className="font-medium text-ink">{data.event.title}</p>
+                  <p className="font-mono text-[13px] text-slate-500 mt-0.5">
+                    {new Date(data.event.date).toLocaleDateString("en-PH", { timeZone: "UTC", month: "long", day: "numeric" })} · {data.event.time}
+                  </p>
+                </div>
+              )}
+              {data && !data.announcement && !data.event && (
+                <p className="text-[14px] text-slate-500">No announcements or events right now.</p>
+              )}
+            </div>
+          </section>
+
+          <section>
+            <h2 className="font-serif text-[22px] text-ink mb-3">Shortcuts</h2>
+            <ul className="divide-y divide-rule border-y border-rule">
+              {SHORTCUTS.map((s) => (
+                <li key={s.path}>
+                  <Link href={s.path} className="group flex items-center justify-between min-h-11 text-[14px] text-slate-700 hover:text-blue-700 transition-colors">
+                    {s.label}
+                    <ArrowRight size={14} className="text-slate-400 group-hover:text-blue-700 group-hover:translate-x-0.5 transition" />
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </section>
+        </div>
       </div>
     </div>
   );

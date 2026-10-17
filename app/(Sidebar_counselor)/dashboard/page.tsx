@@ -1,122 +1,137 @@
 import React from 'react';
-import { Users, Calendar, FileText, Briefcase } from 'lucide-react';
+import Link from 'next/link';
+import { ArrowRight } from 'lucide-react';
 import { getAppointmentsByDate, getDashboardStats, listReferrals } from '../../action/counselor';
+import { getCurrentUser } from '../../../lib/auth';
 
 const Dashboard = async () => {
   const today = new Date().toISOString().split("T")[0];
-  const [todaysAppointments, stats, referrals] = await Promise.all([
+  const [todaysAppointments, stats, referrals, user] = await Promise.all([
     getAppointmentsByDate(today),
     getDashboardStats(),
     listReferrals(),
+    getCurrentUser(),
   ]);
 
   const urgentReferrals = referrals
     .filter((r) => r.status !== "CLOSED" && (r.priority === "High" || r.priority === "Urgent"))
     .slice(0, 5);
 
+  const hour = new Date().getHours();
+  const greeting = hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
+  const firstName = user?.name.split(" ")[0];
+  const dateLabel = new Date().toLocaleDateString("en-PH", { weekday: "long", month: "long", day: "numeric" });
+
+  const summary =
+    todaysAppointments.length === 0
+      ? "Nothing on the calendar today."
+      : `${todaysAppointments.length} ${todaysAppointments.length === 1 ? "session" : "sessions"} on the calendar today.`;
+
   return (
-    <main>
-    <div className="flex h-screen bg-slate-50 font-sans text-slate-900">
-      {/* Main Content Area */}
-      <main className="flex-1 flex flex-col overflow-hidden">
-        {/* Dashboard Body */}
-        <div className="p-8 overflow-y-auto">
-          <header className="mb-8">
-            <h2 className="text-2xl font-bold">Dashboard</h2>
-            <p className="text-slate-500">Welcome back! Here&apos;s an overview of your guidance activities.</p>
-          </header>
+    <div className="px-5 sm:px-8 lg:px-12 pt-8 lg:pt-12 pb-16 max-w-6xl">
+      <header>
+        <p className="text-sm text-slate-500">{dateLabel}</p>
+        <h1 className="page-title mt-2">
+          {greeting}{firstName ? `, ${firstName}` : ""}.
+        </h1>
+        <p className="mt-2 text-slate-600">
+          {summary}
+          {urgentReferrals.length > 0 && (
+            <>
+              {" "}
+              <Link href="/referral" className="text-red-700 underline underline-offset-4 decoration-red-200 hover:decoration-red-500">
+                {urgentReferrals.length} high-priority {urgentReferrals.length === 1 ? "referral" : "referrals"}
+              </Link>{" "}
+              still open.
+            </>
+          )}
+        </p>
+      </header>
 
-          {/* Stats Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            <StatCard icon={<Users className="text-blue-600"/>} value={String(stats.totalStudents)} label="Total Students" color="bg-blue-50" />
-            <StatCard icon={<Calendar className="text-green-600"/>} value={String(todaysAppointments.length)} label="Today's Appointments" color="bg-green-50" />
-            <StatCard icon={<FileText className="text-orange-600"/>} value={String(stats.pendingReferrals)} label="Pending Referrals" color="bg-orange-50" />
-            <StatCard icon={<Briefcase className="text-purple-600"/>} value={String(stats.activeCareerPlans)} label="Active Career Plans" color="bg-purple-50" />
-          </div>
+      {/* Figures */}
+      <div className="mt-10 grid grid-cols-2 lg:grid-cols-4 gap-3">
+        <Figure label="Students on record" value={stats.totalStudents} href="/inventory" />
+        <Figure label="Appointments today" value={todaysAppointments.length} href="/appointment" />
+        <Figure label="Referrals pending" value={stats.pendingReferrals} href="/referral" />
+        <Figure label="Active career plans" value={stats.activeCareerPlans} href="/careerguidance" />
+      </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* Appointments List */}
-            <section className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
-              <h3 className="text-lg font-bold mb-4">Today&apos;s Appointments</h3>
-              <div className="space-y-4">
-                {todaysAppointments.length === 0 ? (
-                  <p className="text-sm text-slate-400">No appointments scheduled for today.</p>
-                ) : (
-                  todaysAppointments.map((appointment) => (
-                    <AppointmentRow
-                      key={appointment.id}
-                      name={appointment.studentName || "Unnamed Student"}
-                      type={appointment.appointmentType || "General"}
-                      time={appointment.time}
-                      status={appointment.status === "CONFIRMED" ? "Confirmed" : "Pending"}
-                    />
-                  ))
-                )}
-              </div>
-            </section>
+      <div className="mt-12 grid grid-cols-1 lg:grid-cols-[1.2fr_1fr] gap-12 lg:gap-16">
+        <section>
+          <SectionHeading title="Today's schedule" href="/appointment" linkLabel="Open calendar" />
+          {todaysAppointments.length === 0 ? (
+            <Empty>
+              No sessions booked for today. Students can request a slot from their own dashboard.
+            </Empty>
+          ) : (
+            <ol className="divide-y divide-rule border-t border-rule">
+              {todaysAppointments.map((appointment) => (
+                <li key={appointment.id} className="grid grid-cols-[72px_1fr_auto] items-baseline gap-4 py-3.5">
+                  <span className="font-mono text-[13px] text-slate-500 tabular">{appointment.time}</span>
+                  <span className="min-w-0">
+                    <span className="block font-medium text-ink truncate">{appointment.studentName || "Unnamed student"}</span>
+                    <span className="block text-[13px] text-slate-500 truncate">{appointment.appointmentType || "General"}</span>
+                  </span>
+                  <Status confirmed={appointment.status === "CONFIRMED"} />
+                </li>
+              ))}
+            </ol>
+          )}
+        </section>
 
-            {/* Referrals List */}
-            <section className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
-              <h3 className="text-lg font-bold mb-4">Urgent Referrals</h3>
-              <div className="space-y-4">
-                {urgentReferrals.length === 0 ? (
-                  <p className="text-sm text-slate-400">No urgent referrals right now.</p>
-                ) : (
-                  urgentReferrals.map((referral) => (
-                    <ReferralCard
-                      key={referral.id}
-                      name={referral.studentName}
-                      referrer={referral.referrerName}
-                      reason={referral.concernType}
-                      date={new Date(referral.createdAt).toLocaleDateString()}
-                    />
-                  ))
-                )}
-              </div>
-            </section>
-          </div>
-        </div>
-      </main>
+        <section>
+          <SectionHeading title="Needs attention" href="/referral" linkLabel="All referrals" />
+          {urgentReferrals.length === 0 ? (
+            <Empty>No high-priority referrals are open.</Empty>
+          ) : (
+            <ul className="divide-y divide-rule border-t border-rule">
+              {urgentReferrals.map((referral) => (
+                <li key={referral.id} className="py-4">
+                  <div className="flex items-baseline justify-between gap-3">
+                    <p className="font-medium text-ink">{referral.studentName}</p>
+                    <span className="text-[12px] text-red-700 font-medium shrink-0">{referral.priority}</span>
+                  </div>
+                  <p className="text-[14px] text-slate-600 mt-0.5">{referral.concernType}</p>
+                  <p className="text-[12px] text-slate-500 mt-1.5">
+                    From {referral.referrerName} · {new Date(referral.createdAt).toLocaleDateString("en-PH", { month: "short", day: "numeric" })}
+                  </p>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+      </div>
     </div>
-    </main>
   );
 };
 
 export default Dashboard;
 
-const StatCard = ({ icon, value, label, color }: { icon: React.ReactNode; value: string; label: string; color: string }) => (
-  <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex items-start gap-4">
-    <div className={`p-3 rounded-lg ${color}`}>{icon}</div>
-    <div>
-      <p className="text-2xl font-bold">{value}</p>
-      <p className="text-sm text-slate-500">{label}</p>
-    </div>
+const Figure = ({ label, value, href }: { label: string; value: number; href: string }) => (
+  <div className="bg-blue-50 border border-blue-100 rounded-xl px-5 py-5">
+    <Link href={href} className="group block">
+      <p className="font-serif text-[44px] leading-none text-ink tabular">{value}</p>
+      <p className="text-[13px] text-slate-500 mt-2 group-hover:text-blue-700 transition-colors">{label}</p>
+    </Link>
   </div>
 );
 
-const AppointmentRow = ({ name, type, time, status }: { name: string; type: string; time: string; status: 'Confirmed' | 'Pending' }) => (
-  <div className="flex items-center justify-between p-4 rounded-lg border border-slate-100 bg-slate-50/50">
-    <div>
-      <p className="font-semibold">{name}</p>
-      <p className="text-sm text-slate-500">{type}</p>
-    </div>
-    <div className="text-right">
-      <p className="text-sm font-medium mb-1">{time}</p>
-      <span className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded-full ${
-        status === 'Confirmed' ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700'
-      }`}>
-        {status}
-      </span>
-    </div>
+const SectionHeading = ({ title, href, linkLabel }: { title: string; href: string; linkLabel: string }) => (
+  <div className="flex items-baseline justify-between mb-3">
+    <h2 className="font-serif text-[22px] text-ink">{title}</h2>
+    <Link href={href} className="group text-[13px] text-slate-500 hover:text-blue-700 inline-flex items-center gap-1 transition-colors">
+      {linkLabel} <ArrowRight size={13} className="group-hover:translate-x-0.5 transition-transform" />
+    </Link>
   </div>
 );
 
-const ReferralCard = ({ name, referrer, reason, date }: { name: string; referrer: string; reason: string; date: string }) => (
-  <div className="p-4 rounded-lg border border-red-100 bg-red-50/30 relative">
-    <span className="absolute top-4 right-4 text-[10px] font-bold text-red-600 uppercase">Urgent</span>
-    <p className="font-semibold text-slate-800">{name}</p>
-    <p className="text-sm text-slate-600">Referred by: {referrer}</p>
-    <p className="text-sm text-slate-600 italic">Reason: {reason}</p>
-    <p className="text-xs text-slate-400 mt-2">{date}</p>
-  </div>
+const Empty = ({ children }: { children: React.ReactNode }) => (
+  <p className="border-t border-rule pt-4 text-[14px] text-slate-500 max-w-[46ch]">{children}</p>
+);
+
+const Status = ({ confirmed }: { confirmed: boolean }) => (
+  <span className={`inline-flex items-center gap-1.5 text-[12px] ${confirmed ? "text-emerald-700" : "text-orange-700"}`}>
+    <span className={`w-1.5 h-1.5 rounded-full ${confirmed ? "bg-emerald-500" : "bg-orange-500"}`} />
+    {confirmed ? "Confirmed" : "Pending"}
+  </span>
 );

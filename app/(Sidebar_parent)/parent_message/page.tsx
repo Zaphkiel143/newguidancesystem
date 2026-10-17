@@ -4,17 +4,17 @@ import React, { useEffect, useState } from 'react';
 import { MessageSquare } from 'lucide-react';
 import { getMyConversation, getMessages, markConversationRead, sendMessage } from '../../action/parent';
 import ConversationPanel from '../../../components/ConversationPanel';
+import { useCurrentUser } from '../../../components/CurrentUser';
 
-const VIEWER_ROLE = "Parent";
-const VIEWER_NAME = "Mrs. Belarmino";
 
 export const ParentMessagesPage: React.FC = () => {
+  const me = useCurrentUser();
   const [conversationId, setConversationId] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      const conversation = await getMyConversation(VIEWER_NAME);
+      const conversation = await getMyConversation();
       if (!cancelled) setConversationId(conversation?.id ?? null);
     })();
     return () => {
@@ -23,11 +23,11 @@ export const ParentMessagesPage: React.FC = () => {
   }, []);
 
   return (
-    <div className="max-w-7xl mx-auto font-sans antialiased text-slate-800 space-y-6">
+    <div className="px-5 sm:px-8 lg:px-12 pt-8 lg:pt-12 pb-16 max-w-7xl font-sans antialiased text-slate-800 space-y-6">
 
       {/* Page Heading Section Header */}
       <div>
-        <h1 className="text-3xl font-bold text-blue-900 tracking-tight">Messages</h1>
+        <h1 className="page-title">Messages</h1>
         <p className="text-sm text-slate-500 font-medium mt-1">
           Communicate with the Guidance Office about your child
         </p>
@@ -38,10 +38,10 @@ export const ParentMessagesPage: React.FC = () => {
         {conversationId ? (
           <ConversationPanel
             conversationId={conversationId}
-            viewerRole={VIEWER_ROLE}
-            viewerName={VIEWER_NAME}
+            viewerRole={me.roleLabel}
+            viewerName={me.name}
             title="Guidance Counselor"
-            subtitle="Ralph Michael"
+            subtitle="Guidance Associate"
             getMessages={getMessages}
             markConversationRead={markConversationRead}
             sendMessage={sendMessage}
@@ -52,7 +52,7 @@ export const ParentMessagesPage: React.FC = () => {
               <div className="w-16 h-16 border-2 border-dashed border-slate-200 rounded-full flex items-center justify-center mx-auto opacity-60">
                 <MessageSquare size={28} className="text-slate-300 stroke-[1.5]" />
               </div>
-              <p className="text-slate-400 font-medium text-sm leading-relaxed">
+              <p className="text-slate-500 font-medium text-sm leading-relaxed">
                 Loading your conversation...
               </p>
             </div>

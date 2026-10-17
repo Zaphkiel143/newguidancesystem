@@ -1,8 +1,9 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
-import { Send, Loader2 } from "lucide-react";
+import { ArrowUp, Loader2 } from "lucide-react";
 import type { Message as DbMessage } from "../lib/generated";
+import InlineError from "./InlineError";
 
 interface ConversationPanelProps {
   conversationId: string;
@@ -13,11 +14,8 @@ interface ConversationPanelProps {
   onMessageSent?: () => void;
   getMessages: (conversationId: string) => Promise<DbMessage[]>;
   markConversationRead: (conversationId: string) => Promise<{ success: boolean }>;
-  sendMessage: (formData: {
-    conversationId: string;
-    senderName: string;
-    content: string;
-  }) => Promise<{ success: boolean; error?: string }>;
+  // The server takes the sender from the session; viewerName/viewerRole are only for display.
+  sendMessage: (formData: { conversationId: string; content: string }) => Promise<{ success: boolean; error?: string }>;
 }
 
 const POLL_INTERVAL_MS = 4000;
@@ -37,6 +35,7 @@ export default function ConversationPanel({
   const [isLoading, setIsLoading] = useState(true);
   const [draft, setDraft] = useState("");
   const [isSending, setIsSending] = useState(false);
+  const [sendError, setSendError] = useState<string | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -73,8 +72,9 @@ export default function ConversationPanel({
     if (!content) return;
 
     setIsSending(true);
+    setSendError(null);
     setDraft("");
-    const result = await sendMessage({ conversationId, senderName: viewerName, content });
+    const result = await sendMessage({ conversationId, content });
     setIsSending(false);
 
     if (result.success) {
@@ -82,43 +82,58 @@ export default function ConversationPanel({
       setMessages(data);
       onMessageSent?.();
     } else {
-      alert(`Failed to send message: ${result.error || "Unknown error"}`);
+      setSendError(`Message not sent: ${result.error || "unknown error"}. Your text is back in the box — try again.`);
       setDraft(content);
     }
   };
 
+  const initials = title
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase())
+    .join("");
+
   return (
-    <div className="flex-1 flex flex-col bg-white h-full min-h-0">
-      <div className="px-6 py-4 border-b border-slate-100 shrink-0">
-        <h3 className="font-bold text-slate-900 text-sm">{title}</h3>
-        {subtitle && <p className="text-xs text-slate-400">{subtitle}</p>}
+    <div className="flex-1 flex flex-col bg-paper h-full min-h-0">
+      <div className="px-6 py-4 border-b border-rule shrink-0 flex items-center gap-3">
+        <span className="w-9 h-9 rounded-md bg-slate-200 text-slate-700 grid place-items-center text-xs font-semibold">
+          {initials}
+        </span>
+        <div className="leading-tight">
+          <h3 className="font-medium text-ink text-[15px]">{title}</h3>
+          {subtitle && <p className="text-[12px] text-slate-500 mt-0.5">{subtitle}</p>}
+        </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto px-6 py-4 space-y-3 min-h-0">
+      <div className="flex-1 overflow-y-auto px-6 py-6 space-y-4 min-h-0">
         {isLoading ? (
-          <div className="h-full flex items-center justify-center text-slate-400">
-            <Loader2 className="animate-spin" size={22} />
+          <div className="h-full flex items-center justify-center text-slate-500">
+            <Loader2 className="animate-spin" size={20} />
           </div>
         ) : messages.length === 0 ? (
-          <div className="h-full flex items-center justify-center text-sm text-slate-400">
-            No messages yet — say hello.
+          <div className="h-full flex items-center justify-center text-[14px] text-slate-500">
+            No messages yet.
           </div>
         ) : (
           messages.map((m) => {
             const isMine = m.senderRole === viewerRole && m.senderName === viewerName;
-            return (
-              <div key={m.id} className={`flex ${isMine ? "justify-end" : "justify-start"}`}>
-                <div
-                  className={`max-w-[70%] rounded-2xl px-4 py-2.5 text-sm ${
-                    isMine ? "bg-[#1d63ff] text-white rounded-br-sm" : "bg-slate-100 text-slate-800 rounded-bl-sm"
-                  }`}
-                >
-                  {!isMine && <p className="text-[10px] font-bold opacity-60 mb-0.5">{m.senderName}</p>}
-                  <p className="leading-relaxed whitespace-pre-wrap">{m.content}</p>
-                  <p className={`text-[10px] mt-1 ${isMine ? "text-blue-100" : "text-slate-400"}`}>
-                    {new Date(m.createdAt).toLocaleString()}
-                  </p>
-                </div>
+            const time = new Date(m.createdAt).toLocaleString("en-PH", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
+            return isMine ? (
+              <div key={m.id} className="flex flex-col items-end">
+                <p className="max-w-[75%] bg-blue-100 text-ink rounded-2xl rounded-br-md px-4 py-2.5 text-[15px] leading-relaxed whitespace-pre-wrap">
+                  {m.content}
+                </p>
+                <span className="text-xs text-slate-500 mt-1">{time}</span>
+              </div>
+            ) : (
+              <div key={m.id} className="max-w-[75%]">
+                <p className="text-[12px] text-slate-500 mb-1">
+                  <span className="font-medium text-slate-700">{m.senderName}</span> · {time}
+                </p>
+                <p className="bg-sheet border border-rule rounded-2xl rounded-tl-md px-4 py-2.5 text-[15px] leading-relaxed text-ink whitespace-pre-wrap">
+                  {m.content}
+                </p>
               </div>
             );
           })
@@ -126,22 +141,28 @@ export default function ConversationPanel({
         <div ref={bottomRef} />
       </div>
 
-      <form onSubmit={handleSend} className="p-4 border-t border-slate-100 flex items-center gap-2 shrink-0">
-        <input
-          type="text"
-          value={draft}
-          onChange={(e) => setDraft(e.target.value)}
-          placeholder="Type a message..."
-          className="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
-        <button
-          type="submit"
-          disabled={isSending || !draft.trim()}
-          className="bg-[#1d63ff] hover:bg-blue-700 disabled:opacity-50 text-white p-2.5 rounded-xl transition-colors shrink-0"
-        >
-          <Send size={18} />
-        </button>
-      </form>
+      <div className="border-t border-rule px-4 py-3 shrink-0">
+        <InlineError message={sendError} onDismiss={() => setSendError(null)} className="mb-2" />
+        <form onSubmit={handleSend} className="flex items-center gap-2">
+          <label htmlFor={`draft-${conversationId}`} className="sr-only">Write a message</label>
+          <input
+            id={`draft-${conversationId}`}
+            type="text"
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
+            placeholder="Write a message"
+            className="flex-1 bg-sheet border border-blue-200 rounded-full px-5 py-2.5 text-[15px] placeholder:text-slate-400"
+          />
+          <button
+            type="submit"
+            disabled={isSending || !draft.trim()}
+            aria-label="Send message"
+            className="bg-blue-700 hover:bg-blue-800 disabled:bg-slate-200 disabled:text-slate-400 text-white w-11 h-11 grid place-items-center rounded-full transition-colors shrink-0"
+          >
+            <ArrowUp size={18} />
+          </button>
+        </form>
+      </div>
     </div>
   );
 }

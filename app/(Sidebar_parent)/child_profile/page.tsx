@@ -1,188 +1,155 @@
 "use client";
 
-import React from 'react';
-import { 
-  User, 
-  Mail, 
-  Phone, 
-  Calendar, 
-  MapPin, 
-  GraduationCap, 
-  Bookmark, 
-  Clock, 
-  FileText 
-} from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { User, Loader2 } from 'lucide-react';
+import { getChildProfile } from '../../action/parent';
+import { CAREER_STEPS } from '../../config/careerSteps';
+import { useMyChildren } from '../useMyChildren';
 
-interface SessionItem {
-  id: string;
-  type: string;
-  description: string;
-  date: string;
-}
+type ChildProfile = NonNullable<Awaited<ReturnType<typeof getChildProfile>>>;
 
 export const ChildProfilePage: React.FC = () => {
-  
-  // Data layout parameters matched exactly with image_85b347.png
-  const profile = {
-    name: 'Nhel Belarmino',
-    studentId: '2024-12345',
-    email: 'nhel.belarmino@sti.edu',
-    phone: '0912-345-6789',
-    dob: '2005-03-15',
-    address: 'Sta. Maria, Bulacan',
-    gradeSection: 'Grade 12 - STEM-A',
-    strand: 'STEM',
-    enrolledSince: 'August 2024'
-  };
+  const children = useMyChildren();
+  const [chosenChild, setChosenChild] = useState('');
+  const childName = chosenChild || children?.[0]?.name || '';
+  const [data, setData] = useState<ChildProfile | null>(null);
+  const [loadedFor, setLoadedFor] = useState('');
 
-  // Guidance history timeline list matched exactly with image_85b09d.png
-  const guidanceSessions: SessionItem[] = [
-    {
-      id: 'session-1',
-      type: 'Individual Counseling',
-      description: 'Discussion about academic stress and time management',
-      date: '2026-04-20',
-    },
-    {
-      id: 'session-2',
-      type: 'Career Guidance',
-      description: 'Career interest assessment completed',
-      date: '2026-03-15',
-    },
-  ];
+  useEffect(() => {
+    if (!childName) return;
+    let cancelled = false;
+    (async () => {
+      const result = await getChildProfile(childName);
+      if (cancelled) return;
+      setData(result);
+      setLoadedFor(childName);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [childName]);
+
+  const isLoading = children === null || (childName !== '' && loadedFor !== childName);
+  const p = data?.profile;
 
   return (
-    <div className="max-w-5xl mx-auto font-sans antialiased text-slate-800 space-y-6">
-      
-      {/* Page Context Description Typography */}
-      <div>
-        <h1 className="text-3xl font-bold text-blue-900 tracking-tight">Child Profile</h1>
-        <p className="text-sm text-slate-500 font-medium mt-1">
-          View your child&apos;s information and guidance progress
+    <div className="px-5 sm:px-8 lg:px-12 pt-8 lg:pt-12 pb-16 max-w-5xl text-slate-800 space-y-8">
+      <header className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
+        <div>
+          <h1 className="page-title">Child Profile</h1>
+          <p className="text-sm text-slate-500 mt-1">Your child&apos;s information, guidance sessions, and career planning progress</p>
+        </div>
+        {children && children.length > 1 && (
+          <select
+            aria-label="Choose a child"
+            value={childName}
+            onChange={(e) => setChosenChild(e.target.value)}
+            className="bg-sheet border border-slate-300 rounded-md px-3 py-2 text-sm text-ink"
+          >
+            {children.map((c) => (
+              <option key={c.name} value={c.name}>{c.name}</option>
+            ))}
+          </select>
+        )}
+      </header>
+
+      {children?.length === 0 ? (
+        <p className="border-l-2 border-orange-500 bg-orange-50 pl-3 py-2 text-sm text-orange-800 max-w-xl">
+          No student is linked to your account yet. Ask the Guidance Office to link your child&apos;s record to your account.
         </p>
-      </div>
-
-      {/* SECTION 1: Personal Information Hero Block (image_85b347.png) */}
-      <div className="bg-white border border-slate-100 rounded-2xl shadow-sm overflow-hidden">
-        
-        {/* Top Accent Blue Header Panel banner area */}
-        <div className="bg-[#1d63ff] p-6 flex items-center gap-5 text-white">
-          <div className="w-16 h-16 bg-white text-[#1d63ff] rounded-full flex items-center justify-center shrink-0 shadow-inner">
-            <User size={32} className="stroke-[2]" />
-          </div>
-          <div className="space-y-1">
-            <h2 className="text-2xl font-bold tracking-tight">{profile.name}</h2>
-            <p className="text-xs font-mono font-medium text-blue-100 opacity-90">
-              Student ID: {profile.studentId}
-            </p>
-          </div>
+      ) : isLoading ? (
+        <div className="py-20 flex justify-center text-slate-500">
+          <Loader2 className="animate-spin" size={20} />
         </div>
-
-        {/* Bottom Content Area Grid Details */}
-        <div className="p-6">
-          <h3 className="text-base font-bold text-slate-900 mb-5 tracking-tight">Personal Information</h3>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5 text-sm">
-            {/* Email Field Column Segment */}
-            <div className="flex items-start gap-3">
-              <Mail size={18} className="text-slate-400 shrink-0 mt-0.5" />
-              <div className="space-y-0.5">
-                <span className="text-xs text-slate-400 font-medium block">Email</span>
-                <span className="text-slate-700 font-semibold">{profile.email}</span>
+      ) : !p ? (
+        <p className="text-sm text-red-700">Couldn&apos;t load this profile. Try refreshing the page.</p>
+      ) : (
+        <>
+          <section className="bg-white border border-rule rounded-xl overflow-hidden">
+            <div className="px-6 py-6 flex items-center gap-5 border-b border-rule">
+              <div className="w-14 h-14 bg-slate-200 text-slate-600 rounded-md flex items-center justify-center shrink-0">
+                <User size={26} strokeWidth={1.5} />
+              </div>
+              <div>
+                <h2 className="font-serif text-[28px] leading-tight text-ink">{p.name}</h2>
+                <p className="font-mono text-[13px] text-slate-500 mt-0.5">Student ID {p.studentId}</p>
               </div>
             </div>
+            <dl className="p-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-5 text-sm">
+              <Field label="Department" value={p.department} />
+              <Field label="Grade & section" value={p.gradeSection} />
+              <Field label="Strand / program" value={p.strandOrProgram} />
+              <Field label="School email" value={p.email} />
+              <Field label="Phone" value={p.phone} />
+              <Field label="Date of birth" value={p.birthDate} />
+              <Field label="Address" value={p.address} />
+              <Field label="Guardian" value={p.guardianName} />
+              <Field label="Guardian contact" value={p.guardianContact} />
+            </dl>
+          </section>
 
-            {/* Phone Field Column Segment */}
-            <div className="flex items-start gap-3">
-              <Phone size={18} className="text-slate-400 shrink-0 mt-0.5" />
-              <div className="space-y-0.5">
-                <span className="text-xs text-slate-400 font-medium block">Phone</span>
-                <span className="text-slate-700 font-semibold">{profile.phone}</span>
-              </div>
-            </div>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
+            <section>
+              <h2 className="font-serif text-[22px] text-ink mb-3">Guidance sessions</h2>
+              {data.appointments.length === 0 ? (
+                <p className="border-t border-rule pt-4 text-sm text-slate-500">No sessions yet.</p>
+              ) : (
+                <ul className="divide-y divide-rule border-t border-rule">
+                  {data.appointments.map((a) => (
+                    <li key={a.id} className="py-3 flex items-baseline justify-between gap-4">
+                      <span>
+                        <span className="block font-medium text-ink">{a.appointmentType || "General consultation"}</span>
+                        <span className="block font-mono text-[13px] text-slate-500">
+                          {new Date(a.date).toLocaleDateString("en-PH", { timeZone: "UTC", month: "short", day: "numeric", year: "numeric" })} · {a.time}
+                        </span>
+                      </span>
+                      <span className={`text-xs ${a.status === "CONFIRMED" ? "text-emerald-700" : "text-orange-700"}`}>
+                        {a.status === "CONFIRMED" ? "Confirmed" : "Pending"}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+              <p className="text-xs text-slate-500 mt-3">Session notes stay confidential to the guidance office.</p>
+            </section>
 
-            {/* Date of Birth Field Column Segment */}
-            <div className="flex items-start gap-3">
-              <Calendar size={18} className="text-slate-400 shrink-0 mt-0.5" />
-              <div className="space-y-0.5">
-                <span className="text-xs text-slate-400 font-medium block">Date of Birth</span>
-                <span className="text-slate-700 font-mono font-semibold">{profile.dob}</span>
-              </div>
-            </div>
-
-            {/* Address Field Column Segment */}
-            <div className="flex items-start gap-3">
-              <MapPin size={18} className="text-slate-400 shrink-0 mt-0.5" />
-              <div className="space-y-0.5">
-                <span className="text-xs text-slate-400 font-medium block">Address</span>
-                <span className="text-slate-700 font-semibold">{profile.address}</span>
-              </div>
-            </div>
+            <section>
+              <h2 className="font-serif text-[22px] text-ink mb-3">Career Planning Program</h2>
+              {!data.careerPlan ? (
+                <p className="border-t border-rule pt-4 text-sm text-slate-500">Not enrolled in the Career Planning Program yet.</p>
+              ) : (
+                <ol className="divide-y divide-rule border-t border-rule">
+                  {CAREER_STEPS.map((step, i) => {
+                    const done = data.careerPlan!.stepDates[i];
+                    return (
+                      <li key={step} className="py-2.5 flex items-baseline justify-between gap-4 text-sm">
+                        <span className={done ? "text-ink" : "text-slate-500"}>
+                          <span className="font-mono text-xs text-slate-500 mr-2">{i + 1}</span>
+                          {step}
+                        </span>
+                        <span className={`text-xs ${done ? "text-emerald-700" : "text-slate-500"}`}>
+                          {done ? `Done ${done}` : "Not yet"}
+                        </span>
+                      </li>
+                    );
+                  })}
+                </ol>
+              )}
+            </section>
           </div>
-        </div>
-
-      </div>
-
-      {/* SECTION 2: Academic Information Container Block (image_85b347.png) */}
-      <div className="bg-white border border-slate-100 rounded-2xl shadow-sm overflow-hidden">
-        <div className="px-6 py-4 border-b border-slate-50 flex items-center gap-2 bg-slate-50/20">
-          <GraduationCap size={18} className="text-slate-700" />
-          <h3 className="text-base font-bold text-slate-900 tracking-tight">Academic Information</h3>
-        </div>
-
-        <div className="p-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 text-sm">
-          <div className="space-y-1">
-            <span className="text-xs text-slate-400 font-medium block">Grade & Section</span>
-            <span className="text-slate-800 font-semibold text-[15px]">{profile.gradeSection}</span>
-          </div>
-
-          <div className="space-y-1">
-            <span className="text-xs text-slate-400 font-medium block">Strand</span>
-            <span className="text-slate-800 font-semibold text-[15px]">{profile.strand}</span>
-          </div>
-
-          <div className="space-y-1">
-            <span className="text-xs text-slate-400 font-medium block">Enrolled Since</span>
-            <span className="text-slate-700 font-semibold text-[15px]">{profile.enrolledSince}</span>
-          </div>
-        </div>
-      </div>
-
-      {/* SECTION 3: Guidance History Session Log Timeline (image_85b09d.png) */}
-      <div className="bg-white border border-slate-100 rounded-2xl shadow-sm overflow-hidden">
-        <div className="px-6 py-5 border-b border-slate-50 flex items-center gap-2 bg-slate-50/20">
-          <Bookmark size={18} className="text-slate-700" />
-          <h3 className="text-base font-bold text-slate-900 tracking-tight">Guidance Sessions</h3>
-        </div>
-
-        <div className="p-6 space-y-4">
-          {guidanceSessions.map((session) => (
-            <div 
-              key={session.id} 
-              className="bg-[#f8fafc] hover:bg-slate-50 border border-slate-100 rounded-xl p-4 flex flex-col sm:flex-row sm:items-start justify-between gap-3 transition-colors group"
-            >
-              <div className="space-y-1 min-w-0 flex-1">
-                <h4 className="font-bold text-slate-800 text-sm group-hover:text-blue-600 transition-colors flex items-center gap-2">
-                  <FileText size={15} className="text-slate-400 shrink-0" />
-                  {session.type}
-                </h4>
-                <p className="text-xs text-slate-500 font-medium leading-relaxed pl-5">
-                  {session.description}
-                </p>
-              </div>
-
-              {/* Timestamp Alignments */}
-              <div className="flex items-center gap-1.5 text-slate-400 shrink-0 font-mono font-medium text-xs sm:pt-0.5 pl-5 sm:pl-0">
-                <Clock size={13} />
-                <span>{session.date}</span>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
+        </>
+      )}
     </div>
   );
 };
+
+function Field({ label, value }: { label: string; value: string | null }) {
+  return (
+    <div>
+      <dt className="text-xs text-slate-500">{label}</dt>
+      <dd className="text-ink mt-0.5">{value || "—"}</dd>
+    </div>
+  );
+}
 
 export default ChildProfilePage;

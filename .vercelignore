@@ -1,0 +1,6 @@
+.env*
+!.env.example
+node_modules
+.next
+*.docx
+scripts/local-db.mjs

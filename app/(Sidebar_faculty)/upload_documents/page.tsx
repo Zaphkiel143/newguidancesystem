@@ -3,8 +3,8 @@
 import React, { useEffect, useState, ChangeEvent, DragEvent } from 'react';
 import { UploadCloud, FileText, CheckCircle2, Trash2, Loader2 } from 'lucide-react';
 import { uploadDocument, getMyDocuments, deleteDocument } from '../../action/faculty';
+import InlineError from '../../../components/InlineError';
 
-const FACULTY_NAME = "Cho Sto Domingo";
 const MAX_FILE_BYTES = 5 * 1024 * 1024; // 5MB
 
 interface DocumentMeta {
@@ -38,9 +38,10 @@ export const UploadDocuments: React.FC = () => {
   const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   const refresh = async () => {
-    const data = await getMyDocuments(FACULTY_NAME);
+    const data = await getMyDocuments();
     setDocuments(data);
   };
 
@@ -48,7 +49,7 @@ export const UploadDocuments: React.FC = () => {
     let cancelled = false;
 
     (async () => {
-      const data = await getMyDocuments(FACULTY_NAME);
+      const data = await getMyDocuments();
       if (!cancelled) setDocuments(data);
     })();
 
@@ -69,7 +70,6 @@ export const UploadDocuments: React.FC = () => {
       setIsUploading(true);
       const dataBase64 = await fileToBase64(file);
       const result = await uploadDocument({
-        uploaderName: FACULTY_NAME,
         fileName: file.name,
         fileType: file.type || "application/octet-stream",
         fileSize: file.size,
@@ -107,21 +107,23 @@ export const UploadDocuments: React.FC = () => {
 
   const removeFile = async (id: string) => {
     setDeletingId(id);
+    setDeleteError(null);
     const result = await deleteDocument(id);
     setDeletingId(null);
     if (result.success) {
       await refresh();
     } else {
-      alert(`Failed to delete document: ${result.error || "Unknown error"}`);
+      const name = documents.find((d) => d.id === id)?.fileName ?? "this document";
+      setDeleteError(`Couldn't delete ${name}: ${result.error || "unknown error"}.`);
     }
   };
 
   return (
-    <div className="max-w-4xl mx-auto font-sans antialiased text-slate-800 space-y-6">
+    <div className="px-5 sm:px-8 lg:px-12 pt-8 lg:pt-12 pb-16 max-w-4xl font-sans antialiased text-slate-800 space-y-6">
 
       {/* 1. Header Section */}
       <div>
-        <h1 className="text-3xl font-bold text-blue-900 tracking-tight">Upload Documents</h1>
+        <h1 className="page-title">Upload Documents</h1>
         <p className="text-sm text-slate-500 font-medium mt-1">
           Share files, forms, and reports securely with the Guidance Office
         </p>
@@ -149,17 +151,17 @@ export const UploadDocuments: React.FC = () => {
             className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
           />
 
-          <div className="bg-blue-50 p-4 rounded-full text-[#1d63ff] mb-4 shadow-sm">
+          <div className="bg-blue-50 p-4 rounded-full text-blue-600 mb-4 shadow-sm">
             {isUploading ? <Loader2 size={32} className="animate-spin" /> : <UploadCloud size={32} className="stroke-[2]" />}
           </div>
 
-          <h3 className="font-bold text-slate-800 text-base">
+          <h3 className="font-semibold text-slate-800 text-base">
             {isUploading ? "Uploading..." : (
-              <>Drag and drop files here, or <span className="text-[#1d63ff] hover:underline">browse</span></>
+              <>Drag and drop files here, or <span className="text-blue-600 hover:underline">browse</span></>
             )}
           </h3>
 
-          <p className="text-xs text-slate-400 font-medium mt-2 max-w-sm leading-relaxed">
+          <p className="text-xs text-slate-500 font-medium mt-2 max-w-sm leading-relaxed">
             Supports PDF, Word, Excel, and Images up to 5MB
           </p>
         </div>
@@ -174,7 +176,7 @@ export const UploadDocuments: React.FC = () => {
         {documents.length > 0 && (
           <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
             <div className="px-6 py-4 border-b border-slate-50 bg-slate-50/30">
-              <h4 className="font-bold text-slate-800 text-sm">Uploaded Documents</h4>
+              <h4 className="font-semibold text-slate-800 text-sm">Uploaded Documents</h4>
             </div>
 
             <div className="p-4 space-y-3">
@@ -185,20 +187,20 @@ export const UploadDocuments: React.FC = () => {
                 >
                   {/* File Metadata Cluster */}
                   <div className="flex items-start gap-3.5 min-w-0 flex-1">
-                    <div className="p-2.5 bg-slate-50 text-slate-400 rounded-xl shrink-0 mt-0.5">
+                    <div className="p-2.5 bg-slate-50 text-slate-500 rounded-xl shrink-0 mt-0.5">
                       <FileText size={20} />
                     </div>
 
                     <div className="min-w-0 flex-1">
                       <div className="flex items-baseline gap-2 flex-wrap">
-                        <span className="font-bold text-slate-800 text-sm truncate max-w-[280px] sm:max-w-md">
+                        <span className="font-semibold text-slate-800 text-sm truncate max-w-[280px] sm:max-w-md">
                           {file.fileName}
                         </span>
-                        <span className="text-xs text-slate-400 font-mono font-medium">
+                        <span className="text-xs text-slate-500 font-mono font-medium">
                           ({formatSize(file.fileSize)})
                         </span>
                       </div>
-                      <span className="text-[10px] text-slate-400 font-mono">
+                      <span className="text-xs text-slate-500 font-mono">
                         {new Date(file.createdAt).toLocaleString()}
                       </span>
                     </div>
@@ -207,7 +209,7 @@ export const UploadDocuments: React.FC = () => {
                   {/* Status Indicator & Action Triggers Column */}
                   <div className="flex items-center justify-between sm:justify-end gap-4 shrink-0 border-t border-slate-50 pt-2 sm:pt-0 sm:border-0">
                     <div className="text-xs">
-                      <span className="inline-flex items-center gap-1.5 bg-[#e8fbf0] text-[#00c853] font-bold px-2.5 py-1 rounded-full border border-[#bbf7d0]">
+                      <span className="inline-flex items-center gap-1.5 bg-emerald-50 text-emerald-600 font-semibold px-2.5 py-1 rounded-full border border-emerald-200">
                         <CheckCircle2 size={13} className="stroke-[2.5]" />
                         Uploaded
                       </span>
@@ -217,8 +219,9 @@ export const UploadDocuments: React.FC = () => {
                       type="button"
                       onClick={() => removeFile(file.id)}
                       disabled={deletingId === file.id}
-                      className="text-slate-400 hover:text-red-500 p-1.5 rounded-lg hover:bg-slate-50 transition-colors disabled:opacity-50"
+                      className="text-slate-500 hover:text-red-500 p-1.5 rounded-full hover:bg-slate-50 transition-colors disabled:opacity-50"
                       title="Delete document"
+                      aria-label={`Delete ${file.fileName}`}
                     >
                       {deletingId === file.id ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={16} />}
                     </button>
@@ -227,6 +230,7 @@ export const UploadDocuments: React.FC = () => {
                 </div>
               ))}
             </div>
+            <InlineError message={deleteError} onDismiss={() => setDeleteError(null)} className="mt-3" />
           </div>
         )}
 

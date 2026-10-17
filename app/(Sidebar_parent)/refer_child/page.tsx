@@ -9,11 +9,13 @@ import {
   ChevronDown
 } from 'lucide-react';
 import { submitReferral } from '../../action/parent';
+import { useMyChildren } from '../useMyChildren';
 
-const CHILD_NAME = "Nhel Belarmino";
-const PARENT_NAME = "Mrs. Belarmino";
 
 export const ReferChildForm: React.FC = () => {
+  const children = useMyChildren();
+  const [childName, setChildName] = useState('');
+  const child = children?.find((c) => c.name === childName) ?? children?.[0];
   // Form Field States
   const [concernType, setConcernType] = useState('');
   const [priorityLevel, setPriorityLevel] = useState('Medium');
@@ -26,7 +28,7 @@ export const ReferChildForm: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!concernType || !description) return;
+    if (!concernType || !description || !child) return;
 
     setIsSaving(true);
     setError(null);
@@ -38,8 +40,7 @@ export const ReferChildForm: React.FC = () => {
     ].filter(Boolean);
 
     const result = await submitReferral({
-      studentName: CHILD_NAME,
-      referrerName: PARENT_NAME,
+      studentName: child.name,
       concernType,
       priority: priorityLevel,
       description: [description, ...detailLines].join("\n\n"),
@@ -59,30 +60,49 @@ export const ReferChildForm: React.FC = () => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto font-sans antialiased text-slate-800 space-y-6">
+    <div className="px-5 sm:px-8 lg:px-12 pt-8 lg:pt-12 pb-16 max-w-4xl font-sans antialiased text-slate-800 space-y-6">
       
       {/* Page Header Titles (image_859d3c.png) */}
       <div>
-        <h1 className="text-3xl font-bold text-blue-900 tracking-tight">Refer Child to Counselor</h1>
+        <h1 className="page-title">Refer Child to Counselor</h1>
         <p className="text-sm text-slate-500 font-medium mt-1">
           Request guidance support for your child
         </p>
       </div>
 
-      {/* Child Information Banner (image_859d3c.png) */}
-      <div className="bg-[#f0f6ff] border border-[#d8e7fe] px-5 py-4 rounded-xl text-sm font-medium text-slate-600">
-        <span className="text-blue-500 font-bold block text-xs uppercase tracking-wider mb-1">Child Information</span>
-        <span className="text-[#1d63ff] font-bold">Nhel Belarmino</span>
-        <span className="mx-2 text-slate-300">•</span>
-        <span className="font-mono text-slate-500 text-xs">2024-12345</span>
-        <span className="mx-2 text-slate-300">•</span>
-        <span className="text-slate-700 font-semibold text-xs bg-white px-2 py-0.5 rounded border border-slate-100 shadow-2xs">Grade 12 - STEM-A</span>
-      </div>
+      {/* Child information */}
+      {children === null ? null : children.length === 0 ? (
+        <p className="border-l-2 border-orange-500 bg-orange-50 pl-3 py-2 text-sm text-orange-800">
+          No student is linked to your account yet. Ask the Guidance Office to link your child, then you can refer them here.
+        </p>
+      ) : (
+        <div className="border border-rule bg-sheet px-5 py-4 rounded-xl text-sm text-slate-600">
+          <span className="text-slate-500 block text-xs mb-1">Referral for</span>
+          {children.length > 1 ? (
+            <select
+              aria-label="Choose which child this referral is for"
+              value={child?.name}
+              onChange={(e) => setChildName(e.target.value)}
+              className="bg-sheet border border-slate-300 rounded-md px-3 py-2 text-sm text-ink"
+            >
+              {children.map((c) => (
+                <option key={c.name} value={c.name}>{c.name}</option>
+              ))}
+            </select>
+          ) : (
+            <span className="text-ink font-semibold">{child?.name}</span>
+          )}
+          <span className="mx-2 text-slate-300">•</span>
+          <span className="font-mono text-slate-500 text-xs">{child?.studentId}</span>
+          <span className="mx-2 text-slate-300">•</span>
+          <span className="text-slate-700 text-xs">{child?.gradeSection}</span>
+        </div>
+      )}
 
       {/* Confidentiality Notice Alert Banner (image_859d3c.png) */}
-      <div className="bg-[#f4fbf7] border border-[#e2f7ec] p-4 rounded-xl flex items-start gap-3">
-        <ShieldCheck className="text-[#00c853] shrink-0 mt-0.5" size={18} />
-        <p className="text-sm text-[#00a844] font-medium leading-relaxed">
+      <div className="bg-emerald-50 border border-emerald-50 p-4 rounded-xl flex items-start gap-3">
+        <ShieldCheck className="text-emerald-600 shrink-0 mt-0.5" size={18} />
+        <p className="text-sm text-emerald-700 font-medium leading-relaxed">
           All referrals are confidential and will be handled with care by the Guidance Office. The counselor will contact you to discuss the best support plan for your child.
         </p>
       </div>
@@ -96,7 +116,7 @@ export const ReferChildForm: React.FC = () => {
             
             {/* Type of Concern Select Dropdown */}
             <div className="space-y-2">
-              <label className="text-sm font-bold text-slate-700 block">
+              <label className="text-sm font-semibold text-slate-700 block">
                 Type of Concern <span className="text-red-500">*</span>
               </label>
               <div className="relative">
@@ -112,13 +132,13 @@ export const ReferChildForm: React.FC = () => {
                   <option value="Social Withdrawal">Social Withdrawal / Emotional Distress</option>
                   <option value="Career Misalignment">Career Choice Uncertainty</option>
                 </select>
-                <ChevronDown size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                <ChevronDown size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none" />
               </div>
             </div>
 
             {/* Priority Level Select Dropdown */}
             <div className="space-y-2">
-              <label className="text-sm font-bold text-slate-700 block">
+              <label className="text-sm font-semibold text-slate-700 block">
                 Priority Level <span className="text-red-500">*</span>
               </label>
               <div className="relative">
@@ -132,7 +152,7 @@ export const ReferChildForm: React.FC = () => {
                   <option value="Medium">Medium - Noticeable concern</option>
                   <option value="High">High - Urgent attention needed</option>
                 </select>
-                <ChevronDown size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                <ChevronDown size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none" />
               </div>
             </div>
 
@@ -140,7 +160,7 @@ export const ReferChildForm: React.FC = () => {
 
           {/* Textarea: Description of Concern */}
           <div className="space-y-2">
-            <label className="text-sm font-bold text-slate-700 block">
+            <label className="text-sm font-semibold text-slate-700 block">
               Description of Concern <span className="text-red-500">*</span>
             </label>
             <textarea
@@ -155,7 +175,7 @@ export const ReferChildForm: React.FC = () => {
 
           {/* Textarea: Observed Behaviors or Changes (Optional) */}
           <div className="space-y-2">
-            <label className="text-sm font-bold text-slate-700 block">
+            <label className="text-sm font-semibold text-slate-700 block">
               Observed Behaviors or Changes (Optional)
             </label>
             <textarea
@@ -169,7 +189,7 @@ export const ReferChildForm: React.FC = () => {
 
           {/* Input: Preferred Contact Time */}
           <div className="space-y-2">
-            <label className="text-sm font-bold text-slate-700 block">
+            <label className="text-sm font-semibold text-slate-700 block">
               Preferred Contact Time
             </label>
             <input
@@ -182,23 +202,23 @@ export const ReferChildForm: React.FC = () => {
           </div>
 
           {/* Orange Callout Note Box: Emergency Situations (image_859d58.png) */}
-          <div className="bg-[#fff7ed] border border-[#ffedd5] p-4 rounded-xl flex items-start gap-3">
+          <div className="bg-orange-50 border border-orange-100 p-4 rounded-xl flex items-start gap-3">
             <AlertCircle className="text-orange-600 shrink-0 mt-0.5" size={18} />
             <p className="text-xs sm:text-sm text-orange-800 font-medium leading-relaxed">
-              <span className="font-bold text-orange-900">Note:</span> For emergency situations or immediate safety concerns, please contact the school office directly or call emergency services.
+              <span className="font-semibold text-orange-900">Note:</span> For emergency situations or immediate safety concerns, please contact the school office directly or call emergency services.
             </p>
           </div>
 
           {/* Action Form Confirmation Feedback */}
           {successMessage && (
-            <div className="p-4 bg-[#e8fbf0] border border-[#bbf7d0] text-[#00c853] text-sm font-bold rounded-xl flex items-center gap-2">
+            <div className="p-4 bg-emerald-50 border border-emerald-200 text-emerald-600 text-sm font-semibold rounded-xl flex items-center gap-2">
               <Info size={16} />
               <span>{successMessage}</span>
             </div>
           )}
 
           {error && (
-            <div className="p-4 bg-red-50 border border-red-100 text-red-600 text-sm font-bold rounded-xl flex items-center gap-2">
+            <div className="p-4 bg-red-50 border border-red-100 text-red-600 text-sm font-semibold rounded-xl flex items-center gap-2">
               <AlertCircle size={16} />
               <span>{error}</span>
             </div>
@@ -214,14 +234,14 @@ export const ReferChildForm: React.FC = () => {
                 setObservedBehaviors('');
                 setPreferredTime('');
               }}
-              className="w-full sm:w-auto px-8 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold rounded-xl text-sm transition-colors text-center"
+              className="w-full sm:w-auto px-8 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-800 font-semibold rounded-full text-sm transition-colors text-center"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isSaving}
-              className="w-full sm:w-auto bg-[#1d63ff] hover:bg-blue-700 disabled:bg-blue-400 text-white font-bold py-2.5 px-8 rounded-xl transition-colors text-sm shadow-sm text-center flex items-center justify-center gap-2"
+              className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-semibold py-2.5 px-8 rounded-full transition-colors text-sm shadow-sm text-center flex items-center justify-center gap-2"
             >
               <Send size={15} />
               {isSaving ? "Submitting..." : "Submit Referral"}

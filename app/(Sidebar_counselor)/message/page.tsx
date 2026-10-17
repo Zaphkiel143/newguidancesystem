@@ -4,9 +4,9 @@ import React, { useEffect, useState } from 'react';
 import { Search, MessageSquare, User, X } from 'lucide-react';
 import { listConversations, startConversation, getMessages, markConversationRead, sendMessage } from '../../action/counselor';
 import ConversationPanel from '../../../components/ConversationPanel';
+import InlineError from '../../../components/InlineError';
+import { useCurrentUser } from '../../../components/CurrentUser';
 
-const VIEWER_ROLE = "Counselor";
-const VIEWER_NAME = "Ralph Michael";
 const POLL_INTERVAL_MS = 5000;
 
 interface Conversation {
@@ -19,11 +19,13 @@ interface Conversation {
 }
 
 export const MessagesDashboard: React.FC = () => {
+  const me = useCurrentUser();
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>('');
 
   const [isNewMessageOpen, setIsNewMessageOpen] = useState(false);
+  const [startError, setStartError] = useState<string | null>(null);
   const [newName, setNewName] = useState('');
   const [newRole, setNewRole] = useState<'Student' | 'Faculty' | 'Parent'>('Student');
   const [newContent, setNewContent] = useState('');
@@ -63,10 +65,10 @@ export const MessagesDashboard: React.FC = () => {
     if (!newName.trim() || !newContent.trim()) return;
 
     setIsStarting(true);
+    setStartError(null);
     const result = await startConversation({
       participantName: newName.trim(),
       participantRole: newRole,
-      senderName: VIEWER_NAME,
       content: newContent.trim(),
     });
     setIsStarting(false);
@@ -79,15 +81,15 @@ export const MessagesDashboard: React.FC = () => {
       await refreshConversations();
       setSelectedId(result.conversation.id);
     } else {
-      alert(`Failed to start conversation: ${result.error || "Unknown error"}`);
+      setStartError(`Couldn't send this message: ${result.error || "unknown error"}.`);
     }
   };
 
   return (
-    <div className="flex flex-col h-screen bg-white font-sans antialiased text-slate-800">
+    <div className="flex flex-col h-[calc(100dvh-var(--topbar-h))] bg-paper font-sans antialiased text-slate-800">
       {/* Header Section */}
-      <header className="px-8 pt-6 pb-4 border-b border-slate-100">
-        <h1 className="text-3xl font-bold text-[#0d2343]">Messages</h1>
+      <header className="px-5 sm:px-8 lg:px-12 pt-8 pb-5 border-b border-rule">
+        <h1 className="page-title">Messages</h1>
         <p className="text-sm text-slate-500 mt-1">
           Communicate with students, faculty, and parents
         </p>
@@ -102,9 +104,10 @@ export const MessagesDashboard: React.FC = () => {
           <div className="p-4 space-y-3 border-b border-slate-100">
             {/* Search Input */}
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 w-5 h-5" />
               <input
                 type="text"
+                aria-label="Search conversations"
                 placeholder="Search conversations..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
@@ -114,8 +117,8 @@ export const MessagesDashboard: React.FC = () => {
 
             {/* New Message Button */}
             <button
-              onClick={() => setIsNewMessageOpen(true)}
-              className="w-full flex items-center justify-center gap-2 bg-[#1d63ff] hover:bg-blue-700 text-white font-medium py-2.5 px-4 rounded-lg transition-colors text-sm shadow-sm"
+              onClick={() => { setStartError(null); setIsNewMessageOpen(true); }}
+              className="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 px-4 rounded-full transition-colors text-sm shadow-sm"
             >
               <MessageSquare className="w-4 h-4 fill-current" />
               <span>New Message</span>
@@ -149,14 +152,14 @@ export const MessagesDashboard: React.FC = () => {
                           <h4 className="font-semibold text-slate-900 truncate text-sm leading-tight">
                             {chat.participantName}
                           </h4>
-                          <span className="text-xs text-slate-400 font-medium">
+                          <span className="text-xs text-slate-500 font-medium">
                             {chat.participantRole}
                           </span>
                         </div>
 
                         {/* Unread Pill Indicator */}
                         {chat.unreadCount > 0 && (
-                          <span className="bg-[#1d63ff] text-white text-xs font-bold min-w-[18px] h-[18px] px-1 rounded-full flex items-center justify-center shrink-0">
+                          <span className="bg-blue-600 text-white text-xs font-semibold min-w-[18px] h-[18px] px-1 rounded flex items-center justify-center shrink-0">
                             {chat.unreadCount}
                           </span>
                         )}
@@ -166,7 +169,7 @@ export const MessagesDashboard: React.FC = () => {
                         {chat.lastMessage || "No messages yet"}
                       </p>
 
-                      <span className="text-[10px] text-slate-400 block mt-1 font-mono">
+                      <span className="text-xs text-slate-500 block mt-1 font-mono">
                         {new Date(chat.lastMessageAt).toLocaleString()}
                       </span>
                     </div>
@@ -174,7 +177,7 @@ export const MessagesDashboard: React.FC = () => {
                 );
               })
             ) : (
-              <div className="p-6 text-center text-sm text-slate-400">
+              <div className="p-6 text-center text-sm text-slate-500">
                 No conversations found
               </div>
             )}
@@ -186,8 +189,8 @@ export const MessagesDashboard: React.FC = () => {
           <ConversationPanel
             key={selectedConversation.id}
             conversationId={selectedConversation.id}
-            viewerRole={VIEWER_ROLE}
-            viewerName={VIEWER_NAME}
+            viewerRole={me.roleLabel}
+            viewerName={me.name}
             title={selectedConversation.participantName}
             subtitle={selectedConversation.participantRole}
             onMessageSent={refreshConversations}
@@ -230,12 +233,12 @@ export const MessagesDashboard: React.FC = () => {
           <div className="bg-white w-full max-w-md p-6 rounded-2xl shadow-xl border border-slate-100 space-y-4">
             <div className="flex items-start justify-between">
               <div>
-                <h3 className="text-lg font-bold text-slate-900">New Message</h3>
+                <h3 className="text-lg font-semibold text-slate-900">New Message</h3>
                 <p className="text-xs text-slate-500">Start a conversation with a student, faculty member, or parent</p>
               </div>
               <button
                 onClick={() => setIsNewMessageOpen(false)}
-                className="text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg p-1.5 transition"
+                aria-label="Close" className="w-11 h-11 -m-2 grid place-items-center text-slate-500 hover:text-ink hover:bg-slate-100 rounded-full transition"
               >
                 <X size={18} />
               </button>
@@ -279,18 +282,20 @@ export const MessagesDashboard: React.FC = () => {
                 />
               </div>
 
+              <InlineError message={startError} onDismiss={() => setStartError(null)} />
+
               <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
                 <button
                   type="button"
                   onClick={() => setIsNewMessageOpen(false)}
-                  className="px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 rounded-xl transition"
+                  className="px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 rounded-full transition"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={isStarting}
-                  className="px-5 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 rounded-xl transition"
+                  className="px-5 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 rounded-full transition"
                 >
                   {isStarting ? "Sending..." : "Send Message"}
                 </button>

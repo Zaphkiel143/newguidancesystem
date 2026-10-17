@@ -1,206 +1,114 @@
 import React from 'react';
 import Link from 'next/link';
-import {
-  Send,
-  Clock,
-  CheckCircle2,
-  Calendar,
-  Upload,
-  FileText,
-} from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import { getMyReferrals, getMyAppointments } from '../../action/faculty';
+import { getCurrentUser } from '../../../lib/auth';
 
-const FACULTY_NAME = "Cho Sto Domingo";
 
-interface QuickAction {
-  id: string;
-  title: string;
-  description: string;
-  icon: React.ReactNode;
-  bgClass: string;
-  textClass: string;
-  path: string;
-}
-
-const quickActions: QuickAction[] = [
-  {
-    id: 'action-1',
-    title: 'Submit New Referral',
-    description: 'Refer a student to the Guidance Office',
-    icon: <Send size={20} />,
-    bgClass: 'bg-[#f0f6ff] hover:bg-blue-100/70',
-    textClass: 'text-[#1d63ff]',
-    path: '/submit_referral',
-  },
-  {
-    id: 'action-2',
-    title: 'Book Appointment',
-    description: 'Schedule a meeting with the counselor',
-    icon: <Calendar size={20} />,
-    bgClass: 'bg-[#faf5ff] hover:bg-purple-100/70',
-    textClass: 'text-[#a855f7]',
-    path: '/faculty_appointment',
-  },
-  {
-    id: 'action-3',
-    title: 'Upload Documents',
-    description: 'Share files with the Guidance Office',
-    icon: <Upload size={20} />,
-    bgClass: 'bg-[#f0fdf4] hover:bg-green-100/70',
-    textClass: 'text-[#00c853]',
-    path: '/upload_documents',
-  },
-  {
-    id: 'action-4',
-    title: 'View My Referrals',
-    description: 'Track status of submitted referrals',
-    icon: <FileText size={20} />,
-    bgClass: 'bg-[#f8fafc] hover:bg-slate-200/60',
-    textClass: 'text-slate-700',
-    path: '/faculty_myreferral',
-  },
+const SHORTCUTS = [
+  { title: 'Submit a referral', description: 'Flag a student who may need support', path: '/submit_referral' },
+  { title: 'Book an appointment', description: 'Meet with the guidance counselor', path: '/faculty_appointment' },
+  { title: 'Upload documents', description: 'Share files with the office', path: '/upload_documents' },
+  { title: 'My referrals', description: 'Follow up on what you sent', path: '/faculty_myreferral' },
 ];
 
+const STATUS: Record<string, { label: string; dot: string; text: string }> = {
+  OPEN: { label: 'Open', dot: 'bg-red-500', text: 'text-red-700' },
+  IN_PROGRESS: { label: 'In progress', dot: 'bg-orange-500', text: 'text-orange-700' },
+  CLOSED: { label: 'Closed', dot: 'bg-emerald-500', text: 'text-emerald-700' },
+};
+
 export const FacultyDashboard = async () => {
-  const [referrals, appointments] = await Promise.all([
-    getMyReferrals(FACULTY_NAME),
-    getMyAppointments(FACULTY_NAME),
+  const [referrals, appointments, user] = await Promise.all([
+    getMyReferrals(),
+    getMyAppointments(),
+    getCurrentUser(),
   ]);
 
-  const metrics = [
-    {
-      id: 'metric-1',
-      title: 'Total Referrals Submitted',
-      value: referrals.length,
-      icon: <Send size={18} className="text-white" />,
-      iconBg: 'bg-[#1d63ff]',
-    },
-    {
-      id: 'metric-2',
-      title: 'Pending Review',
-      value: referrals.filter((r) => r.status === 'OPEN').length,
-      icon: <Clock size={18} className="text-white" />,
-      iconBg: 'bg-[#ff7a00]',
-    },
-    {
-      id: 'metric-3',
-      title: 'Resolved',
-      value: referrals.filter((r) => r.status === 'CLOSED').length,
-      icon: <CheckCircle2 size={18} className="text-white" />,
-      iconBg: 'bg-[#00c853]',
-    },
-    {
-      id: 'metric-4',
-      title: 'My Appointments',
-      value: appointments.length,
-      icon: <Calendar size={18} className="text-white" />,
-      iconBg: 'bg-[#a855f7]',
-    },
+  const figures = [
+    { id: 'submitted', label: 'Referrals sent', value: referrals.length },
+    { id: 'pending', label: 'Awaiting review', value: referrals.filter((r) => r.status === 'OPEN').length },
+    { id: 'resolved', label: 'Resolved', value: referrals.filter((r) => r.status === 'CLOSED').length },
+    { id: 'appointments', label: 'Appointments', value: appointments.length },
   ];
 
-  const recentReferrals = referrals.slice(0, 3);
+  const recentReferrals = referrals.slice(0, 5);
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto font-sans antialiased text-slate-800">
+    <div className="px-5 sm:px-8 lg:px-12 pt-8 lg:pt-12 pb-16 max-w-6xl text-slate-800">
+      <header className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-5">
+        <div>
+          <h1 className="page-title">Welcome back{user ? `, ${user.name.split(" ")[0]}` : ""}.</h1>
+          <p className="mt-2 text-slate-600 max-w-[52ch]">
+            If a student in your class seems to be struggling, a referral takes about a minute.
+          </p>
+        </div>
+        <Link
+          href="/submit_referral"
+          className="self-start sm:self-auto inline-flex items-center gap-2 bg-blue-700 hover:bg-blue-800 text-white text-[14px] font-medium px-4 py-2.5 rounded-full transition-colors"
+        >
+          New referral <ArrowRight size={15} />
+        </Link>
+      </header>
 
-      {/* SECTION 1: Upper Metric Summary Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {metrics.map((m) => (
-          <div key={m.id} className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex flex-col justify-between min-h-[140px] relative overflow-hidden">
-            <div className="flex items-start justify-between">
-              <div className={`${m.iconBg} p-2.5 rounded-xl shadow-sm flex items-center justify-center`}>
-                {m.icon}
-              </div>
-            </div>
-            <div className="mt-4">
-              <span className="text-3xl font-bold text-slate-900 tracking-tight block">{m.value}</span>
-              <span className="text-xs font-medium text-slate-400 block mt-0.5">{m.title}</span>
-            </div>
+      <div className="mt-10 grid grid-cols-2 lg:grid-cols-4 gap-3">
+        {figures.map((f) => (
+          <div key={f.id} className="bg-blue-50 border border-blue-100 rounded-xl px-5 py-5">
+            <p className="font-serif text-[44px] leading-none text-ink tabular">{f.value}</p>
+            <p className="text-[13px] text-slate-500 mt-2">{f.label}</p>
           </div>
         ))}
       </div>
 
-      {/* SECTION 2: Lower Row Widgets: Actions & Logs Grid split */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-
-        {/* Left Column: Quick Actions Button Stack */}
-        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
-          <div className="px-6 py-5 border-b border-slate-100">
-            <h2 className="font-bold text-slate-900 text-base">Quick Actions</h2>
+      <div className="mt-12 grid grid-cols-1 lg:grid-cols-[1.2fr_1fr] gap-12 lg:gap-16">
+        <section>
+          <div className="flex items-baseline justify-between mb-3">
+            <h2 className="font-serif text-[22px] text-ink">Recent referrals</h2>
+            <Link href="/faculty_myreferral" className="text-[13px] text-slate-500 hover:text-blue-700 transition-colors">
+              See all
+            </Link>
           </div>
-          <div className="p-6 space-y-3">
-            {quickActions.map((action) => (
-              <Link
-                key={action.id}
-                href={action.path}
-                className={`w-full text-left p-4 rounded-xl flex items-center gap-4 border border-transparent transition-all duration-150 ${action.bgClass}`}
-              >
-                <div className={`shrink-0 ${action.textClass}`}>
-                  {action.icon}
-                </div>
-                <div className="min-w-0">
-                  <h4 className="font-bold text-slate-800 text-sm leading-snug">
-                    {action.title}
-                  </h4>
-                  <p className="text-xs text-slate-400 font-medium mt-0.5 truncate">
-                    {action.description}
-                  </p>
-                </div>
-              </Link>
-            ))}
-          </div>
-        </div>
-
-        {/* Right Column: Recent Activity Feed List */}
-        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
-          <div className="px-6 py-5 border-b border-slate-100">
-            <h2 className="font-bold text-slate-900 text-base">Recent Referrals</h2>
-          </div>
-          <div className="p-6 space-y-3">
-            {recentReferrals.length === 0 ? (
-              <p className="text-sm text-slate-400 font-medium text-center py-6">No referrals submitted yet</p>
-            ) : (
-              recentReferrals.map((ref) => (
-                <div
-                  key={ref.id}
-                  className="bg-slate-50/50 hover:bg-slate-50 rounded-xl p-4 border border-slate-100 flex items-center justify-between gap-4 transition-colors"
-                >
-                  <div className="space-y-0.5 min-w-0">
-                    <h4 className="font-bold text-slate-800 text-sm truncate">
-                      {ref.studentName}
-                    </h4>
-                    <p className="text-xs text-slate-500 font-medium">
-                      {ref.concernType}
-                    </p>
-                    <span className="text-[10px] text-slate-400 font-mono block pt-1">
-                      {new Date(ref.createdAt).toLocaleDateString()}
+          {recentReferrals.length === 0 ? (
+            <p className="border-t border-rule pt-4 text-[14px] text-slate-500">You haven&apos;t sent any referrals yet.</p>
+          ) : (
+            <ul className="divide-y divide-rule border-t border-rule">
+              {recentReferrals.map((ref) => {
+                const status = STATUS[ref.status] ?? STATUS.OPEN;
+                return (
+                  <li key={ref.id} className="py-3.5 flex items-baseline justify-between gap-4">
+                    <div className="min-w-0">
+                      <p className="font-medium text-ink truncate">{ref.studentName}</p>
+                      <p className="text-[13px] text-slate-500">
+                        {ref.concernType} · {new Date(ref.createdAt).toLocaleDateString("en-PH", { month: "short", day: "numeric" })}
+                      </p>
+                    </div>
+                    <span className={`shrink-0 inline-flex items-center gap-1.5 text-[12px] ${status.text}`}>
+                      <span className={`w-1.5 h-1.5 rounded-full ${status.dot}`} />
+                      {status.label}
                     </span>
-                  </div>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </section>
 
-                  {/* Status Badging Blocks */}
-                  <div className="shrink-0">
-                    {ref.status === 'OPEN' && (
-                      <span className="bg-[#fff1f2] border border-[#ffe4e6] text-[#ff2b3d] text-[11px] font-bold px-2.5 py-0.5 rounded-full">
-                        Open
-                      </span>
-                    )}
-                    {ref.status === 'IN_PROGRESS' && (
-                      <span className="bg-[#fff7ed] border border-[#ffedd5] text-[#ff7a00] text-[11px] font-bold px-2.5 py-0.5 rounded-full">
-                        In Progress
-                      </span>
-                    )}
-                    {ref.status === 'CLOSED' && (
-                      <span className="bg-[#e8fbf0] border border-[#bbf7d0] text-[#00c853] text-[11px] font-bold px-2.5 py-0.5 rounded-full">
-                        Closed
-                      </span>
-                    )}
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
-        </div>
-
+        <section>
+          <h2 className="font-serif text-[22px] text-ink mb-3">Shortcuts</h2>
+          <ul className="divide-y divide-rule border-y border-rule">
+            {SHORTCUTS.map((s) => (
+              <li key={s.path}>
+                <Link href={s.path} className="group flex items-center justify-between gap-4 py-3.5">
+                  <span>
+                    <span className="block text-[14px] font-medium text-ink group-hover:text-blue-700 transition-colors">{s.title}</span>
+                    <span className="block text-[13px] text-slate-500">{s.description}</span>
+                  </span>
+                  <ArrowRight size={15} className="text-slate-300 group-hover:text-blue-700 group-hover:translate-x-0.5 transition" />
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
       </div>
     </div>
   );

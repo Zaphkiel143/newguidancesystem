@@ -5,7 +5,6 @@ import { Search, AlertTriangle, Clock, CheckCircle2, FileText } from 'lucide-rea
 import { getMyReferrals } from '../../action/faculty';
 import type { Referral } from '../../../lib/generated';
 
-const FACULTY_NAME = "Cho Sto Domingo";
 
 export const MyReferralsPage: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -15,7 +14,7 @@ export const MyReferralsPage: React.FC = () => {
     let cancelled = false;
 
     (async () => {
-      const data = await getMyReferrals(FACULTY_NAME);
+      const data = await getMyReferrals();
       if (!cancelled) setReferrals(data);
     })();
 
@@ -47,11 +46,11 @@ export const MyReferralsPage: React.FC = () => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto font-sans antialiased text-slate-800 space-y-6">
+    <div className="px-5 sm:px-8 lg:px-12 pt-8 lg:pt-12 pb-16 max-w-7xl font-sans antialiased text-slate-800 space-y-6">
 
       {/* Page Heading Headers Section */}
       <div>
-        <h1 className="text-3xl font-bold text-blue-900 tracking-tight">My Referrals</h1>
+        <h1 className="page-title">My Referrals</h1>
         <p className="text-sm text-slate-500 font-medium mt-1">
           Track the status of your submitted student referrals
         </p>
@@ -60,9 +59,10 @@ export const MyReferralsPage: React.FC = () => {
       {/* Persistent Search Action Input Field Container */}
       <div className="bg-white p-4 rounded-xl border border-slate-100 shadow-sm">
         <div className="relative">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
           <input
             type="text"
+                aria-label="Search referrals"
             placeholder="Search referrals..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
@@ -82,16 +82,16 @@ export const MyReferralsPage: React.FC = () => {
               {/* Card Title Bar Segment Containing Identification Metadata */}
               <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
                 <div className="space-y-0.5">
-                  <h3 className="text-lg font-bold text-slate-900 tracking-tight">{log.studentName}</h3>
+                  <h3 className="text-lg font-semibold text-slate-900 tracking-tight">{log.studentName}</h3>
                 </div>
 
                 {/* Priority and Progress Badges Row Section */}
                 <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
-                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md tracking-wider uppercase ${getPriorityStyles(log.priority)}`}>
+                  <span className={`text-xs font-semibold px-2 py-0.5 rounded-md ${getPriorityStyles(log.priority)}`}>
                     {log.priority}
                   </span>
 
-                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md tracking-wider flex items-center gap-1.5 ${getStatusStyles(log.status)}`}>
+                  <span className={`text-xs font-semibold px-2 py-0.5 rounded-md flex items-center gap-1.5 ${getStatusStyles(log.status)}`}>
                     {log.status === 'OPEN' && <AlertTriangle size={12} className="stroke-[2.5]" />}
                     {log.status === 'IN_PROGRESS' && <Clock size={12} className="stroke-[2.5]" />}
                     {log.status === 'CLOSED' && <CheckCircle2 size={12} className="stroke-[2.5]" />}
@@ -103,11 +103,11 @@ export const MyReferralsPage: React.FC = () => {
               {/* Central Core Parameters Content Summary Block */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1 text-xs">
                 <div className="space-y-1">
-                  <span className="text-slate-400 font-medium block">Concern Type:</span>
+                  <span className="text-slate-500 font-medium block">Concern Type:</span>
                   <span className="text-slate-800 font-semibold text-[13px]">{log.concernType}</span>
                 </div>
                 <div className="space-y-1">
-                  <span className="text-slate-400 font-medium block">Date Submitted:</span>
+                  <span className="text-slate-500 font-medium block">Date Submitted:</span>
                   <span className="text-slate-700 font-mono font-semibold">{new Date(log.createdAt).toLocaleDateString()}</span>
                 </div>
               </div>
@@ -115,7 +115,7 @@ export const MyReferralsPage: React.FC = () => {
               {/* Conditional Nested Office Feedback Container */}
               {log.notes && (
                 <div className="bg-blue-50/50 border border-blue-100 rounded-xl p-4 mt-2">
-                  <span className="text-xs font-bold text-blue-900 flex items-center gap-2">
+                  <span className="text-xs font-semibold text-blue-900 flex items-center gap-2">
                     <FileText size={14} className="text-blue-600" />
                     Feedback from Guidance Office:
                   </span>
@@ -128,7 +128,7 @@ export const MyReferralsPage: React.FC = () => {
             </div>
           ))
         ) : (
-          <div className="text-center p-12 bg-white rounded-2xl border border-dashed border-slate-200 text-slate-400 text-sm font-medium">
+          <div className="text-center p-12 bg-white rounded-2xl border border-dashed border-slate-200 text-slate-500 text-sm font-medium">
             No matching logged student referral records found.
           </div>
         )}

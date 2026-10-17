@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { Search, AlertTriangle, Clock, CheckCircle, X } from 'lucide-react';
 import { listReferrals, updateReferralStatus, addReferralNotes, sendReferralFeedback } from '../../action/counselor';
 import type { Referral } from '../../../lib/generated';
+import InlineError from '../../../components/InlineError';
 
 type ModalState = { type: 'notes' | 'feedback'; referral: Referral } | null;
 
@@ -15,6 +16,8 @@ const ReferralManagement = () => {
   const [modalText, setModalText] = useState('');
   const [isSaving, setIsSaving] = useState(false);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const [cardError, setCardError] = useState<{ id: string; message: string } | null>(null);
+  const [modalError, setModalError] = useState<string | null>(null);
 
   const refresh = async () => {
     const data = await listReferrals();
@@ -57,17 +60,19 @@ const ReferralManagement = () => {
 
   const handleAdvanceStatus = async (referral: Referral, status: "IN_PROGRESS" | "CLOSED") => {
     setUpdatingId(referral.id);
+    setCardError(null);
     const result = await updateReferralStatus(referral.id, status);
     setUpdatingId(null);
     if (result.success) {
       await refresh();
     } else {
-      alert(`Failed to update referral: ${result.error || "Unknown error"}`);
+      setCardError({ id: referral.id, message: `Couldn't update this referral: ${result.error || "unknown error"}.` });
     }
   };
 
   const openModal = (type: 'notes' | 'feedback', referral: Referral) => {
     setModal({ type, referral });
+    setModalError(null);
     setModalText(type === 'notes' ? referral.notes || '' : '');
   };
 
@@ -81,6 +86,7 @@ const ReferralManagement = () => {
     if (!modal || !modalText.trim()) return;
 
     setIsSaving(true);
+    setModalError(null);
     const result = modal.type === 'notes'
       ? await addReferralNotes(modal.referral.id, modalText.trim())
       : await sendReferralFeedback(modal.referral.id, modalText.trim());
@@ -90,24 +96,25 @@ const ReferralManagement = () => {
       closeModal();
       await refresh();
     } else {
-      alert(`Failed to save: ${result.error || "Unknown error"}`);
+      setModalError(`Couldn't save: ${result.error || "unknown error"}.`);
     }
   };
 
   return (
-    <div className="p-8 bg-slate-50 min-h-screen font-sans text-slate-900">
+    <div className="px-5 sm:px-8 lg:px-12 pt-8 lg:pt-12 pb-16 min-h-[calc(100dvh-var(--topbar-h))] font-sans text-slate-900">
       {/* Header */}
       <header className="mb-8">
-        <h1 className="text-2xl font-bold">Referral Management</h1>
+        <h1 className="page-title">Referral Management</h1>
         <p className="text-slate-500 text-sm">Track and manage student referrals from faculty, students, and parents</p>
       </header>
 
       {/* Toolbar */}
       <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-8">
         <div className="relative w-full md:max-w-xl">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
           <input
             type="text"
+                aria-label="Search referrals"
             placeholder="Search referrals..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
@@ -147,6 +154,8 @@ const ReferralManagement = () => {
               onAdvanceStatus={handleAdvanceStatus}
               onAddNotes={() => openModal('notes', referral)}
               onSendFeedback={() => openModal('feedback', referral)}
+              error={cardError?.id === referral.id ? cardError.message : null}
+              onDismissError={() => setCardError(null)}
             />
           ))
         )}
@@ -158,7 +167,7 @@ const ReferralManagement = () => {
           <div className="bg-white w-full max-w-md p-6 rounded-2xl shadow-xl border border-slate-100 space-y-4">
             <div className="flex items-start justify-between">
               <div>
-                <h3 className="text-lg font-bold text-slate-900">
+                <h3 className="text-lg font-semibold text-slate-900">
                   {modal.type === 'notes' ? 'Add Internal Notes' : 'Send Feedback'}
                 </h3>
                 <p className="text-xs text-slate-500">
@@ -169,7 +178,7 @@ const ReferralManagement = () => {
               </div>
               <button
                 onClick={closeModal}
-                className="text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg p-1.5 transition"
+                aria-label="Close" className="w-11 h-11 -m-2 grid place-items-center text-slate-500 hover:text-ink hover:bg-slate-100 rounded-full transition"
               >
                 <X size={18} />
               </button>
@@ -185,18 +194,20 @@ const ReferralManagement = () => {
                 required
               />
 
+              <InlineError message={modalError} onDismiss={() => setModalError(null)} />
+
               <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
                 <button
                   type="button"
                   onClick={closeModal}
-                  className="px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 rounded-xl transition"
+                  className="px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 rounded-full transition"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={isSaving}
-                  className="px-5 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 rounded-xl transition"
+                  className="px-5 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 rounded-full transition"
                 >
                   {isSaving ? "Saving..." : modal.type === 'notes' ? "Save Notes" : "Send Feedback"}
                 </button>
@@ -215,9 +226,11 @@ interface ReferralCardProps {
   onAdvanceStatus: (referral: Referral, status: "IN_PROGRESS" | "CLOSED") => void;
   onAddNotes: () => void;
   onSendFeedback: () => void;
+  error: string | null;
+  onDismissError: () => void;
 }
 
-const ReferralCard = ({ referral, isUpdating, onAdvanceStatus, onAddNotes, onSendFeedback }: ReferralCardProps) => {
+const ReferralCard = ({ referral, isUpdating, onAdvanceStatus, onAddNotes, onSendFeedback, error, onDismissError }: ReferralCardProps) => {
   const isHigh = referral.priority === 'High' || referral.priority === 'Urgent';
   const isOpen = referral.status === 'OPEN';
   const isClosed = referral.status === 'CLOSED';
@@ -228,19 +241,19 @@ const ReferralCard = ({ referral, isUpdating, onAdvanceStatus, onAddNotes, onSen
         {/* Card Header Tags */}
         <div className="flex justify-between items-start mb-4">
           <div>
-            <h3 className="text-lg font-bold text-slate-800">{referral.studentName}</h3>
-            <p className="text-xs font-semibold text-slate-500 uppercase tracking-tight">
+            <h3 className="text-lg font-semibold text-slate-800">{referral.studentName}</h3>
+            <p className="text-xs font-semibold text-slate-500 tracking-tight">
               Referred by {referral.referrerName} ({referral.referrerRole})
             </p>
           </div>
 
           <div className="flex gap-2">
-            <span className={`px-3 py-1 rounded-full text-[10px] font-bold border uppercase ${
+            <span className={`px-3 py-1 rounded text-xs font-semibold border ${
               isHigh ? 'bg-red-50 text-red-600 border-red-100' : 'bg-orange-50 text-orange-600 border-orange-100'
             }`}>
               {referral.priority}
             </span>
-            <span className={`flex items-center gap-1 px-3 py-1 rounded-full text-[10px] font-bold border ${
+            <span className={`flex items-center gap-1 px-3 py-1 rounded text-xs font-semibold border ${
               isOpen ? 'bg-red-50 text-red-600 border-red-100' : isClosed ? 'bg-green-50 text-green-600 border-green-100' : 'bg-orange-50 text-orange-600 border-orange-100'
             }`}>
               {isOpen ? <AlertTriangle size={12}/> : isClosed ? <CheckCircle size={12} /> : <Clock size={12}/>}
@@ -251,9 +264,9 @@ const ReferralCard = ({ referral, isUpdating, onAdvanceStatus, onAddNotes, onSen
 
         {/* Details Section */}
         <div className="space-y-1 mb-4">
-          <p className="text-sm text-slate-600"><span className="text-slate-400">Concern type:</span> {referral.concernType}</p>
-          <p className="text-sm text-slate-600"><span className="text-slate-400">Date:</span> {new Date(referral.createdAt).toLocaleDateString()}</p>
-          <p className="text-xs font-bold text-slate-400 mt-2 uppercase">Description:</p>
+          <p className="text-sm text-slate-600"><span className="text-slate-500">Concern type:</span> {referral.concernType}</p>
+          <p className="text-sm text-slate-600"><span className="text-slate-500">Date:</span> {new Date(referral.createdAt).toLocaleDateString()}</p>
+          <p className="text-xs font-semibold text-slate-500 mt-2">Description:</p>
         </div>
 
         {/* Reason Box */}
@@ -263,7 +276,7 @@ const ReferralCard = ({ referral, isUpdating, onAdvanceStatus, onAddNotes, onSen
 
         {referral.notes && (
           <div className="bg-blue-50/60 p-4 rounded-lg border border-blue-100 mb-6 text-sm text-slate-700">
-            <p className="text-[10px] font-bold text-blue-600 uppercase tracking-wide mb-1">Internal Notes</p>
+            <p className="text-xs font-semibold text-blue-600 mb-1">Internal Notes</p>
             {referral.notes}
           </div>
         )}
@@ -275,7 +288,7 @@ const ReferralCard = ({ referral, isUpdating, onAdvanceStatus, onAddNotes, onSen
               <button
                 onClick={() => onAdvanceStatus(referral, "IN_PROGRESS")}
                 disabled={isUpdating}
-                className="px-4 py-2 bg-orange-50 text-orange-600 text-xs font-bold rounded-lg border border-orange-100 hover:bg-orange-100 transition-colors disabled:opacity-50"
+                className="px-4 py-2 bg-orange-50 text-orange-600 text-xs font-semibold rounded-full border border-orange-100 hover:bg-orange-100 transition-colors disabled:opacity-50"
               >
                 {isUpdating ? "Updating..." : "Start Intervention"}
               </button>
@@ -283,7 +296,7 @@ const ReferralCard = ({ referral, isUpdating, onAdvanceStatus, onAddNotes, onSen
               <button
                 onClick={() => onAdvanceStatus(referral, "CLOSED")}
                 disabled={isUpdating}
-                className="px-4 py-2 bg-green-50 text-green-600 text-xs font-bold rounded-lg border border-green-100 hover:bg-green-100 transition-colors disabled:opacity-50"
+                className="px-4 py-2 bg-green-50 text-green-600 text-xs font-semibold rounded-full border border-green-100 hover:bg-green-100 transition-colors disabled:opacity-50"
               >
                 {isUpdating ? "Updating..." : "Mark as Resolved"}
               </button>
@@ -291,17 +304,18 @@ const ReferralCard = ({ referral, isUpdating, onAdvanceStatus, onAddNotes, onSen
           )}
           <button
             onClick={onAddNotes}
-            className="px-4 py-2 bg-blue-50 text-blue-600 text-xs font-bold rounded-lg border border-blue-100 hover:bg-blue-100 transition-colors"
+            className="px-4 py-2 bg-blue-50 text-blue-600 text-xs font-semibold rounded-full border border-blue-100 hover:bg-blue-100 transition-colors"
           >
             Add Notes
           </button>
           <button
             onClick={onSendFeedback}
-            className="px-4 py-2 bg-slate-50 text-slate-600 text-xs font-bold rounded-lg border border-slate-100 hover:bg-slate-100 transition-colors"
+            className="px-4 py-2 bg-slate-50 text-slate-600 text-xs font-semibold rounded-full border border-slate-100 hover:bg-slate-100 transition-colors"
           >
             Send Feedback
           </button>
         </div>
+        <InlineError message={error} onDismiss={onDismissError} className="mt-3" />
       </div>
     </div>
   );
