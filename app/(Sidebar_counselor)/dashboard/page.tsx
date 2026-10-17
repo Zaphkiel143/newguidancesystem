@@ -4,8 +4,13 @@ import { ArrowRight } from 'lucide-react';
 import { getAppointmentsByDate, getDashboardStats, listReferrals } from '../../action/counselor';
 import { getCurrentUser } from '../../../lib/auth';
 
+// The server runs in UTC; the office is in the Philippines.
+const OFFICE_TZ = "Asia/Manila";
+
 const Dashboard = async () => {
-  const today = new Date().toISOString().split("T")[0];
+  const now = new Date();
+  // YYYY-MM-DD for today in Manila (en-CA formats dates that way).
+  const today = now.toLocaleDateString("en-CA", { timeZone: OFFICE_TZ });
   const [todaysAppointments, stats, referrals, user] = await Promise.all([
     getAppointmentsByDate(today),
     getDashboardStats(),
@@ -17,10 +22,10 @@ const Dashboard = async () => {
     .filter((r) => r.status !== "CLOSED" && (r.priority === "High" || r.priority === "Urgent"))
     .slice(0, 5);
 
-  const hour = new Date().getHours();
+  const hour = Number(now.toLocaleString("en-US", { timeZone: OFFICE_TZ, hour: "numeric", hourCycle: "h23" }));
   const greeting = hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
   const firstName = user?.name.split(" ")[0];
-  const dateLabel = new Date().toLocaleDateString("en-PH", { weekday: "long", month: "long", day: "numeric" });
+  const dateLabel = now.toLocaleDateString("en-PH", { timeZone: OFFICE_TZ, weekday: "long", month: "long", day: "numeric" });
 
   const summary =
     todaysAppointments.length === 0
