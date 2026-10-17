@@ -326,6 +326,9 @@ export default function StudentInventory() {
                 <select id="f-program" value={form.strandOrProgram} onChange={(e) => setForm({ ...form, strandOrProgram: e.target.value })}
                   className="w-full bg-paper border border-slate-300 rounded-md px-3 py-2.5 text-sm">
                   <option value="">Not set</option>
+                  {form.strandOrProgram && !programsFor(form.department).includes(form.strandOrProgram) && (
+                    <option value={form.strandOrProgram}>{form.strandOrProgram} (older record)</option>
+                  )}
                   {programsFor(form.department).map((p) => <option key={p} value={p}>{p}</option>)}
                 </select>
               </div>

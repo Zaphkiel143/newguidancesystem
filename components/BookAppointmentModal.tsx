@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { X, CheckCircle2 } from "lucide-react";
-import { DAY_SCHEDULE } from "../app/config/timeSlots";
+import { DAY_SCHEDULE, firstBookableDate, isClosedDay } from "../app/config/timeSlots";
 import { APPOINTMENT_PURPOSES, OTHER, withOther } from "../app/config/studentLevels";
 
 interface BookingPayload {
@@ -22,24 +22,15 @@ interface BookAppointmentModalProps {
   onBooked: () => void;
 }
 
-function toDateString(date: Date): string {
-  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
-}
-
-function getMinSelectableDate(): string {
-  const tomorrow = new Date();
-  tomorrow.setDate(tomorrow.getDate() + 1);
-  return toDateString(tomorrow);
-}
-
 export default function BookAppointmentModal({
   getBookedTimesForDate,
   bookAppointment,
   onClose,
   onBooked,
 }: BookAppointmentModalProps) {
-  const minSelectableDate = getMinSelectableDate();
-  const [date, setDate] = useState(minSelectableDate);
+  const minSelectableDate = firstBookableDate();
+  const [date, setDate] = useState(() => firstBookableDate());
+  const closed = isClosedDay(date);
   const [time, setTime] = useState<string | null>(null);
   const [purpose, setPurpose] = useState<string>(APPOINTMENT_PURPOSES[0]);
   const [purposeOther, setPurposeOther] = useState("");
@@ -130,6 +121,7 @@ export default function BookAppointmentModal({
 
           <div className="space-y-1">
             <label className="text-xs font-semibold text-slate-700">Available Time Slots</label>
+            {closed && <p role="note" className="text-xs text-orange-700">The guidance office is closed on Sundays. Pick another day.</p>}
             <div className="grid grid-cols-3 gap-2">
               {DAY_SCHEDULE.map((entry) => {
                 if (entry.kind === "lunch") {
@@ -142,7 +134,7 @@ export default function BookAppointmentModal({
                   );
                 }
                 const slot = entry.time;
-                const isTaken = bookedTimes.includes(slot);
+                const isTaken = closed || bookedTimes.includes(slot);
                 const isSelected = time === slot;
                 return (
                   <button

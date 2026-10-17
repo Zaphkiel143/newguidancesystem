@@ -68,7 +68,8 @@ export function dashboardPathForRole(role: UserRole): string {
     case "FACULTY":
       return "/faculty_dashboard";
     case "PARENT":
-      return "/parent_dashboard";
+      // Parents land on the announcements and events feed.
+      return "/parent_bulletin";
     case "STUDENT":
       return "/student_dashboard";
   }

@@ -1,6 +1,6 @@
 import db from "./db";
 import { APPOINTMENT_PURPOSES, OTHER } from "../app/config/studentLevels";
-import { isBookableTime } from "../app/config/timeSlots";
+import { isBookableTime, isClosedDay } from "../app/config/timeSlots";
 import { manilaToday } from "./time";
 import { normalizePhone } from "./phone";
 import { notifyCounselors } from "./notify";
@@ -14,7 +14,7 @@ export async function checkBooking(input: { dateString: string; timeSlot: string
   if (input.dateString <= manilaToday()) return { error: "Book from tomorrow onward. For today, message or visit the guidance office." } as const;
   const date = new Date(`${input.dateString}T00:00:00Z`);
   if (Number.isNaN(date.getTime())) return { error: "Choose a date." } as const;
-  if (date.getUTCDay() === 0) return { error: "The guidance office is closed on Sundays. Pick another day." } as const;
+  if (isClosedDay(input.dateString)) return { error: "The guidance office is closed on Sundays. Pick another day." } as const;
 
   if (!isBookableTime(input.timeSlot)) {
     return { error: "Pick one of the available times (8:00 AM to 3:00 PM, no sessions 12:00–1:00 PM)." } as const;

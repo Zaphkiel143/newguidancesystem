@@ -451,7 +451,11 @@ export async function saveStudentProfile(input: StudentProfileInput) {
     if (!department || !(DEPARTMENTS as readonly string[]).includes(department)) return { success: false, error: "Choose Senior High School or Tertiary." };
     if (!yearLevelsFor(department).includes(input.yearLevel)) return { success: false, error: `Choose the ${isShs(department) ? "grade" : "year level"}.` };
     const program = t(input.strandOrProgram, 80);
-    if (program && !programsFor(department).includes(program)) return { success: false, error: `Choose a ${isShs(department) ? "strand" : "course"} from the list.` };
+    // Older records may hold a strand/course that isn't in today's list; keeping it unchanged is fine.
+    const existing = input.id ? await db.studentProfile.findUnique({ where: { id: input.id }, select: { strandOrProgram: true } }) : null;
+    if (program && !programsFor(department).includes(program) && program !== existing?.strandOrProgram) {
+      return { success: false, error: `Choose a ${isShs(department) ? "strand" : "course"} from the list.` };
+    }
     const section = t(input.section, 30);
 
     const data = {

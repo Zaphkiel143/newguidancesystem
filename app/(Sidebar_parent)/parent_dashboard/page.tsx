@@ -4,27 +4,19 @@ import React, { useEffect, useState } from 'react';
 import { Calendar as CalendarIcon, Clock, AlignLeft, Users, CheckCircle } from 'lucide-react';
 import { getBookedTimesForDate, bookAppointment } from '../../action/parent';
 import { APPOINTMENT_PURPOSES, OTHER, withOther } from '../../config/studentLevels';
+import { firstBookableDate, isClosedDay } from '../../config/timeSlots';
 import { DAY_SCHEDULE } from '../../config/timeSlots';
 import { useMyChildren } from '../useMyChildren';
 
-function toDateString(date: Date): string {
-  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
-}
-
-function getMinSelectableDate(): string {
-  const tomorrow = new Date();
-  tomorrow.setDate(tomorrow.getDate() + 1);
-  return toDateString(tomorrow);
-}
-
 export const ParentBookAppointment: React.FC = () => {
-  const minSelectableDate = getMinSelectableDate();
+  const minSelectableDate = firstBookableDate();
 
   // State configurations matching parent metrics from image_85ac21.png
   const children = useMyChildren();
   const [chosenChild, setChosenChild] = useState<string>('');
   const selectedChild = chosenChild || children?.[0]?.name || '';
-  const [selectedDate, setSelectedDate] = useState<string>(minSelectableDate);
+  const [selectedDate, setSelectedDate] = useState<string>(() => firstBookableDate());
+  const closed = isClosedDay(selectedDate);
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
   const [purpose, setPurpose] = useState<string>(APPOINTMENT_PURPOSES[0]);
   const [purposeOther, setPurposeOther] = useState<string>('');
@@ -148,6 +140,7 @@ export const ParentBookAppointment: React.FC = () => {
                 <Clock size={14} className="text-slate-500" />
                 Available Time Slots <span className="text-red-500">*</span>
               </label>
+              {closed && <p role="note" className="text-xs text-orange-700">The guidance office is closed on Sundays. Pick another day.</p>}
               
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                 {DAY_SCHEDULE.map((entry) => {
@@ -161,7 +154,7 @@ export const ParentBookAppointment: React.FC = () => {
                     );
                   }
                   const slot = entry.time;
-                  const isTaken = bookedTimes.includes(slot);
+                  const isTaken = closed || bookedTimes.includes(slot);
                   const isSelected = selectedTime === slot;
                   return (
                     <button
