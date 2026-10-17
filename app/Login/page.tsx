@@ -11,6 +11,15 @@ import { signInWithTotp } from '../action/totp';
 import { checkLoginApproval, requestLoginApproval } from '../action/loginApproval';
 import { DEPARTMENTS, programsFor, SHS, yearLevelsFor } from '../config/studentLevels';
 import type { UserRole } from '../../lib/generated';
+import {
+  FIX_FIELDS_MESSAGE,
+  NAME_EXTENSIONS,
+  PARENT_SIGNUP_FIELDS,
+  RELATIONSHIPS,
+  validateParentSignup,
+  type ParentSignupErrors,
+  type ParentSignupField,
+} from '../../lib/parentSignup';
 
 const DEMO_ROLES: { role: UserRole; label: string }[] = [
   { role: "COUNSELOR", label: "Counselor" },
@@ -21,8 +30,19 @@ const DEMO_ROLES: { role: UserRole; label: string }[] = [
 
 const SHOW_DEMO = process.env.NEXT_PUBLIC_DEMO_LOGIN !== "false";
 
-const NAME_EXTENSIONS = ["Jr.", "Sr.", "II", "III", "IV", "V"];
-const RELATIONSHIPS = ["Mother", "Father", "Guardian", "Grandparent", "Sibling", "Other relative"];
+// Which input to focus for each sign-up field that has an error.
+const REG_INPUT_IDS: Record<ParentSignupField, string> = {
+  lastName: "lastName",
+  firstName: "firstName",
+  nameExtension: "nameExtension",
+  phone: "r-phone",
+  email: "r-email",
+  password: "r-password",
+  confirm: "r-confirm",
+  childName: "r-child",
+  childStudentId: "r-childId",
+  relationship: "r-rel",
+};
 
 // "who"      → pick who you are
 // "email"    → students/faculty/guidance enter their school email
@@ -55,6 +75,7 @@ const LoginPage = () => {
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [reg, setReg] = useState({ email: '', password: '', confirm: '', childStudentId: '', childName: '', relationship: '', website: '' });
+  const [regErrors, setRegErrors] = useState<ParentSignupErrors>({});
   const [waitingMessage, setWaitingMessage] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -113,6 +134,7 @@ const LoginPage = () => {
 
   const go = (next: Step) => {
     setError(null);
+    setRegErrors({});
     setStep(next);
   };
 
@@ -189,12 +211,40 @@ const LoginPage = () => {
     }
   };
 
+  const focusFirstError = (errors: ParentSignupErrors) => {
+    const first = PARENT_SIGNUP_FIELDS.find((f) => errors[f]);
+    if (first) document.getElementById(REG_INPUT_IDS[first])?.focus();
+  };
+
+  const clearRegError = (f: ParentSignupField) =>
+    setRegErrors((e) => {
+      if (!e[f]) return e;
+      const n = { ...e };
+      delete n[f];
+      return n;
+    });
+
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (reg.password !== reg.confirm) {
-      setError("The two passwords don't match.");
+    const check = validateParentSignup({
+      lastName: name.last,
+      firstName: name.first,
+      nameExtension: name.ext,
+      phone,
+      email: reg.email,
+      password: reg.password,
+      confirm: reg.confirm,
+      childStudentId: reg.childStudentId,
+      childName: reg.childName,
+      relationship: reg.relationship,
+    });
+    if (!check.ok) {
+      setRegErrors(check.errors);
+      setError(FIX_FIELDS_MESSAGE);
+      focusFirstError(check.errors);
       return;
     }
+    setRegErrors({});
     setIsSubmitting(true);
     setError(null);
     const result = await registerParent({
@@ -219,6 +269,10 @@ const LoginPage = () => {
       go("waiting");
     } else {
       setError(result.error);
+      if (result.fieldErrors) {
+        setRegErrors(result.fieldErrors);
+        focusFirstError(result.fieldErrors);
+      }
     }
   };
 
@@ -228,6 +282,7 @@ const LoginPage = () => {
   };
 
   const inputClass = "w-full px-3.5 py-2.5 bg-sheet border border-slate-300 rounded-md text-[15px] placeholder:text-slate-400 transition-colors";
+  const fieldClass = (bad?: string) => (bad ? inputClass.replace("border-slate-300", "border-red-500") : inputClass);
   const labelClass = "block text-[13px] font-medium text-slate-700 mb-1.5";
   const primaryButton = "w-full inline-flex items-center justify-center gap-2 bg-blue-700 text-white font-medium py-2.5 rounded-full hover:bg-blue-800 transition-colors text-[15px] disabled:opacity-60";
   const backButton = "inline-flex items-center gap-1 px-2 min-h-9 -ml-2 rounded-full text-[13px] text-slate-600 hover:text-ink hover:bg-slate-100";
@@ -248,24 +303,30 @@ const LoginPage = () => {
     <>
       <div>
         <label htmlFor="lastName" className={labelClass}>Last name</label>
-        <input id="lastName" type="text" autoComplete="family-name" placeholder="Dela Cruz" className={inputClass}
-          value={name.last} onChange={(e) => setName({ ...name, last: e.target.value })} required maxLength={60} autoFocus />
+        <input id="lastName" type="text" autoComplete="family-name" placeholder="Dela Cruz" className={fieldClass(regErrors.lastName)}
+          aria-invalid={regErrors.lastName ? true : undefined} aria-describedby={regErrors.lastName ? "r-lastName-error" : undefined}
+          value={name.last} onChange={(e) => { setName({ ...name, last: e.target.value }); clearRegError("lastName"); }} required maxLength={60} autoFocus />
+        <FieldError id="r-lastName-error" message={regErrors.lastName} />
       </div>
       <div className="grid grid-cols-[1fr_7rem] gap-3">
         <div>
           <label htmlFor="firstName" className={labelClass}>First name</label>
-          <input id="firstName" type="text" autoComplete="given-name" placeholder="Juan" className={inputClass}
-            value={name.first} onChange={(e) => setName({ ...name, first: e.target.value })} required maxLength={60} />
+          <input id="firstName" type="text" autoComplete="given-name" placeholder="Juan" className={fieldClass(regErrors.firstName)}
+            aria-invalid={regErrors.firstName ? true : undefined} aria-describedby={regErrors.firstName ? "r-firstName-error" : undefined}
+            value={name.first} onChange={(e) => { setName({ ...name, first: e.target.value }); clearRegError("firstName"); }} required maxLength={60} />
+          <FieldError id="r-firstName-error" message={regErrors.firstName} />
         </div>
         <div>
           <label htmlFor="nameExtension" className={labelClass}>
             Ext. <span className="font-normal text-slate-500">(optional)</span>
           </label>
-          <select id="nameExtension" autoComplete="honorific-suffix" className={inputClass}
-            value={name.ext} onChange={(e) => setName({ ...name, ext: e.target.value })}>
+          <select id="nameExtension" autoComplete="honorific-suffix" className={fieldClass(regErrors.nameExtension)}
+            aria-invalid={regErrors.nameExtension ? true : undefined} aria-describedby={regErrors.nameExtension ? "r-nameExtension-error" : undefined}
+            value={name.ext} onChange={(e) => { setName({ ...name, ext: e.target.value }); clearRegError("nameExtension"); }}>
             <option value="">None</option>
             {NAME_EXTENSIONS.map((x) => <option key={x} value={x}>{x}</option>)}
           </select>
+          <FieldError id="r-nameExtension-error" message={regErrors.nameExtension} />
         </div>
       </div>
     </>
@@ -501,7 +562,7 @@ const LoginPage = () => {
             )}
 
             {step === "register" && (
-              <form onSubmit={handleRegister} className="mt-7 space-y-4">
+              <form onSubmit={handleRegister} noValidate className="mt-7 space-y-4">
                 {/* Bot trap: hidden from people and screen readers; only bots fill it. */}
                 <div aria-hidden="true" className="absolute -left-[9999px] w-px h-px overflow-hidden">
                   <label htmlFor="r-website">Website</label>
@@ -511,51 +572,68 @@ const LoginPage = () => {
                 {nameFields}
                 <div>
                   <label htmlFor="r-phone" className={labelClass}>Mobile number</label>
-                  <input id="r-phone" type="tel" inputMode="tel" autoComplete="tel" placeholder="0917 123 4567" className={inputClass}
-                    value={phone} onChange={(e) => setPhone(e.target.value)} required />
-                  <p className="text-xs text-slate-500 mt-1">You&apos;ll use this to sign in. The guidance office may call it to confirm.</p>
+                  <input id="r-phone" type="tel" inputMode="tel" autoComplete="tel" placeholder="0917 123 4567" className={fieldClass(regErrors.phone)}
+                    aria-invalid={regErrors.phone ? true : undefined}
+                    aria-describedby={["r-phone-help", regErrors.phone && "r-phone-error"].filter(Boolean).join(" ")}
+                    value={phone} onChange={(e) => { setPhone(e.target.value); clearRegError("phone"); }} required />
+                  <FieldError id="r-phone-error" message={regErrors.phone} />
+                  <p id="r-phone-help" className="text-xs text-slate-500 mt-1">You&apos;ll use this to sign in. The guidance office may call it to confirm.</p>
                 </div>
                 <div>
                   <label htmlFor="r-email" className={labelClass}>
                     Email <span className="font-normal text-slate-500">(optional, for appointment notices)</span>
                   </label>
-                  <input id="r-email" type="email" autoComplete="email" className={inputClass} value={reg.email}
-                    onChange={(e) => setReg({ ...reg, email: e.target.value })} />
+                  <input id="r-email" type="email" autoComplete="email" className={fieldClass(regErrors.email)}
+                    aria-invalid={regErrors.email ? true : undefined} aria-describedby={regErrors.email ? "r-email-error" : undefined}
+                    value={reg.email} onChange={(e) => { setReg({ ...reg, email: e.target.value }); clearRegError("email"); }} />
+                  <FieldError id="r-email-error" message={regErrors.email} />
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
                     <label htmlFor="r-password" className={labelClass}>Password</label>
-                    <input id="r-password" type="password" autoComplete="new-password" minLength={8} className={inputClass} value={reg.password}
-                      onChange={(e) => setReg({ ...reg, password: e.target.value })} required />
+                    <input id="r-password" type="password" autoComplete="new-password" minLength={8} className={fieldClass(regErrors.password)}
+                      aria-invalid={regErrors.password ? true : undefined}
+                      aria-describedby={["r-password-help", regErrors.password && "r-password-error"].filter(Boolean).join(" ")}
+                      value={reg.password}
+                      onChange={(e) => { setReg({ ...reg, password: e.target.value }); clearRegError("password"); clearRegError("confirm"); }} required />
+                    <FieldError id="r-password-error" message={regErrors.password} />
                   </div>
                   <div>
                     <label htmlFor="r-confirm" className={labelClass}>Repeat password</label>
-                    <input id="r-confirm" type="password" autoComplete="new-password" minLength={8} className={inputClass} value={reg.confirm}
-                      onChange={(e) => setReg({ ...reg, confirm: e.target.value })} required />
+                    <input id="r-confirm" type="password" autoComplete="new-password" minLength={8} className={fieldClass(regErrors.confirm)}
+                      aria-invalid={regErrors.confirm ? true : undefined} aria-describedby={regErrors.confirm ? "r-confirm-error" : undefined}
+                      value={reg.confirm} onChange={(e) => { setReg({ ...reg, confirm: e.target.value }); clearRegError("confirm"); }} required />
+                    <FieldError id="r-confirm-error" message={regErrors.confirm} />
                   </div>
                 </div>
-                <p className="text-xs text-slate-500 -mt-2">At least 8 characters.</p>
+                <p id="r-password-help" className="text-xs text-slate-500 -mt-2">At least 8 characters.</p>
 
                 <fieldset className="border-t border-rule pt-4 space-y-4">
                   <legend className="text-[14px] font-semibold text-ink pr-2">Your child at STI</legend>
                   <div>
                     <label htmlFor="r-child" className={labelClass}>Child&apos;s full name</label>
-                    <input id="r-child" type="text" className={inputClass} value={reg.childName} maxLength={120}
-                      onChange={(e) => setReg({ ...reg, childName: e.target.value })} required />
+                    <input id="r-child" type="text" className={fieldClass(regErrors.childName)} value={reg.childName} maxLength={120}
+                      aria-invalid={regErrors.childName ? true : undefined} aria-describedby={regErrors.childName ? "r-childName-error" : undefined}
+                      onChange={(e) => { setReg({ ...reg, childName: e.target.value }); clearRegError("childName"); }} required />
+                    <FieldError id="r-childName-error" message={regErrors.childName} />
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
                       <label htmlFor="r-childId" className={labelClass}>Child&apos;s student ID</label>
-                      <input id="r-childId" type="text" className={inputClass} value={reg.childStudentId} maxLength={20}
-                        onChange={(e) => setReg({ ...reg, childStudentId: e.target.value })} required />
+                      <input id="r-childId" type="text" className={fieldClass(regErrors.childStudentId)} value={reg.childStudentId} maxLength={20}
+                        aria-invalid={regErrors.childStudentId ? true : undefined} aria-describedby={regErrors.childStudentId ? "r-childStudentId-error" : undefined}
+                        onChange={(e) => { setReg({ ...reg, childStudentId: e.target.value }); clearRegError("childStudentId"); }} required />
+                      <FieldError id="r-childStudentId-error" message={regErrors.childStudentId} />
                     </div>
                     <div>
                       <label htmlFor="r-rel" className={labelClass}>You are their</label>
-                      <select id="r-rel" className={inputClass} value={reg.relationship} required
-                        onChange={(e) => setReg({ ...reg, relationship: e.target.value })}>
+                      <select id="r-rel" className={fieldClass(regErrors.relationship)} value={reg.relationship} required
+                        aria-invalid={regErrors.relationship ? true : undefined} aria-describedby={regErrors.relationship ? "r-relationship-error" : undefined}
+                        onChange={(e) => { setReg({ ...reg, relationship: e.target.value }); clearRegError("relationship"); }}>
                         <option value="" disabled>Choose…</option>
                         {RELATIONSHIPS.map((r) => <option key={r} value={r}>{r}</option>)}
                       </select>
+                      <FieldError id="r-relationship-error" message={regErrors.relationship} />
                     </div>
                   </div>
                 </fieldset>
@@ -609,6 +687,11 @@ const LoginPage = () => {
     </main>
   );
 };
+
+function FieldError({ id, message }: { id: string; message?: string }) {
+  if (!message) return null;
+  return <p id={id} className="mt-1 text-[12px] text-red-700">{message}</p>;
+}
 
 function ErrorLine({ error }: { error: string | null }) {
   if (!error) return null;

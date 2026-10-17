@@ -7,6 +7,7 @@ import { createSession, destroySession, dashboardPathForRole, hashPassword, veri
 import { emailConfigured, sendEmail } from "../../lib/email";
 import { notifyCounselors } from "../../lib/notify";
 import { normalizePhone } from "../../lib/phone";
+import { cleanName, FIX_FIELDS_MESSAGE, validateParentSignup, type ParentSignupErrors } from "../../lib/parentSignup";
 import { allow, clientIp, HOUR, MINUTE } from "../../lib/rateLimit";
 import type { UserRole } from "../../lib/generated";
 import { SCHOOL_EMAIL_DOMAIN } from "../config/school";
@@ -24,8 +25,6 @@ const DEMO_USERS: Record<UserRole, { email: string; name: string }> = {
   FACULTY: { email: "faculty@sti.edu", name: "Cho Sto Domingo" },
   PARENT: { email: "parent@sti.edu", name: "Mrs. Belarmino" },
 };
-
-const MIN_PASSWORD = 8;
 
 // Shown when an account exists but can't be used yet (or anymore).
 function statusMessage(status: string, role: UserRole) {
@@ -97,10 +96,6 @@ function counselorEmailList() {
     .split(",")
     .map((e) => normalizeEmail(e))
     .filter(Boolean);
-}
-
-function cleanName(name: string | undefined) {
-  return (name ?? "").trim().replace(/\s+/g, " ");
 }
 
 type CodeRequestResult = { success: true; email: string } | { success: false; error: string };
@@ -337,50 +332,47 @@ export async function registerParent(formData: {
   relationship: string;
   // Hidden field people never see; bots that fill every field get caught.
   website?: string;
-}): Promise<{ success: true } | { success: false; error: string }> {
+}): Promise<{ success: true } | { success: false; error: string; fieldErrors?: ParentSignupErrors }> {
   try {
     if (formData.website) return { success: true }; // quietly ignore bots
+
+    // Same rules the form runs in the browser. Checked before the rate limit so a typo doesn't use up a sign-up.
+    const check = validateParentSignup(formData);
+    if (!check.ok) return { success: false, error: FIX_FIELDS_MESSAGE, fieldErrors: check.errors };
+
     if (!(await allow(`register-ip:${await clientIp()}`, 3, HOUR))) {
       return { success: false, error: "Too many sign-ups from this device. Try again in an hour." };
     }
-    const name = cleanName([formData.firstName, formData.lastName, formData.nameExtension].filter(Boolean).join(" "));
-    const phone = normalizePhone(formData.phone);
-    const email = formData.email.trim().toLowerCase();
-    const childStudentId = formData.childStudentId.trim();
-    const childName = cleanName(formData.childName);
+    const { name, phone, email, password, childStudentId, childName, relationship } = check.data;
 
-    if (!formData.firstName.trim() || !formData.lastName.trim()) return { success: false, error: "Enter your first and last name." };
-    if (!phone) return { success: false, error: "Enter a valid mobile number, like 0917 123 4567." };
-    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return { success: false, error: "That email doesn't look right. You can leave it blank." };
-    if (formData.password.length < MIN_PASSWORD) return { success: false, error: `Use a password with at least ${MIN_PASSWORD} characters.` };
-    if (!/^[A-Za-z0-9-]{4,20}$/.test(childStudentId)) return { success: false, error: "Enter your child's student ID number." };
-    if (childName.length < 3) return { success: false, error: "Enter your child's full name." };
-    if (!formData.relationship.trim()) return { success: false, error: "Choose your relationship to the student." };
-
+    const duplicates: ParentSignupErrors = {};
     if (await db.user.findUnique({ where: { phone } })) {
-      return { success: false, error: "That mobile number already has an account. Sign in instead." };
+      duplicates.phone = "That mobile number already has an account. Sign in instead.";
     }
     if (email && (await db.user.findUnique({ where: { email } }))) {
-      return { success: false, error: "That email is already used by another account. Leave it blank or use another." };
+      duplicates.email = "That email is already used by another account. Leave it blank or use another.";
+    }
+    if (Object.keys(duplicates).length > 0) {
+      return { success: false, error: FIX_FIELDS_MESSAGE, fieldErrors: duplicates };
     }
 
     await db.user.create({
       data: {
         name,
         phone,
-        email: email || null,
+        email,
         role: "PARENT",
         status: "PENDING",
-        passwordHash: hashPassword(formData.password),
+        passwordHash: hashPassword(password),
         childLinks: {
-          create: { studentIdNumber: childStudentId, childName, relationship: formData.relationship.trim().slice(0, 40) },
+          create: { studentIdNumber: childStudentId, childName, relationship },
         },
       },
     });
 
     await notifyCounselors({
       title: "New parent account to confirm",
-      body: `${name} says they are the ${formData.relationship.toLowerCase()} of ${childName} (ID ${childStudentId}).`,
+      body: `${name} says they are the ${relationship.toLowerCase()} of ${childName} (ID ${childStudentId}).`,
       href: "/accounts",
     });
     return { success: true };
