@@ -9,6 +9,7 @@ import { logout } from "../app/action/auth";
 import { CurrentUserProvider } from "./CurrentUser";
 import { LogoMark } from "./Logo";
 import { FloatingDock, NoticeBell, NoticesProvider } from "./Notices";
+import { LoginApprovalPrompt } from "./LoginApproval";
 
 type Role = "faculty" | "counselor" | "student" | "parent";
 
@@ -195,6 +196,7 @@ export function AppShell({ role, userName, hiddenPaths = [], avatarUrl, children
       </main>
 
       <FloatingDock messagesPath={MESSAGES_PATH[role]} withChatbot={role === "student"} />
+      <LoginApprovalPrompt />
     </div>
     </NoticesProvider>
   );

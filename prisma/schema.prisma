@@ -415,3 +415,35 @@ model RateEvent {
 
   @@index([key, createdAt])
 }
+
+// ---- Approve sign-in from your phone ----
+
+// A sign-in waiting for approval from a device where the person is already
+// signed in. The new browser shows \`number\`; the phone must pick that same
+// number from three choices (number matching), like Microsoft's approvals.
+model LoginRequest {
+  id          String    @id @default(uuid())
+  userId      String
+  number      Int       // the number shown on the browser asking to sign in
+  choices     Int[]     // three numbers shown on the phone, one of them correct
+  secretHash  String    // proves the polling browser is the one that asked
+  status      String    @default("PENDING") // PENDING, APPROVED, DENIED, USED
+  device      String?   // short description of the browser asking to sign in
+  expiresAt   DateTime
+  createdAt   DateTime  @default(now())
+
+  @@index([userId, status])
+}
+
+// Browser push subscriptions, so a phone can get the approval notification
+// even when E-Gabay isn't open.
+model PushSubscription {
+  id        String   @id @default(uuid())
+  userId    String
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}

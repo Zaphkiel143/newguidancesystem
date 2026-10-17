@@ -8,6 +8,7 @@ import { login, loginAsDemo, registerParent, requestLoginCode, verifyLoginCode, 
 import { SCHOOL_EMAIL_DOMAIN } from '../config/school';
 import { LogoMark } from '../../components/Logo';
 import { signInWithTotp } from '../action/totp';
+import { checkLoginApproval, requestLoginApproval } from '../action/loginApproval';
 import { DEPARTMENTS, programsFor, SHS, yearLevelsFor } from '../config/studentLevels';
 import type { UserRole } from '../../lib/generated';
 
@@ -31,7 +32,8 @@ const RELATIONSHIPS = ["Mother", "Father", "Guardian", "Grandparent", "Sibling",
 // "register" → parents create an account (approved by the guidance office)
 // "waiting"  → account created/exists but needs approval
 // "totp"     → school email + code from Microsoft Authenticator (if set up)
-type Step = "who" | "email" | "code" | "details" | "parent" | "register" | "waiting" | "totp";
+// "approve"  → waiting for the person to approve on a signed-in phone
+type Step = "who" | "email" | "code" | "details" | "parent" | "register" | "waiting" | "totp" | "approve";
 
 const RESEND_SECONDS = 60;
 
@@ -59,6 +61,49 @@ const LoginPage = () => {
   const [resendIn, setResendIn] = useState(0);
   const [demoLoadingRole, setDemoLoadingRole] = useState<UserRole | null>(null);
   const codeInput = useRef<HTMLInputElement>(null);
+  const [approval, setApproval] = useState<{ requestId: string; secret: string; number: number } | null>(null);
+
+  // While waiting for approval, check every 2 seconds (up to the 2-minute limit).
+  useEffect(() => {
+    if (step !== "approve" || !approval) return;
+    let stopped = false;
+    const tick = async () => {
+      const r = await checkLoginApproval(approval.requestId, approval.secret);
+      if (stopped) return;
+      if (r.state === "approved") {
+        stopped = true;
+        router.push(r.redirectTo);
+      } else if (r.state === "denied") {
+        stopped = true;
+        setApproval(null);
+        setStep("email");
+        setError("The sign-in was denied on your other device.");
+      } else if (r.state === "expired") {
+        stopped = true;
+        setApproval(null);
+        setStep("email");
+        setError("The request expired. Try again, or use an email code.");
+      }
+    };
+    const id = setInterval(tick, 2000);
+    return () => {
+      stopped = true;
+      clearInterval(id);
+    };
+  }, [step, approval, router]);
+
+  const askApproval = async () => {
+    setIsSubmitting(true);
+    setError(null);
+    const r = await requestLoginApproval(email);
+    setIsSubmitting(false);
+    if (r.success) {
+      setApproval({ requestId: r.requestId, secret: r.secret, number: r.number });
+      setStep("approve");
+    } else {
+      setError(r.error);
+    }
+  };
 
   useEffect(() => {
     if (resendIn <= 0) return;
@@ -195,7 +240,8 @@ const LoginPage = () => {
     parent: ["Parent or guardian", "Sign in with your mobile number."],
     register: ["Create a parent account", "The guidance office confirms every parent account before it can be used."],
     waiting: ["Almost there", waitingMessage],
-    totp: ["Use your authenticator app", "Enter your school email and the 6-digit code shown in Microsoft Authenticator."],
+    approve: ["Check your phone", "Open E-Gabay on a phone or computer where you're already signed in, and tap this number."],
+    totp: ["Use your authenticator app", "Enter your school email and the 6-digit code under “E-Gabay STI” in Microsoft Authenticator (not your STI Microsoft account)."],
   };
 
   const nameFields = (
@@ -291,7 +337,26 @@ const LoginPage = () => {
                     Use authenticator app instead
                   </button>
                 </div>
+                <button type="button" onClick={askApproval} disabled={isSubmitting || !email.trim()}
+                  className="w-full min-h-11 rounded-full border border-blue-300 text-[14px] text-blue-700 font-medium hover:bg-blue-50 disabled:opacity-50">
+                  Approve on my phone instead
+                </button>
               </form>
+            )}
+
+            {step === "approve" && approval && (
+              <div className="mt-7 text-center space-y-5">
+                <p className="text-6xl font-bold tracking-wider text-ink tabular" aria-live="polite">{approval.number}</p>
+                <p className="inline-flex items-center gap-2 text-sm text-slate-600">
+                  <Loader2 size={15} className="animate-spin" /> Waiting for approval…
+                </p>
+                <p className="text-xs text-slate-500">
+                  No notification? Open E-Gabay on your phone; the request pops up there. It expires in 2 minutes.
+                </p>
+                <button type="button" onClick={() => { setApproval(null); go("email"); }} className={backButton}>
+                  <ArrowLeft size={14} /> Use an email code instead
+                </button>
+              </div>
             )}
 
             {step === "totp" && (

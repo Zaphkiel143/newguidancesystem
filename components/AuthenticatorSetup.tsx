@@ -100,13 +100,16 @@ export default function AuthenticatorSetup() {
           <img src={setup.qr} alt="QR code to add E-Gabay to your authenticator app" width={180} height={180} className="rounded-lg border border-rule bg-white" />
           <div className="space-y-3 min-w-0">
             <ol className="list-decimal pl-5 text-sm text-slate-700 space-y-1">
-              <li>Open Microsoft Authenticator and tap <strong>+</strong> → <strong>Other account</strong>.</li>
-              <li>Scan this QR code. On the same phone? Enter this key instead:</li>
+              <li>
+                Open Microsoft Authenticator, tap <strong>+</strong>, then <strong>Other account (Google, Facebook, etc.)</strong>.
+                Don&apos;t use &ldquo;Work or school account&rdquo;; that&apos;s for STI&apos;s Microsoft sign-in.
+              </li>
+              <li>Scan this QR code. A new entry named <strong>E-Gabay STI</strong> appears. On the same phone? Add the account manually with this key:</li>
             </ol>
             <p className="font-mono text-[13px] bg-slate-50 border border-rule rounded-md px-3 py-2 break-all select-all">{setup.secret}</p>
             <form onSubmit={confirm} className="flex flex-wrap items-end gap-2">
               <div>
-                <label htmlFor="totp-confirm" className="block text-[13px] font-medium text-slate-700 mb-1">3. Type the code the app shows</label>
+                <label htmlFor="totp-confirm" className="block text-[13px] font-medium text-slate-700 mb-1">3. Type the code under E-Gabay STI</label>
                 {codeInput("totp-confirm")}
               </div>
               <button type="submit" disabled={busy || code.length !== 6}

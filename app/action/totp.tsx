@@ -82,7 +82,11 @@ export async function signInWithTotp(formData: { email: string; code: string }) 
     }
     const user = await db.user.findUnique({ where: { email } });
     // Same answer whether the email is unknown or the code is wrong.
-    const wrong = { success: false as const, error: "That code isn't right, or this account hasn't set up an authenticator app. You can use an email code instead." };
+    const wrong = {
+      success: false as const,
+      error:
+        "That code didn't work. Use the code under “E-Gabay STI” in your app (not your STI Microsoft account). If you haven't set it up yet, sign in with an email code, then turn it on from your Profile or My Account page.",
+    };
     if (!user?.totpSecret) return wrong;
     const step = verifyTotp(user.totpSecret, formData.code);
     if (step === null || (user.totpLastStep !== null && step <= user.totpLastStep)) return wrong;
