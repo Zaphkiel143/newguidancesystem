@@ -121,7 +121,7 @@ export default function BookAppointmentModal({
 
           <div className="space-y-1">
             <label className="text-xs font-semibold text-slate-700">Available Time Slots</label>
-            {closed && <p role="note" className="text-xs text-orange-700">The guidance office is closed on Sundays. Pick another day.</p>}
+            {closed && <p role="note" className="text-xs text-orange-700">Consultations are Monday to Friday only. Pick a weekday.</p>}
             <div className="grid grid-cols-3 gap-2">
               {DAY_SCHEDULE.map((entry) => {
                 if (entry.kind === "lunch") {

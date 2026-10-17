@@ -43,16 +43,17 @@ export function isBookableTime(time: string) {
   return STANDARD_DAY_HOURS.includes(time);
 }
 
-// The office is closed on Sundays. Dates are YYYY-MM-DD calendar days.
+// Consultations are Monday to Friday (GCO FAQ). Dates are YYYY-MM-DD calendar days.
 export function isClosedDay(dateString: string) {
-  return new Date(`${dateString}T00:00:00Z`).getUTCDay() === 0;
+  const day = new Date(`${dateString}T00:00:00Z`).getUTCDay();
+  return day === 0 || day === 6;
 }
 
-// Earliest day people can book: tomorrow in the Philippines, skipping Sunday.
+// Earliest day people can book: the next weekday after today in the Philippines.
 export function firstBookableDate(now = new Date()) {
   const today = now.toLocaleDateString("en-CA", { timeZone: "Asia/Manila" });
   const d = new Date(`${today}T00:00:00Z`);
   do d.setUTCDate(d.getUTCDate() + 1);
-  while (d.getUTCDay() === 0);
+  while (d.getUTCDay() === 0 || d.getUTCDay() === 6);
   return d.toISOString().slice(0, 10);
 }

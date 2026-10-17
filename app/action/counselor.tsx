@@ -2,7 +2,7 @@
 
 import db from "../../lib/db";
 import { revalidatePath } from "next/cache";
-import { STANDARD_DAY_HOURS, isBookableTime, parseTimeToMinutes } from "../config/timeSlots";
+import { STANDARD_DAY_HOURS, isBookableTime, isClosedDay, parseTimeToMinutes } from "../config/timeSlots";
 import { randomUUID } from "crypto";
 import { CAREER_STEPS } from "../config/careerSteps";
 import { Prisma } from "../../lib/generated";
@@ -207,6 +207,7 @@ export async function saveAppointmentDetails(formData: {
     };
 
     if (!isBookableTime(formData.timeSlot)) return { success: false, error: "Pick a time between 8:00 AM and 3:00 PM (not during lunch)." };
+    if (isClosedDay(formData.dateString)) return { success: false, error: "Consultations are Monday to Friday only. Pick a weekday." };
     const [clash, blocked] = await Promise.all([
       db.appointment.findFirst({
         where: { date: targetDate, time: formData.timeSlot, status: { not: "CANCELLED" }, ...(formData.appointmentId ? { id: { not: formData.appointmentId } } : {}) },

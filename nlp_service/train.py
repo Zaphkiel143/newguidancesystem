@@ -14,7 +14,8 @@ import joblib
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import cross_val_score
-from sklearn.pipeline import Pipeline
+from sklearn.model_selection import StratifiedKFold
+from sklearn.pipeline import FeatureUnion, Pipeline
 
 BASE_DIR = Path(__file__).parent
 INTENTS_PATH = BASE_DIR / "intents.json"
@@ -44,14 +45,21 @@ def main():
     texts, labels = load_training_data()
     print(f"Loaded {len(texts)} training examples across {len(set(labels))} intents.")
 
+    # Word features catch phrasing; character features (parts of words) catch
+    # spelling variations common in chat ("walk-in"/"walk in", "pano"/"paano").
+    # C=10 lets the model be confident on this small dataset; with the default
+    # (C=1) even clear messages scored below app.py's confidence threshold.
     pipeline = Pipeline([
-        ("tfidf", TfidfVectorizer(ngram_range=(1, 2), min_df=1, lowercase=True)),
-        ("clf", LogisticRegression(max_iter=1000)),
+        ("features", FeatureUnion([
+            ("words", TfidfVectorizer(ngram_range=(1, 2), lowercase=True, sublinear_tf=True)),
+            ("chars", TfidfVectorizer(analyzer="char_wb", ngram_range=(2, 4), lowercase=True, sublinear_tf=True)),
+        ])),
+        ("clf", LogisticRegression(max_iter=3000, C=10)),
     ])
 
     # Small dataset, so cross-validation (rather than a held-out split) gives
     # a rough sense of how well the classifier generalizes.
-    scores = cross_val_score(pipeline, texts, labels, cv=3)
+    scores = cross_val_score(pipeline, texts, labels, cv=StratifiedKFold(3, shuffle=True, random_state=0))
     print(f"Cross-validation accuracy: {scores.mean():.2f} (folds: {[round(s, 2) for s in scores]})")
 
     pipeline.fit(texts, labels)

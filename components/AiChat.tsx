@@ -5,11 +5,15 @@ import { ArrowUp, Loader2 } from "lucide-react";
 import { getMyAiConversation, sendAiMessage } from "../app/action/student";
 import type { AiMessage } from "../lib/generated";
 
+// Questions E-Gabay is trained to answer (nlp_service/intents.json), starting
+// with the Guidance Office FAQ.
 const STARTERS = [
-  "I'm stressed about exams",
+  "What are the GCO consultation hours?",
   "Paano mag-book ng appointment?",
-  "I can't decide on a course",
-  "I just want to talk",
+  "Can I walk in for consultation?",
+  "Will I get a record if I visit the GCO?",
+  "I'm worried about a classmate",
+  "I'm stressed about exams",
 ];
 
 // The E-Gabay conversation (students only). Used full-page on /ai_chat and

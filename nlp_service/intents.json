@@ -3,12 +3,30 @@
     {
       "tag": "greeting",
       "patterns_en": [
-        "hi", "hello", "hey", "good morning", "good afternoon", "good evening",
-        "is anyone there", "hey there", "yo", "hiya", "hello there", "what's up"
+        "hi",
+        "hello",
+        "hey",
+        "good morning",
+        "good afternoon",
+        "good evening",
+        "is anyone there",
+        "hey there",
+        "yo",
+        "hiya",
+        "hello there",
+        "what's up"
       ],
       "patterns_tl": [
-        "kumusta", "kamusta", "musta", "kumusta ka", "hoy", "hi po",
-        "magandang umaga", "magandang hapon", "magandang gabi", "kamusta po"
+        "kumusta",
+        "kamusta",
+        "musta",
+        "kumusta ka",
+        "hoy",
+        "hi po",
+        "magandang umaga",
+        "magandang hapon",
+        "magandang gabi",
+        "kamusta po"
       ],
       "responses_en": [
         "Hi there! I'm E-Gabay. How are you feeling today?",
@@ -24,12 +42,24 @@
     {
       "tag": "goodbye",
       "patterns_en": [
-        "bye", "goodbye", "see you later", "talk to you later", "i have to go",
-        "gotta go", "see ya", "i'm leaving now", "bye bye"
+        "bye",
+        "goodbye",
+        "see you later",
+        "talk to you later",
+        "i have to go",
+        "gotta go",
+        "see ya",
+        "i'm leaving now",
+        "bye bye"
       ],
       "patterns_tl": [
-        "paalam", "sige bye", "aalis na ako", "kita na lang tayo ulit", "babay",
-        "sige po salamat aalis na ako", "aalis na po ako"
+        "paalam",
+        "sige bye",
+        "aalis na ako",
+        "kita na lang tayo ulit",
+        "babay",
+        "sige po salamat aalis na ako",
+        "aalis na po ako"
       ],
       "responses_en": [
         "Take care! I'm here whenever you need to talk.",
@@ -45,12 +75,21 @@
     {
       "tag": "thanks",
       "patterns_en": [
-        "thanks", "thank you", "that helps", "appreciate it", "thanks a lot",
-        "thank you so much", "that was helpful"
+        "thanks",
+        "thank you",
+        "that helps",
+        "appreciate it",
+        "thanks a lot",
+        "thank you so much",
+        "that was helpful"
       ],
       "patterns_tl": [
-        "salamat", "maraming salamat", "salamat po", "nakatulong yan",
-        "thank you po", "salamat talaga"
+        "salamat",
+        "maraming salamat",
+        "salamat po",
+        "nakatulong yan",
+        "thank you po",
+        "salamat talaga"
       ],
       "responses_en": [
         "You're welcome! I'm glad I could help.",
@@ -66,17 +105,26 @@
     {
       "tag": "exam_stress",
       "patterns_en": [
-        "i'm stressed about exams", "i have a test coming up and i'm scared",
-        "i'm anxious about my exams", "finals are stressing me out",
-        "i can't focus on studying", "i'm scared i'll fail my exam",
-        "too much pressure with exams", "i'm nervous about my upcoming test",
-        "exams are making me so anxious", "i can't stop worrying about my grades"
+        "i'm stressed about exams",
+        "i have a test coming up and i'm scared",
+        "i'm anxious about my exams",
+        "finals are stressing me out",
+        "i can't focus on studying",
+        "i'm scared i'll fail my exam",
+        "too much pressure with exams",
+        "i'm nervous about my upcoming test",
+        "exams are making me so anxious",
+        "i can't stop worrying about my grades"
       ],
       "patterns_tl": [
-        "kinakabahan ako sa exam", "stress na stress ako sa exam",
-        "takot ako baka bumagsak ako", "hindi ako makapag-focus mag-aral",
-        "malapit na ang finals at kinakabahan ako", "ang bigat ng pressure sa exam",
-        "kinakabahan ako sa test bukas", "takot akong mag-exam"
+        "kinakabahan ako sa exam",
+        "stress na stress ako sa exam",
+        "takot ako baka bumagsak ako",
+        "hindi ako makapag-focus mag-aral",
+        "malapit na ang finals at kinakabahan ako",
+        "ang bigat ng pressure sa exam",
+        "kinakabahan ako sa test bukas",
+        "takot akong mag-exam"
       ],
       "responses_en": [
         "Exam stress is really common — try breaking your study sessions into smaller chunks with breaks in between. Would you like some study tips?",
@@ -92,15 +140,22 @@
     {
       "tag": "time_management",
       "patterns_en": [
-        "i can't manage my time", "i have too much homework",
-        "i'm overwhelmed with school work", "i don't know how to balance everything",
-        "i keep procrastinating", "there's too much to do and not enough time",
-        "i'm behind on all my requirements", "i can't keep up with deadlines"
+        "i can't manage my time",
+        "i have too much homework",
+        "i'm overwhelmed with school work",
+        "i don't know how to balance everything",
+        "i keep procrastinating",
+        "there's too much to do and not enough time",
+        "i'm behind on all my requirements",
+        "i can't keep up with deadlines"
       ],
       "patterns_tl": [
-        "ang dami kong gawain hindi ko kaya", "hirap ako mag-manage ng oras",
-        "sobrang dami kong homework", "lagi akong naiiwan sa deadline",
-        "palagi akong nagpaplano pero hindi ko nagagawa", "di ko na alam paano aabutan lahat"
+        "ang dami kong gawain hindi ko kaya",
+        "hirap ako mag-manage ng oras",
+        "sobrang dami kong homework",
+        "lagi akong naiiwan sa deadline",
+        "palagi akong nagpaplano pero hindi ko nagagawa",
+        "di ko na alam paano aabutan lahat"
       ],
       "responses_en": [
         "Try making a simple daily schedule and prioritizing your top 3 tasks each day. Small steps really help!",
@@ -116,15 +171,22 @@
     {
       "tag": "bullying",
       "patterns_en": [
-        "someone is bullying me", "i'm being bullied at school",
-        "classmates are picking on me", "i'm being teased a lot",
-        "people are being mean to me at school", "i'm getting bullied online",
-        "my classmates keep making fun of me", "i'm scared to go to school because of bullies"
+        "someone is bullying me",
+        "i'm being bullied at school",
+        "classmates are picking on me",
+        "i'm being teased a lot",
+        "people are being mean to me at school",
+        "i'm getting bullied online",
+        "my classmates keep making fun of me",
+        "i'm scared to go to school because of bullies"
       ],
       "patterns_tl": [
-        "may nambubully sa akin", "binu-bully ako sa school",
-        "pinagtatawanan ako ng mga kaklase ko", "may naninira sa akin sa school",
-        "takot akong pumasok dahil may bully", "sinisiraan ako ng mga kaklase ko"
+        "may nambubully sa akin",
+        "binu-bully ako sa school",
+        "pinagtatawanan ako ng mga kaklase ko",
+        "may naninira sa akin sa school",
+        "takot akong pumasok dahil may bully",
+        "sinisiraan ako ng mga kaklase ko"
       ],
       "responses_en": [
         "I'm really sorry you're going through that. Bullying is never okay, and you don't have to handle it alone. Please consider talking to your guidance counselor or a trusted teacher about this.",
@@ -138,15 +200,22 @@
     {
       "tag": "family_problems",
       "patterns_en": [
-        "my parents are fighting a lot", "things are hard at home",
-        "my family doesn't understand me", "i'm having problems with my parents",
-        "there's a lot of stress at home", "my parents are getting a divorce",
-        "i don't get along with my family", "home doesn't feel safe"
+        "my parents are fighting a lot",
+        "things are hard at home",
+        "my family doesn't understand me",
+        "i'm having problems with my parents",
+        "there's a lot of stress at home",
+        "my parents are getting a divorce",
+        "i don't get along with my family",
+        "home doesn't feel safe"
       ],
       "patterns_tl": [
-        "lagi nag-aaway magulang ko", "hirap sa bahay ngayon",
-        "hindi ako naiintindihan ng pamilya ko", "may problema ako sa magulang ko",
-        "sobrang stress sa bahay", "hindi ako sang-ayon sa magulang ko"
+        "lagi nag-aaway magulang ko",
+        "hirap sa bahay ngayon",
+        "hindi ako naiintindihan ng pamilya ko",
+        "may problema ako sa magulang ko",
+        "sobrang stress sa bahay",
+        "hindi ako sang-ayon sa magulang ko"
       ],
       "responses_en": [
         "Family struggles can be really tough to deal with. I'm here to listen. Have you considered talking to your guidance counselor about this too? They can offer more support.",
@@ -160,15 +229,21 @@
     {
       "tag": "friendship_issues",
       "patterns_en": [
-        "i had a fight with my friend", "my friends are ignoring me",
-        "i feel lonely at school", "i don't have many friends",
-        "my best friend and i aren't talking anymore", "my friend group excluded me",
+        "i had a fight with my friend",
+        "my friends are ignoring me",
+        "i feel lonely at school",
+        "i don't have many friends",
+        "my best friend and i aren't talking anymore",
+        "my friend group excluded me",
         "i feel left out by my friends"
       ],
       "patterns_tl": [
-        "nag-away kami ng friend ko", "iniiwasan ako ng mga kaibigan ko",
-        "nalulungkot ako sa school", "wala akong masyadong kaibigan",
-        "hindi na kami magkausap ng best friend ko", "hindi ako sinasali ng barkada ko"
+        "nag-away kami ng friend ko",
+        "iniiwasan ako ng mga kaibigan ko",
+        "nalulungkot ako sa school",
+        "wala akong masyadong kaibigan",
+        "hindi na kami magkausap ng best friend ko",
+        "hindi ako sinasali ng barkada ko"
       ],
       "responses_en": [
         "Friendship troubles can really hurt. Do you want to talk about what happened?",
@@ -182,15 +257,21 @@
     {
       "tag": "career_question",
       "patterns_en": [
-        "i don't know what course to take in college", "what career should i choose",
-        "i'm confused about my future", "what strand should i pick",
-        "i need help planning my career", "i don't know what i want to do after graduation",
+        "i don't know what course to take in college",
+        "what career should i choose",
+        "i'm confused about my future",
+        "what strand should i pick",
+        "i need help planning my career",
+        "i don't know what i want to do after graduation",
         "how do i choose the right college course"
       ],
       "patterns_tl": [
-        "hindi ko alam kung anong course kukunin", "ano bang course ang bagay sa akin",
-        "nalilito ako sa future ko", "anong strand ang dapat kong kunin",
-        "kailangan ko ng tulong sa pagpaplano ng career ko", "di ko alam gagawin ko pagtapos"
+        "hindi ko alam kung anong course kukunin",
+        "ano bang course ang bagay sa akin",
+        "nalilito ako sa future ko",
+        "anong strand ang dapat kong kunin",
+        "kailangan ko ng tulong sa pagpaplano ng career ko",
+        "di ko alam gagawin ko pagtapos"
       ],
       "responses_en": [
         "That's a big decision! Our Career Guidance program can help you explore your interests and strengths. Would you like to talk to your counselor about a career assessment?",
@@ -204,14 +285,21 @@
     {
       "tag": "self_esteem",
       "patterns_en": [
-        "i don't feel good enough", "i feel like a failure", "i hate myself",
-        "i'm not smart enough", "i feel worthless", "i feel like i'm not good at anything",
+        "i don't feel good enough",
+        "i feel like a failure",
+        "i hate myself",
+        "i'm not smart enough",
+        "i feel worthless",
+        "i feel like i'm not good at anything",
         "i always feel like i disappoint everyone"
       ],
       "patterns_tl": [
-        "parang wala akong kwenta", "pakiramdam ko palpak ako",
-        "ayoko na sa sarili ko", "parang hindi ako sapat",
-        "wala akong halaga", "pakiramdam ko lagi akong nakakadismaya"
+        "parang wala akong kwenta",
+        "pakiramdam ko palpak ako",
+        "ayoko na sa sarili ko",
+        "parang hindi ako sapat",
+        "wala akong halaga",
+        "pakiramdam ko lagi akong nakakadismaya"
       ],
       "responses_en": [
         "I'm really sorry you're feeling this way. You matter, and these feelings, while very real, don't define your worth. Please consider talking to your guidance counselor — they can offer real support.",
@@ -225,15 +313,22 @@
     {
       "tag": "crisis",
       "patterns_en": [
-        "i want to hurt myself", "i don't want to live anymore",
-        "i want to kill myself", "i'm thinking about suicide",
-        "i want to end my life", "i've been cutting myself",
-        "life isn't worth living", "i don't want to be alive anymore"
+        "i want to hurt myself",
+        "i don't want to live anymore",
+        "i want to kill myself",
+        "i'm thinking about suicide",
+        "i want to end my life",
+        "i've been cutting myself",
+        "life isn't worth living",
+        "i don't want to be alive anymore"
       ],
       "patterns_tl": [
-        "gusto kong magpakamatay", "ayoko na mabuhay",
-        "gusto kong saktan ang sarili ko", "papatayin ko na lang sarili ko",
-        "wala nang saysay ang buhay", "gusto ko nang mamatay",
+        "gusto kong magpakamatay",
+        "ayoko na mabuhay",
+        "gusto kong saktan ang sarili ko",
+        "papatayin ko na lang sarili ko",
+        "wala nang saysay ang buhay",
+        "gusto ko nang mamatay",
         "sinasaktan ko ang sarili ko"
       ],
       "responses_en": [
@@ -241,6 +336,155 @@
       ],
       "responses_tl": [
         "Lubos akong nag-aalala sa sinabi mo, at ang kaligtasan mo ang pinakamahalaga ngayon. Mangyaring makipag-usap agad sa isang taong may tiwala mo, sa guidance counselor mo, o sa magulang/guardian mo. Kung nasa agarang panganib ka, mangyaring tumawag agad sa emergency services. Hindi mo kailangang harapin ito nang mag-isa."
+      ]
+    },
+    {
+      "tag": "book_appointment",
+      "patterns_en": [
+        "how do i schedule for consultation",
+        "how do i book an appointment",
+        "how can i set an appointment with the guidance counselor",
+        "i want to schedule a consultation",
+        "how do i make an appointment",
+        "can i book a session with the counselor",
+        "how to schedule a counseling session",
+        "i want to set an appointment",
+        "where do i book an appointment",
+        "how do i reserve a slot with guidance",
+        "can i talk to the counselor",
+        "i want to talk to the guidance counselor"
+      ],
+      "patterns_tl": [
+        "paano mag-book ng appointment",
+        "paano magpa-schedule ng consultation",
+        "paano mag set ng appointment sa guidance",
+        "gusto ko magpa-appointment sa guidance",
+        "paano ako makakapag-book",
+        "pano po magpa schedule sa counselor",
+        "saan po mag-book ng appointment",
+        "gusto kong makausap ang guidance counselor",
+        "pwede ba ako makipag-usap sa counselor"
+      ],
+      "responses_en": [
+        "You can set an appointment by visiting the Guidance Office or by contacting the GCO through the provided contact details. You can also book right here in E-Gabay: open My Appointments and tap Book Appointment."
+      ],
+      "responses_tl": [
+        "Pwede kang mag-set ng appointment sa pagpunta mismo sa Guidance Office o sa pag-contact sa GCO gamit ang ibinigay na contact details. Pwede ka ring mag-book dito sa E-Gabay: buksan ang My Appointments at pindutin ang Book Appointment."
+      ]
+    },
+    {
+      "tag": "walk_in",
+      "patterns_en": [
+        "can i walk in for consultation",
+        "can i just go to the guidance office without an appointment",
+        "do i need an appointment to visit the guidance office",
+        "is walk in allowed",
+        "can i visit the office without booking",
+        "can i drop by the guidance office anytime",
+        "do you accept walk ins",
+        "can i go there directly"
+      ],
+      "patterns_tl": [
+        "pwede ba mag walk in",
+        "pwede ba pumunta sa guidance kahit walang appointment",
+        "kailangan ba ng appointment bago pumunta sa guidance",
+        "pwede po ba dumiretso na lang sa guidance office",
+        "tumatanggap ba kayo ng walk in",
+        "pwede ba ako pumunta kahit hindi naka-book"
+      ],
+      "responses_en": [
+        "Yes, you can visit the office without an appointment. Just wait for the GCO to let you know when you can enter."
+      ],
+      "responses_tl": [
+        "Oo, pwede kang pumunta sa office kahit walang appointment. Hintayin mo lang na sabihan ka ng GCO kung kailan ka pwedeng pumasok."
+      ]
+    },
+    {
+      "tag": "office_hours",
+      "patterns_en": [
+        "may i know the gco consultation hours",
+        "what are the office hours of the guidance office",
+        "what time is the guidance office open",
+        "when is the guidance office open",
+        "what are your consultation hours",
+        "is the guidance office open on saturday",
+        "what days is the guidance office open",
+        "until what time is the guidance office open",
+        "what time can i go to the guidance office",
+        "office hours"
+      ],
+      "patterns_tl": [
+        "anong oras bukas ang guidance office",
+        "kailan bukas ang guidance",
+        "anong oras ang consultation sa guidance",
+        "bukas ba ang guidance tuwing sabado",
+        "hanggang anong oras ang guidance office",
+        "anong araw bukas ang guidance office",
+        "ano po ang oras ng guidance"
+      ],
+      "responses_en": [
+        "The GCO accepts consultations from Monday to Friday, 8:00 AM to 3:00 PM."
+      ],
+      "responses_tl": [
+        "Tumatanggap ang GCO ng consultation mula Lunes hanggang Biyernes, 8:00 AM hanggang 3:00 PM."
+      ]
+    },
+    {
+      "tag": "no_record",
+      "patterns_en": [
+        "will i get a record if i visit the guidance office",
+        "will i get a record if i get invited to the gco",
+        "will going to guidance affect my grades",
+        "will i get in trouble if i go to the guidance office",
+        "does visiting guidance go on my record",
+        "will i be sanctioned if i get called to guidance",
+        "is going to the guidance office bad",
+        "i got invited to the guidance office am i in trouble",
+        "will my teachers know i went to guidance"
+      ],
+      "patterns_tl": [
+        "magkakaroon ba ako ng record kapag pumunta ako sa guidance",
+        "may record ba kapag pinatawag ka sa guidance",
+        "makakaapekto ba sa grades ko kung pupunta ako sa guidance",
+        "mapapagalitan ba ako kapag pumunta ako sa guidance",
+        "may sanction ba kapag pinatawag sa guidance",
+        "pinatawag ako sa guidance may kasalanan ba ako"
+      ],
+      "responses_en": [
+        "No. A consultation with the GCO will not result in a record or sanction that could negatively affect your academic standing."
+      ],
+      "responses_tl": [
+        "Hindi. Ang consultation sa GCO ay hindi magdudulot ng record o sanction na makakaapekto nang masama sa iyong academic standing."
+      ]
+    },
+    {
+      "tag": "worried_about_someone",
+      "patterns_en": [
+        "i'm worried about a classmate's well-being what can i do",
+        "i'm worried about my classmate",
+        "i'm worried about a schoolmate",
+        "my friend needs help what should i do",
+        "how can i help a classmate who is struggling",
+        "how do i refer a friend to the guidance office",
+        "someone in my class seems depressed",
+        "i think my friend is not okay",
+        "how do i report a concern about another student",
+        "i want to refer a classmate"
+      ],
+      "patterns_tl": [
+        "nag-aalala ako sa kaklase ko",
+        "nag-aalala ako sa kaibigan ko ano gagawin ko",
+        "paano ko matutulungan ang kaklase ko",
+        "paano mag-refer ng kaibigan sa guidance",
+        "parang hindi okay ang kaibigan ko",
+        "gusto kong i-refer ang kaklase ko",
+        "may schoolmate ako na parang may problema"
+      ],
+      "responses_en": [
+        "You can approach the GCO and share your concern. The GCO can provide the appropriate guidance and support to your classmate or schoolmate. You can also use Refer a Student here in E-Gabay; referrals are confidential."
+      ],
+      "responses_tl": [
+        "Pwede kang lumapit sa GCO at ibahagi ang iyong concern. Ang GCO ay makapagbibigay ng tamang gabay at suporta sa iyong kaklase o schoolmate. Pwede mo ring gamitin ang Refer a Student dito sa E-Gabay; confidential ang mga referral."
       ]
     },
     {

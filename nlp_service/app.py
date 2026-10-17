@@ -21,8 +21,9 @@ INTENTS_PATH = BASE_DIR / "intents.json"
 MODEL_PATH = BASE_DIR / "model" / "intent_classifier.joblib"
 
 # Confidence below this falls back to the "fallback" intent instead of a
-# low-confidence guess. Tune based on how train.py's cross-validation looks.
-CONFIDENCE_THRESHOLD = 0.30
+# low-confidence guess. With the current model, real questions score about
+# 0.55 or more and off-topic messages ("what's the weather") 0.35 or less.
+CONFIDENCE_THRESHOLD = 0.45
 
 # Belt-and-suspenders safety net: these phrases always force the "crisis"
 # response regardless of what the classifier predicts, since a
