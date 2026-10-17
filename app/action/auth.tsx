@@ -10,6 +10,10 @@ import { SCHOOL_EMAIL_DOMAIN } from "../config/school";
 
 const DEMO_PASSWORD = "demo1234";
 
+// Demo sign-in is on unless NEXT_PUBLIC_DEMO_LOGIN="false" (set it once real
+// accounts can sign in with school-email codes).
+const DEMO_LOGIN_ENABLED = process.env.NEXT_PUBLIC_DEMO_LOGIN !== "false";
+
 const DEMO_USERS: Record<UserRole, { email: string; name: string }> = {
   COUNSELOR: { email: "counselor@sti.edu", name: "Ralph Michael" },
   STUDENT: { email: "student@sti.edu", name: "Nhel Belarmino" },
@@ -184,6 +188,7 @@ export async function verifyLoginCode(formData: { email: string; code: string; f
 // Access" shortcuts working now that real sessions are enforced.
 // Remove the demo buttons before deploying for real use.
 export async function loginAsDemo(role: UserRole) {
+  if (!DEMO_LOGIN_ENABLED) throw new Error("Demo sign-in is turned off.");
   const demo = DEMO_USERS[role];
 
   const user = await db.user.upsert({

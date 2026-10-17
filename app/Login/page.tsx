@@ -16,6 +16,8 @@ const DEMO_ROLES: { role: UserRole; label: string }[] = [
   { role: "PARENT", label: "Parent" },
 ];
 
+const SHOW_DEMO = process.env.NEXT_PUBLIC_DEMO_LOGIN !== "false";
+
 // "email" → enter school email; "code" → enter the emailed code;
 // "name" → first sign-in only, tell us your full name; "password" → parents.
 type Step = "email" | "code" | "name" | "password";
@@ -247,6 +249,7 @@ const LoginPage = () => {
               </p>
             )}
 
+            {SHOW_DEMO && (
             <div className="mt-8 pt-6 border-t border-rule">
               <p className="text-[13px] text-slate-500">Demo accounts</p>
               <ul className="mt-2 divide-y divide-rule">
@@ -269,6 +272,7 @@ const LoginPage = () => {
                 ))}
               </ul>
             </div>
+            )}
           </div>
         </section>
       </div>
