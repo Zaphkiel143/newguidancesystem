@@ -29,7 +29,9 @@ const LoginPage = () => {
   const [step, setStep] = useState<Step>("email");
   const [email, setEmail] = useState('');
   const [code, setCode] = useState('');
-  const [fullName, setFullName] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [nameExtension, setNameExtension] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -69,6 +71,8 @@ const LoginPage = () => {
     e.preventDefault();
     setIsSubmitting(true);
     setError(null);
+    // Records are linked by name in "First Last Ext" order, e.g. "Juan Dela Cruz Jr."
+    const fullName = [firstName, lastName, nameExtension].map((s) => s.trim()).filter(Boolean).join(" ");
     const result = await verifyLoginCode({ email, code, fullName: step === "name" ? fullName : undefined });
     setIsSubmitting(false);
     if (result.success) {
@@ -104,7 +108,7 @@ const LoginPage = () => {
   const heading: Record<Step, [string, string]> = {
     email: ["Sign in", "Use your STI school email. We'll send you a code."],
     code: ["Check your email", `We sent a 6-digit code to ${email}.`],
-    name: ["Welcome to E-Gabay", "First time here? Tell us your full name."],
+    name: ["Welcome to E-Gabay", "First time here? Tell us your name."],
     password: ["Parent or guardian sign in", "Use the email and password from the guidance office."],
   };
 
@@ -184,20 +188,30 @@ const LoginPage = () => {
                     />
                   </div>
                 ) : (
-                  <div>
-                    <label htmlFor="fullName" className="block text-[13px] font-medium text-slate-700 mb-1.5">Full name</label>
-                    <input
-                      id="fullName"
-                      type="text"
-                      autoComplete="name"
-                      placeholder="Juan Dela Cruz"
-                      className={inputClass}
-                      value={fullName}
-                      onChange={(e) => setFullName(e.target.value)}
-                      required
-                      autoFocus
-                    />
-                    <p className="text-xs text-slate-500 mt-1.5">Use the name on your school records so the guidance office can find you.</p>
+                  <div className="space-y-4">
+                    <div>
+                      <label htmlFor="lastName" className="block text-[13px] font-medium text-slate-700 mb-1.5">Last name</label>
+                      <input id="lastName" type="text" autoComplete="family-name" placeholder="Dela Cruz" className={inputClass}
+                        value={lastName} onChange={(e) => setLastName(e.target.value)} required autoFocus />
+                    </div>
+                    <div className="grid grid-cols-[1fr_7rem] gap-3">
+                      <div>
+                        <label htmlFor="firstName" className="block text-[13px] font-medium text-slate-700 mb-1.5">First name</label>
+                        <input id="firstName" type="text" autoComplete="given-name" placeholder="Juan" className={inputClass}
+                          value={firstName} onChange={(e) => setFirstName(e.target.value)} required />
+                      </div>
+                      <div>
+                        <label htmlFor="nameExtension" className="block text-[13px] font-medium text-slate-700 mb-1.5">
+                          Ext. <span className="font-normal text-slate-500">(optional)</span>
+                        </label>
+                        <select id="nameExtension" autoComplete="honorific-suffix" className={inputClass}
+                          value={nameExtension} onChange={(e) => setNameExtension(e.target.value)}>
+                          <option value="">None</option>
+                          {["Jr.", "Sr.", "II", "III", "IV", "V"].map((x) => <option key={x} value={x}>{x}</option>)}
+                        </select>
+                      </div>
+                    </div>
+                    <p className="text-xs text-slate-500">Use the name on your school records so the guidance office can find you.</p>
                   </div>
                 )}
                 <ErrorLine error={error} />

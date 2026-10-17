@@ -161,7 +161,7 @@ export async function verifyLoginCode(formData: { email: string; code: string; f
       const profile = await db.studentProfile.findFirst({ where: { email } });
       const name = profile?.name ?? formData.fullName?.trim().replace(/\s+/g, " ");
       if (!name) return { success: false, needsName: true }; // code stays valid for this step
-      if (name.length < 3) return { success: false, error: "Enter your full name." };
+      if (name.length < 3) return { success: false, error: "Enter your first and last name." };
 
       user = await db.user.create({
         data: {
