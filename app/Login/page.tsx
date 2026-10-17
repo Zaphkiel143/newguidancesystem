@@ -273,11 +273,9 @@ const LoginPage = () => {
 
   return (
     <main className="relative isolate min-h-dvh bg-blue-900 flex flex-col">
-      {/* STI building photo behind the sign-in card, softened so the card stays readable */}
+      {/* Campus photo behind the sign-in card, tinted so the card stays readable */}
       <div aria-hidden className="fixed inset-0 -z-10 overflow-hidden">
-        <div className="absolute inset-0 lg:-translate-x-[15%] lg:scale-[1.35]">
-          <Image src="/sti-facade.png" alt="" fill priority sizes="100vw" className="object-cover object-[50%_22%] blur-[1.5px]" />
-        </div>
+        <Image src="/campus.jpg" alt="" fill priority sizes="100vw" className="object-cover object-[35%_55%]" />
         <div className="absolute inset-0 bg-linear-to-b from-blue-900/55 via-blue-800/35 to-blue-900/70" />
       </div>
       <header className="relative h-(--topbar-h) bg-blue-700 text-white border-t-4 border-sti-yellow shadow-md">
@@ -292,7 +290,7 @@ const LoginPage = () => {
       <div className="flex-1 w-full px-4 sm:px-5 py-8 sm:py-14 flex items-center justify-center lg:justify-end lg:pr-[9vw]">
         <section className="w-full max-w-[440px] bg-sheet border border-rule rounded-2xl shadow-lg overflow-hidden animate-rise-in">
           <div className="relative h-32 sm:h-40">
-            <Image src="/campus.jpg" alt="STI College Sta. Maria campus" fill priority sizes="440px" className="object-cover object-[50%_58%]" />
+            <Image src="/sti-facade.png" alt="STI College Sta. Maria building with the STI seal" fill priority sizes="440px" className="object-cover object-[50%_28%]" />
             <div aria-hidden className="absolute inset-x-0 bottom-0 h-16 bg-linear-to-t from-white to-white/0" />
           </div>
 
