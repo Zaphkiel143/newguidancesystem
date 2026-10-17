@@ -272,8 +272,15 @@ const LoginPage = () => {
   );
 
   return (
-    <main className="min-h-dvh bg-paper flex flex-col">
-      <header className="h-(--topbar-h) bg-blue-700 text-white border-t-4 border-sti-yellow shadow-md">
+    <main className="relative isolate min-h-dvh bg-blue-900 flex flex-col">
+      {/* STI building photo behind the sign-in card, softened so the card stays readable */}
+      <div aria-hidden className="fixed inset-0 -z-10 overflow-hidden">
+        <div className="absolute inset-0 lg:-translate-x-[15%] lg:scale-[1.35]">
+          <Image src="/sti-facade.png" alt="" fill priority sizes="100vw" className="object-cover object-[50%_22%] blur-[1.5px]" />
+        </div>
+        <div className="absolute inset-0 bg-linear-to-b from-blue-900/55 via-blue-800/35 to-blue-900/70" />
+      </div>
+      <header className="relative h-(--topbar-h) bg-blue-700 text-white border-t-4 border-sti-yellow shadow-md">
         <div className="h-full max-w-5xl mx-auto px-6 sm:px-10 flex items-center gap-3">
           <LogoMark size={36} tone="light" className="shrink-0" />
           <span className="font-semibold text-[17px] tracking-tight">E-Gabay</span>
@@ -282,7 +289,7 @@ const LoginPage = () => {
         </div>
       </header>
 
-      <div className="flex-1 w-full px-4 sm:px-5 py-8 sm:py-14 flex items-center justify-center">
+      <div className="flex-1 w-full px-4 sm:px-5 py-8 sm:py-14 flex items-center justify-center lg:justify-end lg:pr-[9vw]">
         <section className="w-full max-w-[440px] bg-sheet border border-rule rounded-2xl shadow-lg overflow-hidden animate-rise-in">
           <div className="relative h-32 sm:h-40">
             <Image src="/campus.jpg" alt="STI College Sta. Maria campus" fill priority sizes="440px" className="object-cover object-[50%_58%]" />
@@ -597,7 +604,7 @@ const LoginPage = () => {
         </section>
       </div>
 
-      <footer className="px-6 sm:px-10 py-6 text-[12px] text-slate-500 flex flex-wrap gap-x-6 gap-y-1">
+      <footer className="px-6 sm:px-10 py-6 text-[12px] text-white/85 flex flex-wrap gap-x-6 gap-y-1 [text-shadow:0_1px_2px_rgb(0_0_0/0.4)]">
         <span>© {new Date().getFullYear()} STI College Sta. Maria</span>
         <span>Guidance and Counseling Office</span>
       </footer>
