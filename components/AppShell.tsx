@@ -11,6 +11,8 @@ import { LogoMark } from "./Logo";
 import { FloatingDock, NoticeBell, NoticesProvider } from "./Notices";
 import { LoginApprovalPrompt } from "./LoginApproval";
 import PrivacyNotice from "./PrivacyNotice";
+import ProfileMenu from "./ProfileMenu";
+import ScrollToHash from "./ScrollToHash";
 
 type Role = "faculty" | "counselor" | "student" | "parent";
 
@@ -25,6 +27,14 @@ interface AppShellProps {
   needsPrivacyConsent?: boolean;
   children: React.ReactNode;
 }
+
+// Each role's own account page (photo, details, sign-in settings).
+const ACCOUNT_PATH: Record<Role, string> = {
+  counselor: "/my_account",
+  student: "/profile",
+  faculty: "/faculty_account",
+  parent: "/parent_profile",
+};
 
 // Where the floating message button leads, per role.
 const MESSAGES_PATH: Record<Role, string> = {
@@ -105,11 +115,7 @@ export function AppShell({ role, userName, hiddenPaths = [], avatarUrl, needsPri
 
         <div className="ml-auto flex items-center gap-1 sm:gap-3">
           <NoticeBell />
-          <span className="hidden md:block text-right leading-tight">
-            <span className="block text-[13px] font-medium">{userName}</span>
-            <span className="block text-xs text-white/75">{ROLE_LABEL[role]}</span>
-          </span>
-          {avatar}
+          <ProfileMenu userName={userName} roleLabel={ROLE_LABEL[role]} avatar={avatar} accountPath={ACCOUNT_PATH[role]} />
         </div>
       </header>
 
@@ -176,7 +182,7 @@ export function AppShell({ role, userName, hiddenPaths = [], avatarUrl, needsPri
           </ul>
         </nav>
 
-        <div className="px-5 py-4 border-t border-blue-100">
+        <div className="md:hidden px-5 py-4 border-t border-blue-100">
           <div className="md:hidden flex items-center gap-3 mb-2">
             {avatar}
             <div className="min-w-0 flex-1 leading-tight">
@@ -200,6 +206,7 @@ export function AppShell({ role, userName, hiddenPaths = [], avatarUrl, needsPri
 
       <FloatingDock messagesPath={MESSAGES_PATH[role]} withChatbot={role === "student"} />
       <LoginApprovalPrompt />
+      <ScrollToHash />
       {needsPrivacyConsent && <PrivacyNotice />}
     </div>
     </NoticesProvider>

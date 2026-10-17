@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import { Loader2 } from "lucide-react";
 import { changeMyPassword, getMyParentProfile, requestChildLink, updateMyParentProfile } from "../../action/parent";
 import PhotoPicker from "../../../components/PhotoPicker";
+import { PushToggle } from "../../../components/LoginApproval";
 import InlineError from "../../../components/InlineError";
 import { formatPhone } from "../../../lib/phone";
 
@@ -195,7 +196,9 @@ export default function ParentProfilePage() {
         </form>
       </section>
 
-      <section className="mt-8 bg-sheet border border-rule rounded-2xl p-5 sm:p-6" aria-labelledby="pw-heading">
+      <div id="settings" className="scroll-mt-24 mt-8 space-y-8">
+        <PushToggle />
+      <section className="bg-sheet border border-rule rounded-2xl p-5 sm:p-6" aria-labelledby="pw-heading">
         <h2 id="pw-heading" className="font-semibold text-[17px] text-ink">Change password</h2>
         <form onSubmit={savePassword} className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-3 items-end">
           <div>
@@ -221,6 +224,7 @@ export default function ParentProfilePage() {
           </div>
         </form>
       </section>
+      </div>
     </div>
   );
 }

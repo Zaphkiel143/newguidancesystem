@@ -16,8 +16,10 @@ export default async function StaffAccountPage() {
         <h2 className="font-semibold text-[17px] text-ink mb-4">Profile photo</h2>
         <PhotoPicker name={me.name} hasPhoto={Boolean(me.avatarType)} />
       </section>
-      <PushToggle />
-      <AuthenticatorSetup />
+      <div id="settings" className="scroll-mt-24 space-y-6">
+        <PushToggle />
+        <AuthenticatorSetup />
+      </div>
     </div>
   );
 }

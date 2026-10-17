@@ -193,8 +193,10 @@ export const StudentProfile: React.FC = () => {
             <p className="px-6 pb-5 text-xs text-slate-500">Something wrong? Message the guidance office to have it corrected.</p>
           </section>
 
-          <PushToggle />
-          <AuthenticatorSetup />
+          <div id="settings" className="scroll-mt-24 space-y-8">
+            <PushToggle />
+            <AuthenticatorSetup />
+          </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
             <section>
