@@ -5,8 +5,11 @@ import { redirect } from "next/navigation";
 import db from "../../lib/db";
 import { createSession, destroySession, dashboardPathForRole, hashPassword, verifyPassword } from "../../lib/auth";
 import { emailConfigured, sendEmail } from "../../lib/email";
+import { notifyCounselors } from "../../lib/notify";
+import { normalizePhone } from "../../lib/phone";
 import type { UserRole } from "../../lib/generated";
 import { SCHOOL_EMAIL_DOMAIN } from "../config/school";
+import { DEPARTMENTS, gradeSectionLabel, programsFor, yearLevelsFor } from "../config/studentLevels";
 
 const DEMO_PASSWORD = "demo1234";
 
@@ -21,16 +24,33 @@ const DEMO_USERS: Record<UserRole, { email: string; name: string }> = {
   PARENT: { email: "parent@sti.edu", name: "Mrs. Belarmino" },
 };
 
+const MIN_PASSWORD = 8;
+
+// Shown when an account exists but can't be used yet (or anymore).
+function statusMessage(status: string, role: UserRole) {
+  if (status === "PENDING") {
+    return role === "PARENT"
+      ? "Your parent account is waiting for the guidance office to confirm it. You'll be able to sign in once it's approved."
+      : "Your account is waiting for the guidance office to approve it. Try again once it's approved.";
+  }
+  return "This account can't be used. Please contact the Guidance and Counseling Office.";
+}
+
 type LoginResult = { success: true; redirectTo: string } | { success: false; error: string };
 
-// Password sign-in, kept for parents/guardians (they don't have school emails).
-export async function login(formData: { email: string; password: string }): Promise<LoginResult> {
+// Password sign-in for parents/guardians (mobile number) and demo accounts (email).
+export async function login(formData: { identifier: string; password: string }): Promise<LoginResult> {
   try {
-    const user = await db.user.findUnique({ where: { email: formData.email.trim().toLowerCase() } });
+    const raw = formData.identifier.trim();
+    const phone = normalizePhone(raw);
+    const user = phone
+      ? await db.user.findUnique({ where: { phone } })
+      : await db.user.findUnique({ where: { email: raw.toLowerCase() } });
 
     if (!user || !verifyPassword(formData.password, user.passwordHash)) {
-      return { success: false, error: "Invalid email or password." };
+      return { success: false, error: "That number or password isn't right." };
     }
+    if (user.status !== "ACTIVE") return { success: false, error: statusMessage(user.status, user.role) };
 
     await createSession(user.id);
     return { success: true, redirectTo: dashboardPathForRole(user.role) };
@@ -49,8 +69,8 @@ export async function login(formData: { email: string; password: string }): Prom
 //
 // Only addresses ending in @SCHOOL_EMAIL_DOMAIN (app/config/school.ts) may use codes.
 // COUNSELOR_EMAILS      comma-separated school emails that become Guidance
-//                       Associate accounts on first sign-in; everyone else
-//                       starts as a student (changeable on the Accounts page)
+//                       Associate accounts on first sign-in. Anyone else who
+//                       signs up as faculty or guidance waits for approval.
 
 const SCHOOL_DOMAIN = SCHOOL_EMAIL_DOMAIN.toLowerCase();
 const CODE_TTL_MS = 10 * 60 * 1000;
@@ -73,6 +93,10 @@ function counselorEmailList() {
     .filter(Boolean);
 }
 
+function cleanName(name: string | undefined) {
+  return (name ?? "").trim().replace(/\s+/g, " ");
+}
+
 type CodeRequestResult = { success: true; email: string } | { success: false; error: string };
 
 export async function requestLoginCode(rawEmail: string): Promise<CodeRequestResult> {
@@ -85,7 +109,7 @@ export async function requestLoginCode(rawEmail: string): Promise<CodeRequestRes
     // In production a code that can never arrive is useless; locally the code is
     // printed to the dev server console for testing.
     if (!emailConfigured && process.env.NODE_ENV === "production") {
-      return { success: false, error: "Email sign-in isn't set up on this site yet, so codes can't be delivered. Use a demo account below." };
+      return { success: false, error: "Email sign-in isn't set up on this site yet, so codes can't be delivered." };
     }
 
     const lastHour = new Date(Date.now() - 60 * 60 * 1000);
@@ -124,14 +148,33 @@ export async function requestLoginCode(rawEmail: string): Promise<CodeRequestRes
   }
 }
 
+// Who someone says they are on the login page. Students get in right away;
+// faculty and guidance staff wait for the Guidance Associate to approve them.
+export type SignInAs = "STUDENT" | "FACULTY" | "COUNSELOR";
+
+export type StudentDetails = {
+  studentId: string;
+  department: string;
+  yearLevel: string;
+  program: string;
+  section: string;
+};
+
 type CodeVerifyResult =
   | { success: true; redirectTo: string }
-  | { success: false; needsName: true }
+  | { success: false; needsDetails: true }
+  | { success: false; pending: true; message: string }
   | { success: false; error: string };
 
-// fullName is only needed the first time someone signs in (no account yet);
-// records across the system are linked by name, so we ask rather than guess.
-export async function verifyLoginCode(formData: { email: string; code: string; fullName?: string }): Promise<CodeVerifyResult> {
+// First sign-in creates the account. Records across the system are linked by
+// name, so we ask for it (and, for students, their school details) rather than guess.
+export async function verifyLoginCode(formData: {
+  email: string;
+  code: string;
+  signInAs: SignInAs;
+  fullName?: string;
+  student?: StudentDetails;
+}): Promise<CodeVerifyResult> {
   try {
     const email = normalizeEmail(formData.email);
     const code = formData.code.replace(/\D/g, "");
@@ -157,24 +200,18 @@ export async function verifyLoginCode(formData: { email: string; code: string; f
     let user = await db.user.findUnique({ where: { email } });
 
     if (!user) {
-      // A Guidance Associate may already have an inventory record with this email.
-      const profile = await db.studentProfile.findFirst({ where: { email } });
-      const name = profile?.name ?? formData.fullName?.trim().replace(/\s+/g, " ");
-      if (!name) return { success: false, needsName: true }; // code stays valid for this step
-      if (name.length < 3) return { success: false, error: "Enter your first and last name." };
-
-      user = await db.user.create({
-        data: {
-          email,
-          name,
-          role: counselorEmailList().includes(email) ? "COUNSELOR" : "STUDENT",
-          // Code-only accounts can't use the password form.
-          passwordHash: "code-login-only",
-        },
-      });
+      const created = await createSchoolAccount(email, formData);
+      if ("needsDetails" in created || "error" in created) return { success: false, ...created } as CodeVerifyResult;
+      user = created.user;
     }
 
+    // The code is used up whether or not the account can sign in yet.
     await db.loginCode.update({ where: { id: entry.id }, data: { usedAt: new Date() } });
+
+    if (user.status !== "ACTIVE") {
+      return { success: false, pending: true, message: statusMessage(user.status, user.role) };
+    }
+
     await createSession(user.id);
     return { success: true, redirectTo: dashboardPathForRole(user.role) };
   } catch (error) {
@@ -183,10 +220,162 @@ export async function verifyLoginCode(formData: { email: string; code: string; f
   }
 }
 
+async function createSchoolAccount(
+  email: string,
+  formData: { signInAs: SignInAs; fullName?: string; student?: StudentDetails }
+) {
+  // A Guidance Associate may already have an inventory record with this email.
+  const existingProfile = await db.studentProfile.findFirst({ where: { email } });
+  const isListedCounselor = counselorEmailList().includes(email);
+
+  const role: UserRole = isListedCounselor
+    ? "COUNSELOR"
+    : existingProfile
+      ? "STUDENT"
+      : formData.signInAs === "FACULTY" || formData.signInAs === "COUNSELOR"
+        ? formData.signInAs
+        : "STUDENT";
+
+  const name = existingProfile?.name ?? cleanName(formData.fullName);
+  const needsStudentDetails = role === "STUDENT" && !existingProfile;
+  if (!name || (needsStudentDetails && !formData.student)) return { needsDetails: true as const };
+  if (name.length < 3 || !name.includes(" ")) return { error: "Enter your first and last name." };
+
+  // Approved right away: listed counselors and students. Self-declared faculty
+  // and guidance staff wait for a Guidance Associate to approve them.
+  const status = role === "STUDENT" || isListedCounselor ? "ACTIVE" : "PENDING";
+
+  if (needsStudentDetails) {
+    const problem = checkStudentDetails(formData.student!);
+    if (problem) return { error: problem };
+    const s = formData.student!;
+    const studentId = s.studentId.trim();
+
+    const [sameId, sameName] = await Promise.all([
+      db.studentProfile.findUnique({ where: { studentId } }),
+      db.studentProfile.findUnique({ where: { name } }),
+    ]);
+    if (sameId && sameId.email && sameId.email !== email) {
+      return { error: "That student ID is already registered to another account. Please see the guidance office." };
+    }
+    if (sameName && sameName.studentId !== studentId) {
+      return { error: "A student with that name is already on record with a different ID. Please see the guidance office." };
+    }
+
+    const user = await db.$transaction(async (tx) => {
+      const created = await tx.user.create({
+        data: { email, name, role, status, passwordHash: "code-login-only" },
+      });
+      const details = {
+        department: s.department,
+        yearLevel: s.yearLevel,
+        section: s.section.trim(),
+        strandOrProgram: s.program,
+        gradeSection: gradeSectionLabel(s.yearLevel, s.section),
+        email,
+      };
+      if (sameId) {
+        // The office already has this student's record (by ID): link it, keep their name.
+        await tx.studentProfile.update({ where: { id: sameId.id }, data: { ...details } });
+      } else {
+        await tx.studentProfile.create({ data: { studentId, name, ...details } });
+      }
+      return created;
+    });
+    return { user };
+  }
+
+  const user = await db.user.create({
+    // Code-only accounts can't use the password form.
+    data: { email, name, role, status, passwordHash: "code-login-only" },
+  });
+  if (status === "PENDING") {
+    await notifyCounselors({
+      title: `New ${role === "FACULTY" ? "faculty" : "guidance staff"} account to approve`,
+      body: `${name} (${email})`,
+      href: "/accounts",
+    });
+  }
+  return { user };
+}
+
+function checkStudentDetails(s: StudentDetails): string | null {
+  if (!/^[A-Za-z0-9-]{4,20}$/.test(s.studentId.trim())) return "Enter your student ID number (letters, numbers and dashes only).";
+  if (!(DEPARTMENTS as readonly string[]).includes(s.department)) return "Choose Senior High School or Tertiary.";
+  if (!yearLevelsFor(s.department).includes(s.yearLevel)) return "Choose your grade or year level.";
+  if (!programsFor(s.department).includes(s.program)) return "Choose your strand or course.";
+  if (!s.section.trim() || s.section.trim().length > 30) return "Enter your section.";
+  return null;
+}
+
+// ---- Parent / guardian accounts ----
+//
+// Parents don't have school emails. They register with their mobile number and
+// their child's student ID; the Guidance Associate checks the ID against the
+// Individual Inventory and approves the account before it can be used.
+
+export async function registerParent(formData: {
+  lastName: string;
+  firstName: string;
+  nameExtension: string;
+  phone: string;
+  email: string;
+  password: string;
+  childStudentId: string;
+  childName: string;
+  relationship: string;
+}): Promise<{ success: true } | { success: false; error: string }> {
+  try {
+    const name = cleanName([formData.firstName, formData.lastName, formData.nameExtension].filter(Boolean).join(" "));
+    const phone = normalizePhone(formData.phone);
+    const email = formData.email.trim().toLowerCase();
+    const childStudentId = formData.childStudentId.trim();
+    const childName = cleanName(formData.childName);
+
+    if (!formData.firstName.trim() || !formData.lastName.trim()) return { success: false, error: "Enter your first and last name." };
+    if (!phone) return { success: false, error: "Enter a valid mobile number, like 0917 123 4567." };
+    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return { success: false, error: "That email doesn't look right. You can leave it blank." };
+    if (formData.password.length < MIN_PASSWORD) return { success: false, error: `Use a password with at least ${MIN_PASSWORD} characters.` };
+    if (!/^[A-Za-z0-9-]{4,20}$/.test(childStudentId)) return { success: false, error: "Enter your child's student ID number." };
+    if (childName.length < 3) return { success: false, error: "Enter your child's full name." };
+    if (!formData.relationship.trim()) return { success: false, error: "Choose your relationship to the student." };
+
+    if (await db.user.findUnique({ where: { phone } })) {
+      return { success: false, error: "That mobile number already has an account. Sign in instead." };
+    }
+    if (email && (await db.user.findUnique({ where: { email } }))) {
+      return { success: false, error: "That email is already used by another account. Leave it blank or use another." };
+    }
+
+    await db.user.create({
+      data: {
+        name,
+        phone,
+        email: email || null,
+        role: "PARENT",
+        status: "PENDING",
+        passwordHash: hashPassword(formData.password),
+        childLinks: {
+          create: { studentIdNumber: childStudentId, childName, relationship: formData.relationship.trim().slice(0, 40) },
+        },
+      },
+    });
+
+    await notifyCounselors({
+      title: "New parent account to confirm",
+      body: `${name} says they are the ${formData.relationship.toLowerCase()} of ${childName} (ID ${childStudentId}).`,
+      href: "/accounts",
+    });
+    return { success: true };
+  } catch (error) {
+    console.error("Parent registration failed:", error);
+    return { success: false, error: "Something went wrong. Please try again." };
+  }
+}
+
 // One-click demo access — lazily creates the demo account for that role the
-// first time it's used, then logs into it. Keeps the existing "Quick Demo
-// Access" shortcuts working now that real sessions are enforced.
-// Remove the demo buttons before deploying for real use.
+// first time it's used, then logs into it.
+// Turn off with NEXT_PUBLIC_DEMO_LOGIN="false" before real use.
 export async function loginAsDemo(role: UserRole) {
   if (!DEMO_LOGIN_ENABLED) throw new Error("Demo sign-in is turned off.");
   const demo = DEMO_USERS[role];
@@ -201,6 +390,27 @@ export async function loginAsDemo(role: UserRole) {
       passwordHash: hashPassword(DEMO_PASSWORD),
     },
   });
+
+  // The demo parent is linked to the sample students whose inventory record
+  // names them as parent, so the parent pages have a child to show.
+  if (role === "PARENT") {
+    const children = await db.studentProfile.findMany({ where: { parentName: demo.name } });
+    for (const child of children) {
+      await db.parentChildLink.upsert({
+        where: { parentId_studentIdNumber: { parentId: user.id, studentIdNumber: child.studentId } },
+        update: {},
+        create: {
+          parentId: user.id,
+          studentIdNumber: child.studentId,
+          childName: child.name,
+          relationship: "Mother",
+          status: "APPROVED",
+          studentProfileId: child.id,
+          reviewedAt: new Date(),
+        },
+      });
+    }
+  }
 
   await createSession(user.id);
   redirect(dashboardPathForRole(user.role));

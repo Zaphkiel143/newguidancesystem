@@ -3,16 +3,19 @@
 import React, { useEffect, useState } from "react";
 import { X, CheckCircle2 } from "lucide-react";
 import { DAY_SCHEDULE } from "../app/config/timeSlots";
+import { APPOINTMENT_PURPOSES, OTHER, withOther } from "../app/config/studentLevels";
 
 interface BookingPayload {
   dateString: string;
   timeSlot: string;
   appointmentType: string;
   notes: string;
+  phone?: string;
 }
 
 interface BookAppointmentModalProps {
-  purposeOptions: string[];
+  // Kept for older callers; every booking form now uses APPOINTMENT_PURPOSES.
+  purposeOptions?: string[];
   getBookedTimesForDate: (dateString: string) => Promise<string[]>;
   bookAppointment: (data: BookingPayload) => Promise<{ success: boolean; error?: string }>;
   onClose: () => void;
@@ -30,7 +33,6 @@ function getMinSelectableDate(): string {
 }
 
 export default function BookAppointmentModal({
-  purposeOptions,
   getBookedTimesForDate,
   bookAppointment,
   onClose,
@@ -39,8 +41,10 @@ export default function BookAppointmentModal({
   const minSelectableDate = getMinSelectableDate();
   const [date, setDate] = useState(minSelectableDate);
   const [time, setTime] = useState<string | null>(null);
-  const [purpose, setPurpose] = useState(purposeOptions[0]);
+  const [purpose, setPurpose] = useState<string>(APPOINTMENT_PURPOSES[0]);
+  const [purposeOther, setPurposeOther] = useState("");
   const [notes, setNotes] = useState("");
+  const [phone, setPhone] = useState("");
   const [bookedTimes, setBookedTimes] = useState<string[]>([]);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -66,6 +70,10 @@ export default function BookAppointmentModal({
       setError("Please select an available time slot.");
       return;
     }
+    if (purpose === OTHER && !purposeOther.trim()) {
+      setError("Tell us the purpose of the appointment.");
+      return;
+    }
 
     setIsSaving(true);
     setError(null);
@@ -73,8 +81,9 @@ export default function BookAppointmentModal({
     const result = await bookAppointment({
       dateString: date,
       timeSlot: time,
-      appointmentType: purpose,
+      appointmentType: withOther(purpose, purposeOther),
       notes,
+      phone,
     });
 
     setIsSaving(false);
@@ -140,6 +149,7 @@ export default function BookAppointmentModal({
                     key={slot}
                     type="button"
                     disabled={isTaken}
+                    aria-label={isTaken ? `${slot}, not available` : slot}
                     onClick={() => setTime(slot)}
                     className={`min-h-11 py-2 px-2 border text-xs font-semibold font-mono rounded-xl transition-all text-center ${
                       isTaken
@@ -157,16 +167,41 @@ export default function BookAppointmentModal({
           </div>
 
           <div className="space-y-1">
-            <label className="text-xs font-semibold text-slate-700">Purpose of Appointment</label>
+            <label htmlFor="book-purpose" className="text-xs font-semibold text-slate-700">Purpose of Appointment</label>
             <select
+              id="book-purpose"
               value={purpose}
               onChange={(e) => setPurpose(e.target.value)}
               className="w-full text-sm bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 focus:outline-none"
             >
-              {purposeOptions.map((option) => (
+              {APPOINTMENT_PURPOSES.map((option) => (
                 <option key={option} value={option}>{option}</option>
               ))}
             </select>
+            {purpose === OTHER && (
+              <input
+                aria-label="Purpose of the appointment"
+                placeholder="What is the appointment for?"
+                value={purposeOther}
+                maxLength={60}
+                onChange={(e) => setPurposeOther(e.target.value)}
+                className="w-full text-sm bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 focus:outline-none mt-2"
+              />
+            )}
+          </div>
+
+          <div className="space-y-1">
+            <label htmlFor="book-phone" className="text-xs font-semibold text-slate-700">Mobile number (optional)</label>
+            <input
+              id="book-phone"
+              type="tel"
+              inputMode="tel"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              placeholder="0917 123 4567"
+              className="w-full text-sm bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 focus:outline-none"
+            />
+            <p className="text-[11px] text-slate-500">So the guidance office can reach you quickly about this appointment.</p>
           </div>
 
           <div className="space-y-1">
@@ -175,6 +210,7 @@ export default function BookAppointmentModal({
               rows={3}
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
+              maxLength={1000}
               placeholder="Briefly describe the reason for the meeting..."
               className="w-full text-sm bg-slate-50 border border-slate-200 rounded-xl p-3 focus:outline-none resize-none"
             />

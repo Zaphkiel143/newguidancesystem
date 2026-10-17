@@ -6,7 +6,6 @@ import { getMyAppointments, getBookedTimesForDate, bookAppointment } from '../..
 import BookAppointmentModal from '../../../components/BookAppointmentModal';
 import type { Appointment as DbAppointment } from '../../../lib/generated';
 
-const PURPOSE_OPTIONS = ["Individual Counseling", "Academic Concern", "Career Guidance", "Compliance Interview"];
 
 export const MyAppointments: React.FC = () => {
   const [appointments, setAppointments] = useState<DbAppointment[]>([]);
@@ -120,7 +119,6 @@ export const MyAppointments: React.FC = () => {
 
       {isBookingOpen && (
         <BookAppointmentModal
-          purposeOptions={PURPOSE_OPTIONS}
           getBookedTimesForDate={getBookedTimesForDate}
           bookAppointment={bookAppointment}
           onClose={() => setIsBookingOpen(false)}

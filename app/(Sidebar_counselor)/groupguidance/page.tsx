@@ -12,6 +12,8 @@ import {
   setNeedsAssessmentOpen,
 } from '../../action/counselor';
 import InlineError from '../../../components/InlineError';
+import { listAttachments } from '../../action/attachments';
+import AttachmentStrip, { type AttachmentMeta } from '../../../components/AttachmentStrip';
 import type { GroupGuidanceProgram } from '../../../lib/generated';
 
 type Assessment = Awaited<ReturnType<typeof listNeedsAssessments>>[number];
@@ -50,7 +52,8 @@ export default function GroupGuidance() {
   const [isSavingProgram, setIsSavingProgram] = useState(false);
 
   // Record attendance + outcomes
-  const [recording, setRecording] = useState<{ id: string; title: string; attendees: string; outcomes: string } | null>(null);
+  const [recording, setRecording] = useState<{ id: string; title: string; attendees: string; outcomes: string; headcount: string } | null>(null);
+  const [sheets, setSheets] = useState<AttachmentMeta[]>([]);
   const [recordError, setRecordError] = useState<string | null>(null);
   const [isSavingRecord, setIsSavingRecord] = useState(false);
 
@@ -61,7 +64,14 @@ export default function GroupGuidance() {
   const [isSavingForm, setIsSavingForm] = useState(false);
   const [toggleError, setToggleError] = useState<{ id: string; message: string } | null>(null);
 
-  const loadPrograms = useCallback(async () => setPrograms(await getGroupGuidancePrograms()), []);
+  const loadPrograms = useCallback(async () => {
+    const data = await getGroupGuidancePrograms();
+    setPrograms(data);
+    setSheets(await listAttachments("GROUP_ATTENDANCE", data.map((p) => p.id)));
+  }, []);
+  const loadSheets = useCallback(async () => {
+    setSheets(await listAttachments("GROUP_ATTENDANCE", (programs ?? []).map((p) => p.id)));
+  }, [programs]);
   const loadAssessments = useCallback(async () => setAssessments(await listNeedsAssessments()), []);
 
   useEffect(() => {
@@ -96,7 +106,7 @@ export default function GroupGuidance() {
     if (!recording) return;
     setIsSavingRecord(true);
     setRecordError(null);
-    const result = await recordGroupSession(recording.id, { attendees: recording.attendees.split("\n"), outcomes: recording.outcomes });
+    const result = await recordGroupSession(recording.id, { attendees: recording.attendees.split("\n"), outcomes: recording.outcomes, headcount: Number(recording.headcount) || 0 });
     setIsSavingRecord(false);
     if (result.success) {
       setRecording(null);
@@ -244,8 +254,9 @@ export default function GroupGuidance() {
                   </div>
                   <div className="flex items-center gap-3 sm:justify-end">
                     <span className="inline-flex items-center gap-1.5 text-[13px] text-slate-600"><Users size={14} /> {p.participants} attended</span>
+                    {sheets.some((s) => s.refId === p.id) && <span className="text-[12px] text-slate-500">· sheet attached</span>}
                     <span className={`text-xs ${isPast ? "text-slate-500" : "text-blue-700"}`}>{isPast ? "Held" : "Upcoming"}</span>
-                    <button onClick={() => { setRecordError(null); setRecording({ id: p.id, title: p.title, attendees: p.attendees.join("\n"), outcomes: p.outcomes ?? "" }); }}
+                    <button onClick={() => { setRecordError(null); setRecording({ id: p.id, title: p.title, attendees: p.attendees.join("\n"), outcomes: p.outcomes ?? "", headcount: p.attendees.length ? "" : String(p.participants || "") }); }}
                       className="px-3 min-h-9 rounded-full text-[13px] text-blue-700 hover:bg-blue-50">
                       {p.attendees.length || p.outcomes ? "Edit record" : "Record attendance"}
                     </button>
@@ -316,7 +327,18 @@ export default function GroupGuidance() {
       {recording && (
         <Dialog title={`Session record: ${recording.title}`} onClose={() => setRecording(null)}>
           <form onSubmit={saveRecord} className="space-y-4">
-            <Field id="rec-att" label="Attendees (one name per line)">
+            <div>
+              <p className="text-[13px] font-medium text-slate-700 mb-1.5">Attendance sheet</p>
+              <p className="text-xs text-slate-500 mb-2">Attach a photo of the signed attendance form, type the names below, or both.</p>
+              <AttachmentStrip kind="GROUP_ATTENDANCE" refId={recording.id} items={sheets.filter((s) => s.refId === recording.id)}
+                onChange={loadSheets} addLabel="Attach photo of sheet" />
+            </div>
+            <Field id="rec-count" label="Number who attended (if you didn't type the names)">
+              <input id="rec-count" type="number" min={0} max={2000} inputMode="numeric" value={recording.headcount}
+                onChange={(e) => setRecording({ ...recording, headcount: e.target.value })}
+                className="w-40 bg-paper border border-slate-300 rounded-md px-3 py-2.5 text-sm" />
+            </Field>
+            <Field id="rec-att" label="Attendees (one name per line, optional)">
               <textarea id="rec-att" rows={8} value={recording.attendees} onChange={(e) => setRecording({ ...recording, attendees: e.target.value })}
                 className="w-full bg-paper border border-slate-300 rounded-md px-3 py-2.5 text-sm resize-y" />
             </Field>

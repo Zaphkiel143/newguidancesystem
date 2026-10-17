@@ -13,7 +13,15 @@ interface DocumentMeta {
   fileType: string;
   fileSize: number;
   createdAt: Date;
+  reviewStatus: string;
+  reviewNote: string | null;
 }
+
+const REVIEW: Record<string, { label: string; className: string }> = {
+  PENDING: { label: "Waiting for review", className: "bg-orange-50 text-orange-700 border-orange-200" },
+  APPROVED: { label: "Accepted", className: "bg-emerald-50 text-emerald-700 border-emerald-200" },
+  REJECTED: { label: "Not accepted", className: "bg-red-50 text-red-700 border-red-200" },
+};
 
 function formatSize(bytes: number): string {
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
@@ -147,6 +155,8 @@ export const UploadDocuments: React.FC = () => {
           <input
             type="file"
             multiple
+            accept=".pdf,.docx,image/jpeg,image/png,image/webp"
+            aria-label="Choose files to upload"
             onChange={handleFileChange}
             className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
           />
@@ -162,7 +172,7 @@ export const UploadDocuments: React.FC = () => {
           </h3>
 
           <p className="text-xs text-slate-500 font-medium mt-2 max-w-sm leading-relaxed">
-            Supports PDF, Word, Excel, and Images up to 5MB
+            PDF, Word (.docx) or photos, up to 5 MB each. The guidance office checks every upload.
           </p>
         </div>
 
@@ -201,17 +211,20 @@ export const UploadDocuments: React.FC = () => {
                         </span>
                       </div>
                       <span className="text-xs text-slate-500 font-mono">
-                        {new Date(file.createdAt).toLocaleString()}
+                        {new Date(file.createdAt).toLocaleString("en-PH", { timeZone: "Asia/Manila" })}
                       </span>
+                      {file.reviewStatus === "REJECTED" && file.reviewNote && (
+                        <span className="text-xs text-red-700">Reason: {file.reviewNote}</span>
+                      )}
                     </div>
                   </div>
 
                   {/* Status Indicator & Action Triggers Column */}
                   <div className="flex items-center justify-between sm:justify-end gap-4 shrink-0 border-t border-slate-50 pt-2 sm:pt-0 sm:border-0">
                     <div className="text-xs">
-                      <span className="inline-flex items-center gap-1.5 bg-emerald-50 text-emerald-600 font-semibold px-2.5 py-1 rounded-full border border-emerald-200">
-                        <CheckCircle2 size={13} className="stroke-[2.5]" />
-                        Uploaded
+                      <span className={`inline-flex items-center gap-1.5 font-semibold px-2.5 py-1 rounded-full border ${REVIEW[file.reviewStatus]?.className ?? ""}`}>
+                        {file.reviewStatus === "APPROVED" && <CheckCircle2 size={13} className="stroke-[2.5]" />}
+                        {REVIEW[file.reviewStatus]?.label ?? file.reviewStatus}
                       </span>
                     </div>
 

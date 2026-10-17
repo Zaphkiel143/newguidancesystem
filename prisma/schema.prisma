@@ -29,6 +29,7 @@ model Appointment {
   bookedByName    String?
   bookedByRole    String?
   bookedByEmail   String?
+  bookedByPhone   String?
 
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
@@ -37,7 +38,11 @@ model BlockedSlot {
   id          String   @id @default(uuid())
   counselorId String
   date        DateTime // Keep this matching the type used in Appointment
-  time        String   // Changed from startTime/endTime to a single slot string to match your toggle view
+  time        String   // one hourly slot start, e.g. "9:00 AM"
+  // Why the Guidance Associate is unavailable (e.g. "Meeting"); slots blocked
+  // together share a groupId so the whole block can be removed at once.
+  reason      String?
+  groupId     String?
   createdAt   DateTime @default(now())
 }
 
@@ -82,12 +87,23 @@ enum UserRole {
 
 model User {
   id           String   @id @default(uuid())
-  email        String   @unique
+  // School email (students, faculty, guidance). Parents sign in with a phone
+  // number instead and may add an email later for notices.
+  email        String?  @unique
+  phone        String?  @unique
   passwordHash String
   name         String
   role         UserRole
+  // ACTIVE can use the system. PENDING (new faculty or parent accounts) waits
+  // for the Guidance Associate to approve it; REJECTED cannot sign in.
+  status       String   @default("ACTIVE")
+  // Optional profile photo (validated image bytes, see lib/image.ts).
+  avatarData   Bytes?
+  avatarType   String?
 
-  sessions     Session[]
+  sessions      Session[]
+  notifications Notification[]
+  childLinks    ParentChildLink[]
 
   createdAt    DateTime @default(now())
 }
@@ -129,6 +145,12 @@ model Document {
   // (excuse letter, medical certificate, ...). Null for faculty uploads.
   studentName  String?
   category     String?
+
+  // Every upload is checked by the Guidance Associate before it counts:
+  // PENDING, APPROVED or REJECTED (with a note telling the uploader why).
+  reviewStatus String    @default("PENDING")
+  reviewNote   String?
+  reviewedAt   DateTime?
 
   createdAt    DateTime @default(now())
 }
@@ -184,9 +206,11 @@ model StudentProfile {
   id                 String   @id @default(uuid())
   studentId          String   @unique
   name               String   @unique // records elsewhere are linked by name
-  department         String   // "Senior High School" or "College"
-  gradeSection       String
-  strandOrProgram    String?
+  department         String   // "Senior High School" or "Tertiary" (older records may say "College")
+  gradeSection       String   // display label, "<yearLevel> - <section>"
+  yearLevel          String?  // "Grade 11", "Grade 12", "1st Year" ... "4th Year"
+  section            String?
+  strandOrProgram    String?  // SHS strand or tertiary course
   email              String?
   phone              String?
   birthDate          String?
@@ -305,4 +329,60 @@ model LoginCode {
   createdAt DateTime  @default(now())
 
   @@index([email, createdAt])
+}
+
+
+// ---- Parent / guardian accounts ----
+
+// A parent asks to be linked to a child by the child's student ID number. The
+// Guidance Associate checks it against the Individual Inventory and approves
+// it; only then can the parent see that child's profile.
+model ParentChildLink {
+  id               String    @id @default(uuid())
+  parentId         String
+  parent           User      @relation(fields: [parentId], references: [id], onDelete: Cascade)
+  studentIdNumber  String
+  childName        String
+  relationship     String    // Mother, Father, Guardian, ...
+  status           String    @default("PENDING") // PENDING, APPROVED, REJECTED
+  // Set when approved: the inventory record this link points to.
+  studentProfileId String?
+  note             String?
+  reviewedAt       DateTime?
+
+  createdAt        DateTime  @default(now())
+
+  @@unique([parentId, studentIdNumber])
+}
+
+// ---- In-app notifications (bell in the top bar) ----
+
+model Notification {
+  id        String    @id @default(uuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title     String
+  body      String?
+  href      String?   // page to open when clicked
+  readAt    DateTime?
+
+  createdAt DateTime  @default(now())
+
+  @@index([userId, readAt])
+}
+
+// ---- Photos attached by the Guidance Associate ----
+
+// kind DAILY_LOG: photo of a document for a logged session (refId = Appointment.id)
+// kind GROUP_ATTENDANCE: attendance sheet for a group session (refId = GroupGuidanceProgram.id)
+model Attachment {
+  id        String   @id @default(uuid())
+  kind      String
+  refId     String
+  fileName  String
+  fileType  String
+  data      Bytes
+  createdAt DateTime @default(now())
+
+  @@index([kind, refId])
 }

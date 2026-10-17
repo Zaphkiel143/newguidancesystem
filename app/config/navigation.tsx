@@ -18,6 +18,8 @@ ClipboardList,
 Route,
 Inbox,
 UserCog,
+FileCheck,
+Newspaper,
 LucideIcon
 } from 'lucide-react';
 
@@ -45,21 +47,23 @@ counselor: [
     { name: 'Daily Log', icon: NotebookPen, path: '/daily_log' },
     { name: 'Referrals', icon: FileText, path: '/referral' },
     { name: 'Individual Inventory', icon: Archive, path: '/inventory' },
+    { name: 'Document Review', icon: FileCheck, path: '/documents' },
     { name: 'Career Guidance', icon: Compass, path: '/careerguidance' },
     { name: 'Group Guidance', icon: Users, path: '/groupguidance' },
     { name: 'Information Service', icon: Megaphone, path: '/information' },
     { name: 'Events', icon: CalendarDays, path: '/events' },
     { name: 'Messages', icon: MessageSquare, path: '/message' },
-    { name: 'Accounts', icon: UserCog, path: '/accounts' },
+    { name: 'Accounts & Approvals', icon: UserCog, path: '/accounts' },
 ],
 
 parent: [
-    { name: 'Book Appointment', icon: LayoutDashboard, path: '/parent_dashboard' },
+    { name: 'Feed', icon: Newspaper, path: '/parent_bulletin' },
+    { name: 'Book Appointment', icon: Calendar, path: '/parent_dashboard' },
     { name: 'Child Profile', icon: User, path: '/child_profile' },
     { name: 'Refer Child', icon: Baby, path: '/refer_child' },
     { name: 'My Referrals', icon: FileText, path: '/parent_myreferral' },
     { name: 'Messages', icon: MessageSquare, path: '/parent_message' },
-    { name: 'Announcements & Events', icon: Megaphone, path: '/parent_bulletin' },
+    { name: 'My Profile', icon: UserCog, path: '/parent_profile' },
 ],
 
 student: [

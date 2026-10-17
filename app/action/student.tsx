@@ -5,7 +5,12 @@ import { revalidatePath } from "next/cache";
 import { getNlpReply } from "../../lib/nlp";
 import { requireActionUser } from "../../lib/session";
 import { counselorEmails, formatAppointmentWhen, sendEmail } from "../../lib/email";
-import { isBookableTime } from "../config/timeSlots";
+import { announceNewBooking, checkBooking } from "../../lib/booking";
+import { parseTimeToMinutes } from "../config/timeSlots";
+import { DEPARTMENTS, gradeSectionLabel, isShs, normalizeDepartment, programsFor, yearLevelsFor } from "../config/studentLevels";
+import { checkDocument, STUDENT_DOCUMENT_CATEGORIES } from "../../lib/documents";
+import { notifyCounselors } from "../../lib/notify";
+import { announceNewReferral, checkReferral } from "../../lib/referrals";
 
 // Every action here acts as the signed-in student; names never come from the client.
 
@@ -14,10 +19,9 @@ import { isBookableTime } from "../config/timeSlots";
 export async function getMyAppointments() {
   try {
     const me = await requireActionUser("STUDENT");
-    return await db.appointment.findMany({
-      where: { studentName: me.name },
-      orderBy: [{ date: "desc" }, { time: "desc" }],
-    });
+    const rows = await db.appointment.findMany({ where: { studentName: me.name } });
+    // Newest first, by date then clock time (times are text like "8:00 AM").
+    return rows.sort((x, y) => y.date.getTime() - x.date.getTime() || parseTimeToMinutes(y.time) - parseTimeToMinutes(x.time));
   } catch (error) {
     console.error("[student] Failed to fetch appointments:", error);
     return [];
@@ -46,40 +50,37 @@ export async function bookAppointment(formData: {
   timeSlot: string;
   appointmentType: string;
   notes: string;
+  phone?: string;
 }) {
   try {
     const me = await requireActionUser("STUDENT");
-    const date = new Date(formData.dateString);
-    if (!isBookableTime(formData.timeSlot)) {
-      return { success: false, error: "Pick one of the available times (8:00 AM to 3:00 PM, no sessions 12:00–1:00 PM)." };
-    }
-
-    const taken = await db.appointment.findFirst({
-      where: { date, time: formData.timeSlot, status: { not: "CANCELLED" } },
-    });
-    if (taken) return { success: false, error: "That slot was just taken. Please pick another time." };
+    const checked = await checkBooking(formData);
+    if ("error" in checked) return { success: false, error: checked.error };
+    const { date } = checked;
 
     await db.appointment.create({
       data: {
         date,
         time: formData.timeSlot,
         studentName: me.name,
-        appointmentType: formData.appointmentType || null,
-        notes: formData.notes || null,
+        appointmentType: checked.appointmentType,
+        notes: checked.notes,
         requirements: [],
         status: "PENDING",
         bookedByName: me.name,
         bookedByRole: me.roleLabel,
         bookedByEmail: me.email,
+        bookedByPhone: checked.phone ?? me.phone,
       },
     });
+    await announceNewBooking({ who: me.name, role: me.roleLabel, date, time: formData.timeSlot, purpose: checked.appointmentType });
 
     const when = formatAppointmentWhen(date, formData.timeSlot);
     for (const to of await counselorEmails()) {
       await sendEmail(
         to,
         `New appointment request: ${me.name}`,
-        `${me.name} (Student) requested an appointment.\n\nWhen: ${when}\nPurpose: ${formData.appointmentType || "General"}\nNotes: ${formData.notes || "-"}\n\nOpen E-Gabay to confirm or reschedule it.`
+        `${me.name} (Student) requested an appointment.\n\nWhen: ${when}\nPurpose: ${checked.appointmentType}\nNotes: ${checked.notes || "-"}\n\nOpen E-Gabay to confirm or reschedule it.`
       );
     }
 
@@ -180,20 +181,13 @@ export async function submitReferral(formData: {
 }) {
   try {
     const me = await requireActionUser("STUDENT");
-    const studentName = formData.aboutMyself ? me.name : formData.studentName.trim();
-    if (!studentName) return { success: false, error: "Please enter the student's name." };
+    const checked = checkReferral({ ...formData, studentName: formData.aboutMyself ? me.name : formData.studentName });
+    if ("error" in checked) return { success: false, error: checked.error };
 
     await db.referral.create({
-      data: {
-        studentName,
-        referrerName: me.name,
-        referrerRole: "Student",
-        concernType: formData.concernType,
-        priority: formData.priority,
-        description: formData.description,
-        status: "OPEN",
-      },
+      data: { ...checked.value, referrerName: me.name, referrerRole: "Student", status: "OPEN" },
     });
+    await announceNewReferral({ ...checked.value, referrerName: me.name, referrerRole: "Student" });
 
     revalidatePath("/referral");
     revalidatePath("/my_referrals");
@@ -220,9 +214,25 @@ export async function getMyReferrals() {
 
 // ---- Career Planning Program ----
 
+// Senior high or tertiary, from the student's Individual Inventory record.
+// Features like the Career Planning Program are for senior high only.
+export async function getMyStudentLevel() {
+  try {
+    const me = await requireActionUser("STUDENT");
+    const profile = await db.studentProfile.findUnique({ where: { name: me.name }, select: { department: true } });
+    return { hasProfile: Boolean(profile), department: normalizeDepartment(profile?.department), isShs: isShs(profile?.department) };
+  } catch (error) {
+    console.error("[student] Failed to fetch level:", error);
+    return { hasProfile: false, department: null, isShs: false };
+  }
+}
+
 export async function getMyCareerPlan() {
   try {
     const me = await requireActionUser("STUDENT");
+    // The Career Planning Program is for senior high students only.
+    const profile = await db.studentProfile.findUnique({ where: { name: me.name }, select: { department: true } });
+    if (!isShs(profile?.department)) return null;
     return await db.careerPlan.findFirst({ where: { studentName: me.name } });
   } catch (error) {
     console.error("[student] Failed to fetch career plan:", error);
@@ -244,18 +254,16 @@ export async function getMyProfile() {
       }),
       db.document.findMany({
         where: { studentName: me.name, uploaderRole: "Student" },
-        select: { id: true, fileName: true, fileType: true, fileSize: true, category: true, createdAt: true },
+        select: { id: true, fileName: true, fileType: true, fileSize: true, category: true, createdAt: true, reviewStatus: true, reviewNote: true },
         orderBy: { createdAt: "desc" },
       }),
     ]);
-    return { name: me.name, email: me.email, profile, appointments, documents };
+    return { name: me.name, email: me.email, hasPhoto: Boolean(me.avatarType), profile, appointments, documents };
   } catch (error) {
     console.error("[student] Failed to fetch profile:", error);
     return null;
   }
 }
-
-const MAX_DOCUMENT_BYTES = 5 * 1024 * 1024;
 
 export async function submitStudentDocument(formData: {
   category: string;
@@ -266,7 +274,12 @@ export async function submitStudentDocument(formData: {
 }) {
   try {
     const me = await requireActionUser("STUDENT");
-    if (formData.fileSize > MAX_DOCUMENT_BYTES) return { success: false, error: "Files must be 5 MB or smaller." };
+    if (!(STUDENT_DOCUMENT_CATEGORIES as readonly string[]).includes(formData.category)) return { success: false, error: "Choose the type of document." };
+    const file = checkDocument(formData.dataBase64, formData.fileName);
+    if (!file.ok) return { success: false, error: file.error };
+    // Stops someone filling the review queue: at most 10 waiting at a time.
+    const waiting = await db.document.count({ where: { uploaderName: me.name, uploaderRole: "Student", reviewStatus: "PENDING" } });
+    if (waiting >= 10) return { success: false, error: "You have 10 documents waiting for review. Wait for the guidance office to check them first." };
 
     await db.document.create({
       data: {
@@ -274,12 +287,13 @@ export async function submitStudentDocument(formData: {
         uploaderRole: "Student",
         studentName: me.name,
         category: formData.category,
-        fileName: formData.fileName,
-        fileType: formData.fileType,
-        fileSize: formData.fileSize,
-        data: Buffer.from(formData.dataBase64, "base64"),
+        fileName: file.fileName,
+        fileType: file.type,
+        fileSize: file.bytes.length,
+        data: new Uint8Array(file.bytes),
       },
     });
+    await notifyCounselors({ title: "New document to review", body: `${me.name}: ${formData.category}`, href: "/documents" });
 
     revalidatePath("/profile");
     revalidatePath("/inventory");
@@ -380,5 +394,45 @@ export async function sendAiMessage(formData: { conversationId: string; content:
   } catch (error) {
     console.error("[student] Failed to send AI message:", error);
     return { success: false, error: String(error) };
+  }
+}
+
+// First sign-in before this feature, or a record the office hasn't made yet:
+// the student fills in their own school details once. After that only the
+// guidance office can change them.
+export async function completeMyStudentInfo(formData: { studentId: string; department: string; yearLevel: string; program: string; section: string }) {
+  try {
+    const me = await requireActionUser("STUDENT");
+    if (await db.studentProfile.findUnique({ where: { name: me.name } })) {
+      return { success: false, error: "Your record is already on file. Message the guidance office to change it." };
+    }
+    const studentId = formData.studentId.trim();
+    if (!/^[A-Za-z0-9-]{4,20}$/.test(studentId)) return { success: false, error: "Enter your student ID number." };
+    if (!(DEPARTMENTS as readonly string[]).includes(formData.department)) return { success: false, error: "Choose Senior High School or Tertiary." };
+    if (!yearLevelsFor(formData.department).includes(formData.yearLevel)) return { success: false, error: "Choose your grade or year level." };
+    if (!programsFor(formData.department).includes(formData.program)) return { success: false, error: "Choose your strand or course." };
+    const section = formData.section.trim();
+    if (!section || section.length > 30) return { success: false, error: "Enter your section." };
+
+    const sameId = await db.studentProfile.findUnique({ where: { studentId } });
+    if (sameId) return { success: false, error: "That student ID is already on file under another name. Please see the guidance office." };
+
+    await db.studentProfile.create({
+      data: {
+        studentId,
+        name: me.name,
+        email: me.email,
+        department: formData.department,
+        yearLevel: formData.yearLevel,
+        section,
+        strandOrProgram: formData.program,
+        gradeSection: gradeSectionLabel(formData.yearLevel, section),
+      },
+    });
+    revalidatePath("/", "layout");
+    return { success: true };
+  } catch (error) {
+    console.error("[student] Failed to save school info:", error);
+    return { success: false, error: "Couldn't save your details. Try again." };
   }
 }

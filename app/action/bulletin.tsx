@@ -2,16 +2,15 @@
 
 import db from "../../lib/db";
 import { requireActionUser } from "../../lib/session";
+import { manilaTodayAsStoredDate } from "../../lib/time";
 
 // Information Service board + Events, as seen by students, faculty and parents.
 // Opening the board records that this person has seen each announcement shown,
 // which the Guidance Associate sees on the Information Service page.
 
-// Event dates are calendar days stored as UTC midnight, so "today" must be too.
-function startOfToday() {
-  const now = new Date();
-  return new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()));
-}
+// Event dates are calendar days stored as UTC midnight, so "today" must be too
+// (and it's today in the Philippines, not on the UTC server).
+const startOfToday = () => manilaTodayAsStoredDate();
 
 const AUDIENCE_FOR: Record<string, string> = {
   STUDENT: "Students",

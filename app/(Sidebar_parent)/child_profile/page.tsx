@@ -55,7 +55,7 @@ export const ChildProfilePage: React.FC = () => {
 
       {children?.length === 0 ? (
         <p className="border-l-2 border-orange-500 bg-orange-50 pl-3 py-2 text-sm text-orange-800 max-w-xl">
-          No student is linked to your account yet. Ask the Guidance Office to link your child&apos;s record to your account.
+          No student is linked to your account yet. Add your child from <a href="/parent_profile" className="text-blue-700 underline underline-offset-4">My Profile</a> with their student ID; the guidance office will confirm it.
         </p>
       ) : isLoading ? (
         <div className="py-20 flex justify-center text-slate-500">

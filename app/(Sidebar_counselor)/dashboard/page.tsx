@@ -3,14 +3,12 @@ import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
 import { getAppointmentsByDate, getDashboardStats, listReferrals } from '../../action/counselor';
 import { getCurrentUser } from '../../../lib/auth';
-
-// The server runs in UTC; the office is in the Philippines.
-const OFFICE_TZ = "Asia/Manila";
+import { manilaHour, manilaToday, OFFICE_TZ } from '../../../lib/time';
+import StudentQuickSearch from '../../../components/StudentQuickSearch';
 
 const Dashboard = async () => {
   const now = new Date();
-  // YYYY-MM-DD for today in Manila (en-CA formats dates that way).
-  const today = now.toLocaleDateString("en-CA", { timeZone: OFFICE_TZ });
+  const today = manilaToday(now);
   const [todaysAppointments, stats, referrals, user] = await Promise.all([
     getAppointmentsByDate(today),
     getDashboardStats(),
@@ -22,7 +20,7 @@ const Dashboard = async () => {
     .filter((r) => r.status !== "CLOSED" && (r.priority === "High" || r.priority === "Urgent"))
     .slice(0, 5);
 
-  const hour = Number(now.toLocaleString("en-US", { timeZone: OFFICE_TZ, hour: "numeric", hourCycle: "h23" }));
+  const hour = manilaHour(now);
   const greeting = hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
   const firstName = user?.name.split(" ")[0];
   const dateLabel = now.toLocaleDateString("en-PH", { timeZone: OFFICE_TZ, weekday: "long", month: "long", day: "numeric" });
@@ -52,6 +50,32 @@ const Dashboard = async () => {
           )}
         </p>
       </header>
+
+      <div className="mt-8">
+        <StudentQuickSearch />
+      </div>
+
+      {/* Shortcuts to everyday tasks, with what's waiting */}
+      <nav aria-label="Shortcuts" className="mt-6 grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-2">
+        {[
+          { label: "Appointments", href: "/appointment", count: stats.pendingAppointments, hint: "to confirm" },
+          { label: "Referrals", href: "/referral", count: stats.pendingReferrals, hint: "open" },
+          { label: "Documents", href: "/documents", count: stats.documentsToReview, hint: "to review" },
+          { label: "Approvals", href: "/accounts", count: stats.approvalsWaiting, hint: "waiting" },
+          { label: "Daily log", href: "/daily_log" },
+          { label: "Post announcement", href: "/information" },
+        ].map((s) => (
+          <Link key={s.href} href={s.href}
+            className="group rounded-xl border border-rule bg-sheet px-4 py-3 hover:border-blue-300 hover:bg-blue-50 transition-colors min-h-16">
+            <span className="block text-[14px] font-medium text-ink group-hover:text-blue-700">{s.label}</span>
+            {s.count !== undefined && (
+              <span className={`block text-[12px] mt-0.5 ${s.count > 0 ? "text-red-700 font-semibold" : "text-slate-500"}`}>
+                {s.count} {s.hint}
+              </span>
+            )}
+          </Link>
+        ))}
+      </nav>
 
       {/* Figures */}
       <div className="mt-10 grid grid-cols-2 lg:grid-cols-4 gap-3">

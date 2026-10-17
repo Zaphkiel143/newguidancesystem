@@ -1,12 +1,13 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from 'react';
-import { ArrowLeft, ArrowRight, Loader2 } from 'lucide-react';
+import { ArrowLeft, ArrowRight, BookOpen, Briefcase, Heart, Loader2, Users } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { login, loginAsDemo, requestLoginCode, verifyLoginCode } from '../action/auth';
-import { LogoMark } from '../../components/Logo';
+import { login, loginAsDemo, registerParent, requestLoginCode, verifyLoginCode, type SignInAs } from '../action/auth';
 import { SCHOOL_EMAIL_DOMAIN } from '../config/school';
+import { LogoMark } from '../../components/Logo';
+import { DEPARTMENTS, programsFor, SHS, yearLevelsFor } from '../config/studentLevels';
 import type { UserRole } from '../../lib/generated';
 
 const DEMO_ROLES: { role: UserRole; label: string }[] = [
@@ -18,21 +19,39 @@ const DEMO_ROLES: { role: UserRole; label: string }[] = [
 
 const SHOW_DEMO = process.env.NEXT_PUBLIC_DEMO_LOGIN !== "false";
 
-// "email" → enter school email; "code" → enter the emailed code;
-// "name" → first sign-in only, tell us your full name; "password" → parents.
-type Step = "email" | "code" | "name" | "password";
+const NAME_EXTENSIONS = ["Jr.", "Sr.", "II", "III", "IV", "V"];
+const RELATIONSHIPS = ["Mother", "Father", "Guardian", "Grandparent", "Sibling", "Other relative"];
+
+// "who"      → pick who you are
+// "email"    → students/faculty/guidance enter their school email
+// "code"     → enter the emailed code
+// "details"  → first sign-in only: name (and school details for students)
+// "parent"   → parents sign in with mobile number + password
+// "register" → parents create an account (approved by the guidance office)
+// "waiting"  → account created/exists but needs approval
+type Step = "who" | "email" | "code" | "details" | "parent" | "register" | "waiting";
 
 const RESEND_SECONDS = 60;
 
+const WHO_OPTIONS: { value: SignInAs | "PARENT"; label: string; hint: string; icon: typeof Users }[] = [
+  { value: "STUDENT", label: "Student", hint: "Senior high or tertiary", icon: BookOpen },
+  { value: "FACULTY", label: "Faculty or staff", hint: "Teachers and advisers", icon: Briefcase },
+  { value: "PARENT", label: "Parent or guardian", hint: "Sign in with your mobile number", icon: Heart },
+  { value: "COUNSELOR", label: "Guidance office", hint: "Guidance Associates", icon: Users },
+];
+
 const LoginPage = () => {
   const router = useRouter();
-  const [step, setStep] = useState<Step>("email");
+  const [step, setStep] = useState<Step>("who");
+  const [signInAs, setSignInAs] = useState<SignInAs>("STUDENT");
   const [email, setEmail] = useState('');
   const [code, setCode] = useState('');
-  const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
-  const [nameExtension, setNameExtension] = useState('');
+  const [name, setName] = useState({ last: '', first: '', ext: '' });
+  const [student, setStudent] = useState({ studentId: '', department: SHS as string, yearLevel: '', program: '', section: '' });
+  const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
+  const [reg, setReg] = useState({ email: '', password: '', confirm: '', childStudentId: '', childName: '', relationship: '' });
+  const [waitingMessage, setWaitingMessage] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [resendIn, setResendIn] = useState(0);
@@ -49,6 +68,14 @@ const LoginPage = () => {
     setError(null);
     setStep(next);
   };
+
+  const pickWho = (value: SignInAs | "PARENT") => {
+    if (value === "PARENT") return go("parent");
+    setSignInAs(value);
+    go("email");
+  };
+
+  const fullName = () => [name.first, name.last, name.ext].map((s) => s.trim()).filter(Boolean).join(" ");
 
   const sendCode = async (e?: React.FormEvent) => {
     e?.preventDefault();
@@ -71,29 +98,69 @@ const LoginPage = () => {
     e.preventDefault();
     setIsSubmitting(true);
     setError(null);
-    // Records are linked by name in "First Last Ext" order, e.g. "Juan Dela Cruz Jr."
-    const fullName = [firstName, lastName, nameExtension].map((s) => s.trim()).filter(Boolean).join(" ");
-    const result = await verifyLoginCode({ email, code, fullName: step === "name" ? fullName : undefined });
+    const withDetails = step === "details";
+    const result = await verifyLoginCode({
+      email,
+      code,
+      signInAs,
+      fullName: withDetails ? fullName() : undefined,
+      student: withDetails && signInAs === "STUDENT" ? student : undefined,
+    });
     setIsSubmitting(false);
     if (result.success) {
       router.push(result.redirectTo);
-    } else if ("needsName" in result) {
-      go("name");
+    } else if ("needsDetails" in result) {
+      go("details");
+    } else if ("pending" in result) {
+      setWaitingMessage(result.message);
+      go("waiting");
     } else {
       setError(result.error);
     }
   };
 
-  const handlePasswordLogin = async (e: React.FormEvent) => {
+  const handleParentLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
     setError(null);
-    const result = await login({ email, password });
+    const result = await login({ identifier: phone, password });
     setIsSubmitting(false);
     if (result.success) {
       router.push(result.redirectTo);
     } else {
-      setError(result.error || "Login failed.");
+      setError(result.error);
+    }
+  };
+
+  const handleRegister = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (reg.password !== reg.confirm) {
+      setError("The two passwords don't match.");
+      return;
+    }
+    setIsSubmitting(true);
+    setError(null);
+    const result = await registerParent({
+      lastName: name.last,
+      firstName: name.first,
+      nameExtension: name.ext,
+      phone,
+      email: reg.email,
+      password: reg.password,
+      childStudentId: reg.childStudentId,
+      childName: reg.childName,
+      relationship: reg.relationship,
+    });
+    setIsSubmitting(false);
+    if (result.success) {
+      setWaitingMessage(
+        "Thank you. The guidance office will check your child's student ID and confirm your account. Once it's approved, sign in with your mobile number and password."
+      );
+      setPassword('');
+      setReg({ email: '', password: '', confirm: '', childStudentId: '', childName: '', relationship: '' });
+      go("waiting");
+    } else {
+      setError(result.error);
     }
   };
 
@@ -103,18 +170,49 @@ const LoginPage = () => {
   };
 
   const inputClass = "w-full px-3.5 py-2.5 bg-sheet border border-slate-300 rounded-md text-[15px] placeholder:text-slate-400 transition-colors";
+  const labelClass = "block text-[13px] font-medium text-slate-700 mb-1.5";
   const primaryButton = "w-full inline-flex items-center justify-center gap-2 bg-blue-700 text-white font-medium py-2.5 rounded-full hover:bg-blue-800 transition-colors text-[15px] disabled:opacity-60";
+  const backButton = "inline-flex items-center gap-1 px-2 min-h-9 -ml-2 rounded-full text-[13px] text-slate-600 hover:text-ink hover:bg-slate-100";
 
   const heading: Record<Step, [string, string]> = {
+    who: ["Sign in", "Who's signing in?"],
     email: ["Sign in", "Use your STI school email. We'll send you a code."],
-    code: ["Check your email", `We sent a 6-digit code to ${email}.`],
-    name: ["Welcome to E-Gabay", "First time here? Tell us your name."],
-    password: ["Parent or guardian sign in", "Use the email and password from the guidance office."],
+    code: ["Check your email", `We sent a 6-digit code to ${email}. Check Junk too.`],
+    details: ["Welcome to E-Gabay", signInAs === "STUDENT" ? "First time here? Tell us who you are." : "First time here? Tell us your name."],
+    parent: ["Parent or guardian", "Sign in with your mobile number."],
+    register: ["Create a parent account", "The guidance office confirms every parent account before it can be used."],
+    waiting: ["Almost there", waitingMessage],
   };
+
+  const nameFields = (
+    <>
+      <div>
+        <label htmlFor="lastName" className={labelClass}>Last name</label>
+        <input id="lastName" type="text" autoComplete="family-name" placeholder="Dela Cruz" className={inputClass}
+          value={name.last} onChange={(e) => setName({ ...name, last: e.target.value })} required maxLength={60} autoFocus />
+      </div>
+      <div className="grid grid-cols-[1fr_7rem] gap-3">
+        <div>
+          <label htmlFor="firstName" className={labelClass}>First name</label>
+          <input id="firstName" type="text" autoComplete="given-name" placeholder="Juan" className={inputClass}
+            value={name.first} onChange={(e) => setName({ ...name, first: e.target.value })} required maxLength={60} />
+        </div>
+        <div>
+          <label htmlFor="nameExtension" className={labelClass}>
+            Ext. <span className="font-normal text-slate-500">(optional)</span>
+          </label>
+          <select id="nameExtension" autoComplete="honorific-suffix" className={inputClass}
+            value={name.ext} onChange={(e) => setName({ ...name, ext: e.target.value })}>
+            <option value="">None</option>
+            {NAME_EXTENSIONS.map((x) => <option key={x} value={x}>{x}</option>)}
+          </select>
+        </div>
+      </div>
+    </>
+  );
 
   return (
     <main className="min-h-dvh bg-paper flex flex-col">
-      {/* STI top bar: navy with the yellow stripe, as on One STI */}
       <header className="h-(--topbar-h) bg-blue-700 text-white border-t-4 border-sti-yellow shadow-md">
         <div className="h-full max-w-5xl mx-auto px-6 sm:px-10 flex items-center gap-3">
           <LogoMark size={36} tone="light" className="shrink-0" />
@@ -124,93 +222,119 @@ const LoginPage = () => {
         </div>
       </header>
 
-      <div className="flex-1 w-full px-5 py-10 sm:py-14 flex items-center justify-center">
-        {/* One card: campus photo, school logo, then sign in */}
-        <section className="w-full max-w-[420px] bg-sheet border border-rule rounded-2xl shadow-lg overflow-hidden animate-rise-in">
-          <div className="relative h-36 sm:h-40">
-            <Image
-              src="/campus.jpg"
-              alt="STI College Sta. Maria campus"
-              fill
-              priority
-              sizes="420px"
-              className="object-cover object-[50%_58%]"
-            />
+      <div className="flex-1 w-full px-4 sm:px-5 py-8 sm:py-14 flex items-center justify-center">
+        <section className="w-full max-w-[440px] bg-sheet border border-rule rounded-2xl shadow-lg overflow-hidden animate-rise-in">
+          <div className="relative h-32 sm:h-40">
+            <Image src="/campus.jpg" alt="STI College Sta. Maria campus" fill priority sizes="440px" className="object-cover object-[50%_58%]" />
             <div aria-hidden className="absolute inset-x-0 bottom-0 h-16 bg-linear-to-t from-white to-white/0" />
           </div>
 
-          <div className="relative px-7 sm:px-8 pb-8 -mt-10">
+          <div className="relative px-6 sm:px-8 pb-8 -mt-10">
             <Image src="/sti-logo.jpg" alt="STI College Sta. Maria" width={72} height={72} className="rounded-2xl shadow-md ring-4 ring-white" />
             <h1 className="mt-4 text-2xl font-bold tracking-tight text-ink">{heading[step][0]}</h1>
             <p className="text-sm text-slate-500 mt-1 break-words">{heading[step][1]}</p>
 
+            {step === "who" && (
+              <ul className="mt-6 space-y-2">
+                {WHO_OPTIONS.map(({ value, label, hint, icon: Icon }) => (
+                  <li key={value}>
+                    <button
+                      type="button"
+                      onClick={() => pickWho(value)}
+                      className="group w-full flex items-center gap-3 rounded-xl border border-slate-200 hover:border-blue-400 hover:bg-blue-50 px-4 py-3 text-left transition-colors"
+                    >
+                      <span className="w-10 h-10 rounded-full bg-blue-50 group-hover:bg-white text-blue-700 grid place-items-center shrink-0">
+                        <Icon size={18} />
+                      </span>
+                      <span className="flex-1 min-w-0">
+                        <span className="block text-[15px] font-medium text-ink">{label}</span>
+                        <span className="block text-[13px] text-slate-500">{hint}</span>
+                      </span>
+                      <ArrowRight size={16} className="text-slate-300 group-hover:text-blue-700" />
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+
             {step === "email" && (
               <form onSubmit={sendCode} className="mt-7 space-y-5">
                 <div>
-                  <label htmlFor="email" className="block text-[13px] font-medium text-slate-700 mb-1.5">School email</label>
-                  <input
-                    id="email"
-                    type="email"
-                    autoComplete="email"
-                    inputMode="email"
-                    placeholder={`juan.delacruz@${SCHOOL_EMAIL_DOMAIN}`}
-                    className={inputClass}
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                  />
+                  <label htmlFor="email" className={labelClass}>School email</label>
+                  <input id="email" type="email" autoComplete="email" inputMode="email" placeholder={`juan.delacruz@${SCHOOL_EMAIL_DOMAIN}`}
+                    className={inputClass} value={email} onChange={(e) => setEmail(e.target.value)} required autoFocus />
                 </div>
                 <ErrorLine error={error} />
                 <button type="submit" disabled={isSubmitting} className={primaryButton}>
                   {isSubmitting ? <><Loader2 size={16} className="animate-spin" /> Sending code</> : "Send code"}
                 </button>
+                <button type="button" onClick={() => go("who")} className={backButton}>
+                  <ArrowLeft size={14} /> Back
+                </button>
               </form>
             )}
 
-            {(step === "code" || step === "name") && (
+            {(step === "code" || step === "details") && (
               <form onSubmit={checkCode} className="mt-7 space-y-5">
                 {step === "code" ? (
                   <div>
-                    <label htmlFor="code" className="block text-[13px] font-medium text-slate-700 mb-1.5">6-digit code</label>
-                    <input
-                      id="code"
-                      ref={codeInput}
-                      type="text"
-                      inputMode="numeric"
-                      autoComplete="one-time-code"
-                      pattern="[0-9]{6}"
-                      maxLength={6}
-                      placeholder="000000"
-                      className={`${inputClass} font-mono text-center text-xl tracking-[0.5em]`}
-                      value={code}
-                      onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
-                      required
-                    />
+                    <label htmlFor="code" className={labelClass}>6-digit code</label>
+                    <input id="code" ref={codeInput} type="text" inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]{6}" maxLength={6}
+                      placeholder="000000" className={`${inputClass} font-mono text-center text-xl tracking-[0.5em]`} value={code}
+                      onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 6))} required />
                   </div>
                 ) : (
                   <div className="space-y-4">
-                    <div>
-                      <label htmlFor="lastName" className="block text-[13px] font-medium text-slate-700 mb-1.5">Last name</label>
-                      <input id="lastName" type="text" autoComplete="family-name" placeholder="Dela Cruz" className={inputClass}
-                        value={lastName} onChange={(e) => setLastName(e.target.value)} required autoFocus />
-                    </div>
-                    <div className="grid grid-cols-[1fr_7rem] gap-3">
-                      <div>
-                        <label htmlFor="firstName" className="block text-[13px] font-medium text-slate-700 mb-1.5">First name</label>
-                        <input id="firstName" type="text" autoComplete="given-name" placeholder="Juan" className={inputClass}
-                          value={firstName} onChange={(e) => setFirstName(e.target.value)} required />
-                      </div>
-                      <div>
-                        <label htmlFor="nameExtension" className="block text-[13px] font-medium text-slate-700 mb-1.5">
-                          Ext. <span className="font-normal text-slate-500">(optional)</span>
-                        </label>
-                        <select id="nameExtension" autoComplete="honorific-suffix" className={inputClass}
-                          value={nameExtension} onChange={(e) => setNameExtension(e.target.value)}>
-                          <option value="">None</option>
-                          {["Jr.", "Sr.", "II", "III", "IV", "V"].map((x) => <option key={x} value={x}>{x}</option>)}
-                        </select>
-                      </div>
-                    </div>
+                    {nameFields}
+                    {signInAs === "STUDENT" && (
+                      <>
+                        <div>
+                          <label htmlFor="studentId" className={labelClass}>Student ID number</label>
+                          <input id="studentId" type="text" placeholder="02000123456" className={inputClass} value={student.studentId}
+                            onChange={(e) => setStudent({ ...student, studentId: e.target.value })} required maxLength={20} />
+                        </div>
+                        <fieldset>
+                          <legend className={labelClass}>Level</legend>
+                          <div className="grid grid-cols-2 gap-2">
+                            {DEPARTMENTS.map((d) => (
+                              <label key={d} className={`flex items-center gap-2 rounded-lg border px-3 min-h-11 cursor-pointer text-[14px] ${student.department === d ? "border-blue-600 bg-blue-50" : "border-slate-300"}`}>
+                                <input type="radio" name="department" checked={student.department === d} className="accent-blue-700"
+                                  onChange={() => setStudent({ ...student, department: d, yearLevel: '', program: '' })} />
+                                {d === SHS ? "Senior High" : d}
+                              </label>
+                            ))}
+                          </div>
+                        </fieldset>
+                        <div className="grid grid-cols-2 gap-3">
+                          <div>
+                            <label htmlFor="yearLevel" className={labelClass}>{student.department === SHS ? "Grade" : "Year level"}</label>
+                            <select id="yearLevel" className={inputClass} value={student.yearLevel} required
+                              onChange={(e) => setStudent({ ...student, yearLevel: e.target.value })}>
+                              <option value="" disabled>Choose…</option>
+                              {yearLevelsFor(student.department).map((y) => <option key={y} value={y}>{y}</option>)}
+                            </select>
+                          </div>
+                          <div>
+                            <label htmlFor="section" className={labelClass}>Section</label>
+                            <input id="section" type="text" placeholder="e.g. A" className={inputClass} value={student.section} maxLength={30}
+                              onChange={(e) => setStudent({ ...student, section: e.target.value })} required />
+                          </div>
+                        </div>
+                        <div>
+                          <label htmlFor="program" className={labelClass}>{student.department === SHS ? "Strand" : "Course"}</label>
+                          <select id="program" className={inputClass} value={student.program} required
+                            onChange={(e) => setStudent({ ...student, program: e.target.value })}>
+                            <option value="" disabled>Choose…</option>
+                            {programsFor(student.department).map((p) => <option key={p} value={p}>{p}</option>)}
+                          </select>
+                        </div>
+                      </>
+                    )}
+                    {signInAs !== "STUDENT" && (
+                      <p className="text-xs text-slate-600 bg-butter-50 border border-butter-200 rounded-lg px-3 py-2">
+                        New {signInAs === "FACULTY" ? "faculty" : "guidance office"} accounts are approved by the guidance office before they can be used.
+                      </p>
+                    )}
                     <p className="text-xs text-slate-500">Use the name on your school records so the guidance office can find you.</p>
                   </div>
                 )}
@@ -220,7 +344,7 @@ const LoginPage = () => {
                 </button>
                 {step === "code" && (
                   <div className="flex items-center justify-between text-[13px]">
-                    <button type="button" onClick={() => go("email")} className="inline-flex items-center gap-1 px-2 min-h-9 -ml-2 rounded-full text-slate-600 hover:text-ink hover:bg-slate-100">
+                    <button type="button" onClick={() => go("email")} className={backButton}>
                       <ArrowLeft size={14} /> Different email
                     </button>
                     <button type="button" onClick={() => sendCode()} disabled={resendIn > 0 || isSubmitting}
@@ -232,15 +356,15 @@ const LoginPage = () => {
               </form>
             )}
 
-            {step === "password" && (
-              <form onSubmit={handlePasswordLogin} className="mt-7 space-y-5">
+            {step === "parent" && (
+              <form onSubmit={handleParentLogin} className="mt-7 space-y-5">
                 <div>
-                  <label htmlFor="p-email" className="block text-[13px] font-medium text-slate-700 mb-1.5">Email</label>
-                  <input id="p-email" type="email" autoComplete="email" className={inputClass} value={email}
-                    onChange={(e) => setEmail(e.target.value)} required />
+                  <label htmlFor="phone" className={labelClass}>Mobile number</label>
+                  <input id="phone" type="tel" inputMode="tel" autoComplete="tel" placeholder="0917 123 4567" className={inputClass}
+                    value={phone} onChange={(e) => setPhone(e.target.value)} required autoFocus />
                 </div>
                 <div>
-                  <label htmlFor="password" className="block text-[13px] font-medium text-slate-700 mb-1.5">Password</label>
+                  <label htmlFor="password" className={labelClass}>Password</label>
                   <input id="password" type="password" autoComplete="current-password" className={inputClass} value={password}
                     onChange={(e) => setPassword(e.target.value)} required />
                 </div>
@@ -248,44 +372,109 @@ const LoginPage = () => {
                 <button type="submit" disabled={isSubmitting} className={primaryButton}>
                   {isSubmitting ? <><Loader2 size={16} className="animate-spin" /> Signing in</> : "Sign in"}
                 </button>
-                <button type="button" onClick={() => go("email")} className="inline-flex items-center gap-1 px-2 min-h-9 -ml-2 rounded-full text-[13px] text-slate-600 hover:text-ink hover:bg-slate-100">
-                  <ArrowLeft size={14} /> Student or staff? Use your school email
+                <p className="text-center text-[13px] text-slate-600">
+                  No account yet?{" "}
+                  <button type="button" onClick={() => go("register")} className="px-1 rounded text-blue-700 font-medium hover:underline underline-offset-4">
+                    Create a parent account
+                  </button>
+                </p>
+                <button type="button" onClick={() => go("who")} className={backButton}>
+                  <ArrowLeft size={14} /> Back
                 </button>
               </form>
             )}
 
-            {step === "email" && (
-              <p className="mt-5 text-center text-[13px] text-slate-600">
-                Parent or guardian?{" "}
-                <button type="button" onClick={() => go("password")} className="px-1 rounded text-blue-700 font-medium hover:underline underline-offset-4">
-                  Sign in with a password
+            {step === "register" && (
+              <form onSubmit={handleRegister} className="mt-7 space-y-4">
+                {nameFields}
+                <div>
+                  <label htmlFor="r-phone" className={labelClass}>Mobile number</label>
+                  <input id="r-phone" type="tel" inputMode="tel" autoComplete="tel" placeholder="0917 123 4567" className={inputClass}
+                    value={phone} onChange={(e) => setPhone(e.target.value)} required />
+                  <p className="text-xs text-slate-500 mt-1">You&apos;ll use this to sign in. The guidance office may call it to confirm.</p>
+                </div>
+                <div>
+                  <label htmlFor="r-email" className={labelClass}>
+                    Email <span className="font-normal text-slate-500">(optional, for appointment notices)</span>
+                  </label>
+                  <input id="r-email" type="email" autoComplete="email" className={inputClass} value={reg.email}
+                    onChange={(e) => setReg({ ...reg, email: e.target.value })} />
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label htmlFor="r-password" className={labelClass}>Password</label>
+                    <input id="r-password" type="password" autoComplete="new-password" minLength={8} className={inputClass} value={reg.password}
+                      onChange={(e) => setReg({ ...reg, password: e.target.value })} required />
+                  </div>
+                  <div>
+                    <label htmlFor="r-confirm" className={labelClass}>Repeat password</label>
+                    <input id="r-confirm" type="password" autoComplete="new-password" minLength={8} className={inputClass} value={reg.confirm}
+                      onChange={(e) => setReg({ ...reg, confirm: e.target.value })} required />
+                  </div>
+                </div>
+                <p className="text-xs text-slate-500 -mt-2">At least 8 characters.</p>
+
+                <fieldset className="border-t border-rule pt-4 space-y-4">
+                  <legend className="text-[14px] font-semibold text-ink pr-2">Your child at STI</legend>
+                  <div>
+                    <label htmlFor="r-child" className={labelClass}>Child&apos;s full name</label>
+                    <input id="r-child" type="text" className={inputClass} value={reg.childName} maxLength={120}
+                      onChange={(e) => setReg({ ...reg, childName: e.target.value })} required />
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label htmlFor="r-childId" className={labelClass}>Child&apos;s student ID</label>
+                      <input id="r-childId" type="text" className={inputClass} value={reg.childStudentId} maxLength={20}
+                        onChange={(e) => setReg({ ...reg, childStudentId: e.target.value })} required />
+                    </div>
+                    <div>
+                      <label htmlFor="r-rel" className={labelClass}>You are their</label>
+                      <select id="r-rel" className={inputClass} value={reg.relationship} required
+                        onChange={(e) => setReg({ ...reg, relationship: e.target.value })}>
+                        <option value="" disabled>Choose…</option>
+                        {RELATIONSHIPS.map((r) => <option key={r} value={r}>{r}</option>)}
+                      </select>
+                    </div>
+                  </div>
+                </fieldset>
+
+                <ErrorLine error={error} />
+                <button type="submit" disabled={isSubmitting} className={primaryButton}>
+                  {isSubmitting ? <><Loader2 size={16} className="animate-spin" /> Sending</> : "Create account"}
                 </button>
-              </p>
+                <button type="button" onClick={() => go("parent")} className={backButton}>
+                  <ArrowLeft size={14} /> I already have an account
+                </button>
+              </form>
             )}
 
-            {SHOW_DEMO && (
-            <div className="mt-8 pt-6 border-t border-rule">
-              <p className="text-[13px] text-slate-500">Demo accounts</p>
-              <ul className="mt-2 divide-y divide-rule">
-                {DEMO_ROLES.map(({ role, label }) => (
-                  <li key={role}>
-                    <button
-                      type="button"
-                      onClick={() => handleDemoAccess(role)}
-                      disabled={demoLoadingRole !== null}
-                      className="group w-full flex items-center justify-between min-h-11 text-[14px] text-ink hover:text-blue-700 disabled:opacity-50 transition-colors"
-                    >
-                      <span>Continue as {label}</span>
-                      {demoLoadingRole === role ? (
-                        <Loader2 size={15} className="animate-spin text-slate-500" />
-                      ) : (
-                        <ArrowRight size={15} className="text-slate-300 group-hover:text-blue-700 group-hover:translate-x-0.5 transition" />
-                      )}
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            </div>
+            {step === "waiting" && (
+              <div className="mt-6">
+                <button type="button" onClick={() => go("who")} className={primaryButton}>
+                  Back to sign in
+                </button>
+              </div>
+            )}
+
+            {SHOW_DEMO && (step === "who" || step === "email") && (
+              <div className="mt-8 pt-6 border-t border-rule">
+                <p className="text-[13px] text-slate-500">Demo accounts</p>
+                <ul className="mt-2 divide-y divide-rule">
+                  {DEMO_ROLES.map(({ role, label }) => (
+                    <li key={role}>
+                      <button type="button" onClick={() => handleDemoAccess(role)} disabled={demoLoadingRole !== null}
+                        className="group w-full flex items-center justify-between min-h-11 text-[14px] text-ink hover:text-blue-700 disabled:opacity-50 transition-colors">
+                        <span>Continue as {label}</span>
+                        {demoLoadingRole === role ? (
+                          <Loader2 size={15} className="animate-spin text-slate-500" />
+                        ) : (
+                          <ArrowRight size={15} className="text-slate-300 group-hover:text-blue-700 group-hover:translate-x-0.5 transition" />
+                        )}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </div>
             )}
           </div>
         </section>

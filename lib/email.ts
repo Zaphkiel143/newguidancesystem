@@ -58,8 +58,8 @@ export async function sendEmail(
 }
 
 export async function counselorEmails(): Promise<string[]> {
-  const counselors = await db.user.findMany({ where: { role: "COUNSELOR" }, select: { email: true } });
-  return counselors.map((c) => c.email);
+  const counselors = await db.user.findMany({ where: { role: "COUNSELOR", status: "ACTIVE" }, select: { email: true } });
+  return counselors.map((c) => c.email).filter((e): e is string => Boolean(e));
 }
 
 // Appointment dates are calendar days stored as UTC midnight, so format in UTC;

@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { Calendar as CalendarIcon, Clock, AlignLeft, Users, CheckCircle } from 'lucide-react';
 import { getBookedTimesForDate, bookAppointment } from '../../action/parent';
+import { APPOINTMENT_PURPOSES, OTHER, withOther } from '../../config/studentLevels';
 import { DAY_SCHEDULE } from '../../config/timeSlots';
 import { useMyChildren } from '../useMyChildren';
 
@@ -25,7 +26,8 @@ export const ParentBookAppointment: React.FC = () => {
   const selectedChild = chosenChild || children?.[0]?.name || '';
   const [selectedDate, setSelectedDate] = useState<string>(minSelectableDate);
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
-  const [purpose, setPurpose] = useState<string>('Academic Counseling');
+  const [purpose, setPurpose] = useState<string>(APPOINTMENT_PURPOSES[0]);
+  const [purposeOther, setPurposeOther] = useState<string>('');
   const [description, setDescription] = useState<string>('');
   const [isSubmitted, setIsSubmitted] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
@@ -50,6 +52,10 @@ export const ParentBookAppointment: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedChild || !selectedDate || !selectedTime || !purpose) return;
+    if (purpose === OTHER && !purposeOther.trim()) {
+      setError("Tell us the purpose of the appointment.");
+      return;
+    }
 
     setIsSaving(true);
     setError(null);
@@ -57,7 +63,7 @@ export const ParentBookAppointment: React.FC = () => {
     const result = await bookAppointment({
       dateString: selectedDate,
       timeSlot: selectedTime,
-      appointmentType: purpose,
+      appointmentType: withOther(purpose, purposeOther),
       notes: description,
       childName: selectedChild,
     });
@@ -65,8 +71,9 @@ export const ParentBookAppointment: React.FC = () => {
     setIsSaving(false);
 
     if (result.success) {
-      setIsSubmitted("Appointment request submitted successfully!");
+      setIsSubmitted("Appointment request sent. The guidance office will confirm it, and you'll get a notification.");
       setDescription('');
+      setPurposeOther('');
       setSelectedTime(null);
       const taken = await getBookedTimesForDate(selectedDate);
       setBookedTimes(taken);
@@ -185,25 +192,33 @@ export const ParentBookAppointment: React.FC = () => {
             
             {/* Meeting Purpose Selection */}
             <div className="space-y-2">
-              <label className="text-xs font-semibold text-slate-700 block">
+              <label htmlFor="parent-purpose" className="text-xs font-semibold text-slate-700 block">
                 Purpose of Appointment <span className="text-red-500">*</span>
               </label>
               <div className="relative">
                 <select
+                  id="parent-purpose"
                   value={purpose}
                   onChange={(e) => setPurpose(e.target.value)}
                   required
                   className="w-full px-4 py-2.5 bg-white border border-slate-200 text-sm font-semibold rounded-xl text-slate-700 appearance-none focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all"
                 >
-                  <option value="Academic Counseling">Academic Counseling</option>
-                  <option value="Behavioral Concern">Behavioral Concern</option>
-                  <option value="Career/College Planning">Career/College Planning</option>
-                  <option value="General Consultation">General Consultation</option>
+                  {APPOINTMENT_PURPOSES.map((p) => <option key={p} value={p}>{p}</option>)}
                 </select>
                 <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-slate-500 text-xs">
                   ▼
                 </div>
               </div>
+              {purpose === OTHER && (
+                <input
+                  aria-label="Purpose of the appointment"
+                  placeholder="What is the appointment for?"
+                  value={purposeOther}
+                  maxLength={60}
+                  onChange={(e) => setPurposeOther(e.target.value)}
+                  className="w-full px-4 py-2.5 bg-white border border-slate-200 text-sm rounded-xl focus:outline-none focus:border-blue-500"
+                />
+              )}
             </div>
 
             {/* Optional Context Textarea Description */}
@@ -216,6 +231,7 @@ export const ParentBookAppointment: React.FC = () => {
                 rows={4}
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
+                maxLength={1000}
                 placeholder="Briefly describe the reason for the meeting or any specific concerns you wish to discuss with the counselor..."
                 className="w-full px-4 py-3 bg-white border border-slate-200 text-sm rounded-xl placeholder:text-slate-400 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all resize-none leading-relaxed"
               />

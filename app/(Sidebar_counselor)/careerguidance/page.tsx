@@ -3,6 +3,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { Check, X, Loader2, Plus } from 'lucide-react';
 import { CAREER_STEPS } from '../../config/careerSteps';
+import { isShs } from '../../config/studentLevels';
 import {
   getCareerPlans,
   addCareerPlanStudent,
@@ -51,7 +52,7 @@ export default function CareerTracker() {
   }, []);
 
   const enrolled = new Set(plans?.map((p) => p.studentName));
-  const eligible = profiles.filter((s) => s.department === "Senior High School" && !enrolled.has(s.name));
+  const eligible = profiles.filter((s) => isShs(s.department) && !enrolled.has(s.name));
 
   const confirmAdvance = async () => {
     if (!advancing) return;
@@ -76,7 +77,7 @@ export default function CareerTracker() {
     const result = await addCareerPlanStudent({
       studentName: student.name,
       studentId: student.studentId,
-      grade: student.gradeSection.split(" - ")[0],
+      grade: student.yearLevel ?? student.gradeSection.split(" - ")[0],
       facilitator: newFacilitator,
     });
     setIsAdding(false);

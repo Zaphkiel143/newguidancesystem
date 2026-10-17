@@ -3,8 +3,10 @@
 import React, { useEffect, useState } from 'react';
 import { Search, AlertTriangle, Clock, CheckCircle, X } from 'lucide-react';
 import { listReferrals, updateReferralStatus, addReferralNotes, sendReferralFeedback } from '../../action/counselor';
-import type { Referral } from '../../../lib/generated';
 import InlineError from '../../../components/InlineError';
+import ContactLinks from '../../../components/ContactLinks';
+
+type Referral = Awaited<ReturnType<typeof listReferrals>>[number];
 
 type ModalState = { type: 'notes' | 'feedback'; referral: Referral } | null;
 
@@ -280,6 +282,22 @@ const ReferralCard = ({ referral, isUpdating, onAdvanceStatus, onAddNotes, onSen
             {referral.notes}
           </div>
         )}
+
+        {/* Reach the people involved */}
+        <div className="mb-5 grid gap-3 sm:grid-cols-2">
+          <div>
+            <p className="text-xs font-semibold text-slate-500 mb-1.5">Contact {referral.referrerName} ({referral.referrerRole.toLowerCase()})</p>
+            <ContactLinks name={referral.referrerName} email={referral.referrerEmail} phone={referral.referrerPhone}
+              subject={`About your referral for ${referral.studentName}`} />
+          </div>
+          {referral.studentName !== referral.referrerName && (
+            <div>
+              <p className="text-xs font-semibold text-slate-500 mb-1.5">Contact {referral.studentName} (student)</p>
+              <ContactLinks name={referral.studentName} email={referral.studentEmail} phone={referral.studentPhone}
+                subject="Guidance and Counseling Office" />
+            </div>
+          )}
+        </div>
 
         {/* Actions */}
         <div className="flex flex-wrap gap-3">

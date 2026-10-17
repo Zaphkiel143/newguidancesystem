@@ -1,5 +1,5 @@
-import BulletinBoard from "../../../components/BulletinBoard";
+import ParentFeed from "../../../components/ParentFeed";
 
 export default function Page() {
-  return <BulletinBoard />;
+  return <ParentFeed />;
 }

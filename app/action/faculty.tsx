@@ -4,7 +4,11 @@ import db from "../../lib/db";
 import { revalidatePath } from "next/cache";
 import { requireActionUser } from "../../lib/session";
 import { counselorEmails, formatAppointmentWhen, sendEmail } from "../../lib/email";
-import { isBookableTime } from "../config/timeSlots";
+import { announceNewBooking, checkBooking } from "../../lib/booking";
+import { parseTimeToMinutes } from "../config/timeSlots";
+import { announceNewReferral, checkReferral } from "../../lib/referrals";
+import { checkDocument } from "../../lib/documents";
+import { notifyCounselors } from "../../lib/notify";
 
 // Every action here acts as the signed-in faculty member; names never come from the client.
 
@@ -13,10 +17,9 @@ import { isBookableTime } from "../config/timeSlots";
 export async function getMyAppointments() {
   try {
     const me = await requireActionUser("FACULTY");
-    return await db.appointment.findMany({
-      where: { studentName: me.name },
-      orderBy: [{ date: "desc" }, { time: "desc" }],
-    });
+    const rows = await db.appointment.findMany({ where: { studentName: me.name } });
+    // Newest first, by date then clock time (times are text like "8:00 AM").
+    return rows.sort((x, y) => y.date.getTime() - x.date.getTime() || parseTimeToMinutes(y.time) - parseTimeToMinutes(x.time));
   } catch (error) {
     console.error("[faculty] Failed to fetch appointments:", error);
     return [];
@@ -45,40 +48,37 @@ export async function bookAppointment(formData: {
   timeSlot: string;
   appointmentType: string;
   notes: string;
+  phone?: string;
 }) {
   try {
     const me = await requireActionUser("FACULTY");
-    const date = new Date(formData.dateString);
-    if (!isBookableTime(formData.timeSlot)) {
-      return { success: false, error: "Pick one of the available times (8:00 AM to 3:00 PM, no sessions 12:00–1:00 PM)." };
-    }
-
-    const taken = await db.appointment.findFirst({
-      where: { date, time: formData.timeSlot, status: { not: "CANCELLED" } },
-    });
-    if (taken) return { success: false, error: "That slot was just taken. Please pick another time." };
+    const checked = await checkBooking(formData);
+    if ("error" in checked) return { success: false, error: checked.error };
+    const { date } = checked;
 
     await db.appointment.create({
       data: {
         date,
         time: formData.timeSlot,
         studentName: me.name,
-        appointmentType: formData.appointmentType || null,
-        notes: formData.notes || null,
+        appointmentType: checked.appointmentType,
+        notes: checked.notes,
         requirements: [],
         status: "PENDING",
         bookedByName: me.name,
         bookedByRole: me.roleLabel,
         bookedByEmail: me.email,
+        bookedByPhone: checked.phone ?? me.phone,
       },
     });
+    await announceNewBooking({ who: me.name, role: me.roleLabel, date, time: formData.timeSlot, purpose: checked.appointmentType });
 
     const when = formatAppointmentWhen(date, formData.timeSlot);
     for (const to of await counselorEmails()) {
       await sendEmail(
         to,
         `New appointment request: ${me.name}`,
-        `${me.name} (Faculty) requested an appointment.\n\nWhen: ${when}\nPurpose: ${formData.appointmentType || "General"}\nNotes: ${formData.notes || "-"}\n\nOpen E-Gabay to confirm or reschedule it.`
+        `${me.name} (Faculty) requested an appointment.\n\nWhen: ${when}\nPurpose: ${checked.appointmentType}\nNotes: ${checked.notes || "-"}\n\nOpen E-Gabay to confirm or reschedule it.`
       );
     }
 
@@ -177,17 +177,13 @@ export async function submitReferral(formData: {
 }) {
   try {
     const me = await requireActionUser("FACULTY");
+    const checked = checkReferral(formData);
+    if ("error" in checked) return { success: false, error: checked.error };
+
     await db.referral.create({
-      data: {
-        studentName: formData.studentName,
-        referrerName: me.name,
-        referrerRole: "Faculty",
-        concernType: formData.concernType,
-        priority: formData.priority,
-        description: formData.description,
-        status: "OPEN",
-      },
+      data: { ...checked.value, referrerName: me.name, referrerRole: "Faculty", status: "OPEN" },
     });
+    await announceNewReferral({ ...checked.value, referrerName: me.name, referrerRole: "Faculty" });
 
     revalidatePath("/referral");
     revalidatePath("/faculty_myreferral");
@@ -223,16 +219,22 @@ export async function uploadDocument(formData: {
 }) {
   try {
     const me = await requireActionUser("FACULTY");
+    const file = checkDocument(formData.dataBase64, formData.fileName);
+    if (!file.ok) return { success: false, error: file.error };
+    const waiting = await db.document.count({ where: { uploaderName: me.name, uploaderRole: "Faculty", reviewStatus: "PENDING" } });
+    if (waiting >= 20) return { success: false, error: "You have 20 documents waiting for review. Wait for the guidance office to check them first." };
+
     await db.document.create({
       data: {
         uploaderName: me.name,
         uploaderRole: "Faculty",
-        fileName: formData.fileName,
-        fileType: formData.fileType,
-        fileSize: formData.fileSize,
-        data: Buffer.from(formData.dataBase64, "base64"),
+        fileName: file.fileName,
+        fileType: file.type,
+        fileSize: file.bytes.length,
+        data: new Uint8Array(file.bytes),
       },
     });
+    await notifyCounselors({ title: "New document to review", body: `${me.name} (faculty): ${file.fileName}`, href: "/documents" });
 
     revalidatePath("/upload_documents");
     return { success: true };
@@ -247,7 +249,7 @@ export async function getMyDocuments() {
     const me = await requireActionUser("FACULTY");
     return await db.document.findMany({
       where: { uploaderName: me.name, uploaderRole: "Faculty" },
-      select: { id: true, fileName: true, fileType: true, fileSize: true, createdAt: true },
+      select: { id: true, fileName: true, fileType: true, fileSize: true, createdAt: true, reviewStatus: true, reviewNote: true },
       orderBy: { createdAt: "desc" },
     });
   } catch (error) {

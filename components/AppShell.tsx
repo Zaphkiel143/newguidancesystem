@@ -8,14 +8,27 @@ import { navigationConfig, MenuItem } from "../app/config/navigation";
 import { logout } from "../app/action/auth";
 import { CurrentUserProvider } from "./CurrentUser";
 import { LogoMark } from "./Logo";
+import { FloatingDock, NoticeBell, NoticesProvider } from "./Notices";
 
 type Role = "faculty" | "counselor" | "student" | "parent";
 
 interface AppShellProps {
   role: Role;
   userName: string;
+  // Paths hidden from this user's menu (e.g. My Career Plan for tertiary students).
+  hiddenPaths?: string[];
+  // Profile photo URL, when the user has uploaded one.
+  avatarUrl?: string | null;
   children: React.ReactNode;
 }
+
+// Where the floating message button leads, per role.
+const MESSAGES_PATH: Record<Role, string> = {
+  counselor: "/message",
+  student: "/my_messages",
+  faculty: "/faculty_message",
+  parent: "/parent_message",
+};
 
 // Matches the labels stored on records (lib/session.ts ROLE_LABEL).
 const RECORD_ROLE: Record<Role, string> = {
@@ -41,12 +54,12 @@ function initials(name: string): string {
     .join("");
 }
 
-export function AppShell({ role, userName, children }: AppShellProps) {
+export function AppShell({ role, userName, hiddenPaths = [], avatarUrl, children }: AppShellProps) {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
   const [lastPathname, setLastPathname] = useState(pathname);
 
-  const menuItems = navigationConfig[role] || [];
+  const menuItems = (navigationConfig[role] || []).filter((item) => !hiddenPaths.includes(item.path));
 
   // Close the mobile menu automatically whenever the route changes
   if (pathname !== lastPathname) {
@@ -54,7 +67,19 @@ export function AppShell({ role, userName, children }: AppShellProps) {
     setIsOpen(false);
   }
 
+  const avatar = (
+    <span className="w-9 h-9 rounded-full bg-sti-yellow text-blue-900 grid place-items-center text-xs font-bold shrink-0 overflow-hidden">
+      {avatarUrl ? (
+        // eslint-disable-next-line @next/next/no-img-element -- served by our own authenticated route
+        <img src={avatarUrl} alt="" className="w-full h-full object-cover" />
+      ) : (
+        initials(userName)
+      )}
+    </span>
+  );
+
   return (
+    <NoticesProvider>
     <div className="min-h-screen bg-paper">
       {/* STI top bar: navy with the yellow stripe, as on One STI */}
       <header className="sticky top-0 z-40 h-(--topbar-h) bg-blue-700 text-white border-t-4 border-sti-yellow flex items-center gap-3 px-3 md:px-5 shadow-md">
@@ -74,14 +99,13 @@ export function AppShell({ role, userName, children }: AppShellProps) {
           <span className="hidden sm:block text-[13px] text-white/80 truncate">Guidance and Counseling Office · STI College Sta. Maria</span>
         </Link>
 
-        <div className="ml-auto flex items-center gap-3">
+        <div className="ml-auto flex items-center gap-1 sm:gap-3">
+          <NoticeBell />
           <span className="hidden md:block text-right leading-tight">
             <span className="block text-[13px] font-medium">{userName}</span>
             <span className="block text-xs text-white/75">{ROLE_LABEL[role]}</span>
           </span>
-          <span className="w-9 h-9 rounded-full bg-sti-yellow text-blue-900 grid place-items-center text-xs font-bold shrink-0">
-            {initials(userName)}
-          </span>
+          {avatar}
         </div>
       </header>
 
@@ -136,7 +160,7 @@ export function AppShell({ role, userName, children }: AppShellProps) {
                       className={isActive ? "text-blue-700" : "text-blue-500"}
                     />
                     <span>{item.name}</span>
-                    {item.unreadCount && (
+                    {!!item.unreadCount && (
                       <span className="ml-auto text-xs font-semibold text-blue-700 tabular">
                         {item.unreadCount}
                       </span>
@@ -150,9 +174,7 @@ export function AppShell({ role, userName, children }: AppShellProps) {
 
         <div className="px-5 py-4 border-t border-blue-100">
           <div className="md:hidden flex items-center gap-3 mb-2">
-            <span className="w-9 h-9 rounded-full bg-sti-yellow text-blue-900 grid place-items-center text-xs font-bold shrink-0">
-              {initials(userName)}
-            </span>
+            {avatar}
             <div className="min-w-0 flex-1 leading-tight">
               <p className="text-[13px] font-medium text-ink truncate">{userName}</p>
               <p className="text-[12px] text-slate-500 truncate">{ROLE_LABEL[role]}</p>
@@ -168,9 +190,12 @@ export function AppShell({ role, userName, children }: AppShellProps) {
         </div>
       </aside>
 
-      <main className="md:pl-(--sidebar-w) min-w-0">
+      <main className="md:pl-(--sidebar-w) min-w-0 pb-20">
         <CurrentUserProvider user={{ name: userName, roleLabel: RECORD_ROLE[role] }}>{children}</CurrentUserProvider>
       </main>
+
+      <FloatingDock messagesPath={MESSAGES_PATH[role]} withChatbot={role === "student"} />
     </div>
+    </NoticesProvider>
   );
 }

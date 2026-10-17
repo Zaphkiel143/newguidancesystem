@@ -3,7 +3,8 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
-import { getMyAppointments, getMyCareerPlan, getMyReferrals } from '../../action/student';
+import { getMyAppointments, getMyCareerPlan, getMyReferrals, getMyStudentLevel } from '../../action/student';
+import { manilaToday } from '../../../lib/time';
 import { getBulletinPreview } from '../../action/bulletin';
 import { CAREER_STEPS } from '../../config/careerSteps';
 import { useCurrentUser } from '../../../components/CurrentUser';
@@ -14,13 +15,14 @@ type Announcement = NonNullable<Awaited<ReturnType<typeof getBulletinPreview>>["
 const SHORTCUTS = [
   { label: 'Book an appointment', path: '/my_appointments' },
   { label: 'Answer a needs assessment', path: '/assessments' },
-  { label: 'Refer yourself or a classmate', path: '/refer_student' },
+  { label: 'Refer yourself or someone', path: '/refer_student' },
   { label: 'Message the guidance office', path: '/my_messages' },
 ];
 
 interface DashboardData {
   appointments: DbAppointment[];
   careerPlan: CareerPlan | null;
+  level: Awaited<ReturnType<typeof getMyStudentLevel>>;
   openReferrals: number;
   announcement: Announcement | null;
   event: DbEvent | null;
@@ -34,16 +36,18 @@ export const DashboardContent: React.FC = () => {
     let cancelled = false;
 
     (async () => {
-      const [appointments, careerPlan, referrals, preview] = await Promise.all([
+      const [appointments, careerPlan, referrals, preview, level] = await Promise.all([
         getMyAppointments(),
         getMyCareerPlan(),
         getMyReferrals(),
         getBulletinPreview(),
+        getMyStudentLevel(),
       ]);
       if (cancelled) return;
       setData({
         appointments,
         careerPlan,
+        level,
         openReferrals: referrals.filter((r) => r.status !== "CLOSED").length,
         announcement: preview.announcement,
         event: preview.event,
@@ -56,8 +60,8 @@ export const DashboardContent: React.FC = () => {
   }, []);
 
   // Appointment dates are calendar days stored as UTC midnight; compare as YYYY-MM-DD.
-  const now = new Date();
-  const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+  const today = manilaToday();
+  const isShs = data?.level.isShs ?? false;
   const day = (d: Date) => new Date(d).toISOString().slice(0, 10);
   const upcoming = data?.appointments
     .filter((a) => a.status !== "CANCELLED" && day(a.date) >= today)
@@ -66,9 +70,10 @@ export const DashboardContent: React.FC = () => {
   const stagesDone = data?.careerPlan?.stepDates.filter(Boolean).length ?? 0;
   const nextStage = data?.careerPlan ? CAREER_STEPS[data.careerPlan.stepDates.findIndex((d) => !d)] : undefined;
 
+  // Career stages only apply to senior high students (Career Planning Program).
   const figures = [
     { id: 'sessions', count: sessionsDone, label: 'Sessions attended' },
-    { id: 'cpp', count: stagesDone, label: `of ${CAREER_STEPS.length} career stages done` },
+    ...(isShs ? [{ id: 'cpp', count: stagesDone, label: `of ${CAREER_STEPS.length} career stages done` }] : []),
     { id: 'referrals', count: data?.openReferrals ?? 0, label: 'Open referrals you sent' },
   ];
 
@@ -79,14 +84,20 @@ export const DashboardContent: React.FC = () => {
         <p className="mt-2 text-slate-600">Here&apos;s where things stand with the guidance office.</p>
       </header>
 
-      {/* E-Gabay invitation: one quiet line, not a banner */}
+      {data && !data.level.hasProfile && (
+        <Link href="/profile" className="mt-6 block rounded-2xl border border-orange-200 bg-orange-50 px-5 py-4 text-[14px] text-orange-900 hover:bg-orange-100 transition-colors">
+          <strong className="font-semibold">Add your school details.</strong> Tell us your student ID, level and section so the guidance office can find your records. →
+        </Link>
+      )}
+
+      {/* E-Gabay invitation. Stacks on phones so the text never spills out of the box. */}
       <Link
         href="/ai_chat"
-        className="group mt-8 flex items-center justify-between gap-6 border border-butter-200 bg-butter-100 rounded-full px-6 py-5 hover:border-butter-300 hover:bg-butter-50 transition-colors"
+        className="group mt-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-6 border border-butter-200 bg-butter-100 rounded-2xl px-5 sm:px-6 py-5 hover:border-butter-300 hover:bg-butter-50 transition-colors"
       >
-        <span>
-          <span className="block font-serif text-[22px] text-ink leading-snug">Need someone to talk to?</span>
-          <span className="block text-[14px] text-slate-500 mt-1">
+        <span className="min-w-0">
+          <span className="block font-serif text-[20px] sm:text-[22px] text-ink leading-snug break-words">Need someone to talk to?</span>
+          <span className="block text-[14px] text-slate-600 mt-1 break-words">
             E-Gabay listens in English or Filipino. Your counselor is still a message away.
           </span>
         </span>
@@ -99,21 +110,23 @@ export const DashboardContent: React.FC = () => {
         <section>
           <div className="flex items-baseline justify-between mb-3">
             <h2 className="font-serif text-[22px] text-ink">My progress</h2>
-            <Link href="/my_career" className="text-[13px] text-slate-500 hover:text-blue-700 transition-colors">
-              Career plan
-            </Link>
+            {isShs && (
+              <Link href="/my_career" className="text-[13px] text-slate-500 hover:text-blue-700 transition-colors">
+                Career plan
+              </Link>
+            )}
           </div>
-          <div className="grid grid-cols-3 gap-3">
+          <div className={`grid gap-3 ${figures.length === 3 ? "grid-cols-3" : "grid-cols-2"}`}>
             {figures.map((f) => (
-              <div key={f.id} className="bg-blue-50 border border-blue-100 rounded-xl py-5 px-4">
-                <p className="font-serif text-[40px] leading-none text-ink tabular">{data ? f.count : "–"}</p>
-                <p className="text-[13px] text-slate-500 mt-2">{f.label}</p>
+              <div key={f.id} className="min-w-0 bg-blue-50 border border-blue-100 rounded-xl py-4 sm:py-5 px-3 sm:px-4">
+                <p className="font-serif text-[32px] sm:text-[40px] leading-none text-ink tabular">{data ? f.count : "–"}</p>
+                <p className="text-[12px] sm:text-[13px] text-slate-500 mt-2 break-words">{f.label}</p>
               </div>
             ))}
           </div>
 
           <div className="mt-6 text-[14px] text-slate-600">
-            {!data ? null : data.careerPlan ? (
+            {!data || !isShs ? null : data.careerPlan ? (
               <>
                 <div className="h-1.5 bg-blue-100 rounded-full overflow-hidden">
                   <div className="h-full bg-blue-500 rounded-full" style={{ width: `${(stagesDone / CAREER_STEPS.length) * 100}%` }} />

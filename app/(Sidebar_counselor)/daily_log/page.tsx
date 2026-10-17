@@ -1,10 +1,12 @@
 "use client";
 
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Loader2, Printer } from 'lucide-react';
 import { getDailyLog } from '../../action/counselor';
 import type { Appointment } from '../../../lib/generated';
+import { listAttachments } from '../../action/attachments';
+import AttachmentStrip, { type AttachmentMeta } from '../../../components/AttachmentStrip';
 
 function toDateInput(d: Date) {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
@@ -21,6 +23,11 @@ export default function DailyLogPage() {
   const [to, setTo] = useState(toDateInput(today));
   const [rows, setRows] = useState<Appointment[] | null>(null);
   const [loadedRange, setLoadedRange] = useState("");
+  const [photos, setPhotos] = useState<AttachmentMeta[]>([]);
+
+  const loadPhotos = useCallback(async (ids: string[]) => {
+    setPhotos(await listAttachments("DAILY_LOG", ids));
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -29,6 +36,8 @@ export default function DailyLogPage() {
       if (cancelled) return;
       setRows(data);
       setLoadedRange(`${from}|${to}`);
+      const attached = await listAttachments("DAILY_LOG", data.map((r) => r.id));
+      if (!cancelled) setPhotos(attached);
     })();
     return () => {
       cancelled = true;
@@ -104,6 +113,10 @@ export default function DailyLogPage() {
                         ) : (
                           <span className="block text-xs text-slate-500 mt-1">No session notes yet</span>
                         )}
+                        <span className="block mt-2">
+                          <AttachmentStrip kind="DAILY_LOG" refId={a.id} items={photos.filter((p) => p.refId === a.id)}
+                            onChange={() => loadPhotos((rows ?? []).map((r) => r.id))} addLabel="Add photo of a document" />
+                        </span>
                       </td>
                       <td className={`py-3 text-xs text-right w-24 ${a.status === "CONFIRMED" ? "text-emerald-700" : "text-orange-700"}`}>
                         {a.status === "CONFIRMED" ? "Confirmed" : "Pending"}

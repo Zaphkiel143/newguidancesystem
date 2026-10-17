@@ -2,7 +2,9 @@
 
 import React, { useCallback, useEffect, useState } from 'react';
 import { Search, X, Loader2, Plus, Download } from 'lucide-react';
-import { listStudentProfiles, getStudentProfile, saveStudentProfile, getDocumentFile, type StudentProfileInput } from '../../action/counselor';
+import { listStudentProfiles, getStudentProfile, saveStudentProfile, type StudentProfileInput } from '../../action/counselor';
+import { DEPARTMENTS, SHS, TERTIARY, normalizeDepartment, programsFor, yearLevelsFor } from '../../config/studentLevels';
+import { formatPhone } from '../../../lib/phone';
 import { CAREER_STEPS } from '../../config/careerSteps';
 import InlineError from '../../../components/InlineError';
 
@@ -10,8 +12,8 @@ type Row = Awaited<ReturnType<typeof listStudentProfiles>>[number];
 type Detail = Awaited<ReturnType<typeof getStudentProfile>>;
 
 const EMPTY: StudentProfileInput = {
-  studentId: "", name: "", department: "Senior High School", gradeSection: "", strandOrProgram: "", email: "", phone: "",
-  birthDate: "", address: "", guardianName: "", guardianContact: "", parentName: "", familyBackground: "",
+  studentId: "", name: "", department: SHS, yearLevel: "", section: "", strandOrProgram: "", email: "", phone: "",
+  birthDate: "", address: "", guardianName: "", guardianContact: "", familyBackground: "",
   educationalHistory: "", counselorNotes: "",
 };
 
@@ -20,8 +22,10 @@ function toInput(row: Row): StudentProfileInput {
     id: row.id,
     studentId: row.studentId,
     name: row.name,
-    department: row.department,
-    gradeSection: row.gradeSection,
+    department: normalizeDepartment(row.department) ?? SHS,
+    // Older records only have the combined label ("Grade 12 - STEM-A").
+    yearLevel: row.yearLevel ?? row.gradeSection.split(" - ")[0] ?? "",
+    section: row.section ?? row.gradeSection.split(" - ").slice(1).join(" - "),
     strandOrProgram: row.strandOrProgram ?? "",
     email: row.email ?? "",
     phone: row.phone ?? "",
@@ -29,7 +33,6 @@ function toInput(row: Row): StudentProfileInput {
     address: row.address ?? "",
     guardianName: row.guardianName ?? "",
     guardianContact: row.guardianContact ?? "",
-    parentName: row.parentName ?? "",
     familyBackground: row.familyBackground ?? "",
     educationalHistory: row.educationalHistory ?? "",
     counselorNotes: row.counselorNotes ?? "",
@@ -53,25 +56,41 @@ export default function StudentInventory() {
     let cancelled = false;
     (async () => {
       const data = await listStudentProfiles();
-      if (!cancelled) setRows(data);
+      if (cancelled) return;
+      setRows(data);
+      // Opened from the dashboard search: /inventory?student=<record id>
+      const wanted = new URLSearchParams(window.location.search).get("student");
+      const row = wanted ? data.find((r) => r.id === wanted) : undefined;
+      if (row) setViewing(row);
     })();
     return () => {
       cancelled = true;
     };
   }, []);
 
+  // Load the details whenever a student is opened (from the list or a link).
+  useEffect(() => {
+    if (!viewing) return;
+    let cancelled = false;
+    getStudentProfile(viewing.name).then((d) => {
+      if (!cancelled) setDetail(d);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [viewing]);
+
   const q = query.trim().toLowerCase();
   const filtered = (rows ?? []).filter(
     (r) =>
-      (department === "All" || r.department === department) &&
+      (department === "All" || normalizeDepartment(r.department) === department) &&
       (!q || r.name.toLowerCase().includes(q) || r.studentId.toLowerCase().includes(q) || r.gradeSection.toLowerCase().includes(q))
   );
 
-  const openStudent = async (row: Row) => {
-    setViewing(row);
+  const openStudent = (row: Row) => {
     setDetail(null);
     setDownloadError(null);
-    setDetail(await getStudentProfile(row.name));
+    setViewing(row);
   };
 
   const handleSave = async (e: React.FormEvent) => {
@@ -93,14 +112,10 @@ export default function StudentInventory() {
     }
   };
 
-  const download = async (id: string) => {
+  // Opens the file in a new tab (PDFs and photos) or downloads it (Word files).
+  const download = (id: string) => {
     setDownloadError(null);
-    const file = await getDocumentFile(id);
-    if (!file) return setDownloadError("Couldn't download that file. Try again.");
-    const a = document.createElement("a");
-    a.href = `data:${file.fileType};base64,${file.dataBase64}`;
-    a.download = file.fileName;
-    a.click();
+    window.open(`/api/files/document/${id}`, "_blank", "noopener");
   };
 
   return (
@@ -126,8 +141,8 @@ export default function StudentInventory() {
         <select aria-label="Filter by department" value={department} onChange={(e) => setDepartment(e.target.value)}
           className="bg-sheet border border-slate-300 rounded-md px-3 py-2.5 text-sm">
           <option value="All">All departments</option>
-          <option>Senior High School</option>
-          <option>College</option>
+          <option value={SHS}>Senior High School</option>
+          <option value={TERTIARY}>Tertiary</option>
         </select>
       </div>
 
@@ -199,7 +214,9 @@ export default function StudentInventory() {
                     <Field label="Address" value={detail.profile?.address} />
                     <Field label="Guardian" value={detail.profile?.guardianName} />
                     <Field label="Guardian contact" value={detail.profile?.guardianContact} />
-                    <Field label="Linked parent account" value={detail.profile?.parentName} />
+                    <Field label="Linked parent accounts" value={
+                      detail.parents.length ? detail.parents.map((p) => `${p.parent.name} (${p.relationship.toLowerCase()}${p.parent.phone ? `, ${formatPhone(p.parent.phone)}` : ""})`).join("; ") : null
+                    } />
                   </dl>
                   <LongField label="Family background" value={detail.profile?.familyBackground} />
                   <LongField label="Educational history" value={detail.profile?.educationalHistory} />
@@ -283,27 +300,45 @@ export default function StudentInventory() {
             <div className="p-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
               <Input label="Student ID *" value={form.studentId} onChange={(v) => setForm({ ...form, studentId: v })} required />
               <Input label="Full name *" value={form.name} onChange={(v) => setForm({ ...form, name: v })} required
-                hint={form.id ? "Renaming doesn't update past appointments or referrals, which are linked by name." : undefined} />
+                hint={form.id ? "Renaming also updates this student's appointments, referrals and account." : undefined} />
+              <fieldset className="sm:col-span-2">
+                <legend className="block text-[13px] font-medium text-slate-700 mb-1.5">Level *</legend>
+                <div className="grid grid-cols-2 gap-2 max-w-md">
+                  {DEPARTMENTS.map((d) => (
+                    <label key={d} className={`flex items-center gap-2 rounded-md border px-3 min-h-11 cursor-pointer text-sm ${form.department === d ? "border-blue-600 bg-blue-50" : "border-slate-300"}`}>
+                      <input type="radio" name="f-dept" className="accent-blue-700" checked={form.department === d}
+                        onChange={() => setForm({ ...form, department: d, yearLevel: "", strandOrProgram: "" })} />
+                      {d === SHS ? "Senior High School" : "Tertiary"}
+                    </label>
+                  ))}
+                </div>
+              </fieldset>
               <div>
-                <label htmlFor="f-dept" className="block text-[13px] font-medium text-slate-700 mb-1.5">Department *</label>
-                <select id="f-dept" value={form.department} onChange={(e) => setForm({ ...form, department: e.target.value })}
+                <label htmlFor="f-year" className="block text-[13px] font-medium text-slate-700 mb-1.5">{form.department === SHS ? "Grade *" : "Year level *"}</label>
+                <select id="f-year" value={form.yearLevel} required onChange={(e) => setForm({ ...form, yearLevel: e.target.value })}
                   className="w-full bg-paper border border-slate-300 rounded-md px-3 py-2.5 text-sm">
-                  <option>Senior High School</option>
-                  <option>College</option>
+                  <option value="" disabled>Choose…</option>
+                  {yearLevelsFor(form.department).map((y) => <option key={y} value={y}>{y}</option>)}
                 </select>
               </div>
-              <Input label="Grade & section *" placeholder="e.g. Grade 12 - STEM-A" value={form.gradeSection} onChange={(v) => setForm({ ...form, gradeSection: v })} required />
-              <Input label="Strand / program" value={form.strandOrProgram} onChange={(v) => setForm({ ...form, strandOrProgram: v })} />
+              <div>
+                <label htmlFor="f-program" className="block text-[13px] font-medium text-slate-700 mb-1.5">{form.department === SHS ? "Strand" : "Course"}</label>
+                <select id="f-program" value={form.strandOrProgram} onChange={(e) => setForm({ ...form, strandOrProgram: e.target.value })}
+                  className="w-full bg-paper border border-slate-300 rounded-md px-3 py-2.5 text-sm">
+                  <option value="">Not set</option>
+                  {programsFor(form.department).map((p) => <option key={p} value={p}>{p}</option>)}
+                </select>
+              </div>
+              <Input label="Section" placeholder="e.g. A" value={form.section} onChange={(v) => setForm({ ...form, section: v })} />
               <Input label="School email" type="email" value={form.email} onChange={(v) => setForm({ ...form, email: v })} />
               <Input label="Phone" value={form.phone} onChange={(v) => setForm({ ...form, phone: v })} />
               <Input label="Date of birth" type="date" value={form.birthDate} onChange={(v) => setForm({ ...form, birthDate: v })} />
               <div className="sm:col-span-2"><Input label="Address" value={form.address} onChange={(v) => setForm({ ...form, address: v })} /></div>
               <Input label="Guardian name" value={form.guardianName} onChange={(v) => setForm({ ...form, guardianName: v })} />
               <Input label="Guardian contact" value={form.guardianContact} onChange={(v) => setForm({ ...form, guardianContact: v })} />
-              <div className="sm:col-span-2">
-                <Input label="Linked parent account (name)" value={form.parentName} onChange={(v) => setForm({ ...form, parentName: v })}
-                  hint="Exactly the parent's E-Gabay account name. That parent can then book for, refer, and view this student." />
-              </div>
+              <p className="sm:col-span-2 text-xs text-slate-500">
+                Parents link themselves with this student&apos;s ID; you confirm them under Accounts &amp; approvals.
+              </p>
               <TextArea label="Family background" value={form.familyBackground} onChange={(v) => setForm({ ...form, familyBackground: v })} />
               <TextArea label="Educational history" value={form.educationalHistory} onChange={(v) => setForm({ ...form, educationalHistory: v })} />
               <div className="sm:col-span-2">

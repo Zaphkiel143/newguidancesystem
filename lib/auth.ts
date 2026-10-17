@@ -51,8 +51,12 @@ export async function getCurrentUser() {
   const token = cookieStore.get(SESSION_COOKIE)?.value;
   if (!token) return null;
 
-  const session = await db.session.findUnique({ where: { token }, include: { user: true } });
+  // The photo bytes are left out here; /api/me/avatar loads them on their own.
+  const session = await db.session.findUnique({ where: { token }, include: { user: { omit: { avatarData: true } } } });
   if (!session || session.expiresAt < new Date()) return null;
+  // An account the guidance office hasn't approved (or has turned off) can't
+  // use an old session either.
+  if (session.user.status !== "ACTIVE") return null;
 
   return session.user;
 }

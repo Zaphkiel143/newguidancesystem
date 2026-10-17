@@ -1,515 +1,411 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { saveAppointmentDetails, getAppointmentsByDate, getDateStats, updateAppointmentStatus } from "../../action/counselor";
-import type { Appointment as DbAppointment } from "../../../lib/generated";
-import { STANDARD_DAY_HOURS, SLOT_MINUTES, LUNCH_BREAK_LABEL, parseTimeToMinutes, formatMinutesToTime } from "../../config/timeSlots";
+import { useCallback, useEffect, useState } from "react";
+import { Ban, ChevronLeft, ChevronRight, Loader2, Lock, X } from "lucide-react";
+import {
+  blockTime,
+  getDaySchedule,
+  saveAppointmentDetails,
+  unblockTime,
+  updateAppointmentStatus,
+} from "../../action/counselor";
+import { DAY_SCHEDULE, LUNCH_BREAK_LABEL, STANDARD_DAY_HOURS, SLOT_MINUTES, formatMinutesToTime, parseTimeToMinutes } from "../../config/timeSlots";
+import { APPOINTMENT_PURPOSES, OTHER } from "../../config/studentLevels";
 import InlineError from "../../../components/InlineError";
+import ContactLinks from "../../../components/ContactLinks";
+import { manilaToday } from "../../../lib/time";
 
+type Schedule = Awaited<ReturnType<typeof getDaySchedule>>;
+type Appt = Schedule["appointments"][number];
+type Block = Schedule["blocks"][number];
 
-interface Appointment {
-  id: string;
-  studentName: string;
-  appointmentType: string;
-  time: string;
-  date: string;
-  status: "CONFIRMED" | "PENDING" | "CANCELLED";
-  notes?: string;
-  requirements?: string[];
+const BLOCK_REASONS = ["Meeting", "Seminar / Training", "Class or school activity", "On leave", OTHER];
+// End-time choices: the end of every bookable hour (9:00 AM … 4:00 PM).
+const END_TIMES = STANDARD_DAY_HOURS.map((t) => formatMinutesToTime(parseTimeToMinutes(t) + SLOT_MINUTES));
+
+function shiftDate(date: string, days: number) {
+  const d = new Date(`${date}T00:00:00Z`);
+  d.setUTCDate(d.getUTCDate() + days);
+  return d.toISOString().slice(0, 10);
 }
 
-function toAppointment(a: DbAppointment, dateString: string): Appointment {
-  return {
-    id: a.id,
-    studentName: a.studentName || "Unnamed Student",
-    appointmentType: a.appointmentType || "",
-    time: a.time,
-    date: dateString,
-    status: a.status as "CONFIRMED" | "PENDING" | "CANCELLED",
-    notes: a.notes || "",
-    requirements: a.requirements || [],
-  };
+function dayLabel(date: string) {
+  return new Date(`${date}T00:00:00Z`).toLocaleDateString("en-PH", { weekday: "long", month: "long", day: "numeric", year: "numeric", timeZone: "UTC" });
 }
 
-// Local (not UTC) YYYY-MM-DD — avoids the date input rolling back a day near midnight in timezones behind UTC
-function toDateString(date: Date): string {
-  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
-}
-
-function getMinSelectableDate(): string {
-  const tomorrow = new Date();
-  tomorrow.setDate(tomorrow.getDate() + 1);
-  return toDateString(tomorrow);
-}
+const field = "w-full text-sm bg-sheet border border-slate-300 rounded-lg px-3 py-2.5";
+const fieldLabel = "text-xs font-semibold text-slate-700 block mb-1";
 
 export default function AppointmentScheduling() {
-  const minSelectableDate = getMinSelectableDate();
-  const [selectedDate, setSelectedDate] = useState<string>(minSelectableDate);
-  const [appointments, setAppointments] = useState<Appointment[]>([]);
-  const [stats, setStats] = useState({ available: 12, confirmed: 0, pending: 0 });
-
-  // Modal State Management
-  const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
-  const [isFormOpen, setIsFormOpen] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
-  
-  const [appointmentType, setAppointmentType] = useState("");
-  const [notes, setNotes] = useState("");
-  const [requirements, setRequirements] = useState<string[]>([]);
-  const [newRequirementInput, setNewRequirementInput] = useState("");
-  const [confirmingId, setConfirmingId] = useState<string | null>(null);
-  const [cancelingId, setCancelingId] = useState<string | null>(null);
-  // Errors are shown where they happened: on the appointment card, or in the edit form.
+  const today = manilaToday();
+  const [date, setDate] = useState(today);
+  const [schedule, setSchedule] = useState<Schedule | null>(null);
+  const [loadedDate, setLoadedDate] = useState("");
+  const [busyId, setBusyId] = useState<string | null>(null);
   const [rowError, setRowError] = useState<{ id: string; message: string } | null>(null);
+
+  // Manage / reschedule an appointment
+  const [editing, setEditing] = useState<Appt | null>(null);
+  const [edit, setEdit] = useState({ date: "", time: "", purpose: "", purposeOther: "", notes: "", requirement: "", requirements: [] as string[] });
+  const [saving, setSaving] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
-  const [editDate, setEditDate] = useState("");
-  const [editTime, setEditTime] = useState("");
 
-  // Block Time Slot: a block covers exactly one hourly slot, saved under that slot's
-  // start time so the slot shows as taken for students, faculty and parents.
-  const [blockStartTime, setBlockStartTime] = useState<string>(STANDARD_DAY_HOURS[0]);
-  const [blockEndTime, setBlockEndTime] = useState<string>(
-    formatMinutesToTime(parseTimeToMinutes(STANDARD_DAY_HOURS[0]) + SLOT_MINUTES)
-  );
-  const isBlockMode = selectedAppointment?.id.startsWith("block-") ?? false;
+  // Block time
+  const [blocking, setBlocking] = useState(false);
+  const [block, setBlock] = useState({ wholeDay: false, start: STANDARD_DAY_HOURS[0], end: END_TIMES[0], reason: "Meeting", reasonOther: "" });
+  const [blockResult, setBlockResult] = useState<string | null>(null);
+  const [blockError, setBlockError] = useState<string | null>(null);
 
-  const blockEndTimeOptions = [formatMinutesToTime(parseTimeToMinutes(blockStartTime) + SLOT_MINUTES)];
+  const load = useCallback(async (d: string) => {
+    const data = await getDaySchedule(d);
+    setSchedule(data);
+    setLoadedDate(d);
+  }, []);
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- end time is always start + 1 hour
-  const applyBlockTimeRange = (startTime: string, _endTime: string) => {
-    setSelectedAppointment((prev) => (prev ? { ...prev, time: startTime } : prev));
-  };
-
-  const handleBlockStartTimeChange = (value: string) => {
-    setBlockStartTime(value);
-    const defaultEndTime = formatMinutesToTime(parseTimeToMinutes(value) + SLOT_MINUTES);
-    setBlockEndTime(defaultEndTime);
-    applyBlockTimeRange(value, defaultEndTime);
-  };
-
-  const handleBlockEndTimeChange = (value: string) => {
-    setBlockEndTime(value);
-    applyBlockTimeRange(blockStartTime, value);
-  };
-
-  const refreshData = async (dateString: string) => {
-    const [freshStats, freshAppointments] = await Promise.all([
-      getDateStats(dateString),
-      getAppointmentsByDate(dateString),
-    ]);
-    setStats(freshStats);
-    setAppointments(freshAppointments.map((a) => toAppointment(a, dateString)));
-  };
-
-  // Load overview stats and appointment details for the selected date from the database
   useEffect(() => {
     let cancelled = false;
-
-    (async () => {
-      const [freshStats, freshAppointments] = await Promise.all([
-        getDateStats(selectedDate),
-        getAppointmentsByDate(selectedDate),
-      ]);
+    getDaySchedule(date).then((data) => {
       if (cancelled) return;
-
-      setStats(freshStats);
-      setAppointments(freshAppointments.map((a) => toAppointment(a, selectedDate)));
-    })();
-
+      setSchedule(data);
+      setLoadedDate(date);
+    });
     return () => {
       cancelled = true;
     };
-  }, [selectedDate]);
+  }, [date]);
 
-  const handleStartSession = async (appointment: Appointment) => {
-    setConfirmingId(appointment.id);
+  const loading = loadedDate !== date;
+  const appts = schedule?.appointments ?? [];
+  const blocks = schedule?.blocks ?? [];
+  const confirmed = appts.filter((a) => a.status === "CONFIRMED").length;
+  const pending = appts.filter((a) => a.status === "PENDING").length;
+  const open = Math.max(0, STANDARD_DAY_HOURS.length - appts.length - blocks.length);
+
+  const setStatus = async (a: Appt, status: "CONFIRMED" | "CANCELLED") => {
+    if (status === "CANCELLED" && !window.confirm(`Cancel the ${a.time} appointment for ${a.studentName}? They'll be notified.`)) return;
+    setBusyId(a.id);
     setRowError(null);
-    const result = await updateAppointmentStatus(appointment.id, "CONFIRMED");
-    setConfirmingId(null);
-
-    if (result.success) {
-      await refreshData(selectedDate);
-    } else {
-      setRowError({ id: appointment.id, message: "Couldn't start this session. Try again." });
-    }
+    const result = await updateAppointmentStatus(a.id, status);
+    setBusyId(null);
+    if (result.success) await load(date);
+    else setRowError({ id: a.id, message: status === "CONFIRMED" ? "Couldn't confirm it. Try again." : "Couldn't cancel it. Try again." });
   };
 
-  // NEW: Handler to open the modal specifically for blocking out a schedule slot
-  const handleBlockTimeSlot = () => {
-    const startTime = STANDARD_DAY_HOURS[0];
-    const endTime = formatMinutesToTime(parseTimeToMinutes(startTime) + SLOT_MINUTES);
-
-    setBlockStartTime(startTime);
-    setBlockEndTime(endTime);
-    setSelectedAppointment({
-      id: `block-${Date.now()}`,
-      studentName: "ADMINISTRATIVE BLOCK",
-      appointmentType: "Unavailable / Reserved Slot",
-      time: startTime,
-      date: selectedDate,
-      status: "CONFIRMED"
+  const openEditor = (a: Appt) => {
+    const known = (APPOINTMENT_PURPOSES as readonly string[]).includes(a.appointmentType ?? "");
+    const isOther = a.appointmentType?.startsWith("Other: ");
+    setEditing(a);
+    setEdit({
+      date: new Date(a.date).toISOString().slice(0, 10),
+      time: a.time,
+      purpose: known ? a.appointmentType! : isOther ? OTHER : a.appointmentType || APPOINTMENT_PURPOSES[0],
+      purposeOther: isOther ? a.appointmentType!.slice(7) : "",
+      notes: a.notes ?? "",
+      requirement: "",
+      requirements: a.requirements ?? [],
     });
-    setAppointmentType("Unavailable / Reserved Slot");
-    setNotes("Time slot manually blocked by counselor.");
     setFormError(null);
-    setRequirements([]);
-    setIsFormOpen(true);
   };
 
-  const handleOpenConfigurator = (appointment: Appointment) => {
-    setSelectedAppointment(appointment);
-    setAppointmentType(appointment.appointmentType || "Individual Counseling");
-    setNotes(appointment.notes || "");
-    setRequirements(appointment.requirements || []);
-    setFormError(null);
-    setEditDate(appointment.date);
-    setEditTime(appointment.time);
-    setIsFormOpen(true);
-  };
-
-  const handleCancelAppointment = async (appointment: Appointment) => {
-    if (!window.confirm(`Cancel the appointment for ${appointment.studentName}?`)) return;
-
-    setCancelingId(appointment.id);
-    setRowError(null);
-    const result = await updateAppointmentStatus(appointment.id, "CANCELLED");
-    setCancelingId(null);
-
-    if (result.success) {
-      await refreshData(selectedDate);
-    } else {
-      setRowError({ id: appointment.id, message: "Couldn't cancel this appointment. Try again." });
-    }
-  };
-
-  const handleAddRequirement = () => {
-    if (newRequirementInput.trim()) {
-      setRequirements([...requirements, newRequirementInput.trim()]);
-      setNewRequirementInput("");
-    }
-  };
-
-  const handleRemoveRequirement = (index: number) => {
-    setRequirements(requirements.filter((_, i) => i !== index));
-  };
-
-  const handleFormSubmit = async (e: React.FormEvent) => {
+  const saveEdit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSaving(true);
+    if (!editing) return;
+    if (edit.purpose === OTHER && !edit.purposeOther.trim()) return setFormError("Type the purpose.");
+    setSaving(true);
     setFormError(null);
-
-    // Blocks use a fake client-side id ("block-<timestamp>") that doesn't exist
-    // in the database yet — sending it as appointmentId would make the server
-    // try to UPDATE a row that was never created, which always fails silently.
-    const isNewBlock = selectedAppointment?.id.startsWith("block-") ?? false;
-
     const result = await saveAppointmentDetails({
-      appointmentId: isNewBlock ? undefined : selectedAppointment?.id,
-      dateString: isBlockMode ? selectedDate : editDate,
-      timeSlot: isBlockMode ? (selectedAppointment?.time || "") : editTime,
-      appointmentType,
-      notes,
-      requirements,
+      appointmentId: editing.id,
+      dateString: edit.date,
+      timeSlot: edit.time,
+      appointmentType: edit.purpose === OTHER ? `Other: ${edit.purposeOther.trim()}` : edit.purpose,
+      notes: edit.notes,
+      requirements: edit.requirements,
     });
-
-    setIsSaving(false);
+    setSaving(false);
     if (result.success) {
-      setIsFormOpen(false);
-
-      // Re-fetch from the database instead of patching local state — the local
-      // copy may still be holding the fake "block-<timestamp>" id that only
-      // ever existed on the client, never in the database.
-      await refreshData(selectedDate);
-
-      setAppointmentType("");
-      setNotes("");
-      setRequirements([]);
+      setEditing(null);
+      await load(date);
     } else {
-      setFormError(`Couldn't save: ${result.error || "unknown error"}.`);
+      setFormError(result.error || "Couldn't save.");
     }
+  };
+
+  const submitBlock = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const reason = block.reason === OTHER ? block.reasonOther.trim() : block.reason;
+    if (!reason) return setBlockError("Say why you're unavailable.");
+    setSaving(true);
+    setBlockError(null);
+    const result = await blockTime({ dateString: date, startTime: block.start, endTime: block.end, wholeDay: block.wholeDay, reason });
+    setSaving(false);
+    if (!result.success) return setBlockError(result.error || "Couldn't block that time.");
+    const parts = [];
+    if (result.blocked?.length) parts.push(`Blocked ${result.blocked.join(", ")}.`);
+    if (result.skippedBooked?.length) parts.push(`Not blocked because they're booked: ${result.skippedBooked.join(", ")}. Reschedule or cancel those first.`);
+    if (!result.blocked?.length && !result.skippedBooked?.length) parts.push("Those hours were already blocked.");
+    setBlockResult(parts.join(" "));
+    await load(date);
+  };
+
+  const removeBlock = async (b: Block, wholeGroup: boolean) => {
+    setBusyId(b.id);
+    const result = await unblockTime(b.id, wholeGroup);
+    setBusyId(null);
+    if (result.success) await load(date);
+    else setRowError({ id: b.id, message: result.error || "Couldn't remove it." });
   };
 
   return (
-    <div className="px-5 sm:px-8 lg:px-12 pt-8 lg:pt-12 pb-16 max-w-7xl text-slate-900">
-      <div className="mb-6">
-        <h1 className="page-title">Appointment Scheduling</h1>
-        <p className="text-slate-500 text-sm">Manage student appointments and counseling sessions</p>
+    <div className="px-5 sm:px-8 lg:px-12 pt-8 lg:pt-12 pb-16 max-w-6xl text-slate-900">
+      <header className="flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <h1 className="page-title">Appointments</h1>
+          <p className="text-slate-500 text-sm mt-1">Confirm requests, contact whoever booked, and block time when you&apos;re in a meeting.</p>
+        </div>
+        <button
+          onClick={() => {
+            setBlocking(true);
+            setBlockResult(null);
+            setBlockError(null);
+          }}
+          className="inline-flex items-center gap-2 bg-blue-700 hover:bg-blue-800 text-white font-medium text-sm px-5 min-h-11 rounded-full"
+        >
+          <Lock size={16} /> Block time
+        </button>
+      </header>
+
+      <div className="mt-6 flex flex-wrap items-center gap-2">
+        <button onClick={() => setDate(shiftDate(date, -1))} aria-label="Previous day" className="w-11 h-11 grid place-items-center rounded-full border border-slate-300 hover:bg-slate-100">
+          <ChevronLeft size={18} />
+        </button>
+        <label htmlFor="appt-date" className="sr-only">Date</label>
+        <input id="appt-date" type="date" value={date} onChange={(e) => e.target.value && setDate(e.target.value)}
+          className="bg-sheet border border-slate-300 rounded-lg px-3 min-h-11 text-sm" />
+        <button onClick={() => setDate(shiftDate(date, 1))} aria-label="Next day" className="w-11 h-11 grid place-items-center rounded-full border border-slate-300 hover:bg-slate-100">
+          <ChevronRight size={18} />
+        </button>
+        {date !== today && (
+          <button onClick={() => setDate(today)} className="px-4 min-h-11 rounded-full text-sm text-blue-700 hover:bg-blue-50">Today</button>
+        )}
+        <p className="w-full sm:w-auto sm:ml-auto text-[13px] text-slate-600">
+          <span className="font-semibold text-emerald-700">{confirmed}</span> confirmed · <span className="font-semibold text-orange-700">{pending}</span> pending ·{" "}
+          <span className="font-semibold text-ink">{open}</span> open
+        </p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-        {/* LEFT COLUMN PANEL */}
-        <div className="lg:col-span-4 bg-white border border-slate-100 rounded-2xl p-5 shadow-sm space-y-5">
-          <div>
-            <label className="block text-sm font-semibold text-slate-800 mb-2">Calendar</label>
-            <input
-              type="date"
-              value={selectedDate}
-              min={minSelectableDate}
-              onChange={(e) => {
-                if (e.target.value >= minSelectableDate) {
-                  setSelectedDate(e.target.value);
-                }
-              }}
-              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-slate-700 font-medium focus:outline-none"
-            />
-          </div>
+      <h2 className="mt-6 font-serif text-[22px] text-ink">{dayLabel(date)}</h2>
 
-          <dl className="divide-y divide-rule border-y border-rule text-[14px]">
-            <div className="flex items-baseline justify-between py-3">
-              <dt className="text-slate-600">Open slots</dt>
-              <dd className="font-serif text-2xl text-ink tabular">{stats.available}</dd>
-            </div>
-            <div className="flex items-baseline justify-between py-3">
-              <dt className="text-slate-600">Confirmed</dt>
-              <dd className="font-serif text-2xl text-emerald-700 tabular">{stats.confirmed}</dd>
-            </div>
-            <div className="flex items-baseline justify-between py-3">
-              <dt className="text-slate-600">Pending</dt>
-              <dd className="font-serif text-2xl text-orange-700 tabular">{stats.pending}</dd>
-            </div>
-          </dl>
-
-          {/* Connected Button click target */}
-          <button 
-            onClick={handleBlockTimeSlot}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-full shadow-sm transition text-sm text-center"
-          >
-            Block Time Slot
-          </button>
-        </div>
-
-        {/* RIGHT COLUMN PANEL */}
-        <div className="lg:col-span-8 bg-white border border-slate-100 rounded-2xl p-6 shadow-sm space-y-6 min-h-[460px] flex flex-col justify-between">
-          <div>
-            <h2 className="text-lg font-semibold text-slate-900 mb-4">
-              Appointments for {new Date(`${selectedDate}T00:00:00`).toLocaleDateString("en-PH", { weekday: "long", month: "long", day: "numeric", year: "numeric" })}
-            </h2>
-
-            {appointments.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-20 border-2 border-dashed border-slate-100 rounded-2xl bg-slate-50/40">
-                <p className="text-sm font-semibold text-slate-500">No active sessions scheduled yet</p>
-                <p className="text-xs text-slate-500">Newly placed student appointment records will render here automatically</p>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {appointments.map((appointment) => (
-                  <div 
-                    key={appointment.id} 
-                    className="border border-slate-100 bg-white rounded-2xl p-5 shadow-sm space-y-4 relative"
-                  >
-                    <div className="absolute top-5 right-5">
-                      {appointment.status === "CONFIRMED" ? (
-                        <span className="inline-flex items-center gap-1 bg-emerald-50 text-emerald-600 font-semibold text-[12px] px-2 py-0.5 rounded border border-emerald-100">
-                          Confirmed
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center gap-1 bg-amber-50 text-amber-600 font-semibold text-[12px] px-2 py-0.5 rounded border border-amber-100">
-                          Pending
-                        </span>
-                      )}
-                    </div>
-
-                    <div className="flex items-start gap-4">
-                      <div className="w-10 h-10 bg-slate-200 text-slate-600 rounded-md grid place-items-center text-xs font-semibold">{appointment.studentName?.split(" ").map((p) => p[0]).slice(0, 2).join("")}</div>
-                      <div>
-                        <h3 className="font-semibold text-slate-900 text-base">{appointment.studentName}</h3>
-                        <p className="text-slate-500 text-sm">{appointment.appointmentType}</p>
+      {loading ? (
+        <div className="py-20 flex justify-center text-slate-500"><Loader2 className="animate-spin" size={20} /></div>
+      ) : (
+        <ol className="mt-3 border-t border-rule divide-y divide-rule">
+          {DAY_SCHEDULE.map((entry) => {
+            if (entry.kind === "lunch") {
+              return (
+                <li key="lunch" className="py-3 grid grid-cols-[5.5rem_1fr] gap-3 text-sm text-slate-500">
+                  <span className="font-mono text-[13px]">12:00 PM</span>
+                  <span>Lunch break ({LUNCH_BREAK_LABEL})</span>
+                </li>
+              );
+            }
+            const a = appts.find((x) => x.time === entry.time);
+            const b = blocks.find((x) => x.time === entry.time);
+            return (
+              <li key={entry.time} className="py-3 grid grid-cols-[5.5rem_1fr] gap-3">
+                <span className="font-mono text-[13px] text-slate-600 pt-0.5">{entry.time}</span>
+                {a ? (
+                  <div className="min-w-0 bg-sheet border border-rule rounded-xl p-4 space-y-3">
+                    <div className="flex flex-wrap items-start justify-between gap-2">
+                      <div className="min-w-0">
+                        <p className="font-semibold text-ink">{a.studentName}</p>
+                        <p className="text-[13px] text-slate-600">{a.appointmentType || "General consultation"}</p>
+                        {a.contactName && a.contactName !== a.studentName && (
+                          <p className="text-[12px] text-slate-500">Booked by {a.contactName} ({a.contactRole?.toLowerCase()})</p>
+                        )}
                       </div>
+                      <span className={`text-[12px] font-semibold px-2 py-0.5 rounded border ${a.status === "CONFIRMED" ? "bg-emerald-50 text-emerald-700 border-emerald-100" : "bg-amber-50 text-amber-700 border-amber-100"}`}>
+                        {a.status === "CONFIRMED" ? "Confirmed" : "Pending"}
+                      </span>
                     </div>
-
-                    <div className="flex items-center gap-6 text-slate-500 text-sm">
-                      <span className="flex items-center gap-1.5 font-medium text-slate-700">{appointment.time}</span>
-                      <span className="flex items-center gap-1.5 font-medium text-slate-700">{appointment.date}</span>
-                    </div>
-
-                    <div className="flex items-center gap-2 pt-2">
-                      {appointment.status === "PENDING" ? (
-                        <button
-                          onClick={() => handleStartSession(appointment)}
-                          disabled={confirmingId === appointment.id}
-                          className="bg-emerald-50 hover:bg-emerald-100 text-emerald-600 font-semibold text-xs px-4 py-2 rounded-full transition disabled:opacity-50"
-                        >
-                          {confirmingId === appointment.id ? "Starting..." : "Start Session"}
-                        </button>
-                      ) : (
-                        <button
-                          onClick={() => handleOpenConfigurator(appointment)}
-                          className="bg-blue-50 hover:bg-blue-100 text-blue-600 font-semibold text-xs px-4 py-2 rounded-full transition"
-                        >
-                          Manage
+                    {a.notes && <p className="text-[13px] text-slate-700 whitespace-pre-wrap break-words">{a.notes}</p>}
+                    <ContactLinks
+                      name={a.contactName ?? a.studentName ?? "this person"}
+                      email={a.contactEmail}
+                      phone={a.contactPhone}
+                      subject={`Your guidance appointment on ${dayLabel(date)}, ${a.time}`}
+                    />
+                    <div className="flex flex-wrap gap-2">
+                      {a.status === "PENDING" && (
+                        <button onClick={() => setStatus(a, "CONFIRMED")} disabled={busyId === a.id}
+                          className="bg-emerald-600 hover:bg-emerald-700 text-white font-medium text-xs px-4 min-h-9 rounded-full disabled:opacity-60">
+                          Confirm
                         </button>
                       )}
-                      <button
-                        onClick={() => handleOpenConfigurator(appointment)}
-                        className="bg-slate-50 hover:bg-slate-100 text-slate-600 font-semibold text-xs px-4 py-2 rounded-full transition"
-                      >
-                        Reschedule
+                      <button onClick={() => openEditor(a)} className="bg-blue-50 hover:bg-blue-100 text-blue-700 font-medium text-xs px-4 min-h-9 rounded-full">
+                        Notes &amp; reschedule
                       </button>
-                      <button
-                        onClick={() => handleCancelAppointment(appointment)}
-                        disabled={cancelingId === appointment.id}
-                        className="bg-red-50 hover:bg-red-100 text-red-600 font-semibold text-xs px-4 py-2 rounded-full transition disabled:opacity-50"
-                      >
-                        {cancelingId === appointment.id ? "Canceling..." : "Cancel"}
+                      <button onClick={() => setStatus(a, "CANCELLED")} disabled={busyId === a.id}
+                        className="bg-red-50 hover:bg-red-100 text-red-700 font-medium text-xs px-4 min-h-9 rounded-full disabled:opacity-60">
+                        Cancel
                       </button>
                     </div>
-                    <InlineError
-                      message={rowError?.id === appointment.id ? rowError.message : null}
-                      onDismiss={() => setRowError(null)}
-                    />
+                    <InlineError message={rowError?.id === a.id ? rowError.message : null} onDismiss={() => setRowError(null)} />
                   </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
+                ) : b ? (
+                  <div className="min-w-0 rounded-xl border border-dashed border-slate-300 bg-slate-50 px-4 py-3 flex flex-wrap items-center justify-between gap-2">
+                    <p className="text-sm text-slate-700 inline-flex items-center gap-2">
+                      <Ban size={15} className="text-slate-500" /> Blocked{b.reason ? `: ${b.reason}` : ""}
+                    </p>
+                    <div className="flex gap-1">
+                      <button onClick={() => removeBlock(b, false)} disabled={busyId === b.id} className="text-[12px] text-blue-700 hover:bg-blue-50 px-3 min-h-9 rounded-full disabled:opacity-60">
+                        Unblock this hour
+                      </button>
+                      {b.groupId && blocks.filter((x) => x.groupId === b.groupId).length > 1 && (
+                        <button onClick={() => removeBlock(b, true)} disabled={busyId === b.id} className="text-[12px] text-blue-700 hover:bg-blue-50 px-3 min-h-9 rounded-full disabled:opacity-60">
+                          Unblock all {blocks.filter((x) => x.groupId === b.groupId).length} hours
+                        </button>
+                      )}
+                    </div>
+                    <InlineError message={rowError?.id === b.id ? rowError.message : null} onDismiss={() => setRowError(null)} className="w-full" />
+                  </div>
+                ) : (
+                  <p className="text-sm text-slate-400 pt-0.5">Open</p>
+                )}
+              </li>
+            );
+          })}
+        </ol>
+      )}
 
-      {/* MODAL WINDOW DRAWER */}
-      {isFormOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-          <div className="bg-white w-full max-w-lg p-6 rounded-2xl shadow-xl border border-slate-100 space-y-4">
-            <div>
-              <h3 className="text-lg font-semibold text-slate-900">Configure Appointment Parameters</h3>
-              <p className="text-xs text-slate-500">Target Session: {selectedAppointment?.studentName}</p>
+      {/* Block time dialog */}
+      {blocking && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4" role="dialog" aria-modal="true" aria-labelledby="block-title">
+          <div className="bg-sheet w-full max-w-md p-6 rounded-2xl shadow-xl border border-rule max-h-[90dvh] overflow-y-auto">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <h3 id="block-title" className="text-lg font-semibold text-ink">Block time</h3>
+                <p className="text-xs text-slate-500">{dayLabel(date)}. Nobody can book blocked hours.</p>
+              </div>
+              <button onClick={() => setBlocking(false)} aria-label="Close" className="w-11 h-11 -m-2 grid place-items-center rounded-full hover:bg-slate-100 text-slate-500">
+                <X size={18} />
+              </button>
             </div>
 
-            <form onSubmit={handleFormSubmit} className="space-y-4">
-              {isBlockMode && (
+            <form onSubmit={submitBlock} className="mt-4 space-y-4">
+              <label className="flex items-center gap-2 text-sm">
+                <input type="checkbox" checked={block.wholeDay} onChange={(e) => setBlock({ ...block, wholeDay: e.target.checked })} className="w-4 h-4 accent-blue-700" />
+                Whole day
+              </label>
+              {!block.wholeDay && (
                 <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-1">
-                    <label className="text-xs font-semibold text-slate-700">Start Time</label>
-                    <select
-                      value={blockStartTime}
-                      onChange={(e) => handleBlockStartTimeChange(e.target.value)}
-                      className="w-full text-sm bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 focus:outline-none"
-                    >
-                      {STANDARD_DAY_HOURS.map((slot) => (
-                        <option key={slot} value={slot}>{slot}</option>
-                      ))}
-                    </select>
-                  </div>
-                  <div className="space-y-1">
-                    <label className="text-xs font-semibold text-slate-700">End Time</label>
-                    <select
-                      value={blockEndTime}
-                      onChange={(e) => handleBlockEndTimeChange(e.target.value)}
-                      className="w-full text-sm bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 focus:outline-none"
-                    >
-                      {blockEndTimeOptions.map((slot) => (
-                        <option key={slot} value={slot}>{slot}</option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-              )}
-
-              {!isBlockMode && (
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-1">
-                    <label className="text-xs font-semibold text-slate-700">Date</label>
-                    <input
-                      type="date"
-                      value={editDate}
-                      min={minSelectableDate}
+                  <div>
+                    <label htmlFor="blk-start" className={fieldLabel}>From</label>
+                    <select id="blk-start" className={field} value={block.start}
                       onChange={(e) => {
-                        if (e.target.value >= minSelectableDate) setEditDate(e.target.value);
-                      }}
-                      className="w-full text-sm bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 focus:outline-none"
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <label className="text-xs font-semibold text-slate-700">Time</label>
-                    <select
-                      value={editTime}
-                      onChange={(e) => setEditTime(e.target.value)}
-                      className="w-full text-sm bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 focus:outline-none"
-                    >
-                      {editTime && !STANDARD_DAY_HOURS.includes(editTime) && (
-                        <option value={editTime}>{editTime} (outside current hours)</option>
-                      )}
-                      {STANDARD_DAY_HOURS.map((slot) => (
-                        <option key={slot} value={slot}>{slot}</option>
-                      ))}
+                        const start = e.target.value;
+                        const end = parseTimeToMinutes(block.end) > parseTimeToMinutes(start) ? block.end : formatMinutesToTime(parseTimeToMinutes(start) + SLOT_MINUTES);
+                        setBlock({ ...block, start, end });
+                      }}>
+                      {STANDARD_DAY_HOURS.map((t) => <option key={t} value={t}>{t}</option>)}
                     </select>
-                    <p className="text-xs text-slate-500">No sessions during lunch, {LUNCH_BREAK_LABEL}.</p>
+                  </div>
+                  <div>
+                    <label htmlFor="blk-end" className={fieldLabel}>Until</label>
+                    <select id="blk-end" className={field} value={block.end} onChange={(e) => setBlock({ ...block, end: e.target.value })}>
+                      {END_TIMES.filter((t) => parseTimeToMinutes(t) > parseTimeToMinutes(block.start)).map((t) => <option key={t} value={t}>{t}</option>)}
+                    </select>
                   </div>
                 </div>
               )}
-
-              <div className="space-y-1">
-                <label className="text-xs font-semibold text-slate-700">Classification Type</label>
-                <select
-                  value={appointmentType}
-                  onChange={(e) => setAppointmentType(e.target.value)}
-                  className="w-full text-sm bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 focus:outline-none"
-                >
-                  <option value="Individual Counseling">Individual Counseling</option>
-                  <option value="Academic Concern">Academic Concern</option>
-                  <option value="Career Guidance">Career Guidance</option>
-                  <option value="Compliance Interview">Compliance Interview</option>
-                  <option value="Unavailable / Reserved Slot">Unavailable / Reserved Slot</option>
+              <div>
+                <label htmlFor="blk-reason" className={fieldLabel}>Reason</label>
+                <select id="blk-reason" className={field} value={block.reason} onChange={(e) => setBlock({ ...block, reason: e.target.value })}>
+                  {BLOCK_REASONS.map((r) => <option key={r} value={r}>{r}</option>)}
                 </select>
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-xs font-semibold text-slate-700">Prescribed Checklist Requirements</label>
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    value={newRequirementInput}
-                    onChange={(e) => setNewRequirementInput(e.target.value)}
-                    placeholder="e.g., Parent Consent form, Good Moral certificate..."
-                    className="flex-1 text-sm bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 focus:outline-none"
-                  />
-                  <button
-                    type="button"
-                    onClick={handleAddRequirement}
-                    className="bg-slate-900 text-white font-medium text-xs px-4 rounded-full hover:bg-slate-800 transition"
-                  >
-                    Add
-                  </button>
-                </div>
-                
-                {requirements.length > 0 && (
-                  <div className="flex flex-wrap gap-1.5 mt-2 max-h-24 overflow-y-auto p-1 bg-slate-50 rounded-xl border border-dashed border-slate-200">
-                    {requirements.map((req, idx) => (
-                      <span key={idx} className="inline-flex items-center gap-1 bg-white text-xs text-slate-700 font-medium px-2.5 py-1 rounded-lg border border-slate-200 shadow-sm">
-                        {req}
-                        <button type="button" onClick={() => handleRemoveRequirement(idx)} className="text-red-500 font-semibold hover:text-red-700">×</button>
-                      </span>
-                    ))}
-                  </div>
+                {block.reason === OTHER && (
+                  <input aria-label="Reason" className={`${field} mt-2`} maxLength={80} placeholder="e.g. Parent conference" value={block.reasonOther}
+                    onChange={(e) => setBlock({ ...block, reasonOther: e.target.value })} />
                 )}
               </div>
-
-              <div className="space-y-1">
-                <label className="text-xs font-semibold text-slate-700">Administrative Notes / Internal Changes</label>
-                <textarea
-                  rows={3}
-                  value={notes}
-                  onChange={(e) => setNotes(e.target.value)}
-                  placeholder="Insert custom tracking criteria or summary details here..."
-                  className="w-full text-sm bg-slate-50 border border-slate-200 rounded-xl p-3 focus:outline-none resize-none"
-                />
-              </div>
-
-              <InlineError message={formError} onDismiss={() => setFormError(null)} />
-
-              <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
-                <button
-                  type="button"
-                  onClick={() => setIsFormOpen(false)}
-                  className="px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 rounded-full transition"
-                >
-                  Cancel
+              <p className="text-xs text-slate-500">Lunch ({LUNCH_BREAK_LABEL}) is always closed. Hours that already have an appointment won&apos;t be blocked.</p>
+              <InlineError message={blockError} onDismiss={() => setBlockError(null)} />
+              {blockResult && <p role="status" className="text-[13px] text-emerald-800 bg-emerald-50 border border-emerald-100 rounded-lg p-3">{blockResult}</p>}
+              <div className="flex justify-end gap-2 pt-2 border-t border-rule">
+                <button type="button" onClick={() => setBlocking(false)} className="px-4 min-h-10 text-sm text-slate-600 hover:bg-slate-100 rounded-full">Done</button>
+                <button type="submit" disabled={saving} className="px-5 min-h-10 text-sm font-medium text-white bg-blue-700 hover:bg-blue-800 rounded-full disabled:opacity-60 inline-flex items-center gap-2">
+                  {saving && <Loader2 size={15} className="animate-spin" />} Block
                 </button>
-                <button
-                  type="submit"
-                  disabled={isSaving}
-                  className="px-5 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 rounded-full transition flex items-center gap-2"
-                >
-                  {isSaving ? "Saving..." : "Save Specifications"}
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Notes & reschedule dialog */}
+      {editing && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4" role="dialog" aria-modal="true" aria-labelledby="edit-title">
+          <div className="bg-sheet w-full max-w-lg p-6 rounded-2xl shadow-xl border border-rule max-h-[90dvh] overflow-y-auto">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <h3 id="edit-title" className="text-lg font-semibold text-ink">{editing.studentName}</h3>
+                <p className="text-xs text-slate-500">Session notes appear in the Daily Log and the student&apos;s record.</p>
+              </div>
+              <button onClick={() => setEditing(null)} aria-label="Close" className="w-11 h-11 -m-2 grid place-items-center rounded-full hover:bg-slate-100 text-slate-500">
+                <X size={18} />
+              </button>
+            </div>
+            <form onSubmit={saveEdit} className="mt-4 space-y-4">
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label htmlFor="ed-date" className={fieldLabel}>Date</label>
+                  <input id="ed-date" type="date" className={field} value={edit.date} min={today} onChange={(e) => e.target.value && setEdit({ ...edit, date: e.target.value })} />
+                </div>
+                <div>
+                  <label htmlFor="ed-time" className={fieldLabel}>Time</label>
+                  <select id="ed-time" className={field} value={edit.time} onChange={(e) => setEdit({ ...edit, time: e.target.value })}>
+                    {!STANDARD_DAY_HOURS.includes(edit.time) && <option value={edit.time}>{edit.time} (outside office hours)</option>}
+                    {STANDARD_DAY_HOURS.map((t) => <option key={t} value={t}>{t}</option>)}
+                  </select>
+                </div>
+              </div>
+              <div>
+                <label htmlFor="ed-purpose" className={fieldLabel}>Purpose</label>
+                <select id="ed-purpose" className={field} value={edit.purpose} onChange={(e) => setEdit({ ...edit, purpose: e.target.value })}>
+                  {!(APPOINTMENT_PURPOSES as readonly string[]).includes(edit.purpose) && <option value={edit.purpose}>{edit.purpose}</option>}
+                  {APPOINTMENT_PURPOSES.map((p) => <option key={p} value={p}>{p}</option>)}
+                </select>
+                {edit.purpose === OTHER && (
+                  <input aria-label="Purpose" className={`${field} mt-2`} maxLength={60} value={edit.purposeOther} onChange={(e) => setEdit({ ...edit, purposeOther: e.target.value })} />
+                )}
+              </div>
+              <div>
+                <label htmlFor="ed-req" className={fieldLabel}>Requirements to bring</label>
+                <div className="flex gap-2">
+                  <input id="ed-req" className={field} placeholder="e.g. Parent consent form" value={edit.requirement} maxLength={80}
+                    onChange={(e) => setEdit({ ...edit, requirement: e.target.value })} />
+                  <button type="button" onClick={() => edit.requirement.trim() && setEdit({ ...edit, requirements: [...edit.requirements, edit.requirement.trim()], requirement: "" })}
+                    className="bg-slate-800 text-white text-xs px-4 rounded-full shrink-0">Add</button>
+                </div>
+                {edit.requirements.length > 0 && (
+                  <ul className="flex flex-wrap gap-1.5 mt-2">
+                    {edit.requirements.map((r, i) => (
+                      <li key={`${r}-${i}`} className="inline-flex items-center gap-1 bg-white text-xs text-slate-700 px-2.5 py-1 rounded-lg border border-slate-200">
+                        {r}
+                        <button type="button" aria-label={`Remove ${r}`} onClick={() => setEdit({ ...edit, requirements: edit.requirements.filter((_, j) => j !== i) })} className="text-red-600 px-1">×</button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+              <div>
+                <label htmlFor="ed-notes" className={fieldLabel}>Session notes</label>
+                <textarea id="ed-notes" rows={4} className={`${field} resize-y`} value={edit.notes} onChange={(e) => setEdit({ ...edit, notes: e.target.value })} />
+              </div>
+              <InlineError message={formError} onDismiss={() => setFormError(null)} />
+              <div className="flex justify-end gap-2 pt-2 border-t border-rule">
+                <button type="button" onClick={() => setEditing(null)} className="px-4 min-h-10 text-sm text-slate-600 hover:bg-slate-100 rounded-full">Cancel</button>
+                <button type="submit" disabled={saving} className="px-5 min-h-10 text-sm font-medium text-white bg-blue-700 hover:bg-blue-800 rounded-full disabled:opacity-60 inline-flex items-center gap-2">
+                  {saving && <Loader2 size={15} className="animate-spin" />} Save
                 </button>
               </div>
             </form>

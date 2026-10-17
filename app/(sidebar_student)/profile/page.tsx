@@ -1,20 +1,20 @@
 "use client";
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { User, Loader2, Upload, FileText } from 'lucide-react';
-import { getMyProfile, submitStudentDocument } from '../../action/student';
+import { Loader2, Upload, FileText } from 'lucide-react';
+import { completeMyStudentInfo, getMyProfile, submitStudentDocument } from '../../action/student';
 import InlineError from '../../../components/InlineError';
+import PhotoPicker from '../../../components/PhotoPicker';
+import { ACCEPTED_FILE_TYPES, STUDENT_DOCUMENT_CATEGORIES as DOCUMENT_CATEGORIES } from '../../config/documents';
+import { DEPARTMENTS, SHS, programsFor, yearLevelsFor } from '../../config/studentLevels';
 
 type MyProfile = NonNullable<Awaited<ReturnType<typeof getMyProfile>>>;
 
-// Kinds of documents students hand in to the guidance office (Chapter 1, Individual Inventory).
-const DOCUMENT_CATEGORIES = [
-  "Excuse letter",
-  "Medical certificate",
-  "Intent to wear gender-affirming clothing",
-  "Exit interview form",
-  "Other",
-];
+const REVIEW: Record<string, { label: string; className: string }> = {
+  PENDING: { label: "Waiting for review", className: "text-orange-700 bg-orange-50" },
+  APPROVED: { label: "Accepted", className: "text-emerald-700 bg-emerald-50" },
+  REJECTED: { label: "Not accepted", className: "text-red-700 bg-red-50" },
+};
 
 const MAX_BYTES = 5 * 1024 * 1024;
 
@@ -30,7 +30,9 @@ function readAsBase64(file: File): Promise<string> {
 export const StudentProfile: React.FC = () => {
   const [data, setData] = useState<MyProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [category, setCategory] = useState(DOCUMENT_CATEGORIES[0]);
+  const [category, setCategory] = useState<string>(DOCUMENT_CATEGORIES[0]);
+  const [info, setInfo] = useState({ studentId: '', department: SHS as string, yearLevel: '', program: '', section: '' });
+  const [infoState, setInfoState] = useState<{ busy: boolean; error: string | null }>({ busy: false, error: null });
   const [file, setFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
@@ -74,13 +76,22 @@ export const StudentProfile: React.FC = () => {
     setIsUploading(false);
 
     if (result.success) {
-      setUploaded(`${file.name} was sent to the guidance office.`);
+      setUploaded(`${file.name} was sent. The guidance office will check it; you'll get a notification.`);
       setFile(null);
       if (fileInput.current) fileInput.current.value = "";
       await load();
     } else {
-      setUploadError(`Couldn't submit the file: ${result.error || "unknown error"}.`);
+      setUploadError(result.error || "Couldn't submit the file.");
     }
+  };
+
+  const saveInfo = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setInfoState({ busy: true, error: null });
+    const result = await completeMyStudentInfo(info);
+    setInfoState({ busy: false, error: result.success ? null : result.error ?? "Couldn't save." });
+    // Reload so the menu (e.g. My Career Plan for senior high) matches the new record.
+    if (result.success) window.location.reload();
   };
 
   const p = data?.profile;
@@ -102,15 +113,15 @@ export const StudentProfile: React.FC = () => {
         <>
           <section className="bg-white border border-rule rounded-xl overflow-hidden">
             <div className="px-6 py-6 flex items-center gap-5 border-b border-rule">
-              <div className="w-14 h-14 rounded-md bg-slate-200 flex items-center justify-center text-slate-600 shrink-0">
-                <User size={26} strokeWidth={1.5} />
-              </div>
-              <div>
+              <div className="min-w-0">
                 <h2 className="font-serif text-[28px] leading-tight text-ink">{data.name}</h2>
                 <p className="font-mono text-[13px] text-slate-500 mt-0.5">
                   {p ? `Student ID ${p.studentId}` : data.email}
                 </p>
               </div>
+            </div>
+            <div className="px-6 py-4 border-b border-rule">
+              <PhotoPicker name={data.name} hasPhoto={data.hasPhoto} />
             </div>
             {p ? (
               <dl className="p-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-5 text-sm">
@@ -125,9 +136,57 @@ export const StudentProfile: React.FC = () => {
                 <Field label="Guardian contact" value={p.guardianContact} />
               </dl>
             ) : (
-              <p className="p-6 text-sm text-slate-500">
-                The guidance office hasn&apos;t set up your Individual Inventory record yet. Your details will appear here once they do.
-              </p>
+              <form onSubmit={saveInfo} className="p-6 space-y-4 max-w-xl">
+                <p className="text-sm text-slate-700">
+                  <strong className="font-semibold">Add your school details</strong> so the guidance office can find your records. You can
+                  only do this once; after that, ask the guidance office to change anything.
+                </p>
+                <div>
+                  <label htmlFor="si-id" className="block text-[13px] font-medium text-slate-700 mb-1.5">Student ID number</label>
+                  <input id="si-id" className="w-full bg-sheet border border-slate-300 rounded-md px-3 py-2.5 text-sm" value={info.studentId} maxLength={20} required
+                    onChange={(e) => setInfo({ ...info, studentId: e.target.value })} />
+                </div>
+                <fieldset>
+                  <legend className="block text-[13px] font-medium text-slate-700 mb-1.5">Level</legend>
+                  <div className="grid grid-cols-2 gap-2">
+                    {DEPARTMENTS.map((d) => (
+                      <label key={d} className={`flex items-center gap-2 rounded-lg border px-3 min-h-11 cursor-pointer text-sm ${info.department === d ? "border-blue-600 bg-blue-50" : "border-slate-300"}`}>
+                        <input type="radio" name="si-dept" className="accent-blue-700" checked={info.department === d}
+                          onChange={() => setInfo({ ...info, department: d, yearLevel: '', program: '' })} />
+                        {d === SHS ? "Senior High" : d}
+                      </label>
+                    ))}
+                  </div>
+                </fieldset>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div>
+                    <label htmlFor="si-year" className="block text-[13px] font-medium text-slate-700 mb-1.5">{info.department === SHS ? "Grade" : "Year level"}</label>
+                    <select id="si-year" className="w-full bg-sheet border border-slate-300 rounded-md px-3 py-2.5 text-sm" value={info.yearLevel} required
+                      onChange={(e) => setInfo({ ...info, yearLevel: e.target.value })}>
+                      <option value="" disabled>Choose…</option>
+                      {yearLevelsFor(info.department).map((y) => <option key={y} value={y}>{y}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label htmlFor="si-program" className="block text-[13px] font-medium text-slate-700 mb-1.5">{info.department === SHS ? "Strand" : "Course"}</label>
+                    <select id="si-program" className="w-full bg-sheet border border-slate-300 rounded-md px-3 py-2.5 text-sm" value={info.program} required
+                      onChange={(e) => setInfo({ ...info, program: e.target.value })}>
+                      <option value="" disabled>Choose…</option>
+                      {programsFor(info.department).map((x) => <option key={x} value={x}>{x}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label htmlFor="si-section" className="block text-[13px] font-medium text-slate-700 mb-1.5">Section</label>
+                    <input id="si-section" className="w-full bg-sheet border border-slate-300 rounded-md px-3 py-2.5 text-sm" value={info.section} maxLength={30} required
+                      onChange={(e) => setInfo({ ...info, section: e.target.value })} />
+                  </div>
+                </div>
+                <InlineError message={infoState.error} onDismiss={() => setInfoState({ ...infoState, error: null })} />
+                <button type="submit" disabled={infoState.busy}
+                  className="inline-flex items-center gap-2 bg-blue-700 hover:bg-blue-800 disabled:opacity-60 text-white text-sm font-medium px-5 min-h-11 rounded-full">
+                  {infoState.busy && <Loader2 size={15} className="animate-spin" />} Save my details
+                </button>
+              </form>
             )}
             <p className="px-6 pb-5 text-xs text-slate-500">Something wrong? Message the guidance office to have it corrected.</p>
           </section>
@@ -150,12 +209,12 @@ export const StudentProfile: React.FC = () => {
                   </select>
                 </div>
                 <div>
-                  <label htmlFor="doc-file" className="block text-[13px] font-medium text-slate-700 mb-1.5">File (PDF or image, up to 5 MB)</label>
+                  <label htmlFor="doc-file" className="block text-[13px] font-medium text-slate-700 mb-1.5">File (PDF, Word .docx, or a photo; up to 5 MB)</label>
                   <input
                     id="doc-file"
                     ref={fileInput}
                     type="file"
-                    accept=".pdf,image/*,.doc,.docx"
+                    accept={ACCEPTED_FILE_TYPES}
                     onChange={(e) => setFile(e.target.files?.[0] ?? null)}
                     className="block w-full text-sm text-slate-700 file:mr-3 file:rounded-md file:border-0 file:bg-slate-200 file:px-3 file:py-2 file:text-sm file:font-medium file:text-ink hover:file:bg-slate-300"
                   />
@@ -182,11 +241,17 @@ export const StudentProfile: React.FC = () => {
                   {data.documents.map((d) => (
                     <li key={d.id} className="py-3 flex items-start gap-3">
                       <FileText size={16} className="text-slate-400 mt-0.5 shrink-0" />
-                      <span className="min-w-0">
+                      <span className="min-w-0 flex-1">
                         <span className="block text-sm text-ink truncate">{d.fileName}</span>
                         <span className="block text-xs text-slate-500">
-                          {d.category} · {new Date(d.createdAt).toLocaleDateString("en-PH", { month: "short", day: "numeric", year: "numeric" })}
+                          {d.category} · {new Date(d.createdAt).toLocaleDateString("en-PH", { month: "short", day: "numeric", year: "numeric", timeZone: "Asia/Manila" })}
                         </span>
+                        {d.reviewStatus === "REJECTED" && d.reviewNote && (
+                          <span className="block text-xs text-red-700 mt-0.5">Reason: {d.reviewNote}</span>
+                        )}
+                      </span>
+                      <span className={`shrink-0 text-[11px] font-medium px-2 py-0.5 rounded-full ${REVIEW[d.reviewStatus]?.className ?? ""}`}>
+                        {REVIEW[d.reviewStatus]?.label ?? d.reviewStatus}
                       </span>
                     </li>
                   ))}

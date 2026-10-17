@@ -2,59 +2,50 @@
 
 import db from "../../lib/db";
 import { revalidatePath } from "next/cache";
-import { TOTAL_SLOTS } from "../config/timeSlots";
+import { STANDARD_DAY_HOURS, isBookableTime, parseTimeToMinutes } from "../config/timeSlots";
+import { randomUUID } from "crypto";
 import { CAREER_STEPS } from "../config/careerSteps";
 import { Prisma } from "../../lib/generated";
 import { requireActionUser } from "../../lib/session";
 import { formatAppointmentWhen, sendEmail } from "../../lib/email";
 import { normalizeFacebookPostUrl } from "../../lib/facebook";
 import { checkImage } from "../../lib/image";
+import { notifyByName } from "../../lib/notify";
+import { DEPARTMENTS, gradeSectionLabel, isShs, normalizeDepartment, programsFor, yearLevelsFor } from "../config/studentLevels";
 
 // Every action here requires a signed-in Guidance Associate (COUNSELOR role).
 const counselorOnly = () => requireActionUser("COUNSELOR");
 
 // ==== Consultation Service: appointments ====
 
-export async function getDateStats(dateString: string) {
-  try {
-    await counselorOnly();
-    const targetDate = new Date(dateString);
-
-    const [confirmedCount, pendingCount, blockedSlots] = await Promise.all([
-      db.appointment.count({ where: { date: targetDate, status: "CONFIRMED" } }),
-      db.appointment.count({ where: { date: targetDate, status: "PENDING" } }),
-      db.blockedSlot.count({ where: { date: targetDate } }),
-    ]);
-
-    // Available slots drop based on confirmed appointments and blocked time slots
-    const availableCount = TOTAL_SLOTS - confirmedCount - blockedSlots;
-
-    return { available: Math.max(0, availableCount), confirmed: confirmedCount, pending: pendingCount };
-  } catch (error) {
-    console.error("Failed to fetch date stats:", error);
-    return { available: 0, confirmed: 0, pending: 0 };
-  }
-}
-
 export async function getAppointmentsByDate(dateString: string) {
   try {
     await counselorOnly();
-    return await db.appointment.findMany({
+    const rows = await db.appointment.findMany({
       where: { date: new Date(dateString), status: { not: "CANCELLED" } },
-      orderBy: { time: "asc" },
     });
+    // Times are text ("8:00 AM"), so sort by clock time, not alphabetically.
+    return rows.sort((x, y) => parseTimeToMinutes(x.time) - parseTimeToMinutes(y.time));
   } catch (error) {
     console.error("Failed to fetch appointments:", error);
     return [];
   }
 }
 
-// Tells whoever booked the appointment (student, faculty or parent) what changed.
+// Tells whoever booked the appointment (student, faculty or parent) what changed:
+// a notification in E-Gabay, and an email when we have their address.
+const APPOINTMENTS_PAGE: Record<string, string> = { Student: "/my_appointments", Faculty: "/faculty_appointment", Parent: "/parent_dashboard" };
+
 async function notifyBooker(
-  appointment: { bookedByEmail: string | null; bookedByName: string | null; studentName: string | null; date: Date; time: string; appointmentType: string | null },
+  appointment: { bookedByEmail: string | null; bookedByName: string | null; bookedByRole: string | null; studentName: string | null; date: Date; time: string; appointmentType: string | null },
   subject: string,
   message: string
 ) {
+  await notifyByName(appointment.bookedByName ?? appointment.studentName, appointment.bookedByRole ?? "Student", {
+    title: subject,
+    body: `${appointment.appointmentType || "Appointment"} · ${formatAppointmentWhen(appointment.date, appointment.time)}`,
+    href: APPOINTMENTS_PAGE[appointment.bookedByRole ?? "Student"],
+  });
   if (!appointment.bookedByEmail) return;
   const forWhom =
     appointment.studentName && appointment.studentName !== appointment.bookedByName ? ` for ${appointment.studentName}` : "";
@@ -92,23 +83,103 @@ export async function updateAppointmentStatus(id: string, status: "PENDING" | "C
   }
 }
 
-export async function toggleBlockTimeSlot(dateString: string, timeSlot: string) {
+// ---- Day schedule with contact details, and blocking time for meetings ----
+
+// Everything the Appointments page shows for one day: bookings with a way to
+// reach whoever made them, and blocked time.
+export async function getDaySchedule(dateString: string) {
+  try {
+    await counselorOnly();
+    const date = new Date(`${dateString}T00:00:00Z`);
+    const [appointments, blocks] = await Promise.all([
+      db.appointment.findMany({ where: { date, status: { not: "CANCELLED" } } }),
+      db.blockedSlot.findMany({ where: { date } }),
+    ]);
+
+    // Fill in contact details the booking didn't carry (older bookings), from the accounts.
+    const names = [...new Set(appointments.map((a) => a.bookedByName ?? a.studentName).filter(Boolean))] as string[];
+    const users = await db.user.findMany({ where: { name: { in: names } }, select: { name: true, role: true, email: true, phone: true } });
+    const contactFor = (name: string | null, role: string | null) => {
+      const u = users.find((x) => x.name === name && (!role || x.role === role.toUpperCase())) ?? users.find((x) => x.name === name);
+      return { email: u?.email ?? null, phone: u?.phone ?? null };
+    };
+
+    const byTime = (t: string) => parseTimeToMinutes(t);
+    return {
+      appointments: appointments
+        .map((a) => {
+          const fallback = contactFor(a.bookedByName ?? a.studentName, a.bookedByRole);
+          return {
+            ...a,
+            contactName: a.bookedByName ?? a.studentName,
+            contactRole: a.bookedByRole ?? "Student",
+            contactEmail: a.bookedByEmail ?? fallback.email,
+            contactPhone: a.bookedByPhone ?? fallback.phone,
+          };
+        })
+        .sort((x, y) => byTime(x.time) - byTime(y.time)),
+      blocks: blocks.sort((x, y) => byTime(x.time) - byTime(y.time)),
+    };
+  } catch (error) {
+    console.error("Failed to load day schedule:", error);
+    return { appointments: [], blocks: [] };
+  }
+}
+
+// Blocks every hourly slot from startTime up to (not including) endTime, or the
+// whole day, so nobody can book it. Slots that already have an appointment are
+// left alone and reported back.
+export async function blockTime(formData: { dateString: string; startTime: string; endTime: string; wholeDay: boolean; reason: string }) {
   try {
     const me = await counselorOnly();
-    const targetDate = new Date(dateString);
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(formData.dateString)) return { success: false, error: "Choose a date." };
+    const reason = formData.reason.trim().slice(0, 80);
+    if (!reason) return { success: false, error: "Say why (for example, Meeting)." };
+    const date = new Date(`${formData.dateString}T00:00:00Z`);
 
-    const existingBlock = await db.blockedSlot.findFirst({ where: { date: targetDate, time: timeSlot } });
-
-    if (existingBlock) {
-      await db.blockedSlot.delete({ where: { id: existingBlock.id } });
+    let slots: string[];
+    if (formData.wholeDay) {
+      slots = [...STANDARD_DAY_HOURS];
     } else {
-      await db.blockedSlot.create({ data: { counselorId: me.id, date: targetDate, time: timeSlot } });
+      const start = parseTimeToMinutes(formData.startTime);
+      const end = parseTimeToMinutes(formData.endTime);
+      if (!(end > start)) return { success: false, error: "The end time must be after the start time." };
+      slots = STANDARD_DAY_HOURS.filter((t) => parseTimeToMinutes(t) >= start && parseTimeToMinutes(t) < end);
     }
+    if (slots.length === 0) return { success: false, error: "That range has no bookable hours (lunch is already closed)." };
+
+    const [booked, alreadyBlocked] = await Promise.all([
+      db.appointment.findMany({ where: { date, time: { in: slots }, status: { not: "CANCELLED" } }, select: { time: true, studentName: true } }),
+      db.blockedSlot.findMany({ where: { date, time: { in: slots } }, select: { time: true } }),
+    ]);
+    const skip = new Set([...booked.map((b) => b.time), ...alreadyBlocked.map((b) => b.time)]);
+    const toBlock = slots.filter((t) => !skip.has(t));
+
+    const groupId = randomUUID();
+    if (toBlock.length > 0) {
+      await db.blockedSlot.createMany({ data: toBlock.map((time) => ({ counselorId: me.id, date, time, reason, groupId })) });
+    }
+    revalidatePath("/appointment");
+    return { success: true, blocked: toBlock, skippedBooked: booked.map((b) => `${b.time} (${b.studentName ?? "booked"})`) };
+  } catch (error) {
+    console.error("Failed to block time:", error);
+    return { success: false, error: "Couldn't block that time. Try again." };
+  }
+}
+
+// Removes one blocked slot, or every slot blocked together with it.
+export async function unblockTime(blockId: string, wholeGroup: boolean) {
+  try {
+    await counselorOnly();
+    const block = await db.blockedSlot.findUnique({ where: { id: blockId } });
+    if (!block) return { success: true };
+    if (wholeGroup && block.groupId) await db.blockedSlot.deleteMany({ where: { groupId: block.groupId } });
+    else await db.blockedSlot.delete({ where: { id: blockId } });
     revalidatePath("/appointment");
     return { success: true };
   } catch (error) {
-    console.error("Error toggling block slot:", error);
-    return { success: false, error: "Something went wrong" };
+    console.error("Failed to unblock:", error);
+    return { success: false, error: "Couldn't remove the block. Try again." };
   }
 }
 
@@ -134,6 +205,16 @@ export async function saveAppointmentDetails(formData: {
       studentName: formData.studentName || null,
       status: "PENDING",
     };
+
+    if (!isBookableTime(formData.timeSlot)) return { success: false, error: "Pick a time between 8:00 AM and 3:00 PM (not during lunch)." };
+    const [clash, blocked] = await Promise.all([
+      db.appointment.findFirst({
+        where: { date: targetDate, time: formData.timeSlot, status: { not: "CANCELLED" }, ...(formData.appointmentId ? { id: { not: formData.appointmentId } } : {}) },
+      }),
+      db.blockedSlot.findFirst({ where: { date: targetDate, time: formData.timeSlot } }),
+    ]);
+    if (clash) return { success: false, error: `${formData.timeSlot} is already booked by ${clash.studentName ?? "someone"}.` };
+    if (blocked) return { success: false, error: `${formData.timeSlot} is blocked${blocked.reason ? ` (${blocked.reason})` : ""}. Unblock it first or pick another time.` };
 
     if (formData.appointmentId) {
       const before = await db.appointment.findUnique({ where: { id: formData.appointmentId } });
@@ -189,14 +270,15 @@ export async function saveAppointmentDetails(formData: {
 export async function getDailyLog(fromDate: string, toDate: string) {
   try {
     await counselorOnly();
-    return await db.appointment.findMany({
+    const rows = await db.appointment.findMany({
       where: {
         date: { gte: new Date(fromDate), lte: new Date(toDate) },
         status: { not: "CANCELLED" },
         studentName: { not: null },
       },
-      orderBy: [{ date: "desc" }, { time: "asc" }],
     });
+    // Newest day first; within a day, by clock time (times are text like "8:00 AM").
+    return rows.sort((x, y) => y.date.getTime() - x.date.getTime() || parseTimeToMinutes(x.time) - parseTimeToMinutes(y.time));
   } catch (error) {
     console.error("Failed to fetch daily log:", error);
     return [];
@@ -218,6 +300,10 @@ export async function getCareerPlans() {
 export async function addCareerPlanStudent(formData: { studentName: string; studentId: string; grade: string; facilitator?: string }) {
   try {
     await counselorOnly();
+    // The Career Planning Program is for senior high students on record.
+    const profile = await db.studentProfile.findUnique({ where: { name: formData.studentName } });
+    if (!profile) return { success: false, error: "Add this student to the Individual Inventory first." };
+    if (!isShs(profile.department)) return { success: false, error: "The Career Planning Program is for senior high students only." };
     const existing = await db.careerPlan.findFirst({ where: { studentName: formData.studentName } });
     if (existing) return { success: false, error: `${formData.studentName} is already in the tracker.` };
 
@@ -312,21 +398,25 @@ export async function listStudentProfiles() {
 export async function getStudentProfile(studentName: string) {
   try {
     await counselorOnly();
-    const [profile, appointments, careerPlan, referrals, documents] = await Promise.all([
+    const [profile, appointments, careerPlan, referrals, documents, parents] = await Promise.all([
       db.studentProfile.findUnique({ where: { name: studentName } }),
       db.appointment.findMany({ where: { studentName, status: { not: "CANCELLED" } }, orderBy: { date: "desc" } }),
       db.careerPlan.findFirst({ where: { studentName } }),
       db.referral.findMany({ where: { studentName }, orderBy: { createdAt: "desc" } }),
       db.document.findMany({
         where: { studentName },
-        select: { id: true, fileName: true, fileType: true, fileSize: true, category: true, uploaderName: true, createdAt: true },
+        select: { id: true, fileName: true, fileType: true, fileSize: true, category: true, uploaderName: true, createdAt: true, reviewStatus: true },
         orderBy: { createdAt: "desc" },
       }),
+      db.parentChildLink.findMany({
+        where: { status: "APPROVED", childName: studentName },
+        select: { relationship: true, parent: { select: { name: true, phone: true, email: true } } },
+      }),
     ]);
-    return { profile, appointments, careerPlan, referrals, documents };
+    return { profile, appointments, careerPlan, referrals, documents, parents };
   } catch (error) {
     console.error("Failed to fetch student profile:", error);
-    return { profile: null, appointments: [], careerPlan: null, referrals: [], documents: [] };
+    return { profile: null, appointments: [], careerPlan: null, referrals: [], documents: [], parents: [] };
   }
 }
 
@@ -335,7 +425,8 @@ export type StudentProfileInput = {
   studentId: string;
   name: string;
   department: string;
-  gradeSection: string;
+  yearLevel: string;
+  section: string;
   strandOrProgram: string;
   email: string;
   phone: string;
@@ -343,7 +434,6 @@ export type StudentProfileInput = {
   address: string;
   guardianName: string;
   guardianContact: string;
-  parentName: string;
   familyBackground: string;
   educationalHistory: string;
   counselorNotes: string;
@@ -352,25 +442,65 @@ export type StudentProfileInput = {
 export async function saveStudentProfile(input: StudentProfileInput) {
   try {
     await counselorOnly();
-    if (!input.studentId.trim() || !input.name.trim() || !input.gradeSection.trim()) {
-      return { success: false, error: "Student ID, name, and grade/section are required." };
-    }
+    const t = (v: string | undefined, max = 200) => (v ?? "").trim().slice(0, max);
+    const name = t(input.name, 120).replace(/\s+/g, " ");
+    const studentId = t(input.studentId, 20);
+    const department = normalizeDepartment(input.department);
+    if (!studentId || !name) return { success: false, error: "Student ID and full name are required." };
+    if (!/^[A-Za-z0-9-]{4,20}$/.test(studentId)) return { success: false, error: "Student IDs use letters, numbers and dashes only." };
+    if (!department || !(DEPARTMENTS as readonly string[]).includes(department)) return { success: false, error: "Choose Senior High School or Tertiary." };
+    if (!yearLevelsFor(department).includes(input.yearLevel)) return { success: false, error: `Choose the ${isShs(department) ? "grade" : "year level"}.` };
+    const program = t(input.strandOrProgram, 80);
+    if (program && !programsFor(department).includes(program)) return { success: false, error: `Choose a ${isShs(department) ? "strand" : "course"} from the list.` };
+    const section = t(input.section, 30);
 
-    const { id, ...fields } = input;
-    const data = Object.fromEntries(
-      Object.entries(fields).map(([k, v]) => [k, typeof v === "string" ? v.trim() || null : v])
-    ) as Record<string, string | null>;
-    const required = {
-      studentId: input.studentId.trim(),
-      name: input.name.trim(),
-      department: input.department.trim() || "Senior High School",
-      gradeSection: input.gradeSection.trim(),
+    const data = {
+      studentId,
+      name,
+      department,
+      yearLevel: input.yearLevel,
+      section: section || null,
+      strandOrProgram: program || null,
+      gradeSection: gradeSectionLabel(input.yearLevel, section),
+      email: t(input.email, 120).toLowerCase() || null,
+      phone: t(input.phone, 40) || null,
+      birthDate: t(input.birthDate, 20) || null,
+      address: t(input.address, 300) || null,
+      guardianName: t(input.guardianName, 120) || null,
+      guardianContact: t(input.guardianContact, 40) || null,
+      familyBackground: t(input.familyBackground, 5000) || null,
+      educationalHistory: t(input.educationalHistory, 5000) || null,
+      counselorNotes: t(input.counselorNotes, 10000) || null,
     };
 
-    if (id) {
-      await db.studentProfile.update({ where: { id }, data: { ...data, ...required } });
+    if (input.id) {
+      const before = await db.studentProfile.findUnique({ where: { id: input.id } });
+      if (!before) return { success: false, error: "This record no longer exists." };
+      // Records across the system are linked by the student's name, so a
+      // rename carries over to everything that belongs to them.
+      const renamed = before.name !== name;
+      await db.$transaction([
+        db.studentProfile.update({ where: { id: input.id }, data }),
+        ...(renamed
+          ? [
+              db.appointment.updateMany({ where: { studentName: before.name }, data: { studentName: name } }),
+              db.appointment.updateMany({ where: { bookedByName: before.name, bookedByRole: "Student" }, data: { bookedByName: name } }),
+              db.referral.updateMany({ where: { studentName: before.name }, data: { studentName: name } }),
+              db.referral.updateMany({ where: { referrerName: before.name, referrerRole: "Student" }, data: { referrerName: name } }),
+              db.careerPlan.updateMany({ where: { studentName: before.name }, data: { studentName: name } }),
+              db.document.updateMany({ where: { studentName: before.name }, data: { studentName: name } }),
+              db.document.updateMany({ where: { uploaderName: before.name, uploaderRole: "Student" }, data: { uploaderName: name } }),
+              db.needsAssessmentResponse.updateMany({ where: { studentName: before.name }, data: { studentName: name } }),
+              db.conversation.updateMany({ where: { participantName: before.name, participantRole: "Student" }, data: { participantName: name } }),
+              db.message.updateMany({ where: { senderName: before.name, senderRole: "Student" }, data: { senderName: name } }),
+              db.aiConversation.updateMany({ where: { studentName: before.name }, data: { studentName: name } }),
+              db.parentChildLink.updateMany({ where: { studentProfileId: input.id }, data: { childName: name } }),
+              db.user.updateMany({ where: { name: before.name, role: "STUDENT" }, data: { name } }),
+            ]
+          : []),
+      ]);
     } else {
-      await db.studentProfile.create({ data: { ...data, ...required } });
+      await db.studentProfile.create({ data });
     }
 
     revalidatePath("/inventory");
@@ -386,16 +516,48 @@ export async function saveStudentProfile(input: StudentProfileInput) {
   }
 }
 
-// Returns the file as base64 so the browser can download it.
-export async function getDocumentFile(id: string) {
+// ==== Document review ====
+
+// Everything students and faculty upload waits here until a Guidance Associate
+// checks it. Newest waiting first; reviewed ones after.
+export async function listDocumentsForReview(status: "PENDING" | "APPROVED" | "REJECTED") {
   try {
     await counselorOnly();
-    const doc = await db.document.findUnique({ where: { id } });
-    if (!doc) return null;
-    return { fileName: doc.fileName, fileType: doc.fileType, dataBase64: Buffer.from(doc.data).toString("base64") };
+    return await db.document.findMany({
+      where: { reviewStatus: status },
+      select: {
+        id: true, fileName: true, fileType: true, fileSize: true, category: true, studentName: true,
+        uploaderName: true, uploaderRole: true, reviewStatus: true, reviewNote: true, reviewedAt: true, createdAt: true,
+      },
+      orderBy: { createdAt: status === "PENDING" ? "asc" : "desc" },
+      take: 200,
+    });
   } catch (error) {
-    console.error("Failed to fetch document:", error);
-    return null;
+    console.error("Failed to list documents:", error);
+    return [];
+  }
+}
+
+export async function reviewDocument(id: string, approve: boolean, note: string) {
+  try {
+    await counselorOnly();
+    const reviewNote = note.trim().slice(0, 300) || null;
+    if (!approve && !reviewNote) return { success: false, error: "Tell the uploader why it wasn't accepted." };
+    const doc = await db.document.update({
+      where: { id },
+      data: { reviewStatus: approve ? "APPROVED" : "REJECTED", reviewNote, reviewedAt: new Date() },
+      select: { fileName: true, uploaderName: true, uploaderRole: true },
+    });
+    await notifyByName(doc.uploaderName, doc.uploaderRole, {
+      title: approve ? "Your document was accepted" : "Your document wasn't accepted",
+      body: `${doc.fileName}${reviewNote ? ` · ${reviewNote}` : ""}`,
+      href: doc.uploaderRole === "Faculty" ? "/upload_documents" : "/profile",
+    });
+    revalidatePath("/documents");
+    return { success: true };
+  } catch (error) {
+    console.error("Failed to review document:", error);
+    return { success: false, error: "Couldn't save the review. Try again." };
   }
 }
 
@@ -426,13 +588,16 @@ export async function addGroupGuidanceProgram(formData: { title: string; gradeLe
   }
 }
 
-export async function recordGroupSession(id: string, formData: { attendees: string[]; outcomes: string }) {
+// Attendance can be typed (one name per line), or just counted when a photo of
+// the signed attendance sheet is attached instead.
+export async function recordGroupSession(id: string, formData: { attendees: string[]; outcomes: string; headcount?: number }) {
   try {
     await counselorOnly();
-    const attendees = Array.from(new Set(formData.attendees.map((a) => a.trim()).filter(Boolean)));
+    const attendees = Array.from(new Set(formData.attendees.map((a) => a.trim().slice(0, 120)).filter(Boolean))).slice(0, 500);
+    const headcount = Math.max(0, Math.min(2000, Math.floor(Number(formData.headcount) || 0)));
     await db.groupGuidanceProgram.update({
       where: { id },
-      data: { attendees, participants: attendees.length, outcomes: formData.outcomes.trim() || null },
+      data: { attendees, participants: attendees.length || headcount, outcomes: formData.outcomes.trim().slice(0, 5000) || null },
     });
     revalidatePath("/groupguidance");
     return { success: true };
@@ -735,10 +900,30 @@ export async function sendMessage(formData: { conversationId: string; content: s
 
 // ==== Referral Service ====
 
+// Each referral comes with a way to reach the person who sent it and the
+// student it's about (school email for Outlook/Teams, mobile number if known).
 export async function listReferrals() {
   try {
     await counselorOnly();
-    return await db.referral.findMany({ orderBy: { createdAt: "desc" } });
+    const referrals = await db.referral.findMany({ orderBy: { createdAt: "desc" } });
+    const names = [...new Set(referrals.flatMap((r) => [r.referrerName, r.studentName]))];
+    const [users, profiles] = await Promise.all([
+      db.user.findMany({ where: { name: { in: names }, status: "ACTIVE" }, select: { name: true, role: true, email: true, phone: true } }),
+      db.studentProfile.findMany({ where: { name: { in: names } }, select: { name: true, email: true, phone: true } }),
+    ]);
+    const roleOf: Record<string, string> = { Student: "STUDENT", Faculty: "FACULTY", Parent: "PARENT", Counselor: "COUNSELOR" };
+    return referrals.map((r) => {
+      const referrer = users.find((u) => u.name === r.referrerName && u.role === roleOf[r.referrerRole]);
+      const studentUser = users.find((u) => u.name === r.studentName && u.role === "STUDENT");
+      const profile = profiles.find((p) => p.name === r.studentName);
+      return {
+        ...r,
+        referrerEmail: referrer?.email ?? null,
+        referrerPhone: referrer?.phone ?? null,
+        studentEmail: studentUser?.email ?? profile?.email ?? null,
+        studentPhone: studentUser?.phone ?? profile?.phone ?? null,
+      };
+    });
   } catch (error) {
     console.error("Failed to list referrals:", error);
     return [];
@@ -748,7 +933,13 @@ export async function listReferrals() {
 export async function updateReferralStatus(id: string, status: "OPEN" | "IN_PROGRESS" | "CLOSED") {
   try {
     await counselorOnly();
-    await db.referral.update({ where: { id }, data: { status } });
+    const referral = await db.referral.update({ where: { id }, data: { status } });
+    const myReferrals: Record<string, string> = { Student: "/my_referrals", Faculty: "/faculty_myreferral", Parent: "/parent_myreferral" };
+    await notifyByName(referral.referrerName, referral.referrerRole, {
+      title: status === "CLOSED" ? "Your referral was closed" : status === "IN_PROGRESS" ? "The guidance office is working on your referral" : "Your referral was reopened",
+      body: referral.studentName === referral.referrerName ? "Your request for help" : `Referral about ${referral.studentName}`,
+      href: myReferrals[referral.referrerRole],
+    });
     for (const p of ["/referral", "/dashboard", "/my_referrals", "/faculty_myreferral", "/parent_myreferral"]) revalidatePath(p);
     return { success: true };
   } catch (error) {
@@ -790,6 +981,10 @@ export async function sendReferralFeedback(referralId: string, content: string) 
       data: { conversationId: conversation.id, senderRole: "Counselor", senderName: me.name, content },
     });
     await db.conversation.update({ where: { id: conversation.id }, data: { updatedAt: new Date() } });
+    await notifyByName(referral.referrerName, referral.referrerRole, {
+      title: "The guidance office replied about your referral",
+      body: content.length > 120 ? `${content.slice(0, 117)}…` : content,
+    });
 
     revalidatePath("/message");
     revalidatePath("/referral");
@@ -800,52 +995,49 @@ export async function sendReferralFeedback(referralId: string, content: string) 
   }
 }
 
-// ==== Accounts ====
-// Everyone who signs in with a school email starts as a student; the Guidance
-// Associate promotes faculty and other counselors here.
-
-export async function listAccounts() {
-  try {
-    const me = await counselorOnly();
-    const users = await db.user.findMany({
-      select: { id: true, name: true, email: true, role: true, createdAt: true },
-      orderBy: [{ role: "asc" }, { name: "asc" }],
-    });
-    return users.map((u) => ({ ...u, isMe: u.id === me.id }));
-  } catch (error) {
-    console.error("Failed to list accounts:", error);
-    return [];
-  }
-}
-
-export async function setAccountRole(userId: string, role: "STUDENT" | "FACULTY" | "PARENT" | "COUNSELOR") {
-  try {
-    const me = await counselorOnly();
-    if (userId === me.id) return { success: false, error: "You can't change your own role." };
-    await db.user.update({ where: { id: userId }, data: { role } });
-    // Their open sessions keep working; the new role applies on the next page load.
-    revalidatePath("/accounts");
-    return { success: true };
-  } catch (error) {
-    console.error("Failed to change role:", error);
-    return { success: false, error: String(error) };
-  }
-}
-
 // ==== Dashboard overview stats ====
 
 export async function getDashboardStats() {
   try {
     await counselorOnly();
-    const [totalStudents, pendingReferrals, activeCareerPlans] = await Promise.all([
+    const [totalStudents, pendingReferrals, activeCareerPlans, documentsToReview, pendingAccounts, pendingParentLinks, pendingAppointments] = await Promise.all([
       db.studentProfile.count(),
       db.referral.count({ where: { status: { not: "CLOSED" } } }),
       db.careerPlan.count(),
+      db.document.count({ where: { reviewStatus: "PENDING" } }),
+      db.user.count({ where: { status: "PENDING", role: { not: "PARENT" } } }),
+      db.parentChildLink.count({ where: { status: "PENDING", parent: { status: { not: "REJECTED" } } } }),
+      db.appointment.count({ where: { status: "PENDING" } }),
     ]);
 
-    return { totalStudents, pendingReferrals, activeCareerPlans };
+    return {
+      totalStudents,
+      pendingReferrals,
+      activeCareerPlans,
+      documentsToReview,
+      approvalsWaiting: pendingAccounts + pendingParentLinks,
+      pendingAppointments,
+    };
   } catch (error) {
     console.error("Failed to fetch dashboard stats:", error);
-    return { totalStudents: 0, pendingReferrals: 0, activeCareerPlans: 0 };
+    return { totalStudents: 0, pendingReferrals: 0, activeCareerPlans: 0, documentsToReview: 0, approvalsWaiting: 0, pendingAppointments: 0 };
+  }
+}
+
+// Quick search from the dashboard: students on record by name or student ID.
+export async function searchStudents(query: string) {
+  try {
+    await counselorOnly();
+    const q = query.trim().slice(0, 60);
+    if (q.length < 2) return [];
+    return await db.studentProfile.findMany({
+      where: { OR: [{ name: { contains: q, mode: "insensitive" } }, { studentId: { contains: q, mode: "insensitive" } }] },
+      select: { id: true, name: true, studentId: true, gradeSection: true, department: true, strandOrProgram: true },
+      orderBy: { name: "asc" },
+      take: 8,
+    });
+  } catch (error) {
+    console.error("Failed to search students:", error);
+    return [];
   }
 }
