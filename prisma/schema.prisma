@@ -179,14 +179,20 @@ model Message {
   createdAt      DateTime @default(now())
 }
 
+// One row per chat with E-Gabay. A student has at most one open chat
+// (endedAt null); starting a new chat or closing the chat panel ends it, and
+// ended chats stay in the student's history.
 model AiConversation {
-  id          String   @id @default(uuid())
-  studentName String   @unique
+  id          String    @id @default(uuid())
+  studentName String
 
   messages    AiMessage[]
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  endedAt     DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([studentName, endedAt])
 }
 
 model AiMessage {

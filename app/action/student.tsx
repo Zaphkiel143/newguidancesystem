@@ -351,14 +351,21 @@ export async function submitAssessmentResponse(formData: { assessmentId: string;
 
 // ---- AI Assistant (E-Gabay) ----
 
+// The student's open chat (the newest one not yet ended), or a new empty one.
 export async function getMyAiConversation() {
   try {
     const me = await requireActionUser("STUDENT");
-    const existing = await db.aiConversation.findUnique({
-      where: { studentName: me.name },
+    const existing = await db.aiConversation.findFirst({
+      where: { studentName: me.name, endedAt: null },
       include: { messages: { orderBy: { createdAt: "asc" } } },
+      orderBy: { createdAt: "desc" },
     });
-    if (existing) return existing;
+    // A chat left idle (e.g. the tab was closed) is saved to history and a
+    // fresh one starts, the same as closing the chat panel.
+    const IDLE_MS = 30 * 60 * 1000;
+    const idle = existing && existing.messages.length > 0 && Date.now() - existing.updatedAt.getTime() > IDLE_MS;
+    if (existing && !idle) return existing;
+    if (existing && idle) await db.aiConversation.update({ where: { id: existing.id }, data: { endedAt: new Date() } });
 
     return await db.aiConversation.create({
       data: { studentName: me.name },
@@ -373,8 +380,11 @@ export async function getMyAiConversation() {
 export async function sendAiMessage(formData: { conversationId: string; content: string }) {
   try {
     const me = await requireActionUser("STUDENT");
-    const conversation = await db.aiConversation.findFirst({ where: { id: formData.conversationId, studentName: me.name } });
-    if (!conversation) throw new Error("Conversation not found");
+    const conversation = await db.aiConversation.findFirst({ where: { id: formData.conversationId, studentName: me.name, endedAt: null } });
+    if (!conversation) throw new Error("This chat was closed. Start a new one.");
+    const content = formData.content.trim().slice(0, 1000);
+    if (!content) throw new Error("Write a message first.");
+    formData = { ...formData, content };
 
     await db.aiMessage.create({
       data: { conversationId: formData.conversationId, role: "user", content: formData.content },
@@ -434,5 +444,65 @@ export async function completeMyStudentInfo(formData: { studentId: string; depar
   } catch (error) {
     console.error("[student] Failed to save school info:", error);
     return { success: false, error: "Couldn't save your details. Try again." };
+  }
+}
+
+// Ends the open chat and saves it to history. Empty chats are simply reused,
+// so opening and closing the panel doesn't fill the history with blanks.
+export async function endMyAiConversation(conversationId: string) {
+  try {
+    const me = await requireActionUser("STUDENT");
+    const conversation = await db.aiConversation.findFirst({
+      where: { id: conversationId, studentName: me.name, endedAt: null },
+      select: { id: true, _count: { select: { messages: true } } },
+    });
+    if (!conversation || conversation._count.messages === 0) return { success: true, ended: false };
+    await db.aiConversation.update({ where: { id: conversation.id }, data: { endedAt: new Date() } });
+    return { success: true, ended: true };
+  } catch (error) {
+    console.error("[student] Failed to end AI conversation:", error);
+    return { success: false, ended: false };
+  }
+}
+
+// Past chats, newest first, each titled by its first question.
+export async function getMyAiHistory() {
+  try {
+    const me = await requireActionUser("STUDENT");
+    const chats = await db.aiConversation.findMany({
+      where: { studentName: me.name, endedAt: { not: null } },
+      select: {
+        id: true,
+        createdAt: true,
+        endedAt: true,
+        _count: { select: { messages: true } },
+        messages: { where: { role: "user" }, orderBy: { createdAt: "asc" }, take: 1, select: { content: true } },
+      },
+      orderBy: { endedAt: "desc" },
+      take: 100,
+    });
+    return chats.map((c) => ({
+      id: c.id,
+      title: c.messages[0]?.content.slice(0, 80) ?? "Chat",
+      startedAt: c.createdAt,
+      endedAt: c.endedAt,
+      messageCount: c._count.messages,
+    }));
+  } catch (error) {
+    console.error("[student] Failed to load AI history:", error);
+    return [];
+  }
+}
+
+export async function getMyAiHistoryChat(conversationId: string) {
+  try {
+    const me = await requireActionUser("STUDENT");
+    return await db.aiConversation.findFirst({
+      where: { id: conversationId, studentName: me.name },
+      include: { messages: { orderBy: { createdAt: "asc" } } },
+    });
+  } catch (error) {
+    console.error("[student] Failed to load AI chat:", error);
+    return null;
   }
 }
