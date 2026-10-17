@@ -11,6 +11,7 @@ import {
   sendAiMessage,
 } from "../app/action/student";
 import type { AiMessage } from "../lib/generated";
+import { CRISIS_HOTLINES } from "../app/config/hotlines";
 
 // Questions E-Gabay is trained to answer (nlp_service/intents.json), starting
 // with the Guidance Office FAQ.
@@ -150,6 +151,23 @@ export default function AiChatThread({ compact = false }: { compact?: boolean })
         <div key={m.id} className="max-w-[92%]">
           <p className="font-serif italic text-[12px] text-slate-500 mb-0.5">E-Gabay</p>
           <p className={`${text} leading-relaxed text-ink whitespace-pre-wrap break-words`}>{m.content}</p>
+          {m.intent === "crisis" && (
+            <div role="alert" className="mt-3 rounded-xl border border-red-200 bg-red-50 p-3 text-[13px] text-red-900 space-y-2">
+              <p className="font-semibold">You don&apos;t have to go through this alone. Please reach out now:</p>
+              {CRISIS_HOTLINES.map((h) => (
+                <p key={h.name}>
+                  <span className="font-medium">{h.name}: </span>
+                  {h.numbers.map((n, i) => (
+                    <span key={n.tel}>
+                      {i > 0 && " · "}
+                      <a href={`tel:${n.tel}`} className="underline underline-offset-2 font-semibold whitespace-nowrap">{n.label}</a>
+                    </span>
+                  ))}
+                </p>
+              ))}
+              <p>The Guidance Associate has also been alerted and will reach out to you.</p>
+            </div>
+          )}
           {m.intent === "fallback" &&
             (m.forwardedAt ? (
               <p className="mt-1.5 text-[12px] text-emerald-700">Sent to the guidance office. They&apos;ll reply in My Messages.</p>

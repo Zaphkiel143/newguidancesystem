@@ -20,6 +20,7 @@ Inbox,
 UserCog,
 FileCheck,
 Newspaper,
+BarChart3,
 LucideIcon
 } from 'lucide-react';
 
@@ -46,6 +47,7 @@ counselor: [
     { name: 'Dashboard', icon: LayoutDashboard, path: '/dashboard' },
     { name: 'Appointments', icon: Calendar, path: '/appointment' },
     { name: 'Daily Log', icon: NotebookPen, path: '/daily_log' },
+    { name: 'Monthly Report', icon: BarChart3, path: '/reports' },
     { name: 'Referrals', icon: FileText, path: '/referral' },
     { name: 'Individual Inventory', icon: Archive, path: '/inventory' },
     { name: 'Document Review', icon: FileCheck, path: '/documents' },

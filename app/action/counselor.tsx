@@ -11,6 +11,7 @@ import { formatAppointmentWhen, sendEmail } from "../../lib/email";
 import { normalizeFacebookPostUrl } from "../../lib/facebook";
 import { checkImage } from "../../lib/image";
 import { notifyByName } from "../../lib/notify";
+import { logRecordAccess } from "../../lib/accessLog";
 import { DEPARTMENTS, gradeSectionLabel, isShs, normalizeDepartment, programsFor, yearLevelsFor } from "../config/studentLevels";
 
 // Every action here requires a signed-in Guidance Associate (COUNSELOR role).
@@ -398,8 +399,9 @@ export async function listStudentProfiles() {
 // referrals and submitted documents.
 export async function getStudentProfile(studentName: string) {
   try {
-    await counselorOnly();
-    const [profile, appointments, careerPlan, referrals, documents, parents] = await Promise.all([
+    const me = await counselorOnly();
+    await logRecordAccess(me, studentName, "Viewed Individual Inventory record");
+    const [profile, appointments, careerPlan, referrals, documents, parents, accessLog] = await Promise.all([
       db.studentProfile.findUnique({ where: { name: studentName } }),
       db.appointment.findMany({ where: { studentName, status: { not: "CANCELLED" } }, orderBy: { date: "desc" } }),
       db.careerPlan.findFirst({ where: { studentName } }),
@@ -413,11 +415,12 @@ export async function getStudentProfile(studentName: string) {
         where: { status: "APPROVED", childName: studentName },
         select: { relationship: true, parent: { select: { name: true, phone: true, email: true } } },
       }),
+      db.recordAccess.findMany({ where: { studentName }, orderBy: { createdAt: "desc" }, take: 30 }),
     ]);
-    return { profile, appointments, careerPlan, referrals, documents, parents };
+    return { profile, appointments, careerPlan, referrals, documents, parents, accessLog };
   } catch (error) {
     console.error("Failed to fetch student profile:", error);
-    return { profile: null, appointments: [], careerPlan: null, referrals: [], documents: [], parents: [] };
+    return { profile: null, appointments: [], careerPlan: null, referrals: [], documents: [], parents: [], accessLog: [] };
   }
 }
 

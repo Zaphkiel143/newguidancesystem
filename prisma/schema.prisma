@@ -106,6 +106,8 @@ model User {
   totpPending  String?
   totpLastStep Int?     // last code step used, so a code can't be reused
   totpEnabledAt DateTime?
+  // When this person agreed to the privacy notice (Data Privacy Act, RA 10173).
+  privacyAcceptedAt DateTime?
 
   sessions      Session[]
   notifications Notification[]
@@ -446,4 +448,19 @@ model PushSubscription {
   createdAt DateTime @default(now())
 
   @@index([userId])
+}
+
+// ---- Confidentiality: who looked at which student's records ----
+
+// One row each time someone opens a student's Individual Inventory record, a
+// submitted document, or (for parents) their child's profile.
+model RecordAccess {
+  id          String   @id @default(uuid())
+  viewerName  String
+  viewerRole  String   // Counselor, Parent, ...
+  studentName String
+  action      String   // e.g. "Viewed profile", "Opened document: Medical certificate"
+  createdAt   DateTime @default(now())
+
+  @@index([studentName, createdAt])
 }

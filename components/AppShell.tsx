@@ -10,6 +10,7 @@ import { CurrentUserProvider } from "./CurrentUser";
 import { LogoMark } from "./Logo";
 import { FloatingDock, NoticeBell, NoticesProvider } from "./Notices";
 import { LoginApprovalPrompt } from "./LoginApproval";
+import PrivacyNotice from "./PrivacyNotice";
 
 type Role = "faculty" | "counselor" | "student" | "parent";
 
@@ -20,6 +21,8 @@ interface AppShellProps {
   hiddenPaths?: string[];
   // Profile photo URL, when the user has uploaded one.
   avatarUrl?: string | null;
+  // True until the person agrees to the privacy notice.
+  needsPrivacyConsent?: boolean;
   children: React.ReactNode;
 }
 
@@ -55,7 +58,7 @@ function initials(name: string): string {
     .join("");
 }
 
-export function AppShell({ role, userName, hiddenPaths = [], avatarUrl, children }: AppShellProps) {
+export function AppShell({ role, userName, hiddenPaths = [], avatarUrl, needsPrivacyConsent = false, children }: AppShellProps) {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
   const [lastPathname, setLastPathname] = useState(pathname);
@@ -197,6 +200,7 @@ export function AppShell({ role, userName, hiddenPaths = [], avatarUrl, children
 
       <FloatingDock messagesPath={MESSAGES_PATH[role]} withChatbot={role === "student"} />
       <LoginApprovalPrompt />
+      {needsPrivacyConsent && <PrivacyNotice />}
     </div>
     </NoticesProvider>
   );

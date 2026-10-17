@@ -6,7 +6,7 @@ export default async function Layout({ children }: { children: React.ReactNode }
   const avatarUrl = user.avatarType ? "/api/me/avatar" : null;
 
   return (
-    <AppShell role="parent" userName={user.name} avatarUrl={avatarUrl}>
+    <AppShell role="parent" userName={user.name} avatarUrl={avatarUrl} needsPrivacyConsent={!user.privacyAcceptedAt}>
       {children}
     </AppShell>
   );

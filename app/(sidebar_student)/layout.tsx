@@ -10,7 +10,7 @@ export default async function StudentLayout({ children }: { children: React.Reac
   const hiddenPaths = isShs(profile?.department) ? [] : ["/my_career"];
 
   return (
-    <AppShell role="student" userName={user.name} hiddenPaths={hiddenPaths} avatarUrl={user.avatarType ? "/api/me/avatar" : null}>
+    <AppShell role="student" userName={user.name} hiddenPaths={hiddenPaths} avatarUrl={user.avatarType ? "/api/me/avatar" : null} needsPrivacyConsent={!user.privacyAcceptedAt}>
       {children}
     </AppShell>
   );

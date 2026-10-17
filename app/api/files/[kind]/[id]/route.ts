@@ -2,6 +2,7 @@ import type { NextRequest } from "next/server";
 import db from "../../../../../lib/db";
 import { getCurrentUser } from "../../../../../lib/auth";
 import { detectFileType } from "../../../../../lib/documents";
+import { logRecordAccess } from "../../../../../lib/accessLog";
 
 // Opens an uploaded document (kind "document") or a photo the Guidance
 // Associate attached (kind "attachment"). Guidance Associates only. Files were
@@ -12,12 +13,20 @@ export async function GET(req: NextRequest, ctx: RouteContext<"/api/files/[kind]
   if (!user) return new Response("Not signed in", { status: 401 });
   if (user.role !== "COUNSELOR") return new Response("Not allowed", { status: 403 });
 
-  const file =
-    kind === "document"
-      ? await db.document.findUnique({ where: { id }, select: { data: true, fileType: true, fileName: true } })
-      : kind === "attachment"
-        ? await db.attachment.findUnique({ where: { id }, select: { data: true, fileType: true, fileName: true } })
-        : null;
+  let file: { data: Uint8Array; fileType: string; fileName: string } | null = null;
+  if (kind === "document") {
+    const doc = await db.document.findUnique({
+      where: { id },
+      select: { data: true, fileType: true, fileName: true, studentName: true, uploaderName: true, category: true },
+    });
+    if (doc) {
+      // Confidentiality trail: who opened which student's document.
+      await logRecordAccess({ name: user.name, roleLabel: "Counselor" }, doc.studentName ?? doc.uploaderName, `Opened document: ${doc.category ?? doc.fileName}`);
+      file = doc;
+    }
+  } else if (kind === "attachment") {
+    file = await db.attachment.findUnique({ where: { id }, select: { data: true, fileType: true, fileName: true } });
+  }
   if (!file) return new Response("Not found", { status: 404 });
 
   // Older uploads stored whatever type the browser claimed, so check the bytes

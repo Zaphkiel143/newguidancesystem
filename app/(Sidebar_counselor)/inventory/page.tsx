@@ -287,6 +287,25 @@ export default function StudentInventory() {
                   )}
                   <InlineError message={downloadError} onDismiss={() => setDownloadError(null)} className="mt-2" />
                 </Section>
+
+                <Section title="Who opened this record">
+                  {detail.accessLog.length === 0 ? <Empty>No one has opened it yet.</Empty> : (
+                    <ul className="divide-y divide-rule border-t border-rule">
+                      {detail.accessLog.map((a) => (
+                        <li key={a.id} className="py-2.5 text-sm flex flex-wrap justify-between gap-x-4 gap-y-0.5">
+                          <span className="text-ink">
+                            {a.viewerName} <span className="text-slate-500">({a.viewerRole.toLowerCase()})</span>
+                            <span className="block text-[13px] text-slate-600">{a.action}</span>
+                          </span>
+                          <span className="font-mono text-[12px] text-slate-500 shrink-0">
+                            {new Date(a.createdAt).toLocaleString("en-PH", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit", timeZone: "Asia/Manila" })}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                  <p className="mt-2 text-xs text-slate-500">Kept for confidentiality (Data Privacy Act, RA 10173). Shows the 30 most recent.</p>
+                </Section>
               </div>
             )}
           </aside>

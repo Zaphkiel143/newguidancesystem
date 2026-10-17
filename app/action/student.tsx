@@ -412,6 +412,24 @@ export async function sendAiMessage(formData: { conversationId: string; content:
       data: { conversationId: formData.conversationId, role: "assistant", content: reply.response, intent: reply.intent },
     });
 
+    // A crisis message alerts the Guidance Associate right away, in E-Gabay and by
+    // email, at most once an hour per student so they aren't flooded.
+    if (reply.intent === "crisis" && (await allow(`crisis-alert:${me.id}`, 1, HOUR))) {
+      await notifyCounselors({
+        title: "URGENT: a student may be in crisis",
+        body: `${me.name} sent a message to E-Gabay that may mean they're at risk. Please reach out right away.`,
+        href: "/message",
+      });
+      for (const to of await counselorEmails()) {
+        await sendEmail(
+          to,
+          "URGENT: a student may be in crisis (E-Gabay)",
+          `${me.name} sent a message to the E-Gabay chatbot that matched the crisis topic at ${new Date().toLocaleString("en-PH", { timeZone: "Asia/Manila" })}.\n\nPlease reach out to the student as soon as possible. Their school email: ${me.email ?? "not on file"}.\n\nOpen E-Gabay to message them.`,
+          // The student's words stay in E-Gabay; the email only says who and when.
+        );
+      }
+    }
+
     await db.aiConversation.update({ where: { id: formData.conversationId }, data: { updatedAt: new Date() } });
 
     return { success: true, message: assistantMessage };

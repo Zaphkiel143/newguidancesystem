@@ -8,6 +8,7 @@ import { hashPassword, verifyPassword } from "../../lib/auth";
 import { notifyCounselors } from "../../lib/notify";
 import { normalizePhone } from "../../lib/phone";
 import { announceNewReferral, checkReferral } from "../../lib/referrals";
+import { logRecordAccess } from "../../lib/accessLog";
 import { counselorEmails, formatAppointmentWhen, sendEmail } from "../../lib/email";
 import { announceNewBooking, checkBooking } from "../../lib/booking";
 
@@ -249,7 +250,8 @@ export async function getMyReferrals() {
 // never counselor notes or other students' records.
 export async function getChildProfile(childName: string) {
   try {
-    const { child } = await requireOwnChild(childName);
+    const { me, child } = await requireOwnChild(childName);
+    await logRecordAccess(me, child.name, "Parent viewed child profile");
     const [appointments, careerPlan] = await Promise.all([
       db.appointment.findMany({
         where: { studentName: child.name, status: { not: "CANCELLED" } },
