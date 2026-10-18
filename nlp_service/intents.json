@@ -127,15 +127,9 @@
         "takot akong mag-exam"
       ],
       "responses_en": [
-        "Exam stress is really common — try breaking your study sessions into smaller chunks with breaks in between. Would you like some study tips?",
-        "It's okay to feel anxious before exams. Try to get enough sleep and take breaks — your brain needs rest to retain information. Want to talk more about what's worrying you?",
-        "That sounds stressful. Remember that one exam doesn't define you. Have you talked to your teachers about how you're feeling?"
+        "It’s normal to feel stressed when exams and deadlines pile up. Let’s start with a few manageable steps:\n• List your upcoming exams, projects, and deadlines.\n• Prioritize tasks according to urgency and importance.\n• Break large tasks into smaller, achievable steps.\n• Study in focused intervals and take short breaks.\n• Get enough sleep, eat regularly, and allow time to rest.\n\nIf your stress feels overwhelming or is affecting your daily functioning, you may reach out to the Guidance and Counseling office for additional support."
       ],
-      "responses_tl": [
-        "Normal lang ang mararamdaman mong kabado bago mag-exam. Subukan mong hatiin ang pag-aaral mo sa maiikling bahagi na may pahinga sa gitna. Gusto mo ba ng tips sa pag-aaral?",
-        "Okay lang na mag-alala, pero siguraduhin mong sapat ang tulog mo. Kailangan ding magpahinga ang utak para matandaan ang mga aralin. Gusto mo bang pag-usapan kung ano talaga ang ikinakaba mo?",
-        "Naiintindihan ko na stressful iyan. Tandaan mo, hindi ka masusukat ng isang exam lang. Nakausap mo na ba ang teacher mo tungkol dito?"
-      ]
+      "responses_tl": []
     },
     {
       "tag": "time_management",
@@ -158,15 +152,9 @@
         "di ko na alam paano aabutan lahat"
       ],
       "responses_en": [
-        "Try making a simple daily schedule and prioritizing your top 3 tasks each day. Small steps really help!",
-        "Procrastination happens to everyone. Try the 'just 5 minutes' trick — start a task for just 5 minutes and often you'll keep going.",
-        "Breaking big tasks into smaller ones can make things feel less overwhelming. Want some tips on organizing your schedule?"
+        "It’s normal to feel stressed when exams and deadlines pile up. Let’s start with a few manageable steps:\n• List your upcoming exams, projects, and deadlines.\n• Prioritize tasks according to urgency and importance.\n• Break large tasks into smaller, achievable steps.\n• Study in focused intervals and take short breaks.\n• Get enough sleep, eat regularly, and allow time to rest.\n\nIf your stress feels overwhelming or is affecting your daily functioning, you may reach out to the Guidance and Counseling office for additional support."
       ],
-      "responses_tl": [
-        "Subukan mong gumawa ng simpleng schedule at unahin ang tatlong pinaka-importanteng gawain kada araw. Malaking tulong iyan!",
-        "Normal lang ang mag-procrastinate paminsan-minsan. Subukan mong gawin ang gawain nang 5 minuto lang muna — kadalasan, magpapatuloy ka na.",
-        "Kapag hinati mo ang malaking gawain sa maliliit na bahagi, mas magaan ang pakiramdam. Gusto mo ba ng tips sa pag-oorganisa ng schedule mo?"
-      ]
+      "responses_tl": []
     },
     {
       "tag": "bullying",
@@ -189,13 +177,9 @@
         "sinisiraan ako ng mga kaklase ko"
       ],
       "responses_en": [
-        "I'm really sorry you're going through that. Bullying is never okay, and you don't have to handle it alone. Please consider talking to your guidance counselor or a trusted teacher about this.",
-        "That sounds really hard. You deserve to feel safe at school. I'd strongly encourage you to report this to your counselor — would you like help reaching out to them?"
+        "If you feel comfortable, please share what happened with the Guidance and Counseling office or a trusted school staff member. If the bullying involves threats, physical harm, or immediate danger, seek help from a school authority or emergency services right away.\n\nYou don’t have to handle this alone. The GCO can help you identify the appropriate next steps and available school support."
       ],
-      "responses_tl": [
-        "Pasensya na talaga na dumaranas ka niyan. Hindi dapat pinapayagan ang bullying, at hindi mo kailangang harapin ito nang mag-isa. Pag-isipan mong kausapin ang guidance counselor o isang gurong pinagkakatiwalaan mo.",
-        "Mahirap talaga iyan. Dapat ligtas ang pakiramdam mo sa school. Hinihikayat kitang i-report ito sa counselor mo — gusto mo bang tulungan kitang makipag-usap sa kanila?"
-      ]
+      "responses_tl": []
     },
     {
       "tag": "family_problems",
@@ -218,13 +202,9 @@
         "hindi ako sang-ayon sa magulang ko"
       ],
       "responses_en": [
-        "Family struggles can be really tough to deal with. I'm here to listen. Have you considered talking to your guidance counselor about this too? They can offer more support.",
-        "That sounds difficult. You're not alone in this — your school counselor is a safe person to talk to if you'd like more support."
+        "Thank you for sharing what you’re going through. Family problems and feelings of low self-esteem can be difficult to manage, and your feelings deserve to be heard.\n\nYou don’t have to solve everything at once. It may help to talk with someone you trust or schedule a consultation with the Guidance and Counseling office. The GCO can provide a supportive space to discuss your concerns and explore possible ways to cope.\n\nIf you feel unsafe at home or are thinking about hurting yourself, please tell a trusted person and seek immediate help."
       ],
-      "responses_tl": [
-        "Talagang mahirap harapin ang mga problema sa pamilya. Nandito ako para makinig. Pag-isipan mo ring kausapin ang guidance counselor mo para sa dagdag na suporta.",
-        "Mahirap iyan. Hindi ka nag-iisa dito — ang counselor ng school mo ay ligtas na taong pwede mong kausapin kung gusto mo ng dagdag na tulong."
-      ]
+      "responses_tl": []
     },
     {
       "tag": "friendship_issues",
@@ -302,13 +282,9 @@
         "pakiramdam ko lagi akong nakakadismaya"
       ],
       "responses_en": [
-        "I'm really sorry you're feeling this way. You matter, and these feelings, while very real, don't define your worth. Please consider talking to your guidance counselor — they can offer real support.",
-        "That sounds really painful to carry. You're not alone, and it might really help to talk to your counselor or someone you trust about how you've been feeling."
+        "Thank you for sharing what you’re going through. Family problems and feelings of low self-esteem can be difficult to manage, and your feelings deserve to be heard.\n\nYou don’t have to solve everything at once. It may help to talk with someone you trust or schedule a consultation with the Guidance and Counseling office. The GCO can provide a supportive space to discuss your concerns and explore possible ways to cope.\n\nIf you feel unsafe at home or are thinking about hurting yourself, please tell a trusted person and seek immediate help."
       ],
-      "responses_tl": [
-        "Pasensya na talaga na ganito ang nararamdaman mo. Mahalaga ka, at ang mga nararamdaman mong ito, kahit totoo, ay hindi sumusukat sa halaga mo bilang tao. Pag-isipan mong kausapin ang guidance counselor mo — may tunay silang maibibigay na suporta.",
-        "Mabigat talagang dalhin iyan. Hindi ka nag-iisa, at makakatulong talaga kung kakausapin mo ang counselor mo o isang taong pinagkakatiwalaan mo tungkol dito."
-      ]
+      "responses_tl": []
     },
     {
       "tag": "crisis",
@@ -320,7 +296,11 @@
         "i want to end my life",
         "i've been cutting myself",
         "life isn't worth living",
-        "i don't want to be alive anymore"
+        "i don't want to be alive anymore",
+        "i want to end it all",
+        "i feel like giving up on life",
+        "i am thinking of hurting myself",
+        "i dont want to be alive anymore"
       ],
       "patterns_tl": [
         "gusto kong magpakamatay",
@@ -329,14 +309,16 @@
         "papatayin ko na lang sarili ko",
         "wala nang saysay ang buhay",
         "gusto ko nang mamatay",
-        "sinasaktan ko ang sarili ko"
+        "sinasaktan ko ang sarili ko",
+        "gusto ko na mawala",
+        "ayoko na mabuhay",
+        "naiisip kong saktan ang sarili ko",
+        "pagod na ako sa buhay gusto ko na sumuko"
       ],
       "responses_en": [
-        "I'm really concerned about what you just shared, and your safety matters most right now. Please reach out immediately to a trusted adult, your guidance counselor, or a parent/guardian. If you're in immediate danger, please contact emergency services right away. You don't have to go through this alone."
+        "I’m sorry that you’re going through such a difficult time. Thank you for telling me. You don’t have to face this alone, and your safety matters.\n\nIf you feel that you might hurt yourself or are in immediate danger, please go to the nearest emergency department or contact emergency services. If possible, stay with someone you trust and move away from anything you could use to hurt yourself.\n\nYou may also reach out to the Guidance and Counseling Office during office hours for support. If you are in immediate danger, please do not wait for an appointment or an online reply.\n\n• 911 – Philippine emergency hotline\n• NCMH Crisis Hotline: 1553 – National Center for Mental Health crisis support"
       ],
-      "responses_tl": [
-        "Lubos akong nag-aalala sa sinabi mo, at ang kaligtasan mo ang pinakamahalaga ngayon. Mangyaring makipag-usap agad sa isang taong may tiwala mo, sa guidance counselor mo, o sa magulang/guardian mo. Kung nasa agarang panganib ka, mangyaring tumawag agad sa emergency services. Hindi mo kailangang harapin ito nang mag-isa."
-      ]
+      "responses_tl": []
     },
     {
       "tag": "book_appointment",
@@ -352,7 +334,13 @@
         "where do i book an appointment",
         "how do i reserve a slot with guidance",
         "can i talk to the counselor",
-        "i want to talk to the guidance counselor"
+        "i want to talk to the guidance counselor",
+        "can i book a consultation",
+        "i want to book a consultation",
+        "how do i schedule a consultation",
+        "i would like to set a consultation",
+        "can i request a consultation with the guidance counselor",
+        "book me a counseling session"
       ],
       "patterns_tl": [
         "paano mag-book ng appointment",
@@ -363,7 +351,11 @@
         "pano po magpa schedule sa counselor",
         "saan po mag-book ng appointment",
         "gusto kong makausap ang guidance counselor",
-        "pwede ba ako makipag-usap sa counselor"
+        "pwede ba ako makipag-usap sa counselor",
+        "pwede ba mag book ng consultation",
+        "gusto ko mag pa schedule ng consultation",
+        "paano mag set ng consultation",
+        "pwede po ba magpa appointment sa guidance"
       ],
       "responses_en": [
         "You can set an appointment by visiting the Guidance Office or by contacting the GCO through the provided contact details. You can also book right here in E-Gabay: open My Appointments and tap Book Appointment."
@@ -423,11 +415,9 @@
         "ano po ang oras ng guidance"
       ],
       "responses_en": [
-        "The GCO accepts consultations from Monday to Friday, 8:00 AM to 3:00 PM."
+        "The Guidance and Counseling Office is open Monday to Friday, from 8:00 AM to 5:00 PM, except during the lunch break from 12:00 PM to 1:00 PM. Consultations are accepted from 8:00 AM to 3:00 PM. Please note that office availability may change during school events, meetings, or other scheduled activities."
       ],
-      "responses_tl": [
-        "Tumatanggap ang GCO ng consultation mula Lunes hanggang Biyernes, 8:00 AM hanggang 3:00 PM."
-      ]
+      "responses_tl": []
     },
     {
       "tag": "no_record",
@@ -451,11 +441,9 @@
         "pinatawag ako sa guidance may kasalanan ba ako"
       ],
       "responses_en": [
-        "No. A consultation with the GCO will not result in a record or sanction that could negatively affect your academic standing."
+        "Seeking support from the Guidance and Counseling Office does not automatically mean you will receive a disciplinary record. Information shared during a consultation is handled according to the school’s confidentiality policies. However, certain situations may require appropriate disclosure, such as serious safety concerns or other circumstances required by school policy or law.\n\nIf you have concerns about privacy or documentation, you may ask the GCO about its procedure before your consultation."
       ],
-      "responses_tl": [
-        "Hindi. Ang consultation sa GCO ay hindi magdudulot ng record o sanction na makakaapekto nang masama sa iyong academic standing."
-      ]
+      "responses_tl": []
     },
     {
       "tag": "worried_about_someone",
@@ -486,6 +474,349 @@
       "responses_tl": [
         "Pwede kang lumapit sa GCO at ibahagi ang iyong concern. Ang GCO ay makapagbibigay ng tamang gabay at suporta sa iyong kaklase o schoolmate. Pwede mo ring gamitin ang Refer a Student dito sa E-Gabay; confidential ang mga referral."
       ]
+    },
+    {
+      "tag": "office_location_contact",
+      "patterns_en": [
+        "where is the guidance office",
+        "where can i find the gco",
+        "what floor is the guidance office",
+        "how do i contact the guidance office",
+        "what is the email of the guidance office",
+        "can i message the gco on teams",
+        "contact details of the guidance counselor",
+        "where is the gco located",
+        "how can i reach the guidance associate",
+        "what is the teams account of the guidance office",
+        "location of guidance and counseling office"
+      ],
+      "patterns_tl": [
+        "saan ang guidance office",
+        "nasaan ang gco",
+        "anong floor ang guidance",
+        "paano ko makokontak ang guidance office",
+        "ano email ng guidance",
+        "pwede ba i-message ang gco sa teams",
+        "saan po ba makikita ang guidance office",
+        "paano ma-contact ang guidance associate"
+      ],
+      "responses_en": [
+        "The Guidance and Counseling Office (GCO) is located on the 2nd floor of STI College Sta. Maria, beside the School Administration Office and the Human Resources (HR) Office. Students may visit the office during regular office hours, Monday to Friday, from 8:00 AM to 5:00 PM, except during the lunch break from 12:00 PM to 1:00 PM. Please note that office availability may change during school events, meetings, or other scheduled activities.\n\nYou may contact the Guidance and Counseling Office (GCO) through Microsoft Teams: eslie.clemente@stamaria.sti.edu.ph\n\nIf you plan to visit, we recommend contacting the GCO beforehand to confirm availability."
+      ],
+      "responses_tl": []
+    },
+    {
+      "tag": "consultation_length",
+      "patterns_en": [
+        "how long is a consultation",
+        "how long does a counseling session take",
+        "how many minutes is the consultation",
+        "how far ahead should i book",
+        "how many days before should i book an appointment",
+        "how early should i schedule a consultation",
+        "duration of a counseling session",
+        "how long will my session with the guidance counselor be",
+        "can i book the same day",
+        "how long does it usually take to talk to the counselor",
+        "is a consultation one hour",
+        "how much time should i allot for my session",
+        "how long do i have to wait before my appointment"
+      ],
+      "patterns_tl": [
+        "gaano katagal ang consultation",
+        "ilang minuto ang session sa guidance",
+        "gaano katagal ang counseling",
+        "ilang araw bago dapat mag book",
+        "kailan dapat mag book ng appointment",
+        "pwede ba mag book sa mismong araw",
+        "gaano kahaba ang session",
+        "ilang oras po ang consultation",
+        "isang oras ba ang consultation",
+        "gaano katagal kakausapin ng counselor",
+        "ilang oras ko dapat ilaan sa session"
+      ],
+      "responses_en": [
+        "Consultation duration and appointment availability may vary depending on your concern and the GCO’s schedule. Please contact the Guidance and Counseling Office through Microsoft Teams or email to ask about available appointment times.\n\nIf your concern is urgent or involves your immediate safety, please do not wait for a scheduled appointment. Seek immediate assistance from a trusted adult, school authority, emergency service, or crisis hotline as appropriate."
+      ],
+      "responses_tl": []
+    },
+    {
+      "tag": "cancel_reschedule",
+      "patterns_en": [
+        "can i cancel my appointment",
+        "how do i reschedule my consultation",
+        "i cant attend my appointment",
+        "can i move my schedule",
+        "i need to change my appointment",
+        "how to cancel a counseling session",
+        "i will be absent on my appointment day",
+        "can i request a new schedule",
+        "what if i miss my appointment"
+      ],
+      "patterns_tl": [
+        "pwede ba i-cancel ang appointment ko",
+        "paano mag reschedule",
+        "hindi ako makakapunta sa appointment ko",
+        "pwede ba ilipat ang schedule ko",
+        "gusto ko palitan ang appointment ko",
+        "paano i-cancel ang consultation",
+        "absent ako sa araw ng appointment ko",
+        "pwede ba humingi ng bagong schedule"
+      ],
+      "responses_en": [
+        "Yes. If you cannot attend your scheduled consultation, please inform the GCO as soon as possible through Microsoft Teams or email.\n\nInclude your name, appointment date and time, and whether you would like to cancel or request a new schedule. The GCO will confirm the next available appointment."
+      ],
+      "responses_tl": []
+    },
+    {
+      "tag": "confidentiality",
+      "patterns_en": [
+        "is my session confidential",
+        "will you tell my parents what i say",
+        "is counseling private",
+        "will my teacher know what i told the counselor",
+        "do you share what i say in counseling",
+        "who will know about my consultation",
+        "is what i tell the guidance counselor kept secret",
+        "will the guidance office tell anyone",
+        "can you keep this between us",
+        "will anyone else know what i talk about",
+        "are my counseling records private",
+        "do you keep what i say confidential",
+        "will my classmates find out about my session",
+        "is it safe to tell the counselor everything"
+      ],
+      "patterns_tl": [
+        "confidential ba ang session",
+        "sasabihin nyo ba sa magulang ko",
+        "private ba ang counseling",
+        "malalaman ba ng teacher ko ang sinabi ko",
+        "may pagsasabihan ba kayo",
+        "sikreto lang ba ang sasabihin ko sa guidance",
+        "sino makakaalam ng consultation ko",
+        "atin atin lang ba ito",
+        "walang ibang makakaalam ng pinag usapan namin diba",
+        "private ba ang records ko sa guidance",
+        "hindi ba malalaman ng classmates ko",
+        "safe ba sabihin lahat sa counselor"
+      ],
+      "responses_en": [
+        "Your privacy is important to the Guidance and Counseling Office. Information shared during a consultation is handled with care and according to applicable privacy requirements and school policies.\n\nHowever, confidentiality may have limits. Information may need to be shared with appropriate people when there is a serious risk of harm to you or someone else, a safeguarding concern, or another applicable legal or institutional requirement.\n\nWhen appropriate and safe, the GCO will explain the reason for sharing information and involve you in the process."
+      ],
+      "responses_tl": []
+    },
+    {
+      "tag": "referral_process",
+      "patterns_en": [
+        "what happens after someone refers a student",
+        "what is the referral process",
+        "how does a referral work",
+        "what happens when i am referred to the guidance office",
+        "who can refer a student to the gco",
+        "what will the gco do after a referral",
+        "i was referred to guidance what happens next",
+        "steps after a referral",
+        "how are referrals handled"
+      ],
+      "patterns_tl": [
+        "ano mangyayari pagkatapos ma-refer",
+        "paano ang proseso ng referral",
+        "na-refer ako sa guidance ano susunod",
+        "sino pwede mag refer sa gco",
+        "ano gagawin ng gco pag may referral",
+        "paano gumagana ang referral",
+        "ano ang proseso pag ni-refer ang estudyante",
+        "anong mangyayari sa referral ko"
+      ],
+      "responses_en": [
+        "A student may be referred to the GCO by a faculty member, school staff member, parent or guardian, or another appropriate person. Students may also seek help directly.\n\nAfter a referral, the GCO may:\n• Review the concern and the information provided.\n• Determine the urgency of the situation and the appropriate next steps.\n• Contact the student and arrange an initial conversation or consultation.\n• Discuss appropriate support, possible follow-up, or referral to another qualified professional or service if needed.\n\nReferrals are handled with care and according to applicable privacy, safeguarding, and school policies. Urgent safety concerns should be addressed immediately rather than waiting for routine referral processing."
+      ],
+      "responses_tl": []
+    },
+    {
+      "tag": "document_requirements",
+      "patterns_en": [
+        "what documents does the gco accept",
+        "what do i need for a medical certificate",
+        "requirements for the gender affirming clothing form",
+        "how do i submit an excuse letter",
+        "what should my medical certificate include",
+        "how to submit documents to guidance",
+        "what are the requirements for documents",
+        "where do i submit my medical certificate",
+        "what form do i need for gender affirming clothing"
+      ],
+      "patterns_tl": [
+        "anong documents tinatanggap ng gco",
+        "ano kailangan sa medical certificate",
+        "requirements ng gender affirming clothing form",
+        "paano mag submit ng excuse letter",
+        "ano dapat nakalagay sa medical certificate",
+        "paano magpasa ng documents sa guidance",
+        "saan ipapasa ang medical certificate",
+        "ano requirements sa pagpasa ng documents"
+      ],
+      "responses_en": [
+        "Medical certificate: the student’s identifying details, consultation or illness dates, relevant medical information required, and the issuing healthcare professional’s details.\n\nGender-affirming clothing form: the official form, required student information, requested clothing or uniform accommodation, and any required signatures or supporting information specified in the approved procedure.\n\nThe GCO may handle different documents, depending on your concern or request. Before submitting a document, please contact the GCO to confirm the latest form, required attachments, signatures, submission method, and deadline.\n\nFor medical documents and other sensitive information, please use the school’s approved submission channel and provide only the information required."
+      ],
+      "responses_tl": []
+    },
+    {
+      "tag": "clearance_inventory",
+      "patterns_en": [
+        "how does clearance signing work",
+        "how do i get my clearance signed by guidance",
+        "what is the individual inventory form",
+        "do i need to answer the inventory form for clearance",
+        "the 80 question form for clearance",
+        "guidance clearance requirements",
+        "how to get guidance signature for clearance",
+        "where do i get the individual inventory form",
+        "when is the deadline for clearance signing"
+      ],
+      "patterns_tl": [
+        "paano magpa sign ng clearance sa guidance",
+        "ano ang individual inventory form",
+        "kailangan ba sagutan ang inventory form para sa clearance",
+        "requirements sa clearance ng guidance",
+        "paano makuha pirma ng guidance sa clearance",
+        "saan kukunin ang individual inventory form",
+        "kailan deadline ng clearance",
+        "yung 80 na tanong para sa clearance"
+      ],
+      "responses_en": [
+        "Clearance signing and the individual inventory form are subject to the GCO's current procedures and the school’s requirements.\n\nIf your clearance requires GCO verification, please ask the office about the required steps, submission schedule, and any forms you need to complete."
+      ],
+      "responses_tl": []
+    },
+    {
+      "tag": "exit_interview",
+      "patterns_en": [
+        "how do exit interviews work",
+        "who needs an exit interview",
+        "do graduating students need an exit interview",
+        "i am transferring do i need an exit interview",
+        "exit interview for leave of absence",
+        "what is an exit interview",
+        "i am withdrawing from school what do i need from guidance",
+        "schedule of exit interview",
+        "how to request an exit interview"
+      ],
+      "patterns_tl": [
+        "paano ang exit interview",
+        "sino kailangan mag exit interview",
+        "kailangan ba ng exit interview pag graduating",
+        "lilipat ako ng school kailangan ba exit interview",
+        "exit interview para sa loa",
+        "ano ang exit interview",
+        "mag wiwithdraw ako ano kailangan sa guidance",
+        "kailan ang exit interview"
+      ],
+      "responses_en": [
+        "Exit interviews may be conducted for students who are graduating, withdrawing from the school, or filing a Leave of Absence (LOA), depending on the applicable school procedures.\n\nThe purpose is to understand the student's circumstances, concerns, and reasons for their decision.\n\nStudents who are required to undergo an exit interview should coordinate with the Guidance and Counseling Office (GCO) for the process, schedule, and any requirements."
+      ],
+      "responses_tl": []
+    },
+    {
+      "tag": "parent_contact",
+      "patterns_en": [
+        "can parents talk to the guidance office",
+        "how can i as a parent contact the gco",
+        "i am a parent and worried about my child",
+        "can my mother talk to the guidance counselor",
+        "can a guardian meet the guidance associate",
+        "how do parents reach the guidance office",
+        "my parents want to talk to guidance",
+        "parent concern about student",
+        "can i bring my parent to the consultation",
+        "my dad wants to talk to the guidance counselor",
+        "my mother wants to speak with the gco",
+        "can my father call the guidance office",
+        "my parents want to meet the counselor about me",
+        "how can my guardian talk to the guidance office"
+      ],
+      "patterns_tl": [
+        "pwede ba kausapin ng magulang ang guidance",
+        "paano makakausap ng parent ang gco",
+        "magulang ako at nag aalala sa anak ko",
+        "pwede ba makipag usap ang nanay ko sa guidance",
+        "gusto ng magulang ko kausapin ang guidance",
+        "paano makokontak ng parents ang guidance",
+        "pwede ba isama ang magulang ko sa consultation",
+        "concern ng magulang tungkol sa anak",
+        "gusto kausapin ng tatay ko ang guidance",
+        "gusto makipag usap ng mama ko sa counselor",
+        "pwede ba tumawag ang papa ko sa guidance"
+      ],
+      "responses_en": [
+        "Yes. Parents or guardians may contact the Guidance and Counseling Office to raise concerns about a student’s well-being, adjustment, academic difficulties, or other matters related to student support."
+      ],
+      "responses_tl": []
+    },
+    {
+      "tag": "faculty_concern",
+      "patterns_en": [
+        "as a teacher i am worried about my student",
+        "what should faculty do if worried about a student",
+        "i am a professor and my student seems troubled",
+        "how do teachers refer a student to guidance",
+        "my student has been absent a lot and seems sad",
+        "faculty concern about a student",
+        "i noticed my student is acting differently",
+        "as an instructor how do i report a concern about a student",
+        "what should i do as faculty if a student is in danger"
+      ],
+      "patterns_tl": [
+        "teacher ako at nag aalala ako sa estudyante ko",
+        "ano gagawin ng faculty pag may concern sa estudyante",
+        "paano mag refer ang teacher sa guidance",
+        "yung estudyante ko laging absent at malungkot",
+        "may napansin akong kakaiba sa estudyante ko",
+        "paano mag report ang instructor ng concern",
+        "guro ako at may problema ang estudyante ko",
+        "ano dapat gawin ng teacher pag nasa panganib ang estudyante"
+      ],
+      "responses_en": [
+        "If you are concerned about a student's behavior, emotional well-being, attendance, academic performance, or safety, please refer the concern to the GCO through the school's approved procedure.\n\nWhen raising the concern, provide factual observations, relevant dates, and any immediate safety issues. Avoid making diagnoses or sharing sensitive information with people who do not need to know.\n\nIf the student appears to be in immediate danger or may harm themselves or someone else, do not wait for a routine referral. Follow the school's emergency procedures and seek immediate assistance."
+      ],
+      "responses_tl": []
+    },
+    {
+      "tag": "urgent_after_hours",
+      "patterns_en": [
+        "i need help but the office is closed",
+        "who can i talk to after office hours",
+        "it is the weekend and i need help urgently",
+        "what if i need help at night",
+        "the guidance office is closed what do i do",
+        "urgent help outside office hours",
+        "i need someone to talk to right now but its late",
+        "who do i contact on holidays",
+        "where can i get help when the gco is closed",
+        "i need help tonight and guidance is closed",
+        "emergency after school hours who do i call",
+        "its sunday and i am not okay who can help",
+        "help outside office hours please",
+        "i cant wait until monday i need help now"
+      ],
+      "patterns_tl": [
+        "kailangan ko ng tulong pero sarado ang office",
+        "sino pwede kausapin pag gabi na",
+        "weekend ngayon at kailangan ko ng tulong",
+        "sarado ang guidance ano gagawin ko",
+        "may emergency pero wala ang guidance",
+        "saan ako hihingi ng tulong pag sarado ang gco",
+        "kailangan ko ng kausap ngayon pero gabi na",
+        "sino tatawagan pag holiday",
+        "gabi na at kailangan ko ng tulong ngayon",
+        "linggo ngayon at hindi ako okay sino tutulong",
+        "hindi na ako makakapaghintay ng lunes",
+        "emergency pero after office hours na"
+      ],
+      "responses_en": [
+        "The GCO is generally available Monday to Friday, 8:00 AM–5:00 PM, with a lunch break from 12:00 PM–1:00 PM. If you need urgent help outside these hours, please do not wait for the office to reopen.\n\nIf you or someone else is in immediate danger, call 911 or go to the nearest emergency department.\n\nFor mental health crisis support in the Philippines, contact the National Center for Mental Health Crisis Hotline at 1553. Other published contact numbers include 0917-899-8727 and 0919-057-1553.\n\nIf possible, reach out to a trusted adult, family member, or another person who can stay with you and help you access support.\n\nYou may also email the GCO at eslie.clemente@stamaria.sti.edu.ph. Messages sent outside office hours may not receive an immediate response."
+      ],
+      "responses_tl": []
     },
     {
       "tag": "fallback",

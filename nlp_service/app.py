@@ -34,12 +34,15 @@ CRISIS_KEYWORDS_EN = [
     "kill myself", "suicide", "end my life", "hurt myself", "self harm",
     "self-harm", "cutting myself", "want to die", "don't want to live",
     "not want to live", "don't want to be alive",
+    # students often skip the apostrophe
+    "dont want to live", "dont want to be alive", "end it all", "giving up on life",
 ]
 CRISIS_KEYWORDS_TL = [
     "magpakamatay", "papatayin ko na lang sarili", "papatayin ko sarili",
     "saktan ang sarili", "sinasaktan ko ang sarili", "ayoko na mabuhay",
     "ayoko nang mabuhay", "gusto ko nang mamatay", "gusto kong mamatay",
-    "wala nang saysay ang buhay",
+    "wala nang saysay ang buhay", "gusto ko na mawala", "gusto ko nang mawala",
+    "ayoko na sa buhay", "gusto ko na mamatay",
 ]
 CRISIS_KEYWORDS = CRISIS_KEYWORDS_EN + CRISIS_KEYWORDS_TL
 
