@@ -21,8 +21,7 @@ UserCog,
 FileCheck,
 Newspaper,
 BarChart3,
-LucideIcon
-} from 'lucide-react';
+LucideIcon, ClipboardPen } from 'lucide-react';
 
 export interface MenuItem {
     name: string;
@@ -75,6 +74,7 @@ student: [
     { name: 'Chat with E-Gabay', icon: Sparkles, path: '/ai_chat' },
     { name: 'My Appointments', icon: Calendar, path: '/my_appointments' },
     { name: 'My Career Plan', icon: Route, path: '/my_career' },
+    { name: 'Career Planning Form', icon: ClipboardPen, path: '/career_form' },
     { name: 'Needs Assessment', icon: ClipboardList, path: '/assessments' },
     { name: 'Refer a Student', icon: Send, path: '/refer_student' },
     { name: 'My Referrals', icon: Inbox, path: '/my_referrals' },

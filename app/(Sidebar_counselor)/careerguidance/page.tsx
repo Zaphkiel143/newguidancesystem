@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useCallback, useEffect, useState } from 'react';
+import Link from 'next/link';
 import { Check, X, Loader2, Plus } from 'lucide-react';
 import { CAREER_STEPS } from '../../config/careerSteps';
 import { isShs } from '../../config/studentLevels';
@@ -118,6 +119,9 @@ export default function CareerTracker() {
         <div>
           <h1 className="page-title">Career Guidance</h1>
           <p className="text-sm text-slate-500 mt-1">Senior High School students&apos; progress through the Career Planning Program</p>
+          <Link href="/careerguidance/college" className="inline-block mt-2 text-[13px] text-blue-700 hover:underline">
+            Tertiary students: Career Planning Forms →
+          </Link>
         </div>
         <button onClick={() => { setAddError(null); setIsAddOpen(true); }}
           className="self-start sm:self-auto inline-flex items-center gap-2 bg-blue-700 hover:bg-blue-800 text-white text-sm font-medium px-4 min-h-11 rounded-full transition-colors">

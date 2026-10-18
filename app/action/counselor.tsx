@@ -12,6 +12,7 @@ import { normalizeFacebookPostUrl } from "../../lib/facebook";
 import { checkImage } from "../../lib/image";
 import { notifyByName } from "../../lib/notify";
 import { logRecordAccess } from "../../lib/accessLog";
+import type { Answers } from "../config/collegeCareerForm";
 import { DEPARTMENTS, gradeSectionLabel, isShs, normalizeDepartment, programsFor, yearLevelsFor } from "../config/studentLevels";
 
 // Every action here requires a signed-in Guidance Associate (COUNSELOR role).
@@ -1047,5 +1048,39 @@ export async function searchStudents(query: string) {
   } catch (error) {
     console.error("Failed to search students:", error);
     return [];
+  }
+}
+
+// ==== Career Guidance: Career Planning Forms (tertiary) ====
+
+export async function listCareerForms() {
+  try {
+    await counselorOnly();
+    const forms = await db.collegeCareerForm.findMany({
+      select: { id: true, studentName: true, submittedAt: true, updatedAt: true },
+      orderBy: { updatedAt: "desc" },
+    });
+    const profiles = await db.studentProfile.findMany({
+      where: { name: { in: forms.map((f) => f.studentName) } },
+      select: { name: true, studentId: true, gradeSection: true, strandOrProgram: true },
+    });
+    return forms.map((f) => ({ ...f, profile: profiles.find((p) => p.name === f.studentName) ?? null }));
+  } catch (error) {
+    console.error("Failed to list career forms:", error);
+    return [];
+  }
+}
+
+// Opening a form is recorded in the student's record-access log.
+export async function getCareerForm(studentName: string) {
+  try {
+    const me = await counselorOnly();
+    const form = await db.collegeCareerForm.findUnique({ where: { studentName } });
+    if (!form) return null;
+    await logRecordAccess(me, studentName, "Viewed Career Planning Form");
+    return { studentName: form.studentName, answers: form.answers as Answers, submittedAt: form.submittedAt, updatedAt: form.updatedAt };
+  } catch (error) {
+    console.error("Failed to fetch career form:", error);
+    return null;
   }
 }

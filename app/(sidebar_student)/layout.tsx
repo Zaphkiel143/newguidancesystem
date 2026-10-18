@@ -1,13 +1,15 @@
 import { AppShell } from "../../components/AppShell";
 import { requireRole } from "../../lib/auth";
 import db from "../../lib/db";
-import { isShs } from "../config/studentLevels";
+import { normalizeDepartment, SHS, TERTIARY } from "../config/studentLevels";
 
 export default async function StudentLayout({ children }: { children: React.ReactNode }) {
   const user = await requireRole("STUDENT");
-  // The Career Planning Program is for senior high students only.
+  // Senior high students follow the Career Planning Program (My Career Plan);
+  // tertiary students fill in the Career Planning Form instead.
   const profile = await db.studentProfile.findUnique({ where: { name: user.name }, select: { department: true } });
-  const hiddenPaths = isShs(profile?.department) ? [] : ["/my_career"];
+  const level = normalizeDepartment(profile?.department);
+  const hiddenPaths = [level !== SHS && "/my_career", level !== TERTIARY && "/career_form"].filter(Boolean) as string[];
 
   return (
     <AppShell role="student" userName={user.name} hiddenPaths={hiddenPaths} avatarUrl={user.avatarType ? "/api/me/avatar" : null} needsPrivacyConsent={!user.privacyAcceptedAt}>

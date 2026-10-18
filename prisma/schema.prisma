@@ -464,3 +464,19 @@ model RecordAccess {
 
   @@index([studentName, createdAt])
 }
+
+// ---- Career Guidance: Career Planning Form (tertiary) ----
+
+// One form per tertiary student (first-year students and transferees). Saved
+// as a draft while the student fills it in; submittedAt is set when they
+// submit. The health answers are only shown to the student and the Guidance
+// Associate. Questions: app/config/collegeCareerForm.ts.
+model CollegeCareerForm {
+  id          String    @id @default(uuid())
+  studentName String    @unique // linked to StudentProfile.name, like other records
+  answers     Json
+  submittedAt DateTime?
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}

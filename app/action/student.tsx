@@ -12,6 +12,7 @@ import { DEPARTMENTS, gradeSectionLabel, isShs, normalizeDepartment, programsFor
 import { checkDocument, STUDENT_DOCUMENT_CATEGORIES } from "../../lib/documents";
 import { notifyCounselors } from "../../lib/notify";
 import { announceNewReferral, checkReferral } from "../../lib/referrals";
+import { cleanAnswers, validateAnswers, type Answers } from "../config/collegeCareerForm";
 
 // Every action here acts as the signed-in student; names never come from the client.
 
@@ -577,5 +578,75 @@ export async function forwardAiQuestion(assistantMessageId: string) {
   } catch (error) {
     console.error("[student] Failed to forward question:", error);
     return { success: false, error: "Couldn't send it. Try again." };
+  }
+}
+
+// ---- Career Planning Form (tertiary students) ----
+
+// Tertiary students only; senior high students use the Career Planning Program.
+async function tertiaryStudent() {
+  const me = await requireActionUser("STUDENT");
+  const profile = await db.studentProfile.findUnique({ where: { name: me.name }, select: { department: true, studentId: true } });
+  if (!profile || normalizeDepartment(profile.department) !== "Tertiary") return null;
+  return { me, profile };
+}
+
+export async function getMyCareerForm() {
+  try {
+    const who = await tertiaryStudent();
+    if (!who) return { allowed: false as const };
+    const form = await db.collegeCareerForm.findUnique({ where: { studentName: who.me.name } });
+    return {
+      allowed: true as const,
+      name: who.me.name,
+      studentId: who.profile.studentId,
+      email: who.me.email,
+      answers: (form?.answers ?? {}) as Answers,
+      submittedAt: form?.submittedAt ?? null,
+      updatedAt: form?.updatedAt ?? null,
+    };
+  } catch (error) {
+    console.error("[student] Failed to fetch career form:", error);
+    return { allowed: false as const };
+  }
+}
+
+// Saves a draft, or submits when `submit` is true (every required question
+// answered). The answers are checked here again; the browser is never trusted.
+export async function saveMyCareerForm(input: { answers: unknown; submit: boolean }): Promise<
+  { success: true; submittedAt: Date | null } | { success: false; error: string; fieldErrors?: Record<string, string> }
+> {
+  try {
+    const who = await tertiaryStudent();
+    if (!who) return { success: false, error: "The Career Planning Form is for tertiary students." };
+    if (!(await allow(`careerform:${who.me.id}`, 60, HOUR))) return { success: false, error: SLOW_DOWN };
+
+    const answers = cleanAnswers(input?.answers);
+    const fieldErrors = validateAnswers(answers, Boolean(input?.submit));
+    if (Object.keys(fieldErrors).length) {
+      return { success: false, error: "Some answers need fixing. Check the messages under each question.", fieldErrors };
+    }
+
+    const existing = await db.collegeCareerForm.findUnique({ where: { studentName: who.me.name }, select: { submittedAt: true } });
+    const submittedAt = input?.submit ? new Date() : existing?.submittedAt ?? null;
+    await db.collegeCareerForm.upsert({
+      where: { studentName: who.me.name },
+      create: { studentName: who.me.name, answers, submittedAt },
+      update: { answers, submittedAt },
+    });
+
+    if (input?.submit) {
+      await notifyCounselors({
+        title: existing?.submittedAt ? "Career Planning Form updated" : "New Career Planning Form",
+        body: `${who.me.name} ${existing?.submittedAt ? "updated" : "submitted"} their Career Planning Form.`,
+        href: "/careerguidance/college",
+      });
+    }
+    revalidatePath("/career_form");
+    revalidatePath("/careerguidance/college");
+    return { success: true, submittedAt };
+  } catch (error) {
+    console.error("[student] Failed to save career form:", error);
+    return { success: false, error: "Something went wrong. Please try again." };
   }
 }
