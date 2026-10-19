@@ -127,6 +127,7 @@ export const MyAppointmentsPage: React.FC = () => {
           bookAppointment={bookAppointment}
           onClose={() => setIsBookingOpen(false)}
           onBooked={refresh}
+          showPhoneField={false}
         />
       )}
 
