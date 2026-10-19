@@ -472,7 +472,7 @@ const LoginPage = () => {
                         </div>
                         <fieldset>
                           <legend className={labelClass}>Level</legend>
-                          <div className="grid grid-cols-2 gap-2">
+                          <div className="grid grid-cols-3 gap-2">
                             {DEPARTMENTS.map((d) => (
                               <label key={d} className={`flex items-center gap-2 rounded-lg border px-3 min-h-11 cursor-pointer text-[14px] ${student.department === d ? "border-blue-600 bg-blue-50" : "border-slate-300"}`}>
                                 <input type="radio" name="department" checked={student.department === d} className="accent-blue-700"

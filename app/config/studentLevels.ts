@@ -3,7 +3,11 @@
 
 export const SHS = "Senior High School";
 export const TERTIARY = "Tertiary";
-export const DEPARTMENTS = [SHS, TERTIARY] as const;
+// College students off the regular year-level track. Treated the same as
+// Tertiary everywhere except the label itself - same courses, same years,
+// same Career Planning Form eligibility.
+export const IRREGULAR = "Irregular";
+export const DEPARTMENTS = [SHS, TERTIARY, IRREGULAR] as const;
 export type Department = (typeof DEPARTMENTS)[number];
 
 export const SHS_GRADES = ["Grade 11", "Grade 12"] as const;
@@ -35,6 +39,7 @@ export const TERTIARY_COURSES = [
 export function normalizeDepartment(department: string | null | undefined): Department | null {
   if (department === SHS) return SHS;
   if (department === TERTIARY || department === "College") return TERTIARY;
+  if (department === IRREGULAR) return IRREGULAR;
   return null;
 }
 
@@ -42,12 +47,18 @@ export function isShs(department: string | null | undefined) {
   return normalizeDepartment(department) === SHS;
 }
 
+// Irregular students pick from the same year/course lists as Tertiary.
+function isTertiaryLike(department: string | null | undefined) {
+  const normalized = normalizeDepartment(department);
+  return normalized === TERTIARY || normalized === IRREGULAR;
+}
+
 export function yearLevelsFor(department: string | null | undefined): readonly string[] {
-  return normalizeDepartment(department) === TERTIARY ? TERTIARY_YEARS : SHS_GRADES;
+  return isTertiaryLike(department) ? TERTIARY_YEARS : SHS_GRADES;
 }
 
 export function programsFor(department: string | null | undefined): readonly string[] {
-  return normalizeDepartment(department) === TERTIARY ? TERTIARY_COURSES : SHS_STRANDS;
+  return isTertiaryLike(department) ? TERTIARY_COURSES : SHS_STRANDS;
 }
 
 // "Grade 12 - STEM-A" style label kept in StudentProfile.gradeSection.

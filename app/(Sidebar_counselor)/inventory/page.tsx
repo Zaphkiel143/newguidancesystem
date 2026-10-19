@@ -3,7 +3,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { Search, X, Loader2, Plus, Download } from 'lucide-react';
 import { listStudentProfiles, getStudentProfile, saveStudentProfile, type StudentProfileInput } from '../../action/counselor';
-import { DEPARTMENTS, SHS, TERTIARY, normalizeDepartment, programsFor, yearLevelsFor } from '../../config/studentLevels';
+import { DEPARTMENTS, IRREGULAR, SHS, TERTIARY, normalizeDepartment, programsFor, yearLevelsFor } from '../../config/studentLevels';
 import { formatPhone } from '../../../lib/phone';
 import { CAREER_STEPS } from '../../config/careerSteps';
 import InlineError from '../../../components/InlineError';
@@ -143,6 +143,7 @@ export default function StudentInventory() {
           <option value="All">All departments</option>
           <option value={SHS}>Senior High School</option>
           <option value={TERTIARY}>Tertiary</option>
+          <option value={IRREGULAR}>Irregular</option>
         </select>
       </div>
 
@@ -327,12 +328,12 @@ export default function StudentInventory() {
                 hint={form.id ? "Renaming also updates this student's appointments, referrals and account." : undefined} />
               <fieldset className="sm:col-span-2">
                 <legend className="block text-[13px] font-medium text-slate-700 mb-1.5">Level *</legend>
-                <div className="grid grid-cols-2 gap-2 max-w-md">
+                <div className="grid grid-cols-3 gap-2 max-w-md">
                   {DEPARTMENTS.map((d) => (
                     <label key={d} className={`flex items-center gap-2 rounded-md border px-3 min-h-11 cursor-pointer text-sm ${form.department === d ? "border-blue-600 bg-blue-50" : "border-slate-300"}`}>
                       <input type="radio" name="f-dept" className="accent-blue-700" checked={form.department === d}
                         onChange={() => setForm({ ...form, department: d, yearLevel: "", strandOrProgram: "" })} />
-                      {d === SHS ? "Senior High School" : "Tertiary"}
+                      {d === SHS ? "Senior High School" : d}
                     </label>
                   ))}
                 </div>

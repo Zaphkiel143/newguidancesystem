@@ -307,7 +307,7 @@ async function createSchoolAccount(
 
 function checkStudentDetails(s: StudentDetails): string | null {
   if (!/^[A-Za-z0-9-]{4,20}$/.test(s.studentId.trim())) return "Enter your student ID number (letters, numbers and dashes only).";
-  if (!(DEPARTMENTS as readonly string[]).includes(s.department)) return "Choose Senior High School or Tertiary.";
+  if (!(DEPARTMENTS as readonly string[]).includes(s.department)) return "Choose Senior High School, Tertiary, or Irregular.";
   if (!yearLevelsFor(s.department).includes(s.yearLevel)) return "Choose your grade or year level.";
   if (!programsFor(s.department).includes(s.program)) return "Choose your strand or course.";
   if (!s.section.trim() || s.section.trim().length > 30) return "Enter your section.";

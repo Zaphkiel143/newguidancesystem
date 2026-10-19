@@ -453,7 +453,7 @@ export async function saveStudentProfile(input: StudentProfileInput) {
     const department = normalizeDepartment(input.department);
     if (!studentId || !name) return { success: false, error: "Student ID and full name are required." };
     if (!/^[A-Za-z0-9-]{4,20}$/.test(studentId)) return { success: false, error: "Student IDs use letters, numbers and dashes only." };
-    if (!department || !(DEPARTMENTS as readonly string[]).includes(department)) return { success: false, error: "Choose Senior High School or Tertiary." };
+    if (!department || !(DEPARTMENTS as readonly string[]).includes(department)) return { success: false, error: "Choose Senior High School, Tertiary, or Irregular." };
     if (!yearLevelsFor(department).includes(input.yearLevel)) return { success: false, error: `Choose the ${isShs(department) ? "grade" : "year level"}.` };
     const program = t(input.strandOrProgram, 80);
     // Older records may hold a strand/course that isn't in today's list; keeping it unchanged is fine.
