@@ -53,7 +53,7 @@ const RECORD_ROLE: Record<Role, string> = {
 };
 
 const ROLE_LABEL: Record<Role, string> = {
-  counselor: "Guidance counselor",
+  counselor: "Guidance associate",
   student: "Student",
   faculty: "Faculty",
   parent: "Parent / guardian",

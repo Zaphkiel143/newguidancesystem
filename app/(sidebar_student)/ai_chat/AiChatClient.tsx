@@ -15,7 +15,7 @@ export default function AiChatClient() {
           href="/my_messages"
           className="text-[13px] text-slate-600 hover:text-blue-700 underline underline-offset-4 decoration-slate-300 hover:decoration-blue-600 transition-colors"
         >
-          Talk to your counselor instead
+          Talk to your guidance associate instead
         </Link>
       </header>
       <div className="flex-1 min-h-0">

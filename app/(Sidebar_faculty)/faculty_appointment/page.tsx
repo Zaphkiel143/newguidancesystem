@@ -37,7 +37,7 @@ export const MyAppointmentsPage: React.FC = () => {
         <div>
           <h1 className="page-title">My Appointments</h1>
           <p className="text-sm text-slate-500 font-medium mt-1">
-            Schedule and manage meetings with the guidance counselor
+            Schedule and manage meetings with the guidance associate
           </p>
         </div>
 
@@ -62,7 +62,7 @@ export const MyAppointmentsPage: React.FC = () => {
         {appointments.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 text-center">
             <p className="text-sm font-semibold text-slate-500">No appointments yet</p>
-            <p className="text-xs text-slate-500">Book an appointment with the guidance counselor to get started</p>
+            <p className="text-xs text-slate-500">Book an appointment with the guidance associate to get started</p>
           </div>
         ) : (
           <div className="p-6 space-y-4">

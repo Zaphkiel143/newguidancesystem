@@ -63,12 +63,12 @@
       ],
       "responses_en": [
         "Take care! I'm here whenever you need to talk.",
-        "Goodbye! Remember, your counselor is always available too.",
+        "Goodbye! Remember, your guidance associate is always available too.",
         "See you! Take care of yourself."
       ],
       "responses_tl": [
         "Ingat! Nandito ako kapag kailangan mo ng kausap.",
-        "Paalam! Tandaan mo, available din ang counselor mo.",
+        "Paalam! Tandaan mo, available din ang guidance associate mo.",
         "Ingat ka lagi!"
       ]
     },
@@ -254,12 +254,12 @@
         "di ko alam gagawin ko pagtapos"
       ],
       "responses_en": [
-        "That's a big decision! Our Career Guidance program can help you explore your interests and strengths. Would you like to talk to your counselor about a career assessment?",
-        "It's completely normal to feel unsure about your future. Think about what subjects you enjoy most, and consider booking an appointment with your counselor to explore your options."
+        "That's a big decision! Our Career Guidance program can help you explore your interests and strengths. Would you like to talk to your guidance associate about a career assessment?",
+        "It's completely normal to feel unsure about your future. Think about what subjects you enjoy most, and consider booking an appointment with your guidance associate to explore your options."
       ],
       "responses_tl": [
-        "Malaking desisyon iyan! Matutulungan ka ng Career Guidance program namin na alamin ang interes at lakas mo. Gusto mo bang kausapin ang counselor mo para sa career assessment?",
-        "Normal lang na hindi sigurado sa future. Isipin mo kung anong subjects ang pinaka-gusto mong pag-aralan, at pag-isipan mong mag-book ng appointment sa counselor mo para matulungan kang alamin ang mga options mo."
+        "Malaking desisyon iyan! Matutulungan ka ng Career Guidance program namin na alamin ang interes at lakas mo. Gusto mo bang kausapin ang guidance associate mo para sa career assessment?",
+        "Normal lang na hindi sigurado sa future. Isipin mo kung anong subjects ang pinaka-gusto mong pag-aralan, at pag-isipan mong mag-book ng appointment sa guidance associate mo para matulungan kang alamin ang mga options mo."
       ]
     },
     {
@@ -825,12 +825,12 @@
       "responses_en": [
         "I'm not totally sure I understand — could you tell me a bit more about what's going on?",
         "I want to make sure I understand you correctly. Could you rephrase that?",
-        "I'm still learning! Could you say that in a different way, or would you like to talk to your guidance counselor directly about this?"
+        "I'm still learning! Could you say that in a different way, or would you like to talk to your guidance associate directly about this?"
       ],
       "responses_tl": [
         "Hindi ko lubos na naintindihan — pwede mo bang ipaliwanag pa nang kaunti?",
         "Gusto kong masiguradong naiintindihan kita nang tama. Pwede mo bang sabihin ulit sa ibang paraan?",
-        "Marami pa akong kailangang matutunan! Pwede mo bang sabihin sa ibang paraan, o gusto mo na lang kausapin agad ang guidance counselor mo tungkol dito?"
+        "Marami pa akong kailangang matutunan! Pwede mo bang sabihin sa ibang paraan, o gusto mo na lang kausapin agad ang guidance associate mo tungkol dito?"
       ]
     }
   ]

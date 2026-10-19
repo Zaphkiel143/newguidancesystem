@@ -40,7 +40,7 @@ export const ParentMessagesPage: React.FC = () => {
             conversationId={conversationId}
             viewerRole={me.roleLabel}
             viewerName={me.name}
-            title="Guidance Counselor"
+            title="Guidance Office"
             subtitle="Guidance Associate"
             getMessages={getMessages}
             markConversationRead={markConversationRead}

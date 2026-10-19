@@ -7,7 +7,7 @@ import { getCurrentUser } from '../../../lib/auth';
 
 const SHORTCUTS = [
   { title: 'Submit a referral', description: 'Flag a student who may need support', path: '/submit_referral' },
-  { title: 'Book an appointment', description: 'Meet with the guidance counselor', path: '/faculty_appointment' },
+  { title: 'Book an appointment', description: 'Meet with the guidance associate', path: '/faculty_appointment' },
   { title: 'Upload documents', description: 'Share files with the office', path: '/upload_documents' },
   { title: 'My referrals', description: 'Follow up on what you sent', path: '/faculty_myreferral' },
 ];

@@ -235,8 +235,8 @@ export default function AiChatThread({ compact = false }: { compact?: boolean })
           <div ref={scrollRef} className="flex-1 overflow-y-auto min-h-0">
             <div className={compact ? "px-4 py-4 space-y-4" : "max-w-2xl mx-auto px-5 sm:px-8 py-8 space-y-6"}>
               <p className="text-[12px] text-slate-500 border-l-2 border-rule pl-3">
-                E-Gabay is not a replacement for your school counselor. For anything urgent, reach out to your counselor, a
-                teacher you trust, or a parent or guardian.
+                E-Gabay is not a replacement for your school&apos;s guidance associate. For anything urgent, reach out to your
+                guidance associate, a teacher you trust, or a parent or guardian.
               </p>
 
               {isLoading ? (

@@ -98,7 +98,7 @@ export const DashboardContent: React.FC = () => {
         <span className="min-w-0">
           <span className="block font-serif text-[20px] sm:text-[22px] text-ink leading-snug break-words">Need someone to talk to?</span>
           <span className="block text-[14px] text-slate-600 mt-1 break-words">
-            E-Gabay listens in English or Filipino. Your counselor is still a message away.
+            E-Gabay listens in English or Filipino. Your guidance associate is still a message away.
           </span>
         </span>
         <span className="shrink-0 inline-flex items-center gap-2 text-[14px] font-medium text-blue-700">

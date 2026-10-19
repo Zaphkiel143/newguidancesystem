@@ -123,7 +123,7 @@ export default function ReferralForm({ mode, linkedChildren, onSubmit, myReferra
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             {[
               { value: false, title: "Someone", hint: "A schoolmate or friend you're worried about" },
-              { value: true, title: "Myself", hint: "You'd like the counselor to reach out to you" },
+              { value: true, title: "Myself", hint: "You'd like the associate to reach out to you" },
             ].map((opt) => (
               <label key={opt.title}
                 className={`flex items-start gap-3 rounded-lg border px-4 py-3 cursor-pointer transition-colors ${f.aboutMyself === opt.value ? "border-blue-600 bg-blue-50" : "border-slate-300 hover:border-slate-400"}`}>
@@ -219,7 +219,7 @@ export default function ReferralForm({ mode, linkedChildren, onSubmit, myReferra
       <div>
         <label htmlFor="ref-desc" className={label}>What&apos;s going on?{req}</label>
         <textarea id="ref-desc" rows={4} className={`${input} resize-y`} value={f.description} maxLength={3000} required
-          placeholder={mode === "student" && f.aboutMyself ? "Tell the counselor what you'd like help with." : "Describe what you've noticed and why you're concerned."}
+          placeholder={mode === "student" && f.aboutMyself ? "Tell the associate what you'd like help with." : "Describe what you've noticed and why you're concerned."}
           onChange={(e) => set({ description: e.target.value })} />
       </div>
 

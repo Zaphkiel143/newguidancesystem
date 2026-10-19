@@ -105,10 +105,10 @@ export const MyReferralsPage: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Counselor Feedback Collateral Block Frame */}
+                {/* Associate Feedback Collateral Block Frame */}
                 {item.notes && (
                   <div className="bg-emerald-50 border border-emerald-50 rounded-xl p-4 space-y-1">
-                    <h4 className="text-xs font-semibold text-emerald-600">Counselor Feedback:</h4>
+                    <h4 className="text-xs font-semibold text-emerald-600">Associate Feedback:</h4>
                     <p className="text-sm text-slate-700 font-medium leading-relaxed">
                       {item.notes}
                     </p>
@@ -136,7 +136,7 @@ export const MyReferralsPage: React.FC = () => {
               Open
             </span>
             <p className="text-slate-600 pt-0.5">
-              Referral has been submitted and is awaiting initial review by the counselor.
+              Referral has been submitted and is awaiting initial review by the associate.
             </p>
           </div>
 
@@ -146,7 +146,7 @@ export const MyReferralsPage: React.FC = () => {
               In Progress
             </span>
             <p className="text-slate-600 pt-0.5">
-              Counselor is actively working with your child on the concern. You may receive updates as progress is made.
+              The associate is actively working with your child on the concern. You may receive updates as progress is made.
             </p>
           </div>
 

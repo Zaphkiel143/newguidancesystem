@@ -225,7 +225,7 @@ export default function StudentInventory() {
                   </dl>
                   <LongField label="Family background" value={detail.profile?.familyBackground} />
                   <LongField label="Educational history" value={detail.profile?.educationalHistory} />
-                  <LongField label="Counselor notes (only you can see these)" value={detail.profile?.counselorNotes} />
+                  <LongField label="Associate notes (only you can see these)" value={detail.profile?.counselorNotes} />
                 </Section>
 
                 <Section title={`Sessions (${detail.appointments.length})`}>
@@ -369,7 +369,7 @@ export default function StudentInventory() {
               <TextArea label="Family background" value={form.familyBackground} onChange={(v) => setForm({ ...form, familyBackground: v })} />
               <TextArea label="Educational history" value={form.educationalHistory} onChange={(v) => setForm({ ...form, educationalHistory: v })} />
               <div className="sm:col-span-2">
-                <TextArea label="Counselor notes (confidential)" value={form.counselorNotes} onChange={(v) => setForm({ ...form, counselorNotes: v })} />
+                <TextArea label="Associate notes (confidential)" value={form.counselorNotes} onChange={(v) => setForm({ ...form, counselorNotes: v })} />
               </div>
             </div>
             <div className="sticky bottom-0 bg-sheet border-t border-rule px-6 py-4 space-y-3">

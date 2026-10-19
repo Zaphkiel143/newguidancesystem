@@ -22,7 +22,7 @@ import {
 } from '../../lib/parentSignup';
 
 const DEMO_ROLES: { role: UserRole; label: string }[] = [
-  { role: "COUNSELOR", label: "Counselor" },
+  { role: "COUNSELOR", label: "Associate" },
   { role: "STUDENT", label: "Student" },
   { role: "FACULTY", label: "Faculty" },
   { role: "PARENT", label: "Parent" },

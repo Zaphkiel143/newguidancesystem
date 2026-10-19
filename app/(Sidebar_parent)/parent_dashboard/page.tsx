@@ -81,7 +81,7 @@ export const ParentBookAppointment: React.FC = () => {
       <div>
         <h1 className="page-title">Book Appointment</h1>
         <p className="text-sm text-slate-500 font-medium mt-1">
-          Schedule a meeting with your child&apos;s guidance counselor
+          Schedule a meeting with your child&apos;s guidance associate
         </p>
       </div>
 
@@ -225,7 +225,7 @@ export const ParentBookAppointment: React.FC = () => {
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 maxLength={1000}
-                placeholder="Briefly describe the reason for the meeting or any specific concerns you wish to discuss with the counselor..."
+                placeholder="Briefly describe the reason for the meeting or any specific concerns you wish to discuss with the associate..."
                 className="w-full px-4 py-3 bg-white border border-slate-200 text-sm rounded-xl placeholder:text-slate-400 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all resize-none leading-relaxed"
               />
             </div>
