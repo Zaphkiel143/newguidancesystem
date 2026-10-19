@@ -31,8 +31,10 @@ export const MyReferralsPage: React.FC = () => {
   const getPriorityStyles = (priority: string) => {
     switch (priority) {
       case 'High':
-      case 'Urgent': return 'bg-red-50 text-red-600 border border-red-100';
-      case 'Medium': return 'bg-orange-50 text-orange-600 border border-orange-100';
+      case 'Urgent':
+      case 'Emergency': return 'bg-red-50 text-red-600 border border-red-100';
+      case 'Medium':
+      case 'As soon as possible': return 'bg-orange-50 text-orange-600 border border-orange-100';
       default: return 'bg-blue-50 text-blue-600 border border-blue-100';
     }
   };

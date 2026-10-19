@@ -17,7 +17,7 @@ const Dashboard = async () => {
   ]);
 
   const urgentReferrals = referrals
-    .filter((r) => r.status !== "CLOSED" && (r.priority === "High" || r.priority === "Urgent"))
+    .filter((r) => r.status !== "CLOSED" && (r.priority === "High" || r.priority === "Urgent" || r.priority === "Emergency"))
     .slice(0, 5);
 
   const hour = manilaHour(now);

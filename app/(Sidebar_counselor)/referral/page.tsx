@@ -233,7 +233,7 @@ interface ReferralCardProps {
 }
 
 const ReferralCard = ({ referral, isUpdating, onAdvanceStatus, onAddNotes, onSendFeedback, error, onDismissError }: ReferralCardProps) => {
-  const isHigh = referral.priority === 'High' || referral.priority === 'Urgent';
+  const isHigh = referral.priority === 'High' || referral.priority === 'Urgent' || referral.priority === 'Emergency';
   const isOpen = referral.status === 'OPEN';
   const isClosed = referral.status === 'CLOSED';
 

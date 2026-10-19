@@ -37,6 +37,15 @@ const PRIORITIES = [
   { value: "High", label: "High – needs attention soon" },
 ];
 
+// Faculty pick from a different, deadline-oriented scale instead of the
+// Low/Medium/High one students and parents use.
+const FACULTY_PRIORITIES = [
+  { value: "Emergency", label: "Emergency" },
+  { value: "As soon as possible", label: "As soon as possible" },
+  { value: "Before this date", label: "Before this date" },
+];
+const NEEDS_DATE = "Before this date";
+
 const EMPTY = {
   aboutMyself: false,
   childName: "",
@@ -49,10 +58,15 @@ const EMPTY = {
   concern: "",
   concernOther: "",
   priority: "Medium",
+  priorityDate: "",
   description: "",
   observed: "",
   contactTime: "",
 };
+
+function emptyFor(mode: Mode) {
+  return { ...EMPTY, priority: mode === "faculty" ? FACULTY_PRIORITIES[0].value : "Medium" };
+}
 
 const input = "w-full px-3 py-2.5 bg-sheet border border-slate-300 rounded-lg text-[14px] focus:outline-none focus:ring-2 focus:ring-blue-500";
 const label = "text-[13px] font-semibold text-slate-700 block mb-1.5";
@@ -61,7 +75,7 @@ const req = <span className="text-rose-600" aria-hidden> *</span>;
 // One referral form for students, faculty and parents, so every referral
 // reaches the guidance office with the same details.
 export default function ReferralForm({ mode, linkedChildren, onSubmit, myReferralsPath }: Props) {
-  const [f, setF] = useState(EMPTY);
+  const [f, setF] = useState(() => emptyFor(mode));
   const [saving, setSaving] = useState(false);
   const [done, setDone] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -74,6 +88,7 @@ export default function ReferralForm({ mode, linkedChildren, onSubmit, myReferra
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (f.concern === OTHER && !f.concernOther.trim()) return setError("Tell us what the concern is.");
+    if (mode === "faculty" && f.priority === NEEDS_DATE && !f.priorityDate) return setError("Choose the date it's needed by.");
     if (mode === "parent" && !child) return setError("No student is linked to your account yet.");
     setSaving(true);
     setError(null);
@@ -86,6 +101,7 @@ export default function ReferralForm({ mode, linkedChildren, onSubmit, myReferra
       aboutSomeoneElse && f.program && `${isShs ? "Strand" : "Course"}: ${f.program}`,
       aboutSomeoneElse && f.section.trim() && `Section: ${f.section.trim()}`,
       f.observed.trim() && `Observed behaviors: ${f.observed.trim()}`,
+      mode === "faculty" && f.priority === NEEDS_DATE && f.priorityDate && `Needed by: ${f.priorityDate}`,
       mode === "parent" && f.contactTime.trim() && `Best time to contact me: ${f.contactTime.trim()}`,
     ].filter(Boolean);
 
@@ -99,7 +115,7 @@ export default function ReferralForm({ mode, linkedChildren, onSubmit, myReferra
     setSaving(false);
     if (result.success) {
       setDone(true);
-      setF({ ...EMPTY, childName: f.childName });
+      setF({ ...emptyFor(mode), childName: f.childName });
     } else {
       setError(result.error || "Couldn't send the referral. Try again.");
     }
@@ -209,22 +225,32 @@ export default function ReferralForm({ mode, linkedChildren, onSubmit, myReferra
           )}
         </div>
         <div>
-          <label htmlFor="ref-priority" className={label}>How urgent is it?{req}</label>
-          <select id="ref-priority" className={input} value={f.priority} onChange={(e) => set({ priority: e.target.value })}>
-            {PRIORITIES.map((p) => <option key={p.value} value={p.value}>{p.label}</option>)}
+          <label htmlFor="ref-priority" className={label}>{mode === "faculty" ? "Level of priority" : "How urgent is it?"}{req}</label>
+          <select id="ref-priority" className={input} value={f.priority} onChange={(e) => set({ priority: e.target.value, priorityDate: "" })}>
+            {(mode === "faculty" ? FACULTY_PRIORITIES : PRIORITIES).map((p) => <option key={p.value} value={p.value}>{p.label}</option>)}
           </select>
+          {mode === "faculty" && f.priority === NEEDS_DATE && (
+            <input
+              aria-label="Date it's needed by"
+              type="date"
+              className={`${input} mt-2`}
+              value={f.priorityDate}
+              required
+              onChange={(e) => set({ priorityDate: e.target.value })}
+            />
+          )}
         </div>
       </div>
 
       <div>
-        <label htmlFor="ref-desc" className={label}>What&apos;s going on?{req}</label>
+        <label htmlFor="ref-desc" className={label}>Reason for Referral{req}</label>
         <textarea id="ref-desc" rows={4} className={`${input} resize-y`} value={f.description} maxLength={3000} required
           placeholder={mode === "student" && f.aboutMyself ? "Tell the associate what you'd like help with." : "Describe what you've noticed and why you're concerned."}
           onChange={(e) => set({ description: e.target.value })} />
       </div>
 
       <div>
-        <label htmlFor="ref-observed" className={label}>Specific behaviors you&apos;ve noticed <span className="font-normal text-slate-500">(optional)</span></label>
+        <label htmlFor="ref-observed" className={label}>Actions Taken<span className="font-normal text-slate-500">(optional)</span></label>
         <textarea id="ref-observed" rows={3} className={`${input} resize-y`} value={f.observed} maxLength={2000} onChange={(e) => set({ observed: e.target.value })} />
       </div>
 
@@ -251,7 +277,7 @@ export default function ReferralForm({ mode, linkedChildren, onSubmit, myReferra
       )}
 
       <div className="flex flex-col-reverse sm:flex-row items-center justify-end gap-3 pt-3 border-t border-rule">
-        <button type="button" onClick={() => { setF(EMPTY); setError(null); setDone(false); }}
+        <button type="button" onClick={() => { setF(emptyFor(mode)); setError(null); setDone(false); }}
           className="w-full sm:w-auto px-8 min-h-11 bg-slate-100 hover:bg-slate-200 text-slate-800 font-medium rounded-full text-sm">
           Clear
         </button>

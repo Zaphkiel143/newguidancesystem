@@ -4,7 +4,9 @@ import { notifyCounselors } from "./notify";
 // Server-side checks shared by the student, faculty and parent referral actions,
 // so a referral can't be saved with made-up categories or huge text.
 
-const PRIORITIES = ["Low", "Medium", "High"];
+// Students and parents pick Low/Medium/High; faculty pick from a
+// deadline-oriented scale instead (see components/ReferralForm.tsx).
+const PRIORITIES = ["Low", "Medium", "High", "Emergency", "As soon as possible", "Before this date"];
 const MAX_DESCRIPTION = 6000;
 
 export function checkReferral(input: { studentName: string; concernType: string; priority: string; description: string }) {
@@ -25,7 +27,7 @@ export function checkReferral(input: { studentName: string; concernType: string;
 
 export async function announceNewReferral(r: { studentName: string; referrerName: string; referrerRole: string; priority: string }) {
   await notifyCounselors({
-    title: `New ${r.priority === "High" ? "high-priority " : ""}referral`,
+    title: `New ${r.priority === "High" || r.priority === "Emergency" ? "high-priority " : ""}referral`,
     body: `${r.referrerRole === "Student" && r.studentName === r.referrerName ? `${r.studentName} asked for help` : `${r.referrerName} (${r.referrerRole}) referred ${r.studentName}`}`,
     href: "/referral",
   });
