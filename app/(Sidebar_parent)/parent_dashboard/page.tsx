@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { Calendar as CalendarIcon, Clock, AlignLeft, Users, CheckCircle } from 'lucide-react';
 import { getBookedTimesForDate, bookAppointment } from '../../action/parent';
-import { APPOINTMENT_PURPOSES, OTHER, withOther } from '../../config/studentLevels';
+import { APPOINTMENT_CATEGORIES, APPOINTMENT_REASONS } from '../../config/studentLevels';
 import { firstBookableDate, isClosedDay } from '../../config/timeSlots';
 import { DAY_SCHEDULE } from '../../config/timeSlots';
 import { useMyChildren } from '../useMyChildren';
@@ -18,8 +18,8 @@ export const ParentBookAppointment: React.FC = () => {
   const [selectedDate, setSelectedDate] = useState<string>(() => firstBookableDate());
   const closed = isClosedDay(selectedDate);
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
-  const [purpose, setPurpose] = useState<string>(APPOINTMENT_PURPOSES[0]);
-  const [purposeOther, setPurposeOther] = useState<string>('');
+  const [category, setCategory] = useState<string>('');
+  const [reason, setReason] = useState<string>('');
   const [description, setDescription] = useState<string>('');
   const [isSubmitted, setIsSubmitted] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
@@ -43,9 +43,8 @@ export const ParentBookAppointment: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedChild || !selectedDate || !selectedTime || !purpose) return;
-    if (purpose === OTHER && !purposeOther.trim()) {
-      setError("Tell us the purpose of the appointment.");
+    if (!selectedChild || !selectedDate || !selectedTime || !category || !reason) {
+      setError("Please choose the purpose of the appointment.");
       return;
     }
 
@@ -55,7 +54,7 @@ export const ParentBookAppointment: React.FC = () => {
     const result = await bookAppointment({
       dateString: selectedDate,
       timeSlot: selectedTime,
-      appointmentType: withOther(purpose, purposeOther),
+      appointmentType: reason,
       notes: description,
       childName: selectedChild,
     });
@@ -65,7 +64,8 @@ export const ParentBookAppointment: React.FC = () => {
     if (result.success) {
       setIsSubmitted("Appointment request sent. The guidance office will confirm it, and you'll get a notification.");
       setDescription('');
-      setPurposeOther('');
+      setCategory('');
+      setReason('');
       setSelectedTime(null);
       const taken = await getBookedTimesForDate(selectedDate);
       setBookedTimes(taken);
@@ -191,26 +191,38 @@ export const ParentBookAppointment: React.FC = () => {
               <div className="relative">
                 <select
                   id="parent-purpose"
-                  value={purpose}
-                  onChange={(e) => setPurpose(e.target.value)}
+                  value={category}
+                  onChange={(e) => {
+                    setCategory(e.target.value);
+                    setReason('');
+                  }}
                   required
                   className="w-full px-4 py-2.5 bg-white border border-slate-200 text-sm font-semibold rounded-xl text-slate-700 appearance-none focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all"
                 >
-                  {APPOINTMENT_PURPOSES.map((p) => <option key={p} value={p}>{p}</option>)}
+                  <option value="" disabled>Select...</option>
+                  {APPOINTMENT_CATEGORIES.map((p) => <option key={p} value={p}>{p}</option>)}
                 </select>
                 <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-slate-500 text-xs">
                   ▼
                 </div>
               </div>
-              {purpose === OTHER && (
-                <input
-                  aria-label="Purpose of the appointment"
-                  placeholder="What is the appointment for?"
-                  value={purposeOther}
-                  maxLength={60}
-                  onChange={(e) => setPurposeOther(e.target.value)}
-                  className="w-full px-4 py-2.5 bg-white border border-slate-200 text-sm rounded-xl focus:outline-none focus:border-blue-500"
-                />
+              {category && (
+                <div className="relative mt-2">
+                  <select
+                    id="parent-reason"
+                    aria-label="Reason for the appointment"
+                    value={reason}
+                    onChange={(e) => setReason(e.target.value)}
+                    required
+                    className="w-full px-4 py-2.5 bg-white border border-slate-200 text-sm font-semibold rounded-xl text-slate-700 appearance-none focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all"
+                  >
+                    <option value="" disabled>Select...</option>
+                    {APPOINTMENT_REASONS[category as keyof typeof APPOINTMENT_REASONS].map((r) => <option key={r} value={r}>{r}</option>)}
+                  </select>
+                  <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-slate-500 text-xs">
+                    ▼
+                  </div>
+                </div>
               )}
             </div>
 

@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { X, CheckCircle2 } from "lucide-react";
 import { DAY_SCHEDULE, firstBookableDate, isClosedDay } from "../app/config/timeSlots";
-import { APPOINTMENT_PURPOSES, OTHER, withOther } from "../app/config/studentLevels";
+import { APPOINTMENT_CATEGORIES, APPOINTMENT_REASONS } from "../app/config/studentLevels";
 
 interface BookingPayload {
   dateString: string;
@@ -36,8 +36,8 @@ export default function BookAppointmentModal({
   const [date, setDate] = useState(() => firstBookableDate());
   const closed = isClosedDay(date);
   const [time, setTime] = useState<string | null>(null);
-  const [purpose, setPurpose] = useState<string>(APPOINTMENT_PURPOSES[0]);
-  const [purposeOther, setPurposeOther] = useState("");
+  const [category, setCategory] = useState<string>("");
+  const [reason, setReason] = useState<string>("");
   const [notes, setNotes] = useState("");
   const [phone, setPhone] = useState("");
   const [bookedTimes, setBookedTimes] = useState<string[]>([]);
@@ -65,8 +65,8 @@ export default function BookAppointmentModal({
       setError("Please select an available time slot.");
       return;
     }
-    if (purpose === OTHER && !purposeOther.trim()) {
-      setError("Tell us the purpose of the appointment.");
+    if (!category || !reason) {
+      setError("Please choose the purpose of the appointment.");
       return;
     }
 
@@ -76,7 +76,7 @@ export default function BookAppointmentModal({
     const result = await bookAppointment({
       dateString: date,
       timeSlot: time,
-      appointmentType: withOther(purpose, purposeOther),
+      appointmentType: reason,
       notes,
       phone,
     });
@@ -163,26 +163,36 @@ export default function BookAppointmentModal({
           </div>
 
           <div className="space-y-1">
-            <label htmlFor="book-purpose" className="text-xs font-semibold text-slate-700">Purpose of Appointment</label>
+            <label htmlFor="book-category" className="text-xs font-semibold text-slate-700">Purpose of Appointment</label>
             <select
-              id="book-purpose"
-              value={purpose}
-              onChange={(e) => setPurpose(e.target.value)}
+              id="book-category"
+              value={category}
+              required
+              onChange={(e) => {
+                setCategory(e.target.value);
+                setReason("");
+              }}
               className="w-full text-sm bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 focus:outline-none"
             >
-              {APPOINTMENT_PURPOSES.map((option) => (
+              <option value="" disabled>Select...</option>
+              {APPOINTMENT_CATEGORIES.map((option) => (
                 <option key={option} value={option}>{option}</option>
               ))}
             </select>
-            {purpose === OTHER && (
-              <input
-                aria-label="Purpose of the appointment"
-                placeholder="What is the appointment for?"
-                value={purposeOther}
-                maxLength={60}
-                onChange={(e) => setPurposeOther(e.target.value)}
+            {category && (
+              <select
+                id="book-reason"
+                aria-label="Reason for the appointment"
+                value={reason}
+                required
+                onChange={(e) => setReason(e.target.value)}
                 className="w-full text-sm bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 focus:outline-none mt-2"
-              />
+              >
+                <option value="" disabled>Select...</option>
+                {APPOINTMENT_REASONS[category as keyof typeof APPOINTMENT_REASONS].map((option) => (
+                  <option key={option} value={option}>{option}</option>
+                ))}
+              </select>
             )}
           </div>
 

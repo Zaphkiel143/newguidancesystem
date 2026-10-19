@@ -73,14 +73,20 @@ export const CONCERN_TYPES = [
   OTHER,
 ] as const;
 
+// Booking is a two-step pick: a category, then a reason specific to it.
+export const APPOINTMENT_CATEGORIES = ["Individual Counseling", "Group Guidance"] as const;
+
+export const APPOINTMENT_REASONS: Record<(typeof APPOINTMENT_CATEGORIES)[number], readonly string[]> = {
+  "Individual Counseling": ["Academic Concern", "Career Guidance", "Personal / Family Concern", "Peer / Relationship Concern", "Requirements"],
+  "Group Guidance": ["Clearance"],
+};
+
+// Every bookable reason, flattened - what actually gets saved as
+// appointmentType, and the full option list for the counselor's edit view
+// (which shows one flat list rather than the two-step category/reason pick).
 export const APPOINTMENT_PURPOSES = [
-  "Individual Counseling",
-  "Academic Concern",
-  "Career Guidance",
-  "Personal / Family Concern",
-  "Peer / Relationship Concern",
-  "Requirements / Clearance",
-  OTHER,
+  ...APPOINTMENT_REASONS["Individual Counseling"],
+  ...APPOINTMENT_REASONS["Group Guidance"],
 ] as const;
 
 // Combines a picked option with the "Other/s" text into the value we store.
