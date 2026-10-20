@@ -5,9 +5,12 @@ import { getOptionList, type OptionItemData } from "../app/action/optionLists";
 
 // Fetches a counselor-editable dropdown's current items. Returns [] while
 // loading - callers render their current/default selection regardless, so
-// a brief loading flash never blocks the form.
-export function useOptionList(listKey: string): OptionItemData[] {
+// a brief loading flash never blocks the form. The second value refetches
+// on demand (pass it as EditOptionsButton's onSaved so an edit made on the
+// same page shows up immediately, not just after a reload).
+export function useOptionList(listKey: string): [OptionItemData[], () => void] {
   const [items, setItems] = useState<OptionItemData[]>([]);
+  const [refreshToken, setRefreshToken] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
@@ -18,7 +21,8 @@ export function useOptionList(listKey: string): OptionItemData[] {
     return () => {
       cancelled = true;
     };
-  }, [listKey]);
+  }, [listKey, refreshToken]);
 
-  return items;
+  const refetch = () => setRefreshToken((n) => n + 1);
+  return [items, refetch];
 }

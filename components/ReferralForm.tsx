@@ -76,7 +76,7 @@ const req = <span className="text-rose-600" aria-hidden> *</span>;
 // One referral form for students, faculty and parents, so every referral
 // reaches the guidance office with the same details.
 export default function ReferralForm({ mode, linkedChildren, onSubmit, myReferralsPath }: Props) {
-  const departments = useOptionList("departments");
+  const [departments] = useOptionList("departments");
   const [f, setF] = useState(() => emptyFor(mode));
   const [saving, setSaving] = useState(false);
   const [done, setDone] = useState(false);

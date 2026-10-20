@@ -3,7 +3,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { Search, X, Loader2, Plus, Download } from 'lucide-react';
 import { listStudentProfiles, getStudentProfile, saveStudentProfile, type StudentProfileInput } from '../../action/counselor';
-import { SHS, normalizeDepartment, programsFor, yearLevelsFor } from '../../config/studentLevels';
+import { SHS, isShs, normalizeDepartment, yearLevelsFor } from '../../config/studentLevels';
 import { optionValue } from '../../../lib/optionListDefaults';
 import { formatPhone } from '../../../lib/phone';
 import { CAREER_STEPS } from '../../config/careerSteps';
@@ -43,7 +43,9 @@ function toInput(row: Row): StudentProfileInput {
 }
 
 export default function StudentInventory() {
-  const departments = useOptionList("departments");
+  const [departments, refetchDepartments] = useOptionList("departments");
+  const [shsStrands, refetchShsStrands] = useOptionList("shsStrands");
+  const [tertiaryCourses, refetchTertiaryCourses] = useOptionList("tertiaryCourses");
   const [rows, setRows] = useState<Row[] | null>(null);
   const [query, setQuery] = useState("");
   const [department, setDepartment] = useState("All");
@@ -129,10 +131,15 @@ export default function StudentInventory() {
           <h1 className="page-title">Individual Inventory</h1>
           <p className="text-sm text-slate-500 mt-1">One record per student: profile, family background, sessions, career plan, referrals, and documents</p>
         </div>
-        <button onClick={() => { setForm({ ...EMPTY }); setFormError(null); }}
-          className="self-start sm:self-auto inline-flex items-center gap-2 bg-blue-700 hover:bg-blue-800 text-white text-sm font-medium px-4 min-h-11 rounded-full transition-colors">
-          <Plus size={16} /> Add student
-        </button>
+        <div className="flex items-center gap-2 self-start sm:self-auto">
+          <EditOptionsButton listKey="departments" listLabel="Student Level" text="Level" onSaved={refetchDepartments} />
+          <EditOptionsButton listKey="shsStrands" listLabel="Senior High Strands" text="Strands" onSaved={refetchShsStrands} />
+          <EditOptionsButton listKey="tertiaryCourses" listLabel="Tertiary Courses" text="Courses" onSaved={refetchTertiaryCourses} />
+          <button onClick={() => { setForm({ ...EMPTY }); setFormError(null); }}
+            className="inline-flex items-center gap-2 bg-blue-700 hover:bg-blue-800 text-white text-sm font-medium px-4 min-h-11 rounded-full transition-colors">
+            <Plus size={16} /> Add student
+          </button>
+        </div>
       </header>
 
       <div className="mt-8 flex flex-col sm:flex-row gap-3">
@@ -329,10 +336,7 @@ export default function StudentInventory() {
               <Input label="Full name *" value={form.name} onChange={(v) => setForm({ ...form, name: v })} required
                 hint={form.id ? "Renaming also updates this student's appointments, referrals and account." : undefined} />
               <fieldset className="sm:col-span-2">
-                <legend className="text-[13px] font-medium text-slate-700 mb-1.5 flex items-center gap-1.5">
-                  Level *
-                  <EditOptionsButton listKey="departments" listLabel="Student Level" />
-                </legend>
+                <legend className="text-[13px] font-medium text-slate-700 mb-1.5">Level *</legend>
                 <div className="grid grid-cols-2 gap-2 max-w-md">
                   {departments.map((d) => {
                     const value = optionValue(d);
@@ -359,10 +363,18 @@ export default function StudentInventory() {
                 <select id="f-program" value={form.strandOrProgram} onChange={(e) => setForm({ ...form, strandOrProgram: e.target.value })}
                   className="w-full bg-paper border border-slate-300 rounded-md px-3 py-2.5 text-sm">
                   <option value="">Not set</option>
-                  {form.strandOrProgram && !programsFor(form.department).includes(form.strandOrProgram) && (
-                    <option value={form.strandOrProgram}>{form.strandOrProgram} (older record)</option>
-                  )}
-                  {programsFor(form.department).map((p) => <option key={p} value={p}>{p}</option>)}
+                  {(() => {
+                    const options = isShs(form.department) ? shsStrands : tertiaryCourses;
+                    const values = options.map(optionValue);
+                    return (
+                      <>
+                        {form.strandOrProgram && !values.includes(form.strandOrProgram) && (
+                          <option value={form.strandOrProgram}>{form.strandOrProgram} (older record)</option>
+                        )}
+                        {options.map((p) => <option key={p.id} value={optionValue(p)}>{p.label}</option>)}
+                      </>
+                    );
+                  })()}
                 </select>
               </div>
               <Input label="Section" placeholder="e.g. A" value={form.section} onChange={(v) => setForm({ ...form, section: v })} />

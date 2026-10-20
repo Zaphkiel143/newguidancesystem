@@ -68,7 +68,7 @@ const WHO_OPTIONS: { value: SignInAs | "PARENT"; label: string; hint: string; ic
 
 const LoginPage = () => {
   const router = useRouter();
-  const departments = useOptionList("departments");
+  const [departments] = useOptionList("departments");
   const [step, setStep] = useState<Step>("who");
   const [signInAs, setSignInAs] = useState<SignInAs>("STUDENT");
   const [email, setEmail] = useState('');
