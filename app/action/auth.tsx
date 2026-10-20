@@ -12,6 +12,8 @@ import { allow, clientIp, HOUR, MINUTE } from "../../lib/rateLimit";
 import type { UserRole } from "../../lib/generated";
 import { SCHOOL_EMAIL_DOMAIN } from "../config/school";
 import { DEPARTMENTS, gradeSectionLabel, programsFor, yearLevelsFor } from "../config/studentLevels";
+import { logActivity } from "../../lib/activityLog";
+import { ROLE_LABEL } from "../../lib/session";
 
 const DEMO_PASSWORD = "demo1234";
 
@@ -58,6 +60,7 @@ export async function login(formData: { identifier: string; password: string }):
     if (user.status !== "ACTIVE") return { success: false, error: statusMessage(user.status, user.role) };
 
     await createSession(user.id);
+    await logActivity({ name: user.name, roleLabel: ROLE_LABEL[user.role], id: user.id }, "Signed in", "User", user.id);
     return { success: true, redirectTo: dashboardPathForRole(user.role) };
   } catch (error) {
     console.error("Login failed:", error);
@@ -204,21 +207,27 @@ export async function verifyLoginCode(formData: {
     }
 
     let user = await db.user.findUnique({ where: { email } });
+    let isNewAccount = false;
 
     if (!user) {
       const created = await createSchoolAccount(email, formData);
       if ("needsDetails" in created || "error" in created) return { success: false, ...created } as CodeVerifyResult;
       user = created.user;
+      isNewAccount = true;
     }
 
     // The code is used up whether or not the account can sign in yet.
     await db.loginCode.update({ where: { id: entry.id }, data: { usedAt: new Date() } });
+
+    const actor = { name: user.name, roleLabel: ROLE_LABEL[user.role], id: user.id };
+    if (isNewAccount) await logActivity(actor, "Created their account", "User", user.id);
 
     if (user.status !== "ACTIVE") {
       return { success: false, pending: true, message: statusMessage(user.status, user.role) };
     }
 
     await createSession(user.id);
+    await logActivity(actor, "Signed in", "User", user.id);
     return { success: true, redirectTo: dashboardPathForRole(user.role) };
   } catch (error) {
     console.error("Failed to verify login code:", error);
@@ -356,7 +365,7 @@ export async function registerParent(formData: {
       return { success: false, error: FIX_FIELDS_MESSAGE, fieldErrors: duplicates };
     }
 
-    await db.user.create({
+    const parent = await db.user.create({
       data: {
         name,
         phone,
@@ -369,6 +378,7 @@ export async function registerParent(formData: {
         },
       },
     });
+    await logActivity({ name, roleLabel: ROLE_LABEL.PARENT, id: parent.id }, "Registered a parent account", "User", parent.id, childName);
 
     await notifyCounselors({
       title: "New parent account to confirm",

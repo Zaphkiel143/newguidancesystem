@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { requireActionUser } from "../../lib/session";
 import { sendEmail } from "../../lib/email";
 import { notifyUser } from "../../lib/notify";
+import { logActivity } from "../../lib/activityLog";
 import type { UserRole } from "../../lib/generated";
 
 // ==== Accounts & approvals (Guidance Associates only) ====
@@ -82,6 +83,7 @@ export async function decideStaffAccount(userId: string, approve: boolean) {
     if (approve) {
       await tellUser(user, "Your E-Gabay account is approved", "You can now sign in to E-Gabay with your school email.");
     }
+    await logActivity(me, approve ? "Approved an account" : "Rejected an account", "User", userId, user.name);
     revalidatePath("/accounts");
     return { success: true };
   } catch (error) {
@@ -92,7 +94,7 @@ export async function decideStaffAccount(userId: string, approve: boolean) {
 
 export async function decideParentLink(linkId: string, approve: boolean, note?: string) {
   try {
-    await counselorOnly();
+    const me = await counselorOnly();
     const link = await db.parentChildLink.findUnique({ where: { id: linkId }, include: { parent: true } });
     if (!link || link.status !== "PENDING") return { success: false, error: "This request was already handled." };
 
@@ -131,6 +133,7 @@ export async function decideParentLink(linkId: string, approve: boolean, note?: 
       }
     }
 
+    await logActivity(me, approve ? "Approved a parent-child link" : "Rejected a parent-child link", "ParentChildLink", linkId, link.childName);
     revalidatePath("/accounts");
     return { success: true };
   } catch (error) {
@@ -150,6 +153,7 @@ export async function setAccountRole(userId: string, role: UserRole) {
       return { success: false, error: "Parent accounts and school-email accounts sign in differently, so they can't be switched." };
     }
     await db.user.update({ where: { id: userId }, data: { role } });
+    await logActivity(me, `Changed an account's role to ${role}`, "User", userId);
     revalidatePath("/accounts");
     return { success: true };
   } catch (error) {
@@ -165,6 +169,7 @@ export async function setAccountActive(userId: string, active: boolean) {
     if (userId === me.id) return { success: false, error: "You can't turn off your own account." };
     await db.user.update({ where: { id: userId }, data: { status: active ? "ACTIVE" : "REJECTED" } });
     if (!active) await db.session.deleteMany({ where: { userId } });
+    await logActivity(me, active ? "Turned on an account" : "Turned off an account", "User", userId);
     revalidatePath("/accounts");
     return { success: true };
   } catch (error) {

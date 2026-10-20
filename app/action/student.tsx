@@ -8,11 +8,12 @@ import { allow, DAY, HOUR, MINUTE, SLOW_DOWN } from "../../lib/rateLimit";
 import { counselorEmails, formatAppointmentWhen, sendEmail } from "../../lib/email";
 import { announceNewBooking, checkBooking } from "../../lib/booking";
 import { parseTimeToMinutes } from "../config/timeSlots";
-import { DEPARTMENTS, gradeSectionLabel, isShs, normalizeDepartment, programsFor, yearLevelsFor } from "../config/studentLevels";
+import { DEPARTMENTS, gradeSectionLabel, isShs, isTertiaryLike, normalizeDepartment, programsFor, yearLevelsFor } from "../config/studentLevels";
 import { checkDocument, STUDENT_DOCUMENT_CATEGORIES } from "../../lib/documents";
 import { notifyCounselors } from "../../lib/notify";
 import { announceNewReferral, checkReferral } from "../../lib/referrals";
 import { cleanAnswers, validateAnswers, type Answers } from "../config/collegeCareerForm";
+import { logActivity } from "../../lib/activityLog";
 
 // Every action here acts as the signed-in student; names never come from the client.
 
@@ -65,7 +66,7 @@ export async function bookAppointment(formData: {
     if (!(await allow(`booking:${me.id}`, 5, HOUR))) return { success: false, error: SLOW_DOWN };
     const { date } = checked;
 
-    await db.appointment.create({
+    const appt = await db.appointment.create({
       data: {
         date,
         time: formData.timeSlot,
@@ -81,6 +82,7 @@ export async function bookAppointment(formData: {
       },
     });
     await announceNewBooking({ who: me.name, role: me.roleLabel, date, time: formData.timeSlot, purpose: checked.appointmentType });
+    await logActivity(me, "Booked an appointment", "Appointment", appt.id, checked.appointmentType);
 
     const when = formatAppointmentWhen(date, formData.timeSlot);
     for (const to of await counselorEmails()) {
@@ -170,6 +172,7 @@ export async function sendMessage(formData: { conversationId: string; content: s
     });
 
     await db.conversation.update({ where: { id: formData.conversationId }, data: { updatedAt: new Date() } });
+    await logActivity(me, "Sent a message to the guidance office", "Message", message.id);
 
     revalidatePath("/my_messages");
     revalidatePath("/message");
@@ -198,10 +201,11 @@ export async function submitReferral(formData: {
       return { success: false, error: SLOW_DOWN };
     }
 
-    await db.referral.create({
+    const referral = await db.referral.create({
       data: { ...checked.value, referrerName: me.name, referrerRole: "Student", status: "OPEN" },
     });
     await announceNewReferral({ ...checked.value, referrerName: me.name, referrerRole: "Student" });
+    await logActivity(me, "Submitted a referral", "Referral", referral.id, checked.value.studentName);
 
     revalidatePath("/referral");
     revalidatePath("/my_referrals");
@@ -295,7 +299,7 @@ export async function submitStudentDocument(formData: {
     const waiting = await db.document.count({ where: { uploaderName: me.name, uploaderRole: "Student", reviewStatus: "PENDING" } });
     if (waiting >= 10) return { success: false, error: "You have 10 documents waiting for review. Wait for the guidance office to check them first." };
 
-    await db.document.create({
+    const doc = await db.document.create({
       data: {
         uploaderName: me.name,
         uploaderRole: "Student",
@@ -308,6 +312,7 @@ export async function submitStudentDocument(formData: {
       },
     });
     await notifyCounselors({ title: "New document to review", body: `${me.name}: ${formData.category}`, href: "/documents" });
+    await logActivity(me, "Uploaded a document", "Document", doc.id, formData.category);
 
     revalidatePath("/profile");
     revalidatePath("/inventory");
@@ -353,6 +358,7 @@ export async function submitAssessmentResponse(formData: { assessmentId: string;
       update: { selectedTopics, comment: formData.comment || null },
       create: { assessmentId: assessment.id, studentName: me.name, selectedTopics, comment: formData.comment || null },
     });
+    await logActivity(me, "Answered a needs assessment", "NeedsAssessmentResponse", assessment.id);
 
     revalidatePath("/assessments");
     revalidatePath("/groupguidance");
@@ -472,6 +478,7 @@ export async function completeMyStudentInfo(formData: { studentId: string; depar
         gradeSection: gradeSectionLabel(formData.yearLevel, section),
       },
     });
+    await logActivity(me, "Completed their own school details", "StudentProfile", undefined, formData.department);
     revalidatePath("/", "layout");
     return { success: true };
   } catch (error) {
@@ -571,6 +578,7 @@ export async function forwardAiQuestion(assistantMessageId: string) {
     await db.conversation.update({ where: { id: conversation.id }, data: { updatedAt: new Date() } });
     await db.aiMessage.update({ where: { id: reply.id }, data: { forwardedAt: new Date() } });
     await notifyCounselors({ title: "A student's question for you (from E-Gabay)", body: `${me.name}: ${question.content.slice(0, 120)}`, href: "/message" });
+    await logActivity(me, "Forwarded an unanswered E-Gabay question", "Message", conversation.id);
 
     revalidatePath("/my_messages");
     revalidatePath("/message");
@@ -583,11 +591,11 @@ export async function forwardAiQuestion(assistantMessageId: string) {
 
 // ---- Career Planning Form (tertiary students) ----
 
-// Tertiary students only; senior high students use the Career Planning Program.
+// Tertiary-like students only; senior high students use the Career Planning Program.
 async function tertiaryStudent() {
   const me = await requireActionUser("STUDENT");
   const profile = await db.studentProfile.findUnique({ where: { name: me.name }, select: { department: true, studentId: true } });
-  if (!profile || normalizeDepartment(profile.department) !== "Tertiary") return null;
+  if (!profile || !isTertiaryLike(profile.department)) return null;
   return { me, profile };
 }
 
@@ -641,6 +649,7 @@ export async function saveMyCareerForm(input: { answers: unknown; submit: boolea
         body: `${who.me.name} ${existing?.submittedAt ? "updated" : "submitted"} their Career Planning Form.`,
         href: "/careerguidance/college",
       });
+      await logActivity(who.me, existing?.submittedAt ? "Updated their Career Planning Form" : "Submitted their Career Planning Form", "CollegeCareerForm");
     }
     revalidatePath("/career_form");
     revalidatePath("/careerguidance/college");

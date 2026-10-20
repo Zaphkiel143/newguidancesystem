@@ -5,13 +5,14 @@ import Link from "next/link";
 import { Loader2, Send } from "lucide-react";
 import {
   CONCERN_TYPES,
-  DEPARTMENTS,
   OTHER,
   SHS,
   programsFor,
   withOther,
   yearLevelsFor,
 } from "../app/config/studentLevels";
+import { optionValue } from "../lib/optionListDefaults";
+import { useOptionList } from "./useOptionList";
 
 export type ReferralPayload = {
   aboutMyself: boolean;
@@ -75,6 +76,7 @@ const req = <span className="text-rose-600" aria-hidden> *</span>;
 // One referral form for students, faculty and parents, so every referral
 // reaches the guidance office with the same details.
 export default function ReferralForm({ mode, linkedChildren, onSubmit, myReferralsPath }: Props) {
+  const departments = useOptionList("departments");
   const [f, setF] = useState(() => emptyFor(mode));
   const [saving, setSaving] = useState(false);
   const [done, setDone] = useState(false);
@@ -179,13 +181,16 @@ export default function ReferralForm({ mode, linkedChildren, onSubmit, myReferra
           <fieldset>
             <legend className={label}>Level{req}</legend>
             <div className="grid grid-cols-2 gap-2 max-w-md">
-              {DEPARTMENTS.map((d) => (
-                <label key={d} className={`flex items-center gap-2 rounded-lg border px-3 min-h-11 cursor-pointer text-[14px] ${f.department === d ? "border-blue-600 bg-blue-50" : "border-slate-300"}`}>
-                  <input type="radio" name="ref-dept" className="accent-blue-700" checked={f.department === d}
-                    onChange={() => set({ department: d, yearLevel: "", program: "" })} />
-                  {d === SHS ? "Senior High" : d}
-                </label>
-              ))}
+              {departments.map((d) => {
+                const value = optionValue(d);
+                return (
+                  <label key={d.id} className={`flex items-center gap-2 rounded-lg border px-3 min-h-11 cursor-pointer text-[14px] ${f.department === value ? "border-blue-600 bg-blue-50" : "border-slate-300"}`}>
+                    <input type="radio" name="ref-dept" className="accent-blue-700" checked={f.department === value}
+                      onChange={() => set({ department: value, yearLevel: "", program: "" })} />
+                    {d.label}
+                  </label>
+                );
+              })}
             </div>
           </fieldset>
 

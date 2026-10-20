@@ -21,6 +21,8 @@ UserCog,
 FileCheck,
 Newspaper,
 BarChart3,
+Settings,
+History,
 LucideIcon, ClipboardPen } from 'lucide-react';
 
 export interface MenuItem {
@@ -56,6 +58,8 @@ counselor: [
     { name: 'Events', icon: CalendarDays, path: '/events' },
     { name: 'Messages', icon: MessageSquare, path: '/message' },
     { name: 'Accounts & Approvals', icon: UserCog, path: '/accounts' },
+    { name: 'Activity Log', icon: History, path: '/activity' },
+    { name: 'Manage Options', icon: Settings, path: '/settings' },
     { name: 'My Account', icon: User, path: '/my_account' },
 ],
 

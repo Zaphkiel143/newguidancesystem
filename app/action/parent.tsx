@@ -11,6 +11,7 @@ import { announceNewReferral, checkReferral } from "../../lib/referrals";
 import { logRecordAccess } from "../../lib/accessLog";
 import { counselorEmails, formatAppointmentWhen, sendEmail } from "../../lib/email";
 import { announceNewBooking, checkBooking } from "../../lib/booking";
+import { logActivity } from "../../lib/activityLog";
 
 // Every action here acts as the signed-in parent. A parent's children are the
 // student records the guidance office approved for them (ParentChildLink),
@@ -84,7 +85,7 @@ export async function bookAppointment(formData: {
     if (!(await allow(`booking:${me.id}`, 5, HOUR))) return { success: false, error: SLOW_DOWN };
     const { date } = checked;
 
-    await db.appointment.create({
+    const appt = await db.appointment.create({
       data: {
         date,
         time: formData.timeSlot,
@@ -100,6 +101,7 @@ export async function bookAppointment(formData: {
       },
     });
     await announceNewBooking({ who: me.name, role: "Parent", forWhom: child.name, date, time: formData.timeSlot, purpose: checked.appointmentType });
+    await logActivity(me, `Booked an appointment for ${child.name}`, "Appointment", appt.id, checked.appointmentType);
 
     const when = formatAppointmentWhen(date, formData.timeSlot);
     for (const to of await counselorEmails()) {
@@ -190,6 +192,7 @@ export async function sendMessage(formData: { conversationId: string; content: s
     });
 
     await db.conversation.update({ where: { id: formData.conversationId }, data: { updatedAt: new Date() } });
+    await logActivity(me, "Sent a message to the guidance office", "Message", message.id);
 
     revalidatePath("/parent_message");
     revalidatePath("/message");
@@ -216,10 +219,11 @@ export async function submitReferral(formData: {
       return { success: false, error: SLOW_DOWN };
     }
 
-    await db.referral.create({
+    const referral = await db.referral.create({
       data: { ...checked.value, referrerName: me.name, referrerRole: "Parent", status: "OPEN" },
     });
     await announceNewReferral({ ...checked.value, referrerName: me.name, referrerRole: "Parent" });
+    await logActivity(me, "Submitted a referral", "Referral", referral.id, checked.value.studentName);
 
     revalidatePath("/referral");
     revalidatePath("/parent_myreferral");
@@ -319,6 +323,7 @@ export async function updateMyParentProfile(formData: { lastName: string; firstN
       db.referral.updateMany({ where: { referrerName: me.name, referrerRole: "Parent" }, data: { referrerName: name } }),
       db.appointment.updateMany({ where: { bookedByName: me.name, bookedByRole: "Parent" }, data: { bookedByName: name, bookedByPhone: phone } }),
     ]);
+    await logActivity({ ...me, name }, "Updated their profile", "User", me.id);
     revalidatePath("/parent_profile");
     return { success: true };
   } catch (error) {
@@ -334,6 +339,7 @@ export async function changeMyPassword(formData: { current: string; next: string
     if (!row || !verifyPassword(formData.current, row.passwordHash)) return { success: false, error: "Your current password isn't right." };
     if (formData.next.length < 8) return { success: false, error: "Use a new password with at least 8 characters." };
     await db.user.update({ where: { id: me.id }, data: { passwordHash: hashPassword(formData.next) } });
+    await logActivity(me, "Changed their password", "User", me.id);
     return { success: true };
   } catch (error) {
     console.error("[parent] Failed to change password:", error);
@@ -360,6 +366,7 @@ export async function requestChildLink(formData: { childStudentId: string; child
       create: { parentId: me.id, studentIdNumber, childName, relationship: formData.relationship.trim().slice(0, 40) },
     });
     await notifyCounselors({ title: "Parent asked to link another student", body: `${me.name} → ${childName} (ID ${studentIdNumber})`, href: "/accounts" });
+    await logActivity(me, "Requested to link a child", "ParentChildLink", undefined, childName);
     revalidatePath("/parent_profile");
     return { success: true };
   } catch (error) {

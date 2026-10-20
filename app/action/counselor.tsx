@@ -12,6 +12,7 @@ import { normalizeFacebookPostUrl } from "../../lib/facebook";
 import { checkImage } from "../../lib/image";
 import { notifyByName } from "../../lib/notify";
 import { logRecordAccess } from "../../lib/accessLog";
+import { logActivity } from "../../lib/activityLog";
 import type { Answers } from "../config/collegeCareerForm";
 import { DEPARTMENTS, gradeSectionLabel, isShs, normalizeDepartment, programsFor, yearLevelsFor } from "../config/studentLevels";
 
@@ -60,10 +61,11 @@ async function notifyBooker(
 
 export async function updateAppointmentStatus(id: string, status: "PENDING" | "CONFIRMED" | "CANCELLED") {
   try {
-    await counselorOnly();
+    const me = await counselorOnly();
     // Cancelled appointments are kept (not deleted) so the history and the
     // cancellation email both still have the details.
     const appointment = await db.appointment.update({ where: { id }, data: { status } });
+    await logActivity(me, `Marked an appointment as ${status.toLowerCase()}`, "Appointment", id, appointment.studentName ?? undefined);
 
     if (status === "CONFIRMED") {
       await notifyBooker(appointment, "Your guidance appointment is confirmed", "Your appointment with the Guidance Associate has been confirmed.");
@@ -160,6 +162,7 @@ export async function blockTime(formData: { dateString: string; startTime: strin
     const groupId = randomUUID();
     if (toBlock.length > 0) {
       await db.blockedSlot.createMany({ data: toBlock.map((time) => ({ counselorId: me.id, date, time, reason, groupId })) });
+      await logActivity(me, "Blocked appointment time", "BlockedSlot", groupId, `${formData.dateString}: ${toBlock.join(", ")}`);
     }
     revalidatePath("/appointment");
     return { success: true, blocked: toBlock, skippedBooked: booked.map((b) => `${b.time} (${b.studentName ?? "booked"})`) };
@@ -172,11 +175,12 @@ export async function blockTime(formData: { dateString: string; startTime: strin
 // Removes one blocked slot, or every slot blocked together with it.
 export async function unblockTime(blockId: string, wholeGroup: boolean) {
   try {
-    await counselorOnly();
+    const me = await counselorOnly();
     const block = await db.blockedSlot.findUnique({ where: { id: blockId } });
     if (!block) return { success: true };
     if (wholeGroup && block.groupId) await db.blockedSlot.deleteMany({ where: { groupId: block.groupId } });
     else await db.blockedSlot.delete({ where: { id: blockId } });
+    await logActivity(me, "Unblocked appointment time", "BlockedSlot", blockId);
     revalidatePath("/appointment");
     return { success: true };
   } catch (error) {
@@ -195,7 +199,7 @@ export async function saveAppointmentDetails(formData: {
   studentName?: string;
 }) {
   try {
-    await counselorOnly();
+    const me = await counselorOnly();
     const targetDate = new Date(formData.dateString);
 
     const createData = {
@@ -250,8 +254,10 @@ export async function saveAppointmentDetails(formData: {
           throw err;
         }
       }
+      await logActivity(me, "Edited an appointment", "Appointment", formData.appointmentId, createData.studentName ?? undefined);
     } else {
       await db.appointment.create({ data: createData });
+      await logActivity(me, "Created an appointment", "Appointment", undefined, createData.studentName ?? undefined);
     }
 
     revalidatePath("/appointment");
@@ -302,7 +308,7 @@ export async function getCareerPlans() {
 
 export async function addCareerPlanStudent(formData: { studentName: string; studentId: string; grade: string; facilitator?: string }) {
   try {
-    await counselorOnly();
+    const me = await counselorOnly();
     // The Career Planning Program is for senior high students on record.
     const profile = await db.studentProfile.findUnique({ where: { name: formData.studentName } });
     if (!profile) return { success: false, error: "Add this student to the Individual Inventory first." };
@@ -320,6 +326,7 @@ export async function addCareerPlanStudent(formData: { studentName: string; stud
         stepNotes: Array(CAREER_STEPS.length).fill(""),
       },
     });
+    await logActivity(me, "Added a student to the Career Planning Program", "CareerPlan", undefined, formData.studentName);
 
     revalidatePath("/careerguidance");
     return { success: true };
@@ -332,7 +339,7 @@ export async function addCareerPlanStudent(formData: { studentName: string; stud
 // Marks the next incomplete stage done, with an optional note on what was completed.
 export async function advanceCareerPlanProgress(id: string, activityNote = "") {
   try {
-    await counselorOnly();
+    const me = await counselorOnly();
     const plan = await db.careerPlan.findUnique({ where: { id } });
     if (!plan) return { success: false, error: "Career plan not found" };
 
@@ -346,6 +353,7 @@ export async function advanceCareerPlanProgress(id: string, activityNote = "") {
     if (activityNote.trim()) stepNotes[nextIncompleteIndex] = activityNote.trim();
 
     await db.careerPlan.update({ where: { id }, data: { stepDates, stepNotes } });
+    await logActivity(me, `Advanced ${CAREER_STEPS[nextIncompleteIndex]} for a career plan`, "CareerPlan", id, plan.studentName);
 
     revalidatePath("/careerguidance");
     revalidatePath("/my_career");
@@ -358,7 +366,7 @@ export async function advanceCareerPlanProgress(id: string, activityNote = "") {
 
 export async function updateCareerPlanDetails(id: string, formData: { facilitator: string; stepNotes: string[] }) {
   try {
-    await counselorOnly();
+    const me = await counselorOnly();
     await db.careerPlan.update({
       where: { id },
       data: {
@@ -366,6 +374,7 @@ export async function updateCareerPlanDetails(id: string, formData: { facilitato
         stepNotes: CAREER_STEPS.map((_, i) => (formData.stepNotes[i] ?? "").trim()),
       },
     });
+    await logActivity(me, "Edited career plan details", "CareerPlan", id);
     revalidatePath("/careerguidance");
     revalidatePath("/my_career");
     return { success: true };
@@ -446,7 +455,7 @@ export type StudentProfileInput = {
 
 export async function saveStudentProfile(input: StudentProfileInput) {
   try {
-    await counselorOnly();
+    const me = await counselorOnly();
     const t = (v: string | undefined, max = 200) => (v ?? "").trim().slice(0, max);
     const name = t(input.name, 120).replace(/\s+/g, " ");
     const studentId = t(input.studentId, 20);
@@ -511,6 +520,7 @@ export async function saveStudentProfile(input: StudentProfileInput) {
     } else {
       await db.studentProfile.create({ data });
     }
+    await logActivity(me, input.id ? "Edited a student record" : "Added a student record", "StudentProfile", input.id, name);
 
     revalidatePath("/inventory");
     revalidatePath("/profile");
@@ -549,7 +559,7 @@ export async function listDocumentsForReview(status: "PENDING" | "APPROVED" | "R
 
 export async function reviewDocument(id: string, approve: boolean, note: string) {
   try {
-    await counselorOnly();
+    const me = await counselorOnly();
     const reviewNote = note.trim().slice(0, 300) || null;
     if (!approve && !reviewNote) return { success: false, error: "Tell the uploader why it wasn't accepted." };
     const doc = await db.document.update({
@@ -557,6 +567,7 @@ export async function reviewDocument(id: string, approve: boolean, note: string)
       data: { reviewStatus: approve ? "APPROVED" : "REJECTED", reviewNote, reviewedAt: new Date() },
       select: { fileName: true, uploaderName: true, uploaderRole: true },
     });
+    await logActivity(me, approve ? "Approved a document" : "Rejected a document", "Document", id, doc.fileName);
     await notifyByName(doc.uploaderName, doc.uploaderRole, {
       title: approve ? "Your document was accepted" : "Your document wasn't accepted",
       body: `${doc.fileName}${reviewNote ? ` · ${reviewNote}` : ""}`,
@@ -584,10 +595,11 @@ export async function getGroupGuidancePrograms() {
 
 export async function addGroupGuidanceProgram(formData: { title: string; gradeLevel: string; dateString: string; time: string }) {
   try {
-    await counselorOnly();
-    await db.groupGuidanceProgram.create({
+    const me = await counselorOnly();
+    const program = await db.groupGuidanceProgram.create({
       data: { title: formData.title, gradeLevel: formData.gradeLevel, date: new Date(formData.dateString), time: formData.time },
     });
+    await logActivity(me, "Scheduled a group guidance session", "GroupGuidanceProgram", program.id, formData.title);
 
     revalidatePath("/groupguidance");
     return { success: true };
@@ -601,13 +613,14 @@ export async function addGroupGuidanceProgram(formData: { title: string; gradeLe
 // the signed attendance sheet is attached instead.
 export async function recordGroupSession(id: string, formData: { attendees: string[]; outcomes: string; headcount?: number }) {
   try {
-    await counselorOnly();
+    const me = await counselorOnly();
     const attendees = Array.from(new Set(formData.attendees.map((a) => a.trim().slice(0, 120)).filter(Boolean))).slice(0, 500);
     const headcount = Math.max(0, Math.min(2000, Math.floor(Number(formData.headcount) || 0)));
     await db.groupGuidanceProgram.update({
       where: { id },
       data: { attendees, participants: attendees.length || headcount, outcomes: formData.outcomes.trim().slice(0, 5000) || null },
     });
+    await logActivity(me, "Recorded a group guidance session", "GroupGuidanceProgram", id);
     revalidatePath("/groupguidance");
     return { success: true };
   } catch (error) {
@@ -650,12 +663,13 @@ export async function listNeedsAssessments() {
 
 export async function createNeedsAssessment(formData: { title: string; gradeLevel: string; topics: string[] }) {
   try {
-    await counselorOnly();
+    const me = await counselorOnly();
     const topics = Array.from(new Set(formData.topics.map((t) => t.trim()).filter(Boolean)));
     if (!formData.title.trim()) return { success: false, error: "Give the form a title." };
     if (topics.length < 2) return { success: false, error: "List at least two topics for students to choose from." };
 
-    await db.needsAssessment.create({ data: { title: formData.title.trim(), gradeLevel: formData.gradeLevel, topics } });
+    const assessment = await db.needsAssessment.create({ data: { title: formData.title.trim(), gradeLevel: formData.gradeLevel, topics } });
+    await logActivity(me, "Created a needs assessment", "NeedsAssessment", assessment.id, formData.title);
     revalidatePath("/groupguidance");
     revalidatePath("/assessments");
     return { success: true };
@@ -667,8 +681,9 @@ export async function createNeedsAssessment(formData: { title: string; gradeLeve
 
 export async function setNeedsAssessmentOpen(id: string, isOpen: boolean) {
   try {
-    await counselorOnly();
+    const me = await counselorOnly();
     await db.needsAssessment.update({ where: { id }, data: { isOpen } });
+    await logActivity(me, isOpen ? "Opened a needs assessment" : "Closed a needs assessment", "NeedsAssessment", id);
     revalidatePath("/groupguidance");
     revalidatePath("/assessments");
     return { success: true };
@@ -708,7 +723,7 @@ export async function saveAnnouncement(formData: {
   image?: { dataBase64: string } | null;
 }) {
   try {
-    await counselorOnly();
+    const me = await counselorOnly();
     if (!formData.title.trim() || !formData.body.trim()) return { success: false, error: "Add a title and a message." };
 
     // Optional Facebook post: a permalink or the post's embed code (see lib/facebook.ts).
@@ -739,6 +754,7 @@ export async function saveAnnouncement(formData: {
     };
     if (formData.id) await db.announcement.update({ where: { id: formData.id }, data });
     else await db.announcement.create({ data });
+    await logActivity(me, formData.id ? "Edited an announcement" : "Published an announcement", "Announcement", formData.id, formData.title);
 
     revalidatePath("/information");
     for (const p of ["/bulletin", "/faculty_bulletin", "/parent_bulletin", "/student_dashboard"]) revalidatePath(p);
@@ -751,8 +767,9 @@ export async function saveAnnouncement(formData: {
 
 export async function deleteAnnouncement(id: string) {
   try {
-    await counselorOnly();
+    const me = await counselorOnly();
     await db.announcement.delete({ where: { id } });
+    await logActivity(me, "Deleted an announcement", "Announcement", id);
     revalidatePath("/information");
     return { success: true };
   } catch (error) {
@@ -782,7 +799,7 @@ export async function saveEvent(formData: {
   location: string;
 }) {
   try {
-    await counselorOnly();
+    const me = await counselorOnly();
     if (!formData.title.trim() || !formData.dateString || !formData.time.trim()) {
       return { success: false, error: "Title, date, and time are required." };
     }
@@ -795,6 +812,7 @@ export async function saveEvent(formData: {
     };
     if (formData.id) await db.event.update({ where: { id: formData.id }, data });
     else await db.event.create({ data });
+    await logActivity(me, formData.id ? "Edited an event" : "Created an event", "Event", formData.id, formData.title);
 
     revalidatePath("/events");
     for (const p of ["/bulletin", "/faculty_bulletin", "/parent_bulletin", "/student_dashboard"]) revalidatePath(p);
@@ -807,8 +825,9 @@ export async function saveEvent(formData: {
 
 export async function deleteEvent(id: string) {
   try {
-    await counselorOnly();
+    const me = await counselorOnly();
     await db.event.delete({ where: { id } });
+    await logActivity(me, "Deleted an event", "Event", id);
     revalidatePath("/events");
     return { success: true };
   } catch (error) {
@@ -857,6 +876,7 @@ export async function startConversation(formData: { participantName: string; par
     await db.message.create({
       data: { conversationId: conversation.id, senderRole: "Counselor", senderName: me.name, content: formData.content },
     });
+    await logActivity(me, "Started a conversation", "Conversation", conversation.id, formData.participantName);
 
     revalidatePath("/message");
     return { success: true, conversation };
@@ -898,6 +918,7 @@ export async function sendMessage(formData: { conversationId: string; content: s
     });
 
     await db.conversation.update({ where: { id: formData.conversationId }, data: { updatedAt: new Date() } });
+    await logActivity(me, "Replied to a conversation", "Message", message.id);
 
     revalidatePath("/message");
     return { success: true, message };
@@ -941,8 +962,9 @@ export async function listReferrals() {
 
 export async function updateReferralStatus(id: string, status: "OPEN" | "IN_PROGRESS" | "CLOSED") {
   try {
-    await counselorOnly();
+    const me = await counselorOnly();
     const referral = await db.referral.update({ where: { id }, data: { status } });
+    await logActivity(me, `Marked a referral as ${status.toLowerCase().replace("_", " ")}`, "Referral", id, referral.studentName);
     const myReferrals: Record<string, string> = { Student: "/my_referrals", Faculty: "/faculty_myreferral", Parent: "/parent_myreferral" };
     await notifyByName(referral.referrerName, referral.referrerRole, {
       title: status === "CLOSED" ? "Your referral was closed" : status === "IN_PROGRESS" ? "The guidance office is working on your referral" : "Your referral was reopened",
@@ -959,8 +981,9 @@ export async function updateReferralStatus(id: string, status: "OPEN" | "IN_PROG
 
 export async function addReferralNotes(id: string, notes: string) {
   try {
-    await counselorOnly();
+    const me = await counselorOnly();
     await db.referral.update({ where: { id }, data: { notes } });
+    await logActivity(me, "Added notes to a referral", "Referral", id);
     revalidatePath("/referral");
     return { success: true };
   } catch (error) {
@@ -994,6 +1017,7 @@ export async function sendReferralFeedback(referralId: string, content: string) 
       title: "The guidance office replied about your referral",
       body: content.length > 120 ? `${content.slice(0, 117)}…` : content,
     });
+    await logActivity(me, "Sent feedback on a referral", "Referral", referralId, referral.studentName);
 
     revalidatePath("/message");
     revalidatePath("/referral");
@@ -1082,5 +1106,51 @@ export async function getCareerForm(studentName: string) {
   } catch (error) {
     console.error("Failed to fetch career form:", error);
     return null;
+  }
+}
+
+// ==== System-wide activity log ====
+
+export async function listActivity(filters: { role?: string; model?: string; search?: string; from?: string; to?: string; cursor?: string } = {}) {
+  try {
+    await counselorOnly();
+    const where: Prisma.ActivityLogWhereInput = {};
+    if (filters.role) where.actorRole = filters.role;
+    if (filters.model) where.model = filters.model;
+    if (filters.search) where.actorName = { contains: filters.search, mode: "insensitive" };
+    if (filters.from || filters.to) {
+      where.createdAt = {
+        ...(filters.from ? { gte: new Date(`${filters.from}T00:00:00Z`) } : {}),
+        ...(filters.to ? { lte: new Date(`${filters.to}T23:59:59Z`) } : {}),
+      };
+    }
+
+    const rows = await db.activityLog.findMany({
+      where,
+      orderBy: { createdAt: "desc" },
+      take: 51,
+      ...(filters.cursor ? { skip: 1, cursor: { id: filters.cursor } } : {}),
+    });
+
+    return { rows: rows.slice(0, 50), nextCursor: rows.length > 50 ? rows[49].id : null };
+  } catch (error) {
+    console.error("Failed to list activity:", error);
+    return { rows: [], nextCursor: null };
+  }
+}
+
+// Distinct roles/models actually present, so the filter dropdowns only show
+// choices that will return results.
+export async function getActivityFilterOptions() {
+  try {
+    await counselorOnly();
+    const [roles, models] = await Promise.all([
+      db.activityLog.findMany({ distinct: ["actorRole"], select: { actorRole: true }, orderBy: { actorRole: "asc" } }),
+      db.activityLog.findMany({ distinct: ["model"], select: { model: true }, orderBy: { model: "asc" } }),
+    ]);
+    return { roles: roles.map((r) => r.actorRole), models: models.map((m) => m.model) };
+  } catch (error) {
+    console.error("Failed to load activity filter options:", error);
+    return { roles: [], models: [] };
   }
 }

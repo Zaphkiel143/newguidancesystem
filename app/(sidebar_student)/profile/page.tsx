@@ -8,7 +8,9 @@ import PhotoPicker from '../../../components/PhotoPicker';
 import AuthenticatorSetup from '../../../components/AuthenticatorSetup';
 import { PushToggle } from '../../../components/LoginApproval';
 import { ACCEPTED_FILE_TYPES, STUDENT_DOCUMENT_CATEGORIES as DOCUMENT_CATEGORIES } from '../../config/documents';
-import { DEPARTMENTS, SHS, programsFor, yearLevelsFor } from '../../config/studentLevels';
+import { SHS, programsFor, yearLevelsFor } from '../../config/studentLevels';
+import { optionValue } from '../../../lib/optionListDefaults';
+import { useOptionList } from '../../../components/useOptionList';
 
 type MyProfile = NonNullable<Awaited<ReturnType<typeof getMyProfile>>>;
 
@@ -30,6 +32,7 @@ function readAsBase64(file: File): Promise<string> {
 }
 
 export const StudentProfile: React.FC = () => {
+  const departments = useOptionList("departments");
   const [data, setData] = useState<MyProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [category, setCategory] = useState<string>(DOCUMENT_CATEGORIES[0]);
@@ -151,13 +154,16 @@ export const StudentProfile: React.FC = () => {
                 <fieldset>
                   <legend className="block text-[13px] font-medium text-slate-700 mb-1.5">Level</legend>
                   <div className="grid grid-cols-2 gap-2">
-                    {DEPARTMENTS.map((d) => (
-                      <label key={d} className={`flex items-center gap-2 rounded-lg border px-3 min-h-11 cursor-pointer text-sm ${info.department === d ? "border-blue-600 bg-blue-50" : "border-slate-300"}`}>
-                        <input type="radio" name="si-dept" className="accent-blue-700" checked={info.department === d}
-                          onChange={() => setInfo({ ...info, department: d, yearLevel: '', program: '' })} />
-                        {d === SHS ? "Senior High" : d}
-                      </label>
-                    ))}
+                    {departments.map((d) => {
+                      const value = optionValue(d);
+                      return (
+                        <label key={d.id} className={`flex items-center gap-2 rounded-lg border px-3 min-h-11 cursor-pointer text-sm ${info.department === value ? "border-blue-600 bg-blue-50" : "border-slate-300"}`}>
+                          <input type="radio" name="si-dept" className="accent-blue-700" checked={info.department === value}
+                            onChange={() => setInfo({ ...info, department: value, yearLevel: '', program: '' })} />
+                          {d.label}
+                        </label>
+                      );
+                    })}
                   </div>
                 </fieldset>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">

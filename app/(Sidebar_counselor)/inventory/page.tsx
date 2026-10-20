@@ -3,10 +3,13 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { Search, X, Loader2, Plus, Download } from 'lucide-react';
 import { listStudentProfiles, getStudentProfile, saveStudentProfile, type StudentProfileInput } from '../../action/counselor';
-import { DEPARTMENTS, IRREGULAR, OFF_TERM, SHS, TERTIARY, normalizeDepartment, programsFor, yearLevelsFor } from '../../config/studentLevels';
+import { SHS, normalizeDepartment, programsFor, yearLevelsFor } from '../../config/studentLevels';
+import { optionValue } from '../../../lib/optionListDefaults';
 import { formatPhone } from '../../../lib/phone';
 import { CAREER_STEPS } from '../../config/careerSteps';
 import InlineError from '../../../components/InlineError';
+import EditOptionsButton from '../../../components/EditOptionsButton';
+import { useOptionList } from '../../../components/useOptionList';
 
 type Row = Awaited<ReturnType<typeof listStudentProfiles>>[number];
 type Detail = Awaited<ReturnType<typeof getStudentProfile>>;
@@ -40,6 +43,7 @@ function toInput(row: Row): StudentProfileInput {
 }
 
 export default function StudentInventory() {
+  const departments = useOptionList("departments");
   const [rows, setRows] = useState<Row[] | null>(null);
   const [query, setQuery] = useState("");
   const [department, setDepartment] = useState("All");
@@ -141,10 +145,7 @@ export default function StudentInventory() {
         <select aria-label="Filter by department" value={department} onChange={(e) => setDepartment(e.target.value)}
           className="bg-sheet border border-slate-300 rounded-md px-3 py-2.5 text-sm">
           <option value="All">All departments</option>
-          <option value={SHS}>Senior High School</option>
-          <option value={TERTIARY}>Tertiary</option>
-          <option value={IRREGULAR}>Irregular</option>
-          <option value={OFF_TERM}>Off Term</option>
+          {departments.map((d) => <option key={d.id} value={optionValue(d)}>{d.label}</option>)}
         </select>
       </div>
 
@@ -328,15 +329,21 @@ export default function StudentInventory() {
               <Input label="Full name *" value={form.name} onChange={(v) => setForm({ ...form, name: v })} required
                 hint={form.id ? "Renaming also updates this student's appointments, referrals and account." : undefined} />
               <fieldset className="sm:col-span-2">
-                <legend className="block text-[13px] font-medium text-slate-700 mb-1.5">Level *</legend>
+                <legend className="text-[13px] font-medium text-slate-700 mb-1.5 flex items-center gap-1.5">
+                  Level *
+                  <EditOptionsButton listKey="departments" listLabel="Student Level" />
+                </legend>
                 <div className="grid grid-cols-2 gap-2 max-w-md">
-                  {DEPARTMENTS.map((d) => (
-                    <label key={d} className={`flex items-center gap-2 rounded-md border px-3 min-h-11 cursor-pointer text-sm ${form.department === d ? "border-blue-600 bg-blue-50" : "border-slate-300"}`}>
-                      <input type="radio" name="f-dept" className="accent-blue-700" checked={form.department === d}
-                        onChange={() => setForm({ ...form, department: d, yearLevel: "", strandOrProgram: "" })} />
-                      {d === SHS ? "Senior High School" : d}
-                    </label>
-                  ))}
+                  {departments.map((d) => {
+                    const value = optionValue(d);
+                    return (
+                      <label key={d.id} className={`flex items-center gap-2 rounded-md border px-3 min-h-11 cursor-pointer text-sm ${form.department === value ? "border-blue-600 bg-blue-50" : "border-slate-300"}`}>
+                        <input type="radio" name="f-dept" className="accent-blue-700" checked={form.department === value}
+                          onChange={() => setForm({ ...form, department: value, yearLevel: "", strandOrProgram: "" })} />
+                        {d.label}
+                      </label>
+                    );
+                  })}
                 </div>
               </fieldset>
               <div>

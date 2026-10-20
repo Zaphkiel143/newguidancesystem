@@ -4,6 +4,7 @@ import db from "../../lib/db";
 import { revalidatePath } from "next/cache";
 import { requireActionUser } from "../../lib/session";
 import { checkDocument } from "../../lib/documents";
+import { logActivity } from "../../lib/activityLog";
 
 // Photos the Guidance Associate attaches to records: a photo of a document for a
 // Daily Log session, or an attendance sheet for a group guidance session.
@@ -34,7 +35,7 @@ export async function listAttachments(kind: Kind, refIds: string[]) {
 
 export async function addAttachment(formData: { kind: Kind; refId: string; fileName: string; dataBase64: string }) {
   try {
-    await requireActionUser("COUNSELOR");
+    const me = await requireActionUser("COUNSELOR");
     if (formData.kind !== "DAILY_LOG" && formData.kind !== "GROUP_ATTENDANCE") return { success: false, error: "Unknown record." };
     if (!(await recordExists(formData.kind, formData.refId))) return { success: false, error: "That record no longer exists." };
     const count = await db.attachment.count({ where: { kind: formData.kind, refId: formData.refId } });
@@ -48,6 +49,7 @@ export async function addAttachment(formData: { kind: Kind; refId: string; fileN
     await db.attachment.create({
       data: { kind: formData.kind, refId: formData.refId, fileName: file.fileName, fileType: file.type, data: new Uint8Array(file.bytes) },
     });
+    await logActivity(me, "Attached a photo", "Attachment", formData.refId, file.fileName);
     revalidatePath(formData.kind === "DAILY_LOG" ? "/daily_log" : "/groupguidance");
     return { success: true };
   } catch (error) {
@@ -58,8 +60,9 @@ export async function addAttachment(formData: { kind: Kind; refId: string; fileN
 
 export async function deleteAttachment(id: string) {
   try {
-    await requireActionUser("COUNSELOR");
+    const me = await requireActionUser("COUNSELOR");
     await db.attachment.deleteMany({ where: { id } });
+    await logActivity(me, "Deleted an attached photo", "Attachment", id);
     revalidatePath("/daily_log");
     revalidatePath("/groupguidance");
     return { success: true };

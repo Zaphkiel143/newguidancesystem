@@ -480,3 +480,60 @@ model CollegeCareerForm {
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 }
+
+// Counselor-editable dropdown option lists (e.g. concern types, courses,
+// appointment reasons). Each list is identified by a stable listKey that
+// code refers to; items may also carry a stable itemKey when code branches
+// on that specific value (see app/action/optionLists.tsx). Renaming a
+// label never changes itemKey, so logic tied to a protected item keeps
+// working even after the counselor relabels it.
+model OptionList {
+  id        String       @id @default(uuid())
+  listKey   String       @unique
+  label     String
+  // Set only for hierarchical lists (e.g. appointment reasons, scoped per
+  // category) - points at the parent list's listKey.
+  parentKey String?
+  items     OptionItem[]
+
+  updatedAt DateTime     @updatedAt
+}
+
+model OptionItem {
+  id             String     @id @default(uuid())
+  listId         String
+  list           OptionList @relation(fields: [listId], references: [id], onDelete: Cascade)
+
+  // Stable identifier for items code depends on (e.g. "SHS"); null for
+  // plain, freely-editable items.
+  itemKey        String?
+  // For hierarchical lists: which parent-list item (by its itemKey) this
+  // item belongs to.
+  parentItemKey  String?
+  label          String
+  sortOrder      Int
+  // Protected items can be relabeled and reordered, but not deleted.
+  isProtected    Boolean    @default(false)
+
+  createdAt      DateTime   @default(now())
+
+  @@index([listId, sortOrder])
+}
+
+// System-wide activity log, counselor/associate only. Every create/update/
+// delete across the app writes one row here via lib/activityLog.ts.
+model ActivityLog {
+  id          String   @id @default(uuid())
+  actorName   String
+  actorRole   String   // roleLabel snapshot, e.g. "Counselor", "Student"
+  actorUserId String?
+  action      String   // short phrase, e.g. "Booked an appointment"
+  model       String   // Prisma model mutated, e.g. "Appointment"
+  recordId    String?
+  detail      String?  @db.Text
+
+  createdAt   DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([actorRole, createdAt])
+}

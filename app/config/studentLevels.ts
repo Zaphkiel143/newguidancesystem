@@ -46,13 +46,16 @@ export function normalizeDepartment(department: string | null | undefined): Depa
 }
 
 export function isShs(department: string | null | undefined) {
-  return normalizeDepartment(department) === SHS;
+  return department === SHS;
 }
 
-// Irregular and Off Term students pick from the same year/course lists as Tertiary.
-function isTertiaryLike(department: string | null | undefined) {
-  const normalized = normalizeDepartment(department);
-  return normalized === TERTIARY || normalized === IRREGULAR || normalized === OFF_TERM;
+// Irregular, Off Term, and any new department a counselor adds via Manage
+// Options all pick from the same year/course lists as Tertiary, and are all
+// eligible for the Career Planning Form - anything that isn't exactly
+// Senior High School is treated as tertiary-like, so a newly-added
+// department behaves sensibly without needing its own case here.
+export function isTertiaryLike(department: string | null | undefined) {
+  return Boolean(department) && department !== SHS;
 }
 
 export function yearLevelsFor(department: string | null | undefined): readonly string[] {

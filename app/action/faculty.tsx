@@ -10,6 +10,7 @@ import { parseTimeToMinutes } from "../config/timeSlots";
 import { announceNewReferral, checkReferral } from "../../lib/referrals";
 import { checkDocument } from "../../lib/documents";
 import { notifyCounselors } from "../../lib/notify";
+import { logActivity } from "../../lib/activityLog";
 
 // Every action here acts as the signed-in faculty member; names never come from the client.
 
@@ -62,7 +63,7 @@ export async function bookAppointment(formData: {
     if (!(await allow(`booking:${me.id}`, 5, HOUR))) return { success: false, error: SLOW_DOWN };
     const { date } = checked;
 
-    await db.appointment.create({
+    const appt = await db.appointment.create({
       data: {
         date,
         time: formData.timeSlot,
@@ -78,6 +79,7 @@ export async function bookAppointment(formData: {
       },
     });
     await announceNewBooking({ who: me.name, role: me.roleLabel, date, time: formData.timeSlot, purpose: checked.appointmentType });
+    await logActivity(me, "Booked an appointment", "Appointment", appt.id, checked.appointmentType);
 
     const when = formatAppointmentWhen(date, formData.timeSlot);
     for (const to of await counselorEmails()) {
@@ -167,6 +169,7 @@ export async function sendMessage(formData: { conversationId: string; content: s
     });
 
     await db.conversation.update({ where: { id: formData.conversationId }, data: { updatedAt: new Date() } });
+    await logActivity(me, "Sent a message to the guidance office", "Message", message.id);
 
     revalidatePath("/faculty_message");
     revalidatePath("/message");
@@ -193,10 +196,11 @@ export async function submitReferral(formData: {
       return { success: false, error: SLOW_DOWN };
     }
 
-    await db.referral.create({
+    const referral = await db.referral.create({
       data: { ...checked.value, referrerName: me.name, referrerRole: "Faculty", status: "OPEN" },
     });
     await announceNewReferral({ ...checked.value, referrerName: me.name, referrerRole: "Faculty" });
+    await logActivity(me, "Submitted a referral", "Referral", referral.id, checked.value.studentName);
 
     revalidatePath("/referral");
     revalidatePath("/faculty_myreferral");
@@ -237,7 +241,7 @@ export async function uploadDocument(formData: {
     const waiting = await db.document.count({ where: { uploaderName: me.name, uploaderRole: "Faculty", reviewStatus: "PENDING" } });
     if (waiting >= 20) return { success: false, error: "You have 20 documents waiting for review. Wait for the guidance office to check them first." };
 
-    await db.document.create({
+    const doc = await db.document.create({
       data: {
         uploaderName: me.name,
         uploaderRole: "Faculty",
@@ -248,6 +252,7 @@ export async function uploadDocument(formData: {
       },
     });
     await notifyCounselors({ title: "New document to review", body: `${me.name} (faculty): ${file.fileName}`, href: "/documents" });
+    await logActivity(me, "Uploaded a document", "Document", doc.id, file.fileName);
 
     revalidatePath("/upload_documents");
     return { success: true };
@@ -277,6 +282,7 @@ export async function deleteDocument(id: string) {
     // Only your own uploads.
     const { count } = await db.document.deleteMany({ where: { id, uploaderName: me.name, uploaderRole: "Faculty" } });
     if (count === 0) return { success: false, error: "Document not found" };
+    await logActivity(me, "Deleted a document", "Document", id);
     revalidatePath("/upload_documents");
     return { success: true };
   } catch (error) {
