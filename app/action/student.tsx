@@ -451,7 +451,7 @@ export async function completeMyStudentInfo(formData: { studentId: string; depar
     }
     const studentId = formData.studentId.trim();
     if (!/^[A-Za-z0-9-]{4,20}$/.test(studentId)) return { success: false, error: "Enter your student ID number." };
-    if (!(DEPARTMENTS as readonly string[]).includes(formData.department)) return { success: false, error: "Choose Senior High School, Tertiary, or Irregular." };
+    if (!(DEPARTMENTS as readonly string[]).includes(formData.department)) return { success: false, error: "Choose Senior High School, Tertiary, Irregular, or Off Term." };
     if (!yearLevelsFor(formData.department).includes(formData.yearLevel)) return { success: false, error: "Choose your grade or year level." };
     if (!programsFor(formData.department).includes(formData.program)) return { success: false, error: "Choose your strand or course." };
     const section = formData.section.trim();

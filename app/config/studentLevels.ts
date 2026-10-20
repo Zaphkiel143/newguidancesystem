@@ -3,11 +3,13 @@
 
 export const SHS = "Senior High School";
 export const TERTIARY = "Tertiary";
-// College students off the regular year-level track. Treated the same as
-// Tertiary everywhere except the label itself - same courses, same years,
-// same Career Planning Form eligibility.
+// College students off the regular year-level track, or enrolled in a
+// non-regular term. Both treated the same as Tertiary everywhere except the
+// label itself - same courses, same years, same Career Planning Form
+// eligibility.
 export const IRREGULAR = "Irregular";
-export const DEPARTMENTS = [SHS, TERTIARY, IRREGULAR] as const;
+export const OFF_TERM = "Off Term";
+export const DEPARTMENTS = [SHS, TERTIARY, IRREGULAR, OFF_TERM] as const;
 export type Department = (typeof DEPARTMENTS)[number];
 
 export const SHS_GRADES = ["Grade 11", "Grade 12"] as const;
@@ -28,7 +30,6 @@ export const TERTIARY_COURSES = [
   "BS Computer Engineering",
   "BS Information Systems",
   "BS Business Administration",
-  "BS Accountancy",
   "BS Accounting Information Systems",
   "BS Hospitality Management",
   "BS Tourism Management",
@@ -40,6 +41,7 @@ export function normalizeDepartment(department: string | null | undefined): Depa
   if (department === SHS) return SHS;
   if (department === TERTIARY || department === "College") return TERTIARY;
   if (department === IRREGULAR) return IRREGULAR;
+  if (department === OFF_TERM) return OFF_TERM;
   return null;
 }
 
@@ -47,10 +49,10 @@ export function isShs(department: string | null | undefined) {
   return normalizeDepartment(department) === SHS;
 }
 
-// Irregular students pick from the same year/course lists as Tertiary.
+// Irregular and Off Term students pick from the same year/course lists as Tertiary.
 function isTertiaryLike(department: string | null | undefined) {
   const normalized = normalizeDepartment(department);
-  return normalized === TERTIARY || normalized === IRREGULAR;
+  return normalized === TERTIARY || normalized === IRREGULAR || normalized === OFF_TERM;
 }
 
 export function yearLevelsFor(department: string | null | undefined): readonly string[] {

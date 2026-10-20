@@ -178,7 +178,7 @@ export default function ReferralForm({ mode, linkedChildren, onSubmit, myReferra
 
           <fieldset>
             <legend className={label}>Level{req}</legend>
-            <div className="grid grid-cols-3 gap-2 max-w-md">
+            <div className="grid grid-cols-2 gap-2 max-w-md">
               {DEPARTMENTS.map((d) => (
                 <label key={d} className={`flex items-center gap-2 rounded-lg border px-3 min-h-11 cursor-pointer text-[14px] ${f.department === d ? "border-blue-600 bg-blue-50" : "border-slate-300"}`}>
                   <input type="radio" name="ref-dept" className="accent-blue-700" checked={f.department === d}
