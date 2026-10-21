@@ -542,14 +542,33 @@ export async function saveStudentProfile(input: StudentProfileInput) {
 export async function listDocumentsForReview(status: "PENDING" | "APPROVED" | "REJECTED") {
   try {
     await counselorOnly();
-    return await db.document.findMany({
+    const docs = await db.document.findMany({
       where: { reviewStatus: status },
       select: {
         id: true, fileName: true, fileType: true, fileSize: true, category: true, studentName: true,
         uploaderName: true, uploaderRole: true, reviewStatus: true, reviewNote: true, reviewedAt: true, createdAt: true,
       },
       orderBy: { createdAt: status === "PENDING" ? "asc" : "desc" },
-      take: 200,
+      take: 500,
+    });
+    // Documents link to the student's inventory record by name; that record
+    // says which level and strand/course the file belongs under.
+    const names = [...new Set(docs.map((d) => d.studentName).filter((n): n is string => Boolean(n)))];
+    const profiles = names.length
+      ? await db.studentProfile.findMany({
+          where: { name: { in: names } },
+          select: { name: true, studentId: true, department: true, strandOrProgram: true },
+        })
+      : [];
+    const byName = new Map(profiles.map((p) => [p.name, p]));
+    return docs.map((d) => {
+      const p = d.studentName ? byName.get(d.studentName) : undefined;
+      return {
+        ...d,
+        studentId: p?.studentId ?? null,
+        department: p ? normalizeDepartment(p.department) ?? p.department : null,
+        program: p?.strandOrProgram?.trim() || null,
+      };
     });
   } catch (error) {
     console.error("Failed to list documents:", error);
@@ -814,7 +833,7 @@ export async function saveEvent(formData: {
     else await db.event.create({ data });
     await logActivity(me, formData.id ? "Edited an event" : "Created an event", "Event", formData.id, formData.title);
 
-    revalidatePath("/events");
+    revalidatePath("/information");
     for (const p of ["/bulletin", "/faculty_bulletin", "/parent_bulletin", "/student_dashboard"]) revalidatePath(p);
     return { success: true };
   } catch (error) {
@@ -828,7 +847,7 @@ export async function deleteEvent(id: string) {
     const me = await counselorOnly();
     await db.event.delete({ where: { id } });
     await logActivity(me, "Deleted an event", "Event", id);
-    revalidatePath("/events");
+    revalidatePath("/information");
     return { success: true };
   } catch (error) {
     console.error("Failed to delete event:", error);
