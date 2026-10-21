@@ -22,6 +22,7 @@ const TABS: { value: Status; label: string }[] = [
 // no strand/course filled in yet.
 const UNSORTED = "No inventory record";
 const NO_PROGRAM = "No strand or course set";
+const NO_SECTION = "No section set";
 
 function size(bytes: number) {
   return bytes >= 1024 * 1024 ? `${(bytes / 1024 / 1024).toFixed(1)} MB` : `${Math.max(1, Math.round(bytes / 1024))} KB`;
@@ -33,6 +34,12 @@ function levelOf(d: Doc) {
 
 function programOf(d: Doc) {
   return d.program ?? NO_PROGRAM;
+}
+
+// "4th Year - BSIT 4-102": year level and section together, so sections
+// named the same in different years stay apart.
+function sectionOf(d: Doc) {
+  return d.section ?? NO_SECTION;
 }
 
 // Configured names first (in the counselor's order), then any extra names
@@ -48,7 +55,7 @@ function folderNames(configured: string[], fromDocs: string[], catchAll: string)
 // make sure it's the right document and appropriate, then accept it or send it
 // back with a reason. The uploader gets a notification either way. Files are
 // filed like folders: level (Senior High School, Tertiary, ...), then strand
-// or course, with a search across all of them for quick access.
+// or course, then section, with a search across all of them for quick access.
 export default function DocumentReviewPage() {
   const [tab, setTab] = useState<Status>("PENDING");
   const [docs, setDocs] = useState<Doc[] | null>(null);
@@ -58,6 +65,7 @@ export default function DocumentReviewPage() {
   const [rowError, setRowError] = useState<{ id: string; message: string } | null>(null);
   const [level, setLevel] = useState<string | null>(null);
   const [program, setProgram] = useState<string | null>(null);
+  const [section, setSection] = useState<string | null>(null);
   const [query, setQuery] = useState("");
   const [searchOpen, setSearchOpen] = useState(false);
   const searchRef = useRef<HTMLInputElement>(null);
@@ -97,9 +105,10 @@ export default function DocumentReviewPage() {
     else setRowError({ id: d.id, message: result.error || "Couldn't save." });
   };
 
-  const openFolder = (lvl: string | null, prog: string | null) => {
+  const openFolder = (lvl: string | null, prog: string | null, sec: string | null = null) => {
     setLevel(lvl);
     setProgram(prog);
+    setSection(sec);
     setQuery("");
     setSearchOpen(false);
   };
@@ -127,19 +136,31 @@ export default function DocumentReviewPage() {
     return names.map((n) => ({ name: n, count: inLevel.filter((d) => programOf(d) === n).length }));
   }, [level, inLevel, shsStrands, tertiaryCourses]);
 
+  const inProgram = useMemo(() => (program ? inLevel.filter((d) => programOf(d) === program) : []), [inLevel, program]);
+
+  // Sections aren't a configured list, so only sections that have files show,
+  // in natural order ("1st Year - 101" before "2nd Year - 101", "102" before "110").
+  const sectionFolders = useMemo(() => {
+    const names = [...new Set(inProgram.map(sectionOf))]
+      .filter((n) => n !== NO_SECTION)
+      .sort((a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: "base" }));
+    if (inProgram.some((d) => sectionOf(d) === NO_SECTION)) names.push(NO_SECTION);
+    return names.map((n) => ({ name: n, count: inProgram.filter((d) => sectionOf(d) === n).length }));
+  }, [inProgram]);
+
   const q = query.trim().toLowerCase();
   const searching = q.length > 0;
   const results = useMemo(() => {
     if (!searching) return [];
     return all.filter((d) =>
-      [d.fileName, d.studentName, d.studentId, d.uploaderName, d.category, d.department, d.program]
+      [d.fileName, d.studentName, d.studentId, d.uploaderName, d.category, d.department, d.program, d.section]
         .some((v) => v?.toLowerCase().includes(q)),
     );
   }, [all, q, searching]);
 
-  // Files sit at the bottom of the tree: inside a strand/course folder, or
-  // directly inside the catch-all level folder.
-  const files = level === UNSORTED ? inLevel : level && program ? inLevel.filter((d) => programOf(d) === program) : null;
+  // Files sit at the bottom of the tree: inside a section folder, or directly
+  // inside the catch-all level folder.
+  const files = level === UNSORTED ? inLevel : program && section ? inProgram.filter((d) => sectionOf(d) === section) : null;
 
   const levelLabel = levelFolders.find((f) => f.name === level)?.label ?? level;
   const programWord = level && isShs(level) ? "strand" : "course";
@@ -147,6 +168,7 @@ export default function DocumentReviewPage() {
   const crumbs: { label: string; onClick: () => void }[] = [{ label: "All documents", onClick: () => openFolder(null, null) }];
   if (level) crumbs.push({ label: levelLabel ?? level, onClick: () => openFolder(level, null) });
   if (level && program) crumbs.push({ label: program, onClick: () => openFolder(level, program) });
+  if (level && program && section) crumbs.push({ label: section, onClick: () => openFolder(level, program, section) });
 
   const emptyText = tab === "PENDING" ? "Nothing to review here." : "Nothing here yet.";
 
@@ -166,11 +188,13 @@ export default function DocumentReviewPage() {
               {new Date(d.createdAt).toLocaleString("en-PH", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit", timeZone: "Asia/Manila" })}
             </p>
             {showPath && (
-              <button onClick={() => openFolder(levelOf(d), levelOf(d) === UNSORTED ? null : programOf(d))}
+              <button onClick={() => (levelOf(d) === UNSORTED ? openFolder(UNSORTED, null) : openFolder(levelOf(d), programOf(d), sectionOf(d)))}
                 className="mt-1 inline-flex flex-wrap items-center gap-1 text-[12px] text-blue-700 hover:underline text-left">
                 <Folder size={13} className="shrink-0" />
                 {levelFolders.find((f) => f.name === levelOf(d))?.label ?? levelOf(d)}
-                {levelOf(d) !== UNSORTED && <><ChevronRight size={12} className="shrink-0" />{programOf(d)}</>}
+                {levelOf(d) !== UNSORTED && (
+                  <><ChevronRight size={12} className="shrink-0" />{programOf(d)}<ChevronRight size={12} className="shrink-0" />{sectionOf(d)}</>
+                )}
               </button>
             )}
             {d.reviewNote && <p className="text-[13px] text-slate-700 mt-1">Note: {d.reviewNote}</p>}
@@ -294,6 +318,14 @@ export default function DocumentReviewPage() {
               <p className="mt-3 border-t border-rule pt-4 text-sm text-slate-500">{emptyText}</p>
             ) : (
               <ul className="mt-3 space-y-3">{files.map((d) => renderDoc(d, false))}</ul>
+            )
+          ) : program ? (
+            sectionFolders.length === 0 ? (
+              <p className="mt-3 border-t border-rule pt-4 text-sm text-slate-500">{emptyText}</p>
+            ) : (
+              <ul className="mt-3 space-y-2">
+                {sectionFolders.map((f) => renderFolder(f.name, f.name, f.count, () => openFolder(level, program, f.name)))}
+              </ul>
             )
           ) : programFolders.length === 0 ? (
             <p className="mt-3 border-t border-rule pt-4 text-sm text-slate-500">No {programWord}s set up for this level yet.</p>

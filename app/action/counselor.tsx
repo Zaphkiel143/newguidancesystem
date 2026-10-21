@@ -552,12 +552,12 @@ export async function listDocumentsForReview(status: "PENDING" | "APPROVED" | "R
       take: 500,
     });
     // Documents link to the student's inventory record by name; that record
-    // says which level and strand/course the file belongs under.
+    // says which level, strand/course, and section the file belongs under.
     const names = [...new Set(docs.map((d) => d.studentName).filter((n): n is string => Boolean(n)))];
     const profiles = names.length
       ? await db.studentProfile.findMany({
           where: { name: { in: names } },
-          select: { name: true, studentId: true, department: true, strandOrProgram: true },
+          select: { name: true, studentId: true, department: true, strandOrProgram: true, gradeSection: true },
         })
       : [];
     const byName = new Map(profiles.map((p) => [p.name, p]));
@@ -568,6 +568,7 @@ export async function listDocumentsForReview(status: "PENDING" | "APPROVED" | "R
         studentId: p?.studentId ?? null,
         department: p ? normalizeDepartment(p.department) ?? p.department : null,
         program: p?.strandOrProgram?.trim() || null,
+        section: p?.gradeSection?.trim() || null,
       };
     });
   } catch (error) {
