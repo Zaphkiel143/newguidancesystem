@@ -9,7 +9,6 @@ export default function AiChatClient() {
       <header className="px-5 sm:px-8 lg:px-12 pt-8 pb-5 border-b border-rule flex items-end justify-between gap-4 flex-wrap">
         <div>
           <h1 className="page-title">E-Gabay</h1>
-          <p className="text-[14px] text-slate-500 mt-1">An assistant you can talk to in English or Filipino.</p>
         </div>
         <Link
           href="/my_messages"

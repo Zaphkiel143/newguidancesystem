@@ -27,10 +27,6 @@ export default function AssessmentsPage() {
     <div className="px-5 sm:px-8 lg:px-12 pt-8 lg:pt-12 pb-16 max-w-3xl text-slate-800">
       <header>
         <h1 className="page-title">Needs Assessment</h1>
-        <p className="text-sm text-slate-500 mt-1 max-w-[60ch]">
-          Tell the guidance office which topics you&apos;d like group sessions on. Your answers help plan the sessions; only the
-          guidance office sees them.
-        </p>
       </header>
 
       {assessments === null ? (

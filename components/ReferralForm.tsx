@@ -38,9 +38,9 @@ const PRIORITIES = [
   { value: "High", label: "High – needs attention soon" },
 ];
 
-// Faculty pick from a different, deadline-oriented scale instead of the
-// Low/Medium/High one students and parents use.
-const FACULTY_PRIORITIES = [
+// Students and faculty use a deadline-oriented priority scale; parents use
+// the Low/Medium/High scale.
+const DEADLINE_PRIORITIES = [
   { value: "Emergency", label: "Emergency" },
   { value: "As soon as possible", label: "As soon as possible" },
   { value: "Before this date", label: "Before this date" },
@@ -48,7 +48,6 @@ const FACULTY_PRIORITIES = [
 const NEEDS_DATE = "Before this date";
 
 const EMPTY = {
-  aboutMyself: false,
   childName: "",
   studentName: "",
   studentId: "",
@@ -66,7 +65,7 @@ const EMPTY = {
 };
 
 function emptyFor(mode: Mode) {
-  return { ...EMPTY, priority: mode === "faculty" ? FACULTY_PRIORITIES[0].value : "Medium" };
+  return { ...EMPTY, priority: mode === "parent" ? "Medium" : DEADLINE_PRIORITIES[0].value };
 }
 
 const input = "w-full px-3 py-2.5 bg-sheet border border-slate-300 rounded-lg text-[14px] focus:outline-none focus:ring-2 focus:ring-blue-500";
@@ -83,14 +82,14 @@ export default function ReferralForm({ mode, linkedChildren, onSubmit, myReferra
   const [error, setError] = useState<string | null>(null);
 
   const set = (patch: Partial<typeof EMPTY>) => setF((prev) => ({ ...prev, ...patch }));
-  const aboutSomeoneElse = mode !== "parent" && !(mode === "student" && f.aboutMyself);
+  const aboutSomeoneElse = mode !== "parent";
   const child = mode === "parent" ? linkedChildren?.find((c) => c.name === f.childName) ?? linkedChildren?.[0] : undefined;
   const isShs = f.department === SHS;
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (f.concern === OTHER && !f.concernOther.trim()) return setError("Tell us what the concern is.");
-    if (mode === "faculty" && f.priority === NEEDS_DATE && !f.priorityDate) return setError("Choose the date it's needed by.");
+    if (mode !== "parent" && f.priority === NEEDS_DATE && !f.priorityDate) return setError("Choose the date it's needed by.");
     if (mode === "parent" && !child) return setError("No student is linked to your account yet.");
     setSaving(true);
     setError(null);
@@ -103,12 +102,12 @@ export default function ReferralForm({ mode, linkedChildren, onSubmit, myReferra
       aboutSomeoneElse && f.program && `${isShs ? "Strand" : "Course"}: ${f.program}`,
       aboutSomeoneElse && f.section.trim() && `Section: ${f.section.trim()}`,
       f.observed.trim() && `Observed behaviors: ${f.observed.trim()}`,
-      mode === "faculty" && f.priority === NEEDS_DATE && f.priorityDate && `Needed by: ${f.priorityDate}`,
+      mode !== "parent" && f.priority === NEEDS_DATE && f.priorityDate && `Needed by: ${f.priorityDate}`,
       mode === "parent" && f.contactTime.trim() && `Best time to contact me: ${f.contactTime.trim()}`,
     ].filter(Boolean);
 
     const result = await onSubmit({
-      aboutMyself: mode === "student" && f.aboutMyself,
+      aboutMyself: false,
       studentName: mode === "parent" ? child!.name : f.studentName.trim(),
       concernType: withOther(f.concern, f.concernOther),
       priority: f.priority,
@@ -135,27 +134,6 @@ export default function ReferralForm({ mode, linkedChildren, onSubmit, myReferra
 
   return (
     <form onSubmit={submit} className="bg-sheet rounded-2xl border border-rule shadow-sm p-5 sm:p-6 space-y-5">
-      {mode === "student" && (
-        <fieldset>
-          <legend className={label}>Who is this referral about?</legend>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-            {[
-              { value: false, title: "Someone", hint: "A schoolmate or friend you're worried about" },
-              { value: true, title: "Myself", hint: "You'd like the associate to reach out to you" },
-            ].map((opt) => (
-              <label key={opt.title}
-                className={`flex items-start gap-3 rounded-lg border px-4 py-3 cursor-pointer transition-colors ${f.aboutMyself === opt.value ? "border-blue-600 bg-blue-50" : "border-slate-300 hover:border-slate-400"}`}>
-                <input type="radio" name="aboutMyself" checked={f.aboutMyself === opt.value} onChange={() => set({ aboutMyself: opt.value })} className="mt-1 accent-blue-700" />
-                <span>
-                  <span className="block text-sm font-medium text-ink">{opt.title}</span>
-                  <span className="block text-xs text-slate-500">{opt.hint}</span>
-                </span>
-              </label>
-            ))}
-          </div>
-        </fieldset>
-      )}
-
       {mode === "parent" && (
         <div>
           <label htmlFor="ref-child" className={label}>Child</label>
@@ -230,11 +208,11 @@ export default function ReferralForm({ mode, linkedChildren, onSubmit, myReferra
           )}
         </div>
         <div>
-          <label htmlFor="ref-priority" className={label}>{mode === "faculty" ? "Level of priority" : "How urgent is it?"}{req}</label>
+          <label htmlFor="ref-priority" className={label}>Level of priority{req}</label>
           <select id="ref-priority" className={input} value={f.priority} onChange={(e) => set({ priority: e.target.value, priorityDate: "" })}>
-            {(mode === "faculty" ? FACULTY_PRIORITIES : PRIORITIES).map((p) => <option key={p.value} value={p.value}>{p.label}</option>)}
+            {(mode === "parent" ? PRIORITIES : DEADLINE_PRIORITIES).map((p) => <option key={p.value} value={p.value}>{p.label}</option>)}
           </select>
-          {mode === "faculty" && f.priority === NEEDS_DATE && (
+          {mode !== "parent" && f.priority === NEEDS_DATE && (
             <input
               aria-label="Date it's needed by"
               type="date"
@@ -250,7 +228,7 @@ export default function ReferralForm({ mode, linkedChildren, onSubmit, myReferra
       <div>
         <label htmlFor="ref-desc" className={label}>Reason for Referral{req}</label>
         <textarea id="ref-desc" rows={4} className={`${input} resize-y`} value={f.description} maxLength={3000} required
-          placeholder={mode === "student" && f.aboutMyself ? "Tell the associate what you'd like help with." : "Describe what you've noticed and why you're concerned."}
+          placeholder="Describe what you've noticed and why you're concerned."
           onChange={(e) => set({ description: e.target.value })} />
       </div>
 

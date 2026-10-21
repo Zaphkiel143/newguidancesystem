@@ -114,9 +114,6 @@ export default function CareerPlanningFormPage() {
     return (
       <div className="px-5 sm:px-8 lg:px-12 pt-8 lg:pt-12 pb-16 max-w-3xl text-slate-800">
         <h1 className="page-title">Career Planning Form</h1>
-        <p className="mt-6 text-sm text-slate-500 max-w-[55ch]">
-          This form is for tertiary (college) students. Senior High School students follow the Career Planning Program under My Career Plan.
-        </p>
       </div>
     );
   }
@@ -125,9 +122,6 @@ export default function CareerPlanningFormPage() {
     <div ref={topRef} className="px-5 sm:px-8 lg:px-12 pt-8 lg:pt-12 pb-16 max-w-3xl text-slate-800 scroll-mt-24">
       <header>
         <h1 className="page-title">Career Planning Form</h1>
-        <p className="text-sm text-slate-500 mt-1">
-          For first-year students and transferees. Your answers are confidential and are used only for guidance, counseling and consultation.
-        </p>
         {submittedAt && (
           <p className="mt-2 inline-flex items-center gap-1.5 text-[13px] text-emerald-700">
             <Check size={14} /> Submitted {new Date(submittedAt).toLocaleDateString("en-PH", { dateStyle: "medium" })}. You can still update your answers.

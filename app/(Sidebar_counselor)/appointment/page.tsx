@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Ban, ChevronLeft, ChevronRight, Loader2, Lock, X } from "lucide-react";
+import { Ban, Check, ChevronLeft, ChevronRight, Loader2, Lock, X } from "lucide-react";
 import {
   blockTime,
   getDaySchedule,
@@ -78,17 +78,22 @@ export default function AppointmentScheduling() {
   const appts = schedule?.appointments ?? [];
   const blocks = schedule?.blocks ?? [];
   const confirmed = appts.filter((a) => a.status === "CONFIRMED").length;
+  const completed = appts.filter((a) => a.status === "COMPLETED").length;
   const pending = appts.filter((a) => a.status === "PENDING").length;
   const open = Math.max(0, STANDARD_DAY_HOURS.length - appts.length - blocks.length);
 
-  const setStatus = async (a: Appt, status: "CONFIRMED" | "CANCELLED") => {
+  const setStatus = async (a: Appt, status: "CONFIRMED" | "COMPLETED" | "CANCELLED") => {
     if (status === "CANCELLED" && !window.confirm(`Cancel the ${a.time} appointment for ${a.studentName}? They'll be notified.`)) return;
+    if (status === "COMPLETED" && !window.confirm(`Mark the ${a.time} appointment for ${a.studentName} as terminated?`)) return;
     setBusyId(a.id);
     setRowError(null);
     const result = await updateAppointmentStatus(a.id, status);
     setBusyId(null);
     if (result.success) await load(date);
-    else setRowError({ id: a.id, message: status === "CONFIRMED" ? "Couldn't confirm it. Try again." : "Couldn't cancel it. Try again." });
+    else setRowError({
+      id: a.id,
+      message: status === "CONFIRMED" ? "Couldn't confirm it. Try again." : status === "COMPLETED" ? "Couldn't terminate it. Try again." : "Couldn't cancel it. Try again.",
+    });
   };
 
   const openEditor = (a: Appt) => {
@@ -160,7 +165,6 @@ export default function AppointmentScheduling() {
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <h1 className="page-title">Appointments</h1>
-          <p className="text-slate-500 text-sm mt-1">Confirm requests, contact whoever booked, and block time when you&apos;re in a meeting.</p>
         </div>
         <button
           onClick={() => {
@@ -188,7 +192,7 @@ export default function AppointmentScheduling() {
           <button onClick={() => setDate(today)} className="px-4 min-h-11 rounded-full text-sm text-blue-700 hover:bg-blue-50">Today</button>
         )}
         <p className="w-full sm:w-auto sm:ml-auto text-[13px] text-slate-600">
-          <span className="font-semibold text-emerald-700">{confirmed}</span> confirmed · <span className="font-semibold text-orange-700">{pending}</span> pending ·{" "}
+          <span className="font-semibold text-emerald-700">{confirmed}</span> confirmed · <span className="font-semibold text-teal-700">{completed}</span> terminated · <span className="font-semibold text-orange-700">{pending}</span> pending ·{" "}
           <span className="font-semibold text-ink">{open}</span> open
         </p>
       </div>
@@ -223,8 +227,8 @@ export default function AppointmentScheduling() {
                           <p className="text-[12px] text-slate-500">Booked by {a.contactName} ({a.contactRole?.toLowerCase()})</p>
                         )}
                       </div>
-                      <span className={`text-[12px] font-semibold px-2 py-0.5 rounded border ${a.status === "CONFIRMED" ? "bg-emerald-50 text-emerald-700 border-emerald-100" : "bg-amber-50 text-amber-700 border-amber-100"}`}>
-                        {a.status === "CONFIRMED" ? "Confirmed" : "Pending"}
+                      <span className={`text-[12px] font-semibold px-2 py-0.5 rounded border ${a.status === "COMPLETED" ? "bg-green-100 text-green-800 border-green-200" : a.status === "CONFIRMED" ? "bg-emerald-50 text-emerald-700 border-emerald-100" : "bg-amber-50 text-amber-700 border-amber-100"}`}>
+                        {a.status === "COMPLETED" ? "Terminated" : a.status === "CONFIRMED" ? "Confirmed" : "Pending"}
                       </span>
                     </div>
                     {a.notes && <p className="text-[13px] text-slate-700 whitespace-pre-wrap break-words">{a.notes}</p>}
@@ -235,19 +239,27 @@ export default function AppointmentScheduling() {
                       subject={`Your guidance appointment on ${dayLabel(date)}, ${a.time}`}
                     />
                     <div className="flex flex-wrap gap-2">
-                      {a.status === "PENDING" && (
-                        <button onClick={() => setStatus(a, "CONFIRMED")} disabled={busyId === a.id}
-                          className="bg-emerald-600 hover:bg-emerald-700 text-white font-medium text-xs px-4 min-h-9 rounded-full disabled:opacity-60">
-                          Confirm
-                        </button>
+                      {a.status !== "COMPLETED" && (
+                        <>
+                          {a.status === "PENDING" && (
+                            <button onClick={() => setStatus(a, "CONFIRMED")} disabled={busyId === a.id}
+                              className="bg-emerald-600 hover:bg-emerald-700 text-white font-medium text-xs px-4 min-h-9 rounded-full disabled:opacity-60">
+                              Confirm
+                            </button>
+                          )}
+                          <button onClick={() => openEditor(a)} className="bg-blue-50 hover:bg-blue-100 text-blue-700 font-medium text-xs px-4 min-h-9 rounded-full">
+                            Notes &amp; reschedule
+                          </button>
+                          <button onClick={() => setStatus(a, "COMPLETED")} disabled={busyId === a.id}
+                            className="inline-flex items-center gap-1.5 bg-teal-50 hover:bg-teal-100 text-teal-700 font-medium text-xs px-4 min-h-9 rounded-full disabled:opacity-60">
+                            <Check size={14} /> Terminate
+                          </button>
+                          <button onClick={() => setStatus(a, "CANCELLED")} disabled={busyId === a.id}
+                            className="bg-red-50 hover:bg-red-100 text-red-700 font-medium text-xs px-4 min-h-9 rounded-full disabled:opacity-60">
+                            Cancel
+                          </button>
+                        </>
                       )}
-                      <button onClick={() => openEditor(a)} className="bg-blue-50 hover:bg-blue-100 text-blue-700 font-medium text-xs px-4 min-h-9 rounded-full">
-                        Notes &amp; reschedule
-                      </button>
-                      <button onClick={() => setStatus(a, "CANCELLED")} disabled={busyId === a.id}
-                        className="bg-red-50 hover:bg-red-100 text-red-700 font-medium text-xs px-4 min-h-9 rounded-full disabled:opacity-60">
-                        Cancel
-                      </button>
                     </div>
                     <InlineError message={rowError?.id === a.id ? rowError.message : null} onDismiss={() => setRowError(null)} />
                   </div>

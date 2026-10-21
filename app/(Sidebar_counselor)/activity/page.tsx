@@ -58,7 +58,6 @@ export default function ActivityPage() {
           <History size={24} className="text-slate-400" />
           Activity Log
         </h1>
-        <p className="text-sm text-slate-500 font-medium mt-1">Everything happening across the system, most recent first.</p>
       </header>
 
       <div className="flex flex-col sm:flex-row gap-3 mt-6">

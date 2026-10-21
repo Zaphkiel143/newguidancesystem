@@ -339,7 +339,7 @@ const LoginPage = () => {
     <main className="relative isolate min-h-dvh bg-blue-900 flex flex-col">
       {/* Campus photo behind the sign-in card, tinted so the card stays readable */}
       <div aria-hidden className="fixed inset-0 -z-10 overflow-hidden">
-        <Image src="/campus.jpg" alt="" fill priority sizes="100vw" className="object-cover object-[35%_55%]" />
+        <Image src="/campus-hq.jpg" alt="" fill priority sizes="100vw" className="object-cover object-[30%_80%]" />
         <div className="absolute inset-0 bg-linear-to-b from-blue-900/55 via-blue-800/35 to-blue-900/70" />
       </div>
       <header className="relative h-(--topbar-h) bg-blue-700 text-white border-t-4 border-sti-yellow shadow-md">
@@ -353,15 +353,12 @@ const LoginPage = () => {
 
       <div className="flex-1 w-full px-4 sm:px-5 py-8 sm:py-14 flex items-center justify-center lg:justify-end lg:pr-[9vw]">
         <section className="w-full max-w-[440px] bg-sheet border border-rule rounded-2xl shadow-lg overflow-hidden animate-rise-in">
-          <div className="relative h-32 sm:h-40">
-            <Image src="/sti-facade.png" alt="STI College Sta. Maria building with the STI seal" fill priority sizes="440px" className="object-cover object-[50%_28%]" />
-            <div aria-hidden className="absolute inset-x-0 bottom-0 h-16 bg-linear-to-t from-white to-white/0" />
-          </div>
-
-          <div className="relative px-6 sm:px-8 pb-8 -mt-10">
-            <Image src="/sti-logo.jpg" alt="STI College Sta. Maria" width={72} height={72} className="rounded-2xl shadow-md ring-4 ring-white" />
-            <h1 className="mt-4 text-2xl font-bold tracking-tight text-ink">{heading[step][0]}</h1>
-            <p className="text-sm text-slate-500 mt-1 break-words">{heading[step][1]}</p>
+          <div className="relative px-6 sm:px-8 pt-8 pb-8">
+            <div className="text-center">
+              <LogoMark size={72} className="block mx-auto rounded-[16px] shadow-md" />
+              <h1 className="mt-4 text-2xl font-bold tracking-tight text-ink">{heading[step][0]}</h1>
+              <p className="text-sm text-slate-500 mt-1 break-words">{heading[step][1]}</p>
+            </div>
 
             {step === "who" && (
               <ul className="mt-6 space-y-2">
@@ -687,7 +684,6 @@ const LoginPage = () => {
       </div>
 
       <footer className="px-6 sm:px-10 py-6 text-[12px] text-white/85 flex flex-wrap gap-x-6 gap-y-1 [text-shadow:0_1px_2px_rgb(0_0_0/0.4)]">
-        <span>© {new Date().getFullYear()} STI College Sta. Maria</span>
         <span>Guidance and Counseling Office</span>
       </footer>
     </main>

@@ -65,14 +65,36 @@ export async function getMonthlyReport(month: string) {
   ]);
 
   const held = appointments.filter((a) => a.status !== "CANCELLED");
+
+  // One row per Daily Log entry for the dashboard, with the student's program and
+  // level looked up from their record (sessions are linked to students by name).
+  const names = [...new Set(held.map((a) => a.studentName).filter((n): n is string => !!n))];
+  const profiles = names.length
+    ? await db.studentProfile.findMany({ where: { name: { in: names } }, select: { name: true, strandOrProgram: true, yearLevel: true } })
+    : [];
+  const profileByName = new Map(profiles.map((p) => [p.name, p]));
+  const logs = held.map((a) => {
+    const profile = a.studentName ? profileByName.get(a.studentName) : undefined;
+    const staff = !profile && a.bookedByRole === "Faculty";
+    return {
+      nature: !a.appointmentType ? "Not specified" : a.appointmentType.startsWith("Other: ") ? "Other/s" : a.appointmentType,
+      program: profile?.strandOrProgram || (staff ? "Faculty/Staff" : "Not specified"),
+      level: profile?.yearLevel || (staff ? "Faculty/Staff" : "Not specified"),
+      contact: a.bookedByRole ?? "Guidance office",
+      status: a.status,
+    };
+  });
+
   const topics = tally(responses.flatMap((r) => r.selectedTopics));
   const intents = tally(assistantMessages.map((a) => a.intent ?? "fallback")).map((c) => ({ ...c, label: INTENT_LABEL[c.label] ?? c.label }));
 
   return {
     month,
+    logs,
     sessions: {
       total: held.length,
       confirmed: held.filter((a) => a.status === "CONFIRMED").length,
+      completed: held.filter((a) => a.status === "COMPLETED").length,
       pending: held.filter((a) => a.status === "PENDING").length,
       cancelled: appointments.length - held.length,
       uniqueStudents: new Set(held.map((a) => a.studentName).filter(Boolean)).size,

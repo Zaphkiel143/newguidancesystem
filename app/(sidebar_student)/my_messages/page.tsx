@@ -27,9 +27,6 @@ export const StudentMessagesDashboard: React.FC = () => {
       {/* Header Section */}
       <header className="px-5 sm:px-8 lg:px-12 pt-8 pb-5 border-b border-rule">
         <h1 className="page-title">Messages</h1>
-        <p className="text-sm text-slate-500 mt-1">
-          Communicate with your guidance associate
-        </p>
       </header>
 
       {/* Main Container */}

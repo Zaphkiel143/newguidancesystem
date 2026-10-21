@@ -53,9 +53,6 @@ export const MyReferralsPage: React.FC = () => {
       {/* Page Heading Headers Section */}
       <div>
         <h1 className="page-title">My Referrals</h1>
-        <p className="text-sm text-slate-500 font-medium mt-1">
-          Track the status of your submitted student referrals
-        </p>
       </div>
 
       {/* Persistent Search Action Input Field Container */}

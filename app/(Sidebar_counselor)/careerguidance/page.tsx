@@ -118,7 +118,6 @@ export default function CareerTracker() {
       <header className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
         <div>
           <h1 className="page-title">Career Guidance</h1>
-          <p className="text-sm text-slate-500 mt-1">Senior High School students&apos; progress through the Career Planning Program</p>
           <Link href="/careerguidance/college" className="inline-block mt-2 text-[13px] text-blue-700 hover:underline">
             Tertiary students: Career Planning Forms →
           </Link>

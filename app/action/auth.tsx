@@ -401,11 +401,17 @@ export async function loginAsDemo(role: UserRole) {
 
   const user = await db.user.upsert({
     where: { email: demo.email },
-    update: {},
+    update: {
+      name: demo.name,
+      role,
+      passwordHash: hashPassword(DEMO_PASSWORD),
+      status: "ACTIVE",
+    },
     create: {
       email: demo.email,
       name: demo.name,
       role,
+      status: "ACTIVE",
       passwordHash: hashPassword(DEMO_PASSWORD),
     },
   });
@@ -417,7 +423,13 @@ export async function loginAsDemo(role: UserRole) {
     for (const child of children) {
       await db.parentChildLink.upsert({
         where: { parentId_studentIdNumber: { parentId: user.id, studentIdNumber: child.studentId } },
-        update: {},
+        update: {
+          childName: child.name,
+          relationship: "Mother",
+          status: "APPROVED",
+          studentProfileId: child.id,
+          reviewedAt: new Date(),
+        },
         create: {
           parentId: user.id,
           studentIdNumber: child.studentId,

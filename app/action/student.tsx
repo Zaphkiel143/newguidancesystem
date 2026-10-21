@@ -185,7 +185,6 @@ export async function sendMessage(formData: { conversationId: string; content: s
 
 // ---- Referrals ----
 
-// aboutMyself: a student asking for help for themselves; otherwise a peer referral.
 export async function submitReferral(formData: {
   aboutMyself: boolean;
   studentName: string;
@@ -195,7 +194,11 @@ export async function submitReferral(formData: {
 }) {
   try {
     const me = await requireActionUser("STUDENT");
-    const checked = checkReferral({ ...formData, studentName: formData.aboutMyself ? me.name : formData.studentName });
+    const studentName = formData.studentName.trim();
+    if (formData.aboutMyself || studentName.toLocaleLowerCase() === me.name.toLocaleLowerCase()) {
+      return { success: false, error: "You can only refer another student." };
+    }
+    const checked = checkReferral({ ...formData, studentName });
     if ("error" in checked) return { success: false, error: checked.error };
     if (!(await allow(`referral:${me.id}`, 5, HOUR)) || !(await allow(`referral-day:${me.id}`, 15, DAY))) {
       return { success: false, error: SLOW_DOWN };

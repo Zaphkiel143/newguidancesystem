@@ -55,7 +55,6 @@ export default function CareerFormsPage() {
       </Link>
       <header className="mt-3">
         <h1 className="page-title">Career Planning Forms</h1>
-        <p className="text-sm text-slate-500 mt-1">Forms submitted by tertiary students. Opening a form is recorded in the student&apos;s access log.</p>
       </header>
 
       <input

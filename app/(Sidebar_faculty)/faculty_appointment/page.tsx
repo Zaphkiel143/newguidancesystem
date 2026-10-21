@@ -36,9 +36,6 @@ export const MyAppointmentsPage: React.FC = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="page-title">My Appointments</h1>
-          <p className="text-sm text-slate-500 font-medium mt-1">
-            Schedule and manage meetings with the guidance associate
-          </p>
         </div>
 
         <button

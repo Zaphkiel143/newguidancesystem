@@ -31,7 +31,6 @@ export default function MyReferralsPage() {
       <header className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
         <div>
           <h1 className="page-title">My Referrals</h1>
-          <p className="text-sm text-slate-500 mt-1">Referrals you&apos;ve sent, for yourself or a classmate, and where they stand</p>
         </div>
         <Link
           href="/refer_student"

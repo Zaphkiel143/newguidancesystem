@@ -15,6 +15,7 @@ import { logRecordAccess } from "../../lib/accessLog";
 import { logActivity } from "../../lib/activityLog";
 import type { Answers } from "../config/collegeCareerForm";
 import { DEPARTMENTS, gradeSectionLabel, isShs, normalizeDepartment, programsFor, yearLevelsFor } from "../config/studentLevels";
+import { formatStudentName } from "../../lib/studentName";
 
 // Every action here requires a signed-in Guidance Associate (COUNSELOR role).
 const counselorOnly = () => requireActionUser("COUNSELOR");
@@ -59,13 +60,13 @@ async function notifyBooker(
   );
 }
 
-export async function updateAppointmentStatus(id: string, status: "PENDING" | "CONFIRMED" | "CANCELLED") {
+export async function updateAppointmentStatus(id: string, status: "PENDING" | "CONFIRMED" | "COMPLETED" | "CANCELLED") {
   try {
     const me = await counselorOnly();
     // Cancelled appointments are kept (not deleted) so the history and the
     // cancellation email both still have the details.
     const appointment = await db.appointment.update({ where: { id }, data: { status } });
-    await logActivity(me, `Marked an appointment as ${status.toLowerCase()}`, "Appointment", id, appointment.studentName ?? undefined);
+    await logActivity(me, `Marked an appointment as ${status === "COMPLETED" ? "terminated" : status.toLowerCase()}`, "Appointment", id, appointment.studentName ?? undefined);
 
     if (status === "CONFIRMED") {
       await notifyBooker(appointment, "Your guidance appointment is confirmed", "Your appointment with the Guidance Associate has been confirmed.");
@@ -80,6 +81,10 @@ export async function updateAppointmentStatus(id: string, status: "PENDING" | "C
     revalidatePath("/appointment");
     revalidatePath("/dashboard");
     revalidatePath("/daily_log");
+    revalidatePath("/my_appointments");
+    revalidatePath("/student_dashboard");
+    revalidatePath("/faculty_appointment");
+    revalidatePath("/parent_dashboard");
     return { success: true };
   } catch (error) {
     console.error("Status update error:", error);
@@ -457,10 +462,12 @@ export async function saveStudentProfile(input: StudentProfileInput) {
   try {
     const me = await counselorOnly();
     const t = (v: string | undefined, max = 200) => (v ?? "").trim().slice(0, max);
-    const name = t(input.name, 120).replace(/\s+/g, " ");
+    const rawName = t(input.name, 120).replace(/\s+/g, " ");
     const studentId = t(input.studentId, 20);
     const department = normalizeDepartment(input.department);
-    if (!studentId || !name) return { success: false, error: "Student ID and full name are required." };
+    if (!studentId || !rawName) return { success: false, error: "Student ID and full name are required." };
+    if (!/^\p{L}+(?: \p{L}+)*$/u.test(rawName)) return { success: false, error: "Full name can only contain letters and spaces." };
+    const name = formatStudentName(rawName);
     if (!/^[A-Za-z0-9-]{4,20}$/.test(studentId)) return { success: false, error: "Student IDs use letters, numbers and dashes only." };
     if (!department || !(DEPARTMENTS as readonly string[]).includes(department)) return { success: false, error: "Choose Senior High School, Tertiary, Irregular, or Off Term." };
     if (!yearLevelsFor(department).includes(input.yearLevel)) return { success: false, error: `Choose the ${isShs(department) ? "grade" : "year level"}.` };
@@ -1053,7 +1060,7 @@ export async function sendReferralFeedback(referralId: string, content: string) 
 export async function getDashboardStats() {
   try {
     await counselorOnly();
-    const [totalStudents, pendingReferrals, activeCareerPlans, documentsToReview, pendingAccounts, pendingParentLinks, pendingAppointments] = await Promise.all([
+    const [totalStudents, pendingReferrals, activeCareerPlans, documentsToReview, pendingAccounts, pendingParentLinks, pendingAppointments, activeAppointments] = await Promise.all([
       db.studentProfile.count(),
       db.referral.count({ where: { status: { not: "CLOSED" } } }),
       db.careerPlan.count(),
@@ -1061,6 +1068,7 @@ export async function getDashboardStats() {
       db.user.count({ where: { status: "PENDING", role: { not: "PARENT" } } }),
       db.parentChildLink.count({ where: { status: "PENDING", parent: { status: { not: "REJECTED" } } } }),
       db.appointment.count({ where: { status: "PENDING" } }),
+      db.appointment.count({ where: { status: { not: "CANCELLED" } } }),
     ]);
 
     return {
@@ -1070,10 +1078,11 @@ export async function getDashboardStats() {
       documentsToReview,
       approvalsWaiting: pendingAccounts + pendingParentLinks,
       pendingAppointments,
+      activeAppointments,
     };
   } catch (error) {
     console.error("Failed to fetch dashboard stats:", error);
-    return { totalStudents: 0, pendingReferrals: 0, activeCareerPlans: 0, documentsToReview: 0, approvalsWaiting: 0, pendingAppointments: 0 };
+    return { totalStudents: 0, pendingReferrals: 0, activeCareerPlans: 0, documentsToReview: 0, approvalsWaiting: 0, pendingAppointments: 0, activeAppointments: 0 };
   }
 }
 

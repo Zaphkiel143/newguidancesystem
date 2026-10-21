@@ -1,11 +1,12 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { LogOut, Menu, X } from "lucide-react";
 import { navigationConfig, MenuItem } from "../app/config/navigation";
 import { logout } from "../app/action/auth";
+import { getDashboardStats } from "../app/action/counselor";
 import { CurrentUserProvider } from "./CurrentUser";
 import { LogoMark } from "./Logo";
 import { FloatingDock, NoticeBell, NoticesProvider } from "./Notices";
@@ -72,8 +73,36 @@ export function AppShell({ role, userName, hiddenPaths = [], avatarUrl, needsPri
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
   const [lastPathname, setLastPathname] = useState(pathname);
+  const [counselorCounts, setCounselorCounts] = useState<{
+    activeAppointments: number;
+    pendingReferrals: number;
+    documentsToReview: number;
+    approvalsWaiting: number;
+  } | null>(null);
 
   const menuItems = (navigationConfig[role] || []).filter((item) => !hiddenPaths.includes(item.path));
+
+  useEffect(() => {
+    if (role !== "counselor") return;
+    let active = true;
+    const refreshCounts = async () => {
+      const stats = await getDashboardStats();
+      if (active) {
+        setCounselorCounts({
+          activeAppointments: stats.activeAppointments,
+          pendingReferrals: stats.pendingReferrals,
+          documentsToReview: stats.documentsToReview,
+          approvalsWaiting: stats.approvalsWaiting,
+        });
+      }
+    };
+    void refreshCounts();
+    const interval = window.setInterval(() => void refreshCounts(), 30_000);
+    return () => {
+      active = false;
+      window.clearInterval(interval);
+    };
+  }, [role]);
 
   // Close the mobile menu automatically whenever the route changes
   if (pathname !== lastPathname) {
@@ -152,6 +181,16 @@ export function AppShell({ role, userName, hiddenPaths = [], avatarUrl, needsPri
             {menuItems.map((item: MenuItem) => {
               const Icon = item.icon;
               const isActive = pathname === item.path;
+              const counselorCount = item.path === "/appointment"
+                ? counselorCounts?.activeAppointments
+                : item.path === "/referral"
+                  ? counselorCounts?.pendingReferrals
+                  : item.path === "/documents"
+                    ? counselorCounts?.documentsToReview
+                    : item.path === "/accounts"
+                      ? counselorCounts?.approvalsWaiting
+                      : undefined;
+              const badgeCount = counselorCount ?? item.unreadCount;
 
               return (
                 <li key={item.path}>
@@ -170,9 +209,9 @@ export function AppShell({ role, userName, hiddenPaths = [], avatarUrl, needsPri
                       className={isActive ? "text-blue-700" : "text-blue-500"}
                     />
                     <span>{item.name}</span>
-                    {!!item.unreadCount && (
-                      <span className="ml-auto text-xs font-semibold text-blue-700 tabular">
-                        {item.unreadCount}
+                    {!!badgeCount && (
+                      <span aria-label={`${badgeCount} items`} className="ml-auto min-w-5 h-5 px-1.5 inline-flex items-center justify-center rounded-full bg-blue-700 text-[11px] leading-none font-semibold text-white tabular">
+                        {badgeCount}
                       </span>
                     )}
                   </Link>

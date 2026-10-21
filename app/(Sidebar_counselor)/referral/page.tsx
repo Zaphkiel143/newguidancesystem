@@ -107,7 +107,6 @@ const ReferralManagement = () => {
       {/* Header */}
       <header className="mb-8">
         <h1 className="page-title">Referral Management</h1>
-        <p className="text-slate-500 text-sm">Track and manage student referrals from faculty, students, and parents</p>
       </header>
 
       {/* Toolbar */}

@@ -78,7 +78,7 @@ student: [
     { name: 'My Career Plan', icon: Route, path: '/my_career' },
     { name: 'Career Planning Form', icon: ClipboardPen, path: '/career_form' },
     { name: 'Needs Assessment', icon: ClipboardList, path: '/assessments' },
-    { name: 'Refer a Student', icon: Send, path: '/refer_student' },
+    { name: 'Submit Referral', icon: Send, path: '/refer_student' },
     { name: 'My Referrals', icon: Inbox, path: '/my_referrals' },
     { name: 'Announcements & Events', icon: Megaphone, path: '/bulletin' },
     { name: 'My Messages', icon: MessageSquare, path: '/my_messages' },

@@ -30,9 +30,6 @@ export default function SettingsPage() {
           <SettingsIcon size={24} className="text-slate-400" />
           Manage Options
         </h1>
-        <p className="text-sm text-slate-500 font-medium mt-1">
-          Edit the choices shown in dropdowns across the system - courses, concern types, priorities, and more.
-        </p>
       </header>
 
       {lists === null ? (

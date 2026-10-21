@@ -132,9 +132,6 @@ export const UploadDocuments: React.FC = () => {
       {/* 1. Header Section */}
       <div>
         <h1 className="page-title">Upload Documents</h1>
-        <p className="text-sm text-slate-500 font-medium mt-1">
-          Share files, forms, and reports securely with the Guidance Office
-        </p>
       </div>
 
       <div className="space-y-6">

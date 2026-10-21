@@ -37,7 +37,6 @@ export const ChildProfilePage: React.FC = () => {
       <header className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
         <div>
           <h1 className="page-title">Child Profile</h1>
-          <p className="text-sm text-slate-500 mt-1">Your child&apos;s information, guidance sessions, and career planning progress</p>
         </div>
         {children && children.length > 1 && (
           <select
@@ -103,8 +102,8 @@ export const ChildProfilePage: React.FC = () => {
                           {new Date(a.date).toLocaleDateString("en-PH", { timeZone: "UTC", month: "short", day: "numeric", year: "numeric" })} · {a.time}
                         </span>
                       </span>
-                      <span className={`text-xs ${a.status === "CONFIRMED" ? "text-emerald-700" : "text-orange-700"}`}>
-                        {a.status === "CONFIRMED" ? "Confirmed" : "Pending"}
+                      <span className={`text-xs ${a.status === "COMPLETED" ? "text-teal-700" : a.status === "CONFIRMED" ? "text-emerald-700" : "text-orange-700"}`}>
+                        {a.status === "COMPLETED" ? "Terminated" : a.status === "CONFIRMED" ? "Confirmed" : "Pending"}
                       </span>
                     </li>
                   ))}

@@ -105,7 +105,6 @@ export default function ParentProfilePage() {
     <div className="px-5 sm:px-8 lg:px-12 pt-8 lg:pt-12 pb-16 max-w-3xl text-slate-800">
       <header>
         <h1 className="page-title">My profile</h1>
-        <p className="text-sm text-slate-500 mt-1">How the guidance office sees and reaches you.</p>
       </header>
 
       <section className="mt-8 bg-sheet border border-rule rounded-2xl p-5 sm:p-6">

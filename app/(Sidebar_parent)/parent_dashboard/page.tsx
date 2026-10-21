@@ -80,9 +80,6 @@ export const ParentBookAppointment: React.FC = () => {
       {/* Page Context Branding Header */}
       <div>
         <h1 className="page-title">Book Appointment</h1>
-        <p className="text-sm text-slate-500 font-medium mt-1">
-          Schedule a meeting with your child&apos;s guidance associate
-        </p>
       </div>
 
       {/* Main Container Panel Card */}

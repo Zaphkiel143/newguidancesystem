@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useCallback, useEffect, useState } from 'react';
-import Link from 'next/link';
 import { Loader2, Printer } from 'lucide-react';
 import { getDailyLog } from '../../action/counselor';
 import type { Appointment } from '../../../lib/generated';
@@ -56,11 +55,6 @@ export default function DailyLogPage() {
       <header className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
         <div>
           <h1 className="page-title">GCO Daily Log</h1>
-          <p className="text-sm text-slate-500 mt-1 max-w-[60ch]">
-            Every session you record in{" "}
-            <Link href="/appointment" className="text-blue-700 underline underline-offset-4 decoration-blue-200">Appointments</Link>{" "}
-            appears here and on the student&apos;s profile. No second entry needed.
-          </p>
         </div>
         <button onClick={() => window.print()}
           className="self-start sm:self-auto inline-flex items-center gap-2 border border-slate-300 hover:bg-slate-100 text-sm px-4 min-h-11 rounded-full transition-colors print:hidden">
@@ -118,8 +112,8 @@ export default function DailyLogPage() {
                             onChange={() => loadPhotos((rows ?? []).map((r) => r.id))} addLabel="Add photo of a document" />
                         </span>
                       </td>
-                      <td className={`py-3 text-xs text-right w-24 ${a.status === "CONFIRMED" ? "text-emerald-700" : "text-orange-700"}`}>
-                        {a.status === "CONFIRMED" ? "Confirmed" : "Pending"}
+                      <td className={`py-3 text-xs text-right w-24 ${a.status === "COMPLETED" ? "text-teal-700" : a.status === "CONFIRMED" ? "text-emerald-700" : "text-orange-700"}`}>
+                        {a.status === "COMPLETED" ? "Terminated" : a.status === "CONFIRMED" ? "Confirmed" : "Pending"}
                       </td>
                     </tr>
                   ))}

@@ -30,6 +30,14 @@ export const MyAppointments: React.FC = () => {
   }, []);
 
   const renderStatusBadge = (status: string) => {
+    if (status === "COMPLETED") {
+      return (
+        <span className="inline-flex items-center gap-1.5 bg-teal-50 text-teal-700 text-xs font-semibold px-3 py-1 rounded border border-teal-200">
+          <CheckCircle2 size={14} className="stroke-[2.5]" />
+          Terminated
+        </span>
+      );
+    }
     if (status === "CONFIRMED") {
       return (
         <span className="inline-flex items-center gap-1.5 bg-emerald-50 text-emerald-600 text-xs font-semibold px-3 py-1 rounded border border-emerald-200">
@@ -53,9 +61,6 @@ export const MyAppointments: React.FC = () => {
       <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div>
           <h1 className="page-title">My Appointments</h1>
-          <p className="text-sm text-slate-500 mt-1">
-            Manage your guidance counseling appointments
-          </p>
         </div>
 
         <button

@@ -38,9 +38,6 @@ export const MyReferralsPage: React.FC = () => {
       {/* Page Title & Context Header Copy */}
       <div>
         <h1 className="page-title">My Referrals</h1>
-        <p className="text-sm text-slate-500 font-medium mt-1">
-          Track the referrals you&apos;ve submitted and the office&apos;s response
-        </p>
       </div>
 
       {/* Main Container Wrapper */}

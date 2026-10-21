@@ -39,9 +39,6 @@ export const FacultyDashboard = async () => {
       <header className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-5">
         <div>
           <h1 className="page-title">Welcome back{user ? `, ${user.name.split(" ")[0]}` : ""}.</h1>
-          <p className="mt-2 text-slate-600 max-w-[52ch]">
-            If a student in your class seems to be struggling, a referral takes about a minute.
-          </p>
         </div>
         <Link
           href="/submit_referral"

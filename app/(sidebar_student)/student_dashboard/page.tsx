@@ -64,9 +64,9 @@ export const DashboardContent: React.FC = () => {
   const isShs = data?.level.isShs ?? false;
   const day = (d: Date) => new Date(d).toISOString().slice(0, 10);
   const upcoming = data?.appointments
-    .filter((a) => a.status !== "CANCELLED" && day(a.date) >= today)
+    .filter((a) => a.status !== "CANCELLED" && a.status !== "COMPLETED" && day(a.date) >= today)
     .sort((a, b) => +new Date(a.date) - +new Date(b.date))[0];
-  const sessionsDone = data?.appointments.filter((a) => a.status === "CONFIRMED" && day(a.date) < today).length ?? 0;
+  const sessionsDone = data?.appointments.filter((a) => a.status === "COMPLETED" || (a.status === "CONFIRMED" && day(a.date) < today)).length ?? 0;
   const stagesDone = data?.careerPlan?.stepDates.filter(Boolean).length ?? 0;
   const nextStage = data?.careerPlan ? CAREER_STEPS[data.careerPlan.stepDates.findIndex((d) => !d)] : undefined;
 
@@ -81,7 +81,6 @@ export const DashboardContent: React.FC = () => {
     <div className="px-5 sm:px-8 lg:px-12 pt-8 lg:pt-12 pb-16 max-w-6xl text-slate-800">
       <header>
         <h1 className="page-title">Kumusta, {me.name.split(" ")[0]}.</h1>
-        <p className="mt-2 text-slate-600">Here&apos;s where things stand with the guidance office.</p>
       </header>
 
       {data && !data.level.hasProfile && (

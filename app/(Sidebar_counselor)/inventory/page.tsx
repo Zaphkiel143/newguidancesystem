@@ -7,6 +7,7 @@ import { SHS, isShs, normalizeDepartment, yearLevelsFor } from '../../config/stu
 import { optionValue } from '../../../lib/optionListDefaults';
 import { formatPhone } from '../../../lib/phone';
 import { CAREER_STEPS } from '../../config/careerSteps';
+import { formatStudentNameInput } from '../../../lib/studentName';
 import InlineError from '../../../components/InlineError';
 import EditOptionsButton from '../../../components/EditOptionsButton';
 import { useOptionList } from '../../../components/useOptionList';
@@ -129,7 +130,6 @@ export default function StudentInventory() {
       <header className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
         <div>
           <h1 className="page-title">Individual Inventory</h1>
-          <p className="text-sm text-slate-500 mt-1">One record per student: profile, family background, sessions, career plan, referrals, and documents</p>
         </div>
         <div className="flex items-center gap-2 self-start sm:self-auto">
           <EditOptionsButton listKey="departments" listLabel="Student Level" text="Level" onSaved={refetchDepartments} />
@@ -333,7 +333,7 @@ export default function StudentInventory() {
             </div>
             <div className="p-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
               <Input label="Student ID *" value={form.studentId} onChange={(v) => setForm({ ...form, studentId: v })} required />
-              <Input label="Full name *" value={form.name} onChange={(v) => setForm({ ...form, name: v })} required
+              <Input label="Full name *" value={form.name} onChange={(v) => setForm({ ...form, name: v })} format={formatStudentNameInput} required
                 hint={form.id ? "Renaming also updates this student's appointments, referrals and account." : undefined} />
               <fieldset className="sm:col-span-2">
                 <legend className="text-[13px] font-medium text-slate-700 mb-1.5">Level *</legend>
@@ -441,14 +441,15 @@ function LongField({ label, value }: { label: string; value: string | null | und
   );
 }
 
-function Input({ label, value, onChange, type = "text", required, placeholder, hint }: {
+function Input({ label, value, onChange, type = "text", required, placeholder, hint, format }: {
   label: string; value: string; onChange: (v: string) => void; type?: string; required?: boolean; placeholder?: string; hint?: string;
+  format?: (value: string) => string;
 }) {
   const id = `f-${label.replace(/\W+/g, "-").toLowerCase()}`;
   return (
     <div>
       <label htmlFor={id} className="block text-[13px] font-medium text-slate-700 mb-1.5">{label}</label>
-      <input id={id} type={type} value={value} required={required} placeholder={placeholder} onChange={(e) => onChange(e.target.value)}
+      <input id={id} type={type} value={value} required={required} placeholder={placeholder} onChange={(e) => onChange(format ? format(e.target.value) : e.target.value)}
         className="w-full bg-paper border border-slate-300 rounded-md px-3 py-2.5 text-sm" />
       {hint && <p className="text-xs text-slate-500 mt-1">{hint}</p>}
     </div>

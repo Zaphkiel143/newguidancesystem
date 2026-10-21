@@ -4,7 +4,6 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { Check, Loader2, Search, X } from 'lucide-react';
 import { decideParentLink, decideStaffAccount, listAccounts, listApprovals, setAccountActive, setAccountRole } from '../../action/accounts';
 import InlineError from '../../../components/InlineError';
-import { SCHOOL_EMAIL_DOMAIN } from '../../config/school';
 import { formatPhone } from '../../../lib/phone';
 
 type Account = Awaited<ReturnType<typeof listAccounts>>[number];
@@ -69,10 +68,6 @@ export default function AccountsPage() {
     <div className="px-5 sm:px-8 lg:px-12 pt-8 lg:pt-12 pb-16 max-w-5xl text-slate-800">
       <header>
         <h1 className="page-title">Accounts &amp; approvals</h1>
-        <p className="text-sm text-slate-500 mt-1 max-w-[70ch]">
-          Students with an @{SCHOOL_EMAIL_DOMAIN} email get in right away. New faculty, guidance staff and parent accounts wait here
-          for you to approve them.
-        </p>
       </header>
 
       {/* Waiting for approval */}
