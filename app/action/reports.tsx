@@ -34,6 +34,8 @@ const INTENT_LABEL: Record<string, string> = {
   office_hours: "Office hours",
   no_record: "\"Will I get a record?\"",
   worried_about_someone: "Worried about a classmate",
+  services_offered: "GCO services",
+  seek_help: "Asking for help",
   fallback: "Not understood",
 };
 

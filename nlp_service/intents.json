@@ -14,7 +14,12 @@
         "yo",
         "hiya",
         "hello there",
-        "what's up"
+        "what's up",
+        "Good morning maam",
+        "Good morning, afternoon.",
+        "Hi.",
+        "Good morning po or good afternoon",
+        "Goodmorning/Goodevening"
       ],
       "patterns_tl": [
         "kumusta",
@@ -26,7 +31,9 @@
         "magandang umaga",
         "magandang hapon",
         "magandang gabi",
-        "kamusta po"
+        "kamusta po",
+        "Hello po?",
+        "Good morning, afternoon po (?)"
       ],
       "responses_en": [
         "Hi there! I'm E-Gabay. How are you feeling today?",
@@ -114,7 +121,17 @@
         "too much pressure with exams",
         "i'm nervous about my upcoming test",
         "exams are making me so anxious",
-        "i can't stop worrying about my grades"
+        "i can't stop worrying about my grades",
+        "I would ask for advice on how to handle academic pressure and manage my stress.",
+        "Can the GCO help me with my academic problems and stress?",
+        "what can i do to lessen the stress that i felt",
+        "mental health wellness or study breaks",
+        "How can I improve my studies and manage my academic stress?",
+        "I'm feeling really overwhelmed with my schoolwork lately. Is there any way I can get guidance on how to handle this?",
+        "I would ask for advice on how to manage my studies, handle academic stress.",
+        "I’ve been feeling overwhelmed, stressed, or burnt out lately and need someone to talk to.",
+        "Really stressed about my studies and if theres anyway to solve it",
+        "Motivation or not to get burned out"
       ],
       "patterns_tl": [
         "kinakabahan ako sa exam",
@@ -141,7 +158,42 @@
         "i keep procrastinating",
         "there's too much to do and not enough time",
         "i'm behind on all my requirements",
-        "i can't keep up with deadlines"
+        "i can't keep up with deadlines",
+        "Ask guidance to what can I improve with my current cycle, I would like to receive an advice.",
+        "Can you help me with my studies?",
+        "I'll ask for motivational advice.",
+        "Problems about school",
+        "Help in terms of time management and personal matters",
+        "I would ask for a handful of tips on how to maintain my studies while experiencing personal problems.",
+        "I need help with my studies",
+        "How can you help me with my academic problems?",
+        "I would also ask for the guidance on how to stay motivated, overcome difficulties in my subjects, and improve my academic performance, especially when I feel overwhelmed by school requirements and deadlines.",
+        "I would ask the GCO for advice on how to manage my time and balance my studies with my personal life especially when I have a difficult schedule. I would also ask for guidance on how to improve my academic performance and handle stress.",
+        "i have a problem about my studies, can you give me some advice?",
+        "I would ask the GCO for advice and guidance on how to handle my academic problems and improve my studies.",
+        "Tips or suggestions to improve my mental capability in studying",
+        "I have been having difficulty keeping up with my academic workload and managing stress. Could you help me with time management strategies and study habits, or connect me with academic support services?",
+        "how can you help me improve my studies",
+        "Academic Concern",
+        "Guidance on how can I manage time to focus on my studies while balancing it with my personal responsibilities.",
+        "What can I do if I’m having a hard time keeping up with my studies?",
+        "I am struggling to understand what my lecturer or teacher expects from me. How can I best approach them or handle this course.",
+        "I’d like to ask for some guidance because I’ve been struggling with my studies lately",
+        "I would ask for advice on how I could balance my school life and social life. (\"How could I balance my school life and social life?\")",
+        "I need guidance about my grades or studies",
+        "I would like to ask the Guidance Counselor for an advice about my studies.",
+        "Ask for advice on how to balance my school life and social life",
+        "How can I focus on my studies without distractions? What recommendations can you give me?",
+        "How can I improve my study and manage my time better?",
+        "I ask how to manage the time",
+        "how to improve my studies",
+        "I would ask for advice on how to manage my time and avoid distractions.",
+        "I would ask for advice and tips in study methods, time management, and general learning.",
+        "How do I Motivate Myself l.",
+        "how do I get back on my track?",
+        "How can I manage my time and improve my academic performance?",
+        "What is the best way to have the motivation to strive harder",
+        "What can I do to improve my academic performance?"
       ],
       "patterns_tl": [
         "ang dami kong gawain hindi ko kaya",
@@ -149,7 +201,14 @@
         "sobrang dami kong homework",
         "lagi akong naiiwan sa deadline",
         "palagi akong nagpaplano pero hindi ko nagagawa",
-        "di ko na alam paano aabutan lahat"
+        "di ko na alam paano aabutan lahat",
+        "Ano pong pwedeng gawin kapag nahihirapan sa klase?",
+        "Paano po ba pwedeng bumawi sa grades ko?",
+        "Good morning po ma'am pwede po ba ko manghingi ng advice about sa pagaaral ko",
+        "nahihirapan po ako sa klase",
+        "nahihirapan ako sa pag-aaral ko",
+        "hindi ko na kaya ang mga gawain sa school",
+        "bumababa ang grades ko, ano po pwede kong gawin"
       ],
       "responses_en": [
         "It’s normal to feel stressed when exams and deadlines pile up. Let’s start with a few manageable steps:\n• List your upcoming exams, projects, and deadlines.\n• Prioritize tasks according to urgency and importance.\n• Break large tasks into smaller, achievable steps.\n• Study in focused intervals and take short breaks.\n• Get enough sleep, eat regularly, and allow time to rest.\n\nIf your stress feels overwhelming or is affecting your daily functioning, you may reach out to the Guidance and Counseling office for additional support."
@@ -166,7 +225,8 @@
         "people are being mean to me at school",
         "i'm getting bullied online",
         "my classmates keep making fun of me",
-        "i'm scared to go to school because of bullies"
+        "i'm scared to go to school because of bullies",
+        "Can I directly report a student here that causes disturbances in class, bullies, and doing suspicious activity?"
       ],
       "patterns_tl": [
         "may nambubully sa akin",
@@ -174,7 +234,8 @@
         "pinagtatawanan ako ng mga kaklase ko",
         "may naninira sa akin sa school",
         "takot akong pumasok dahil may bully",
-        "sinisiraan ako ng mga kaklase ko"
+        "sinisiraan ako ng mga kaklase ko",
+        "binubully ako"
       ],
       "responses_en": [
         "If you feel comfortable, please share what happened with the Guidance and Counseling office or a trusted school staff member. If the bullying involves threats, physical harm, or immediate danger, seek help from a school authority or emergency services right away.\n\nYou don’t have to handle this alone. The GCO can help you identify the appropriate next steps and available school support."
@@ -215,7 +276,44 @@
         "i don't have many friends",
         "my best friend and i aren't talking anymore",
         "my friend group excluded me",
-        "i feel left out by my friends"
+        "i feel left out by my friends",
+        "I'd ask her to investigate my classmate or friend I am having conflict with, then decide if it deserves a disciplinary action.",
+        "Can the GCO help us resolve our conflict peacefully?",
+        "I would ask how we would be able to resolve our conflicts.",
+        "Explain and resolve conflict",
+        "How can I resolve my conflict with my classmate or friend?",
+        "Can you please help i am having trouble with one of my classmates",
+        "Can you help me resolve my conflict with my classmate or friend?",
+        "Is it possible to talk to both sides and resolve the conflicts?",
+        "How can I resolve the conflict peacefully and improve my relationship with my classmates or friend.",
+        "Is it possible to ask for mediation or advice on how to talk to a classmate I'm having trouble with?",
+        "I will ask the GCO to talk to them",
+        "i have a Conflict with my friend, can you give an advice to handle it better?",
+        "I would ask the GCO for advice on how to resolve the conflict peacefully and maintain a good relationship with my classmate or friend.",
+        "What would be the best to make things right immediately and avoid more arguments",
+        "I am having a misunderstanding with a classmate/friend that I haven't been able to resolve on my own. Could you help mediate a conversation between us or give me guidance on how to communicate effectively to fix the issue?",
+        "can you help and give me tips on how to solve my conflict with my classmate",
+        "I would ask for advice on how to solve the conflict and how to make things right with my classmate or friend.",
+        "Will ask for help on how to communicate properly and resolve conflict without killing each other.",
+        "What can I do if I’m having a hard time getting along with my classmates?",
+        "Advice, to be the mediator",
+        "I would ask if how I should handle conflicts with my friends",
+        "I would ask how we can make amends for our wrongdoings to one another. (\"How can I/we fix the conflict between me and another person?\")",
+        "I would ask for assistance and help about my conflict or issue.",
+        "Ask for help on how I can make amends for my mistakes that I've done to that person",
+        "Maam/sir, how can I resolve my issue to my classmate/friend? I tried everything but my sayings aren’t seem to work out and resolve the conflict.",
+        "How can I solve my problem with my classmate or friend peacefully?",
+        "I would ask for their help to solve the conflict",
+        "how to solve the problem peacefully and understand each other's side.",
+        "I would ask for advice on how to fix the misunderstanding with my classmate.",
+        "I would ask for assistance or interference with a certain classmate if their behavior is detrimental.",
+        "How to avoid those misunderstandings.",
+        "how do I handle the conflict in an appropriate way and without making the other party feel very bad",
+        "How can we possibly make up",
+        "Call them and talk about what happened",
+        "How can I solve the conflict and make peace with my friend?",
+        "Can you help me resolve a conflict with my classmate or friend?",
+        "If the conflict is already intense, I would ask the guidance for a little help bago pa maging physical ang conflict."
       ],
       "patterns_tl": [
         "nag-away kami ng friend ko",
@@ -223,7 +321,11 @@
         "nalulungkot ako sa school",
         "wala akong masyadong kaibigan",
         "hindi na kami magkausap ng best friend ko",
-        "hindi ako sinasali ng barkada ko"
+        "hindi ako sinasali ng barkada ko",
+        "Hello po, May problema po kame ng classmate ko po? pwede po gawan ng paraan.",
+        "Paano po ba makipag-ayos sa kaibigan ko?",
+        "Paano po ba pwedeng maayos ung conflict namin nang hindi na lumala?",
+        "Good morning po ma'am/sir pwede po ba ko magpa advice dahil po nagkagalit po kame ng friend ko"
       ],
       "responses_en": [
         "Friendship troubles can really hurt. Do you want to talk about what happened?",
@@ -243,7 +345,10 @@
         "what strand should i pick",
         "i need help planning my career",
         "i don't know what i want to do after graduation",
-        "how do i choose the right college course"
+        "how do i choose the right college course",
+        "I would ask for help regarding career choices. (\"How can I make sure that my choice of career is the right one for me?\")",
+        "Ask for help for career choices",
+        "it may perhaps have something to do about career choices"
       ],
       "patterns_tl": [
         "hindi ko alam kung anong course kukunin",
@@ -340,7 +445,8 @@
         "how do i schedule a consultation",
         "i would like to set a consultation",
         "can i request a consultation with the guidance counselor",
-        "book me a counseling session"
+        "book me a counseling session",
+        "How can I access your services whenever I need help or guidance?"
       ],
       "patterns_tl": [
         "paano mag-book ng appointment",
@@ -374,7 +480,8 @@
         "can i visit the office without booking",
         "can i drop by the guidance office anytime",
         "do you accept walk ins",
-        "can i go there directly"
+        "can i go there directly",
+        "Hi, good morning/afternoon po! Is there a counselor available right now?"
       ],
       "patterns_tl": [
         "pwede ba mag walk in",
@@ -584,7 +691,58 @@
         "are my counseling records private",
         "do you keep what i say confidential",
         "will my classmates find out about my session",
-        "is it safe to tell the counselor everything"
+        "is it safe to tell the counselor everything",
+        "Do informations disclosed in our conversation stays between this closed door?",
+        "I want to make sure that my concern remain confidential.",
+        "Would it be possible to keep my concern confidential?",
+        "If my concerns and problems were confidential and if they have a secure database",
+        "If I have problem and issues in my classmate, and wanted to report it, is this website wkll protect my identity?",
+        "is my information really secure here po?",
+        "Will my personal concerns remain confidential if I share them with the GCO?",
+        "i hope this conversation remain to the both of us",
+        "I would ask how the GCO will maintain my identity confidential if I were to share sensitive information to them.",
+        "to turn any concern anonymously",
+        "Will my concerns remain confidential if I share them with you?",
+        "Is our session confidential if it is keep it that way.",
+        "Will my concerns remain confidential?",
+        "Can I ask if it's still a secret and no one knows what we talked about?",
+        "I if were the student, I will say to our GCO, to remain my concern confidential.",
+        "Are our counseling sessions private, or will my teachers and parents know about what I share?",
+        "Confidentiality Agreement",
+        "KEEP ME ANONYMOUS",
+        "talk in private",
+        "is my concern will remain confidential?",
+        "I would ask if my concern will remain private and confidential.",
+        "I would ask for details and how would they handle my personal concerns",
+        "Will everything we discuss during this session remain strictly confidential between us",
+        "I would ask if the information I share with the Guidance Counseling Office will remain confidential and if my personal concerns will be kept private.",
+        "May I know if the things I share with the guidance counselor will remain confidential?",
+        "If I share this specific concern, will you have to inform my parents, teachers, or school officials, and will you talk to me first before sharing anything.",
+        "I’d like to ask who will have access to the concerns/infos I shared",
+        "I would ask of them to keep my concerns confidential. (\"Can I be sure that whatever I will say or do will be kept confidential?\")",
+        "Can you make my request confidential.",
+        "I’ll ask the guidance counselor to remain my concern confidential.",
+        "Ask for privacy and for my actions and words to remain confidential",
+        "Does my concern remain private?",
+        "Is my answers/concerns remain anonymously?",
+        "Ask if it can be remained confidential",
+        "Will the things I share with the guidance counselor will be kept private",
+        "I would ask if my concern is confidential",
+        "if my concerns would remain private and confidential.",
+        "I would ask if I can share my personal problems privately and if my concerns will remain confidential.",
+        "I would ask if any statement that were made or addressed are to be made confidential, anonymous, and kept private.",
+        "Is everything I talk about with you kept private and confidential",
+        "Will this remain confidential or will other parties not know anything regarding what we talked about today?",
+        "If they can perhaps fill out a form about confidentiality",
+        "do you record everything?",
+        "Will my personal concerns remain confidential if I share them with the guidance counselor?",
+        "Keep it private",
+        "is my information confidential?",
+        "Is this confidential?",
+        "Tell them that make it privately and don't tell it to others",
+        "Will my concern remain confidential if I share it with you?",
+        "I would ask if the information I share with the counselor will remain confidential.",
+        "Direct question about their rules, who sees information, and when they are legally or ethically forced to share it."
       ],
       "patterns_tl": [
         "confidential ba ang session",
@@ -598,7 +756,10 @@
         "walang ibang makakaalam ng pinag usapan namin diba",
         "private ba ang records ko sa guidance",
         "hindi ba malalaman ng classmates ko",
-        "safe ba sabihin lahat sa counselor"
+        "safe ba sabihin lahat sa counselor",
+        "di po to malalaman ng iba?",
+        "Atin-atin lang naman po ang mapag-uusapan natin?",
+        "Private po ba lahat ng pag-uusapan natin dito?"
       ],
       "responses_en": [
         "Your privacy is important to the Guidance and Counseling Office. Information shared during a consultation is handled with care and according to applicable privacy requirements and school policies.\n\nHowever, confidentiality may have limits. Information may need to be shared with appropriate people when there is a serious risk of harm to you or someone else, a safeguarding concern, or another applicable legal or institutional requirement.\n\nWhen appropriate and safe, the GCO will explain the reason for sharing information and involve you in the process."
@@ -644,7 +805,8 @@
         "how to submit documents to guidance",
         "what are the requirements for documents",
         "where do i submit my medical certificate",
-        "what form do i need for gender affirming clothing"
+        "what form do i need for gender affirming clothing",
+        "Asking for request forms"
       ],
       "patterns_tl": [
         "anong documents tinatanggap ng gco",
@@ -654,7 +816,9 @@
         "ano dapat nakalagay sa medical certificate",
         "paano magpasa ng documents sa guidance",
         "saan ipapasa ang medical certificate",
-        "ano requirements sa pagpasa ng documents"
+        "ano requirements sa pagpasa ng documents",
+        "May itatanong lang po tungkol sa requirements",
+        "If pupuntahan ko ang guidance counseling office, mostly nasasabi ko is asking about paper requirements."
       ],
       "responses_en": [
         "Medical certificate: the student’s identifying details, consultation or illness dates, relevant medical information required, and the issuing healthcare professional’s details.\n\nGender-affirming clothing form: the official form, required student information, requested clothing or uniform accommodation, and any required signatures or supporting information specified in the approved procedure.\n\nThe GCO may handle different documents, depending on your concern or request. Before submitting a document, please contact the GCO to confirm the latest form, required attachments, signatures, submission method, and deadline.\n\nFor medical documents and other sensitive information, please use the school’s approved submission channel and provide only the information required."
@@ -817,6 +981,137 @@
         "The GCO is generally available Monday to Friday, 8:00 AM–5:00 PM, with a lunch break from 12:00 PM–1:00 PM. If you need urgent help outside these hours, please do not wait for the office to reopen.\n\nIf you or someone else is in immediate danger, call 911 or go to the nearest emergency department.\n\nFor mental health crisis support in the Philippines, contact the National Center for Mental Health Crisis Hotline at 1553. Other published contact numbers include 0917-899-8727 and 0919-057-1553.\n\nIf possible, reach out to a trusted adult, family member, or another person who can stay with you and help you access support.\n\nYou may also email the GCO at eslie.clemente@stamaria.sti.edu.ph. Messages sent outside office hours may not receive an immediate response."
       ],
       "responses_tl": []
+    },
+    {
+      "tag": "services_offered",
+      "patterns_en": [
+        "what services does the gco offer",
+        "what services does the guidance office provide",
+        "what can the guidance office do for me",
+        "how can the gco help me",
+        "what programs does the guidance office have",
+        "what does the guidance counselor do",
+        "can i talk about personal problems or only school concerns",
+        "do you offer counseling for students",
+        "In what ways can GCO help me?",
+        "Can you tell me what services the GCO provides? Can you show me?",
+        "I would like to ask what services you offer for someone who is experiencing academic pressure.",
+        "what services does GCO offer?",
+        "What services and support does the GCO offer to students?",
+        "I would ask how the GCO actually helps students with personal or educational problems when it comes to long-term process.",
+        "How can you help me?",
+        "What services does the GCO provide for students?",
+        "What service and programs does GCO offer to help students with their academic, personal and emotional concerns?",
+        "May I ask what kind of services or programs the Guidance Office offers to students?",
+        "How they can help me?",
+        "What services does the GCO provide to help students with their academic, personal, and emotional problems?",
+        "What's the best services you give?",
+        "good morning/afternoon, what kind of services do you provide?",
+        "I would ask what programs, counseling, and other services they offer to help students with their academic, personal, and emotional needs.",
+        "What else they can do except for students conflicts and mental health guidance",
+        "Good day. Could you provide an overview or a list of the services and programs available here for students?",
+        "what services do you offer to students",
+        "If there service offer to help students with their studies and personal problems.",
+        "Can I also talk about personal problems or only school related concerns?",
+        "Do you offer individual or group counseling sessions for personal, academic, or family concerns?",
+        "I’d like to know more about the services offered by the guidance office",
+        "I would ask them what kind of services they provide. (\"What kind of services do you provide?\")",
+        "Ask what sort of services they have",
+        "What services do you have?",
+        "What services can a students get from the Guidance Counseling Office",
+        "I would ask if I can know the services they provide",
+        "What services do you offer to help students with their personal problems and studies?",
+        "I would ask how the Guidance Counseling Office can help me with my personal growth and decision-making.",
+        "I ask what the best services i need",
+        "Scope and coverage of their assistance, what they can offer in any unique situation and how they can handle certain circumstances or situations.",
+        "What kinds of support or programs do you offer to students",
+        "What do you provide and how do you handle the counseling?",
+        "what services do u have",
+        "What other services do you provide other than career planning and comforting a student",
+        "What services and programs does the Guidance Counseling Office offer to help students?",
+        "what do services do they offer for the students",
+        "Ask what is the services that they can give and seek for help",
+        "What services does the Guidance Counseling Office offer to students?",
+        "I would ask what services the Guidance Counseling Office provides to students.",
+        "What kind of personal or academic counseling do you offer?"
+      ],
+      "patterns_tl": [
+        "ano po ang mga serbisyo ng guidance office",
+        "paano po kayo makakatulong sa mga estudyante",
+        "ano po ginagawa nyo dito sa guidance",
+        "ano ang maitutulong ng gco sa akin",
+        "Ano po ginagawa nyo dito?",
+        "May I know what are the services you may offer?",
+        "Paano po kayo makakatulong sa mga estudyante?",
+        "Ano po ung mga ino-offer ninyong tulong o counseling dito?"
+      ],
+      "responses_en": [
+        "The Guidance and Counseling Office (GCO) offers these services to students:\n• Consultation: one-on-one sessions for personal, academic, social, or emotional concerns.\n• Referral: connecting you to the right support when a concern needs more help.\n• Career Guidance: help with choosing a strand, course, or career, including the Career Planning Program for Senior High School.\n• Group Guidance: sessions on topics students need, based on needs assessments.\n• Information Service: announcements and guidance resources.\n• Individual Inventory: your guidance record and submitted documents.\n• Testing Service.\nYou can talk about personal concerns, not only school-related ones. To start, book a session under My Appointments, or ask me a question."
+      ],
+      "responses_tl": [
+        "Ito ang mga serbisyo ng Guidance and Counseling Office (GCO) para sa mga estudyante:\n• Consultation: one-on-one na usapan tungkol sa personal, academic, social, o emotional na concern.\n• Referral: pagkonekta sa iyo sa tamang tulong kapag kailangan ng mas malalim na suporta.\n• Career Guidance: tulong sa pagpili ng strand, course, o career, kasama ang Career Planning Program para sa Senior High School.\n• Group Guidance: mga session sa mga paksang kailangan ng mga estudyante, batay sa needs assessment.\n• Information Service: mga anunsyo at guidance resources.\n• Individual Inventory: ang iyong guidance record at mga isinumiteng dokumento.\n• Testing Service.\nPuwede kang magsabi ng personal na concern, hindi lang tungkol sa school. Para magsimula, mag-book ng session sa My Appointments, o magtanong sa akin."
+      ]
+    },
+    {
+      "tag": "seek_help",
+      "patterns_en": [
+        "i need help",
+        "can i ask for advice",
+        "i need someone to talk to",
+        "can i talk to the guidance counselor",
+        "i have a concern",
+        "i would like to ask for guidance",
+        "i have a problem and i need advice",
+        "can you help me",
+        "i will say my concern.",
+        "i will share what part i have a problem and ask for help.",
+        "i will tell what happen and ask what should i need to do.",
+        "I'll explain what happened and i will ask for help",
+        "I’ll ask for his/her advice on what the best thing to do would be.",
+        "do you have any advices?",
+        "adress some concerns abt school",
+        "Advice",
+        "I would ask for guidance or advice about my concerns.",
+        "I would ask for help and guidance about my concerns.",
+        "I would ask for advice and guidance about my personal and concerns.",
+        "my concern",
+        "Personal Problems",
+        "i need help or advice",
+        "Good day. I would like to talk to a guidance counselor to ask for some advice and support regarding personal and school concerns",
+        "i would like to ask for guidance or advice",
+        "I’m here to ask for advice or guidance about our studies and to talk about the problems what we are facing.",
+        "Can i ask for guidance po?",
+        "Can I ask for some advice? There’s something I want to talk about",
+        "I would like to say if I could talk about something personal",
+        "Help or advise",
+        "Good morning/afternoon, i would like to ask for a help and advice something",
+        "I would ask for advice about my personal problems",
+        "My personal and school problems.",
+        "personal struggles in life",
+        "Problems about life",
+        "maam, can i ask for a help?",
+        "I need advice about my personal problems and studies.",
+        "Good morning. I would like to ask for some advice regarding a concern I have."
+      ],
+      "patterns_tl": [
+        "kailangan ko ng tulong",
+        "pwede po ba humingi ng advice",
+        "may itatanong lang po ako",
+        "pwede po ba kayo makausap",
+        "may problema po ako",
+        "good morning/afternoon, pwede po ba kayo maka-usap?",
+        "Hi po, may itatanong lang po sana ako.",
+        "Good morning po meron po akong concern",
+        "May tanong lang po ako\" \"kailangan ko po ng tulong about dito po",
+        "Pwede po ba patulong",
+        "Hihingi po ako ng advice"
+      ],
+      "responses_en": [
+        "I'm here to listen. Tell me what's on your mind, and I'll do my best to help or point you to the right support. If you'd like to talk to the Guidance Associate, you can book a session under My Appointments or visit the Guidance and Counseling Office during office hours."
+      ],
+      "responses_tl": [
+        "Nandito ako para makinig. Sabihin mo lang kung ano ang nasa isip mo, at tutulungan kita o ituturo sa tamang suporta. Kung gusto mong makausap ang Guidance Associate, mag-book ng session sa My Appointments o pumunta sa Guidance and Counseling Office sa oras ng opisina."
+      ]
     },
     {
       "tag": "fallback",
