@@ -153,6 +153,9 @@ export async function setAccountRole(userId: string, role: UserRole) {
       return { success: false, error: "Parent accounts and school-email accounts sign in differently, so they can't be switched." };
     }
     await db.user.update({ where: { id: userId }, data: { role } });
+    // A changed role must be re-established by signing in again, not picked
+    // up mid-session - same as turning an account off (setAccountActive below).
+    await db.session.deleteMany({ where: { userId } });
     await logActivity(me, `Changed an account's role to ${role}`, "User", userId);
     revalidatePath("/accounts");
     return { success: true };

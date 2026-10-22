@@ -172,7 +172,7 @@ export type StudentDetails = {
 };
 
 type CodeVerifyResult =
-  | { success: true; redirectTo: string }
+  | { success: true; redirectTo: string; role: UserRole }
   | { success: false; needsDetails: true }
   | { success: false; pending: true; message: string }
   | { success: false; error: string };
@@ -240,7 +240,7 @@ export async function verifyLoginCode(formData: {
 
     await createSession(user.id);
     await logActivity(actor, "Signed in", "User", user.id);
-    return { success: true, redirectTo: dashboardPathForRole(user.role) };
+    return { success: true, redirectTo: dashboardPathForRole(user.role), role: user.role };
   } catch (error) {
     console.error("Failed to verify login code:", error);
     return { success: false, error: "Something went wrong. Please try again." };

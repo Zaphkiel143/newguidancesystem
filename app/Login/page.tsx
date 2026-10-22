@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { ArrowLeft, ArrowRight, BookOpen, Briefcase, Heart, Loader2, Users } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
@@ -44,18 +44,11 @@ const REG_INPUT_IDS: Record<ParentSignupField, string> = {
   relationship: "r-rel",
 };
 
-// "who"      → pick who you are
-// "email"    → students/faculty/guidance enter their school email
-// "code"     → enter the emailed code
-// "details"  → first sign-in only: name (and school details for students)
-// "parent"   → parents sign in with mobile number + password
-// "register" → parents create an account (approved by the guidance office)
-// "waiting"  → account created/exists but needs approval
-// "totp"     → school email + code from Microsoft Authenticator (if set up)
-// "approve"  → waiting for the person to approve on a signed-in phone
 type Step = "who" | "email" | "code" | "details" | "parent" | "register" | "waiting" | "totp" | "approve";
 
 const RESEND_SECONDS = 60;
+
+const roleLabel = (role: UserRole) => WHO_OPTIONS.find((o) => o.value === role)?.label ?? role;
 
 const WHO_OPTIONS: { value: SignInAs | "PARENT"; label: string; hint: string; icon: typeof Users }[] = [
   { value: "STUDENT", label: "Student", hint: "Senior high or tertiary", icon: BookOpen },
@@ -85,13 +78,29 @@ const LoginPage = () => {
   const [regErrors, setRegErrors] = useState<ParentSignupErrors>({});
   const [waitingMessage, setWaitingMessage] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [roleNotice, setRoleNotice] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [resendIn, setResendIn] = useState(0);
   const [demoLoadingRole, setDemoLoadingRole] = useState<UserRole | null>(null);
   const codeInput = useRef<HTMLInputElement>(null);
   const [approval, setApproval] = useState<{ requestId: string; secret: string; number: number } | null>(null);
 
-  // While waiting for approval, check every 2 seconds (up to the 2-minute limit).
+  // The picked "who" door only matters for a brand-new account (see
+  // createSchoolAccount); for an existing one the server returns whatever
+  // role is on file. If that differs from what was picked - most often
+  // because the guidance office changed it - say so before moving on.
+  const finishLogin = useCallback(
+    (result: { redirectTo: string; role: UserRole }) => {
+      if (signInAs !== result.role) {
+        setRoleNotice(`Your account is registered as ${roleLabel(result.role)}. Signing you in there.`);
+        setTimeout(() => router.push(result.redirectTo), 1800);
+      } else {
+        router.push(result.redirectTo);
+      }
+    },
+    [signInAs, router]
+  );
+
   useEffect(() => {
     if (step !== "approve" || !approval) return;
     let stopped = false;
@@ -100,7 +109,7 @@ const LoginPage = () => {
       if (stopped) return;
       if (r.state === "approved") {
         stopped = true;
-        router.push(r.redirectTo);
+        finishLogin(r);
       } else if (r.state === "denied") {
         stopped = true;
         setApproval(null);
@@ -118,7 +127,7 @@ const LoginPage = () => {
       stopped = true;
       clearInterval(id);
     };
-  }, [step, approval, router]);
+  }, [step, approval, finishLogin]);
 
   const askApproval = async () => {
     setIsSubmitting(true);
@@ -141,6 +150,7 @@ const LoginPage = () => {
 
   const go = (next: Step) => {
     setError(null);
+    setRoleNotice(null);
     setRegErrors({});
     setStep(next);
   };
@@ -185,7 +195,7 @@ const LoginPage = () => {
     });
     setIsSubmitting(false);
     if (result.success) {
-      router.push(result.redirectTo);
+      finishLogin(result);
     } else if ("needsDetails" in result) {
       go("details");
     } else if ("pending" in result) {
@@ -202,7 +212,7 @@ const LoginPage = () => {
     setError(null);
     const result = await signInWithTotp({ email, code });
     setIsSubmitting(false);
-    if (result.success) router.push(result.redirectTo);
+    if (result.success) finishLogin(result);
     else setError(result.error);
   };
 
@@ -424,6 +434,7 @@ const LoginPage = () => {
                 <p className="inline-flex items-center gap-2 text-sm text-slate-600">
                   <Loader2 size={15} className="animate-spin" /> Waiting for approval…
                 </p>
+                <NoticeLine message={roleNotice} />
                 <p className="text-xs text-slate-500">
                   No notification? Open E-Gabay on your phone; the request pops up there. It expires in 2 minutes.
                 </p>
@@ -447,6 +458,7 @@ const LoginPage = () => {
                     onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 6))} required autoFocus />
                 </div>
                 <ErrorLine error={error} />
+                <NoticeLine message={roleNotice} />
                 <button type="submit" disabled={isSubmitting || code.length !== 6} className={primaryButton}>
                   {isSubmitting ? <><Loader2 size={16} className="animate-spin" /> Checking</> : "Sign in"}
                 </button>
@@ -527,6 +539,7 @@ const LoginPage = () => {
                   </div>
                 )}
                 <ErrorLine error={error} />
+                <NoticeLine message={roleNotice} />
                 <button type="submit" disabled={isSubmitting} className={primaryButton}>
                   {isSubmitting ? <><Loader2 size={16} className="animate-spin" /> Checking</> : step === "code" ? "Sign in" : "Continue"}
                 </button>
@@ -708,6 +721,15 @@ function ErrorLine({ error }: { error: string | null }) {
   return (
     <p role="alert" className="text-[13px] text-red-700 border-l-2 border-red-500 pl-3">
       {error}
+    </p>
+  );
+}
+
+function NoticeLine({ message }: { message: string | null }) {
+  if (!message) return null;
+  return (
+    <p role="status" className="text-[13px] text-emerald-700 border-l-2 border-emerald-500 pl-3">
+      {message}
     </p>
   );
 }

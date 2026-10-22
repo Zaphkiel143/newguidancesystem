@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useCallback, useEffect, useState } from 'react';
-import { Search, X, Loader2, Plus, Download } from 'lucide-react';
+import { Search, X, Loader2, Plus, Download, AlertTriangle } from 'lucide-react';
 import { listStudentProfiles, getStudentProfile, saveStudentProfile, type StudentProfileInput } from '../../action/counselor';
 import { SHS, isShs, normalizeDepartment } from '../../config/studentLevels';
 import { optionValue } from '../../../lib/optionListDefaults';
@@ -184,6 +184,14 @@ export default function StudentInventory() {
                     <td className="py-3 pr-4 font-mono text-[13px] text-slate-600 hidden sm:table-cell">{r.studentId}</td>
                     <td className="py-3 pr-4 font-medium text-ink">
                       {r.name}
+                      {r.roleChanged && (
+                        <span
+                          className="ml-2 inline-flex items-center gap-1 text-[11px] font-medium text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full"
+                          title="This person's account role changed - they may no longer be a student."
+                        >
+                          <AlertTriangle size={11} /> Role changed
+                        </span>
+                      )}
                       <span className="sm:hidden block text-[12px] font-normal text-slate-500">
                         <span className="font-mono">{r.studentId}</span> · {r.gradeSection}
                       </span>

@@ -94,7 +94,7 @@ export async function signInWithTotp(formData: { email: string; code: string }) 
 
     await db.user.update({ where: { id: user.id }, data: { totpLastStep: Math.max(step, currentStep() - 1) } });
     await createSession(user.id);
-    return { success: true as const, redirectTo: dashboardPathForRole(user.role) };
+    return { success: true as const, redirectTo: dashboardPathForRole(user.role), role: user.role };
   } catch (error) {
     console.error("Authenticator sign-in failed:", error);
     return { success: false as const, error: "Something went wrong. Please try again." };

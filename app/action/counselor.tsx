@@ -395,16 +395,21 @@ export async function updateCareerPlanDetails(id: string, formData: { facilitato
 export async function listStudentProfiles() {
   try {
     await counselorOnly();
-    const [profiles, lastSessions] = await Promise.all([
+    const [profiles, lastSessions, nonStudentUsers] = await Promise.all([
       db.studentProfile.findMany({ orderBy: { name: "asc" } }),
       db.appointment.groupBy({
         by: ["studentName"],
         where: { status: { not: "CANCELLED" }, studentName: { not: null } },
         _max: { date: true },
       }),
+      // StudentProfile has no FK to User (matched by name) - a role change
+      // away from STUDENT leaves the record behind, so flag it live here
+      // rather than storing a flag that could itself go stale.
+      db.user.findMany({ where: { role: { not: "STUDENT" } }, select: { name: true } }),
     ]);
     const last = new Map(lastSessions.map((s) => [s.studentName, s._max.date]));
-    return profiles.map((p) => ({ ...p, lastSession: last.get(p.name) ?? null }));
+    const promoted = new Set(nonStudentUsers.map((u) => u.name));
+    return profiles.map((p) => ({ ...p, lastSession: last.get(p.name) ?? null, roleChanged: promoted.has(p.name) }));
   } catch (error) {
     console.error("Failed to list student profiles:", error);
     return [];

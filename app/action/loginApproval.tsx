@@ -92,7 +92,7 @@ export async function checkLoginApproval(requestId: string, secret: string) {
     const { count } = await db.loginRequest.updateMany({ where: { id: request.id, status: "APPROVED" }, data: { status: "USED" } });
     if (count === 0) return { state: "denied" as const };
     await createSession(user.id);
-    return { state: "approved" as const, redirectTo: dashboardPathForRole(user.role) };
+    return { state: "approved" as const, redirectTo: dashboardPathForRole(user.role), role: user.role };
   } catch (error) {
     console.error("Failed to check sign-in approval:", error);
     return { state: "waiting" as const };
