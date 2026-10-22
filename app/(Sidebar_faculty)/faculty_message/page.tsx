@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { MessageSquare } from 'lucide-react';
-import { getMyConversation, getMessages, markConversationRead, sendMessage } from '../../action/faculty';
+import { getMyConversation, getMessages, markConversationRead, sendMessage, deleteConversation } from '../../action/faculty';
 import ConversationPanel from '../../../components/ConversationPanel';
 import { useCurrentUser } from '../../../components/CurrentUser';
 
@@ -21,6 +21,13 @@ export const MessagesPage: React.FC = () => {
       cancelled = true;
     };
   }, []);
+
+  // Deleting clears all messages; a fresh (empty) conversation is ready right after.
+  const handleDeleted = async () => {
+    setConversationId(null);
+    const conversation = await getMyConversation();
+    setConversationId(conversation?.id ?? null);
+  };
 
   return (
     <div className="px-5 sm:px-8 lg:px-12 pt-8 lg:pt-12 pb-16 max-w-7xl font-sans antialiased text-slate-800 space-y-6">
@@ -42,6 +49,8 @@ export const MessagesPage: React.FC = () => {
             getMessages={getMessages}
             markConversationRead={markConversationRead}
             sendMessage={sendMessage}
+            deleteConversation={deleteConversation}
+            onDeleted={handleDeleted}
           />
         ) : (
           <div className="flex-1 flex flex-col items-center justify-center p-8">
