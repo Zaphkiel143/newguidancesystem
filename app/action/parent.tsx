@@ -203,6 +203,22 @@ export async function sendMessage(formData: { conversationId: string; content: s
   }
 }
 
+export async function deleteConversation(conversationId: string) {
+  try {
+    const me = await ownConversation(conversationId);
+    await db.message.deleteMany({ where: { conversationId } });
+    await db.conversation.delete({ where: { id: conversationId } });
+    await logActivity(me, "Deleted a conversation", "Conversation", conversationId);
+
+    revalidatePath("/parent_message");
+    revalidatePath("/message");
+    return { success: true };
+  } catch (error) {
+    console.error("[parent] Failed to delete conversation:", error);
+    return { success: false, error: String(error) };
+  }
+}
+
 // ---- Referrals ----
 
 export async function submitReferral(formData: {

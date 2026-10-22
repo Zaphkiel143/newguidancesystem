@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Search, MessageSquare, User, X } from 'lucide-react';
-import { listConversations, startConversation, getMessages, markConversationRead, sendMessage, listStudentProfiles } from '../../action/counselor';
+import { listConversations, startConversation, getMessages, markConversationRead, sendMessage, deleteConversation, listStudentProfiles } from '../../action/counselor';
 import ConversationPanel from '../../../components/ConversationPanel';
 import InlineError from '../../../components/InlineError';
 import { useCurrentUser } from '../../../components/CurrentUser';
@@ -46,25 +46,19 @@ export const MessagesDashboard: React.FC = () => {
     };
   }, []);
 
+  // Guards against an in-flight poll resolving after a more recent refresh
+  // (e.g. right after a delete) and overwriting it with stale data.
+  const refreshRequestId = useRef(0);
   const refreshConversations = async () => {
+    const requestId = ++refreshRequestId.current;
     const data = await listConversations();
-    setConversations(data);
+    if (requestId === refreshRequestId.current) setConversations(data);
   };
 
   useEffect(() => {
-    let cancelled = false;
-
-    (async () => {
-      const data = await listConversations();
-      if (!cancelled) setConversations(data);
-    })();
-
+    refreshConversations();
     const interval = setInterval(refreshConversations, POLL_INTERVAL_MS);
-
-    return () => {
-      cancelled = true;
-      clearInterval(interval);
-    };
+    return () => clearInterval(interval);
   }, []);
 
   const filteredConversations = conversations.filter((chat) =>
@@ -215,6 +209,11 @@ export const MessagesDashboard: React.FC = () => {
             getMessages={getMessages}
             markConversationRead={markConversationRead}
             sendMessage={sendMessage}
+            deleteConversation={deleteConversation}
+            onDeleted={(deletedId) => {
+              setSelectedId(null);
+              setConversations((prev) => prev.filter((c) => c.id !== deletedId));
+            }}
           />
         ) : (
           <main className="flex-1 bg-white flex flex-col items-center justify-center p-8 select-none">
