@@ -13,6 +13,9 @@ import {
 import type { AiMessage } from "../lib/generated";
 import { CRISIS_HOTLINES } from "../app/config/hotlines";
 
+// Matches the server-side limit in sendAiMessage (app/action/student.tsx).
+const MAX_MESSAGE_LENGTH = 1000;
+
 // Questions E-Gabay is trained to answer (nlp_service/intents.json), starting
 // with the Guidance Office FAQ.
 const STARTERS = [
@@ -316,9 +319,9 @@ export default function AiChatThread({ compact = false }: { compact?: boolean })
                 id={inputId}
                 type="text"
                 value={draft}
-                onChange={(e) => setDraft(e.target.value)}
+                onChange={(e) => setDraft(e.target.value.slice(0, MAX_MESSAGE_LENGTH))}
                 placeholder="Write a message"
-                maxLength={1000}
+                maxLength={MAX_MESSAGE_LENGTH}
                 disabled={isSending || !conversationId}
                 className={`flex-1 min-w-0 bg-sheet border border-blue-200 rounded-full px-4 py-2.5 ${text} placeholder:text-slate-400 disabled:opacity-60`}
               />
@@ -331,6 +334,11 @@ export default function AiChatThread({ compact = false }: { compact?: boolean })
                 {isSending ? <Loader2 size={17} className="animate-spin" /> : <ArrowUp size={18} />}
               </button>
             </form>
+            {draft.length >= MAX_MESSAGE_LENGTH - 200 && (
+              <p className={`mt-1.5 text-[12px] text-right ${compact ? "" : "max-w-2xl mx-auto"} ${draft.length >= MAX_MESSAGE_LENGTH ? "text-red-700" : "text-slate-500"}`} aria-live="polite">
+                {draft.length}/{MAX_MESSAGE_LENGTH} characters{draft.length >= MAX_MESSAGE_LENGTH ? " (limit reached)" : ""}
+              </p>
+            )}
           </div>
         </>
       )}

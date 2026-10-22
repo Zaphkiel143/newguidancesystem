@@ -201,6 +201,16 @@ export async function verifyLoginCode(formData: {
     }
 
     if (!verifyPassword(code, entry.codeHash)) {
+      // An older code (expired, or replaced by "Resend code") is no longer valid;
+      // say so instead of calling it wrong, so the user knows to use the new one.
+      const older = await db.loginCode.findMany({
+        where: { email, id: { not: entry.id }, createdAt: { gt: new Date(Date.now() - 24 * 60 * 60 * 1000) } },
+        orderBy: { createdAt: "desc" },
+        take: 5,
+      });
+      if (older.some((o) => verifyPassword(code, o.codeHash))) {
+        return { success: false, error: "That code has expired. Ask for a new one." };
+      }
       await db.loginCode.update({ where: { id: entry.id }, data: { attempts: { increment: 1 } } });
       const left = MAX_ATTEMPTS - entry.attempts - 1;
       return { success: false, error: left > 0 ? `That code isn't right. ${left} ${left === 1 ? "try" : "tries"} left.` : "Too many wrong tries. Ask for a new code." };

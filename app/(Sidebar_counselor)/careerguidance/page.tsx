@@ -54,10 +54,11 @@ export default function CareerTracker() {
   }, []);
 
   const enrolled = new Set(plans?.map((p) => p.studentName));
-  const eligible = profiles.filter((s) => isShs(s.department) && !enrolled.has(s.name));
+  // Students already in the tracker stay searchable (marked) so adding one again explains why it can't be done.
+  const shsStudents = profiles.filter((s) => isShs(s.department));
 
   const sq = studentQuery.trim().toLowerCase();
-  const studentMatches = eligible.filter(
+  const studentMatches = shsStudents.filter(
     (s) => !sq || s.name.toLowerCase().includes(sq) || s.studentId.toLowerCase().includes(sq) || s.gradeSection.toLowerCase().includes(sq)
   );
 
@@ -79,6 +80,7 @@ export default function CareerTracker() {
     e.preventDefault();
     const student = profiles.find((s) => s.name === newStudent);
     if (!student) return setAddError("Choose a student from the Individual Inventory.");
+    if (enrolled.has(student.name)) return setAddError(`${student.name} is already in the tracker.`);
     setIsAdding(true);
     setAddError(null);
     const result = await addCareerPlanStudent({
@@ -238,12 +240,15 @@ export default function CareerTracker() {
               </div>
               <div className="mt-2 max-h-48 overflow-y-auto border border-slate-200 rounded-md divide-y divide-slate-100">
                 {studentMatches.length === 0 ? (
-                  <p className="px-3 py-3 text-[13px] text-slate-500">No students match your search.</p>
+                  <p className="px-3 py-3 text-[13px] text-slate-500">
+                    {sq ? "No students match your search. Add this student to the Individual Inventory first." : "No Senior High School students in the Individual Inventory yet."}
+                  </p>
                 ) : (
                   studentMatches.map((s) => (
-                    <button type="button" key={s.id} onClick={() => setNewStudent(s.name)}
+                    <button type="button" key={s.id} onClick={() => { setNewStudent(s.name); setAddError(null); }}
                       className={`w-full text-left px-3 py-2.5 text-sm hover:bg-blue-50 transition-colors ${newStudent === s.name ? "bg-blue-50" : ""}`}>
                       <span className="font-medium text-ink">{s.name}</span>
+                      {enrolled.has(s.name) && <span className="ml-2 text-[11px] font-medium text-slate-500 bg-slate-100 rounded-full px-2 py-0.5">Already in the tracker</span>}
                       <span className="block text-[12px] text-slate-500">{s.studentId} · {s.gradeSection}</span>
                     </button>
                   ))
