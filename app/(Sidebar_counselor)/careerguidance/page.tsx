@@ -2,7 +2,7 @@
 
 import React, { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Check, X, Loader2, Plus } from 'lucide-react';
+import { Check, X, Loader2, Plus, Search } from 'lucide-react';
 import { CAREER_STEPS } from '../../config/careerSteps';
 import { isShs } from '../../config/studentLevels';
 import {
@@ -29,6 +29,7 @@ export default function CareerTracker() {
 
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [newStudent, setNewStudent] = useState("");
+  const [studentQuery, setStudentQuery] = useState("");
   const [newFacilitator, setNewFacilitator] = useState("");
   const [addError, setAddError] = useState<string | null>(null);
   const [isAdding, setIsAdding] = useState(false);
@@ -54,6 +55,11 @@ export default function CareerTracker() {
 
   const enrolled = new Set(plans?.map((p) => p.studentName));
   const eligible = profiles.filter((s) => isShs(s.department) && !enrolled.has(s.name));
+
+  const sq = studentQuery.trim().toLowerCase();
+  const studentMatches = eligible.filter(
+    (s) => !sq || s.name.toLowerCase().includes(sq) || s.studentId.toLowerCase().includes(sq) || s.gradeSection.toLowerCase().includes(sq)
+  );
 
   const confirmAdvance = async () => {
     if (!advancing) return;
@@ -85,6 +91,7 @@ export default function CareerTracker() {
     if (result.success) {
       setIsAddOpen(false);
       setNewStudent("");
+      setStudentQuery("");
       setNewFacilitator("");
       await load();
     } else {
@@ -122,7 +129,7 @@ export default function CareerTracker() {
             Tertiary students: Career Planning Forms →
           </Link>
         </div>
-        <button onClick={() => { setAddError(null); setIsAddOpen(true); }}
+        <button onClick={() => { setAddError(null); setNewStudent(""); setStudentQuery(""); setIsAddOpen(true); }}
           className="self-start sm:self-auto inline-flex items-center gap-2 bg-blue-700 hover:bg-blue-800 text-white text-sm font-medium px-4 min-h-11 rounded-full transition-colors">
           <Plus size={16} /> Add student
         </button>
@@ -221,12 +228,30 @@ export default function CareerTracker() {
               <button type="button" onClick={() => setIsAddOpen(false)} aria-label="Close" className="w-11 h-11 -m-2 grid place-items-center text-slate-500 hover:text-ink hover:bg-slate-100 rounded-full"><X size={18} /></button>
             </div>
             <div>
-              <label htmlFor="cpp-student" className="block text-[13px] font-medium text-slate-700 mb-1.5">Student</label>
-              <select id="cpp-student" value={newStudent} onChange={(e) => setNewStudent(e.target.value)} required
-                className="w-full bg-paper border border-slate-300 rounded-md px-3 py-2.5 text-sm">
-                <option value="">{eligible.length ? "Choose a student" : "Everyone is already enrolled"}</option>
-                {eligible.map((s) => <option key={s.id} value={s.name}>{s.name} · {s.gradeSection}</option>)}
-              </select>
+              <label htmlFor="cpp-search" className="block text-[13px] font-medium text-slate-700 mb-1.5">Student</label>
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+                <input id="cpp-search" type="text" value={studentQuery}
+                  onChange={(e) => { setStudentQuery(e.target.value); setNewStudent(""); }}
+                  placeholder="Search by name, student ID, or section"
+                  className="w-full pl-9 pr-3 py-2.5 bg-paper border border-slate-300 rounded-md text-sm" />
+              </div>
+              <div className="mt-2 max-h-48 overflow-y-auto border border-slate-200 rounded-md divide-y divide-slate-100">
+                {studentMatches.length === 0 ? (
+                  <p className="px-3 py-3 text-[13px] text-slate-500">
+                    {eligible.length === 0 ? "Everyone is already enrolled." : "No students match your search."}
+                  </p>
+                ) : (
+                  studentMatches.map((s) => (
+                    <button type="button" key={s.id} onClick={() => setNewStudent(s.name)}
+                      className={`w-full text-left px-3 py-2.5 text-sm hover:bg-blue-50 transition-colors ${newStudent === s.name ? "bg-blue-50" : ""}`}>
+                      <span className="font-medium text-ink">{s.name}</span>
+                      <span className="block text-[12px] text-slate-500">{s.studentId} · {s.gradeSection}</span>
+                    </button>
+                  ))
+                )}
+              </div>
+              {newStudent && <p className="mt-1.5 text-[13px] text-emerald-700">Selected: {newStudent}</p>}
             </div>
             <div>
               <label htmlFor="cpp-fac" className="block text-[13px] font-medium text-slate-700 mb-1.5">Facilitator (optional)</label>
@@ -236,7 +261,7 @@ export default function CareerTracker() {
             <InlineError message={addError} onDismiss={() => setAddError(null)} />
             <div className="flex justify-end gap-2 pt-2 border-t border-rule">
               <button type="button" onClick={() => setIsAddOpen(false)} className="px-4 min-h-11 rounded-full text-sm text-slate-600 hover:bg-slate-100">Cancel</button>
-              <button type="submit" disabled={isAdding}
+              <button type="submit" disabled={isAdding || !newStudent}
                 className="inline-flex items-center gap-2 bg-blue-700 hover:bg-blue-800 disabled:opacity-60 text-white text-sm font-medium px-4 min-h-11 rounded-full">
                 {isAdding && <Loader2 size={16} className="animate-spin" />} Add student
               </button>
