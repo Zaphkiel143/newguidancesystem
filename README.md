@@ -1,36 +1,43 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# E-Gabay STI
 
-## Getting Started
+Web-based guidance management system with an NLP chatbot for the Guidance and Counseling Office of STI College Sta. Maria, Bulacan.
 
-First, run the development server:
+## Stack
+
+- Web app: Next.js 16, React 19, TypeScript, Tailwind CSS 4, Prisma 7
+- Database: Supabase (PostgreSQL)
+- Chatbot: Python, FastAPI, scikit-learn (`nlp_service/`)
+- Hosting: Vercel (web app), Render (chatbot)
+
+## Run locally
 
 ```bash
+npm install
+npx prisma generate
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Chatbot service:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+cd nlp_service
+pip install -r requirements.txt
+python train.py
+uvicorn app:app --port 8000
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Environment variables
 
-## Learn More
+| Name | Purpose |
+| --- | --- |
+| `DATABASE_URL`, `DIRECT_URL` | Supabase PostgreSQL connection |
+| `NLP_SERVICE_URL` | Chatbot service URL (default `http://localhost:8000`) |
+| `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `SMTP_FROM` | Sign-in codes and email notifications |
+| `COUNSELOR_EMAILS` | Emails that become Guidance Associate accounts on first sign-in |
+| `NEXT_PUBLIC_DEMO_LOGIN` | Set to `false` to hide the demo sign-in buttons |
 
-To learn more about Next.js, take a look at the following resources:
+## Tests
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```bash
+npm test
+```

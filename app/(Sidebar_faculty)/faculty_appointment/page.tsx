@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from 'react';
-import { Calendar, Clock, Plus, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Calendar, Clock, Plus, CheckCircle2, AlertCircle, XCircle } from 'lucide-react';
 import { getMyAppointments, getBookedTimesForDate, bookAppointment } from '../../action/faculty';
 import BookAppointmentModal from '../../../components/BookAppointmentModal';
 import type { Appointment as DbAppointment } from '../../../lib/generated';
@@ -99,15 +99,22 @@ export const MyAppointmentsPage: React.FC = () => {
                   <span className={`text-xs font-semibold px-3 py-1 rounded flex items-center gap-1.5 font-sans border
                     ${meeting.status === 'CONFIRMED'
                       ? 'bg-emerald-50 border-emerald-200 text-emerald-600'
-                      : 'bg-slate-100 border-slate-200 text-slate-600'
+                      : meeting.status === 'COMPLETED'
+                        ? 'bg-teal-50 border-teal-200 text-teal-700'
+                        : 'bg-slate-100 border-slate-200 text-slate-600'
                     }
                   `}>
-                    {meeting.status === 'CONFIRMED' ? (
+                    {meeting.status === 'CONFIRMED' || meeting.status === 'COMPLETED' ? (
                       <CheckCircle2 size={13} className="stroke-[2.5]" />
+                    ) : meeting.status === 'CANCELLED' ? (
+                      <XCircle size={13} className="stroke-[2.5]" />
                     ) : (
                       <AlertCircle size={13} className="stroke-[2.5]" />
                     )}
-                    {meeting.status === 'CONFIRMED' ? 'Confirmed' : 'Pending'}
+                    {meeting.status === 'CONFIRMED' ? 'Confirmed'
+                      : meeting.status === 'COMPLETED' ? 'Terminated'
+                      : meeting.status === 'CANCELLED' ? 'Cancelled'
+                      : 'Pending'}
                   </span>
                 </div>
 

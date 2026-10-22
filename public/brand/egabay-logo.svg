@@ -1,9 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 440 128" role="img" aria-label="E-Gabay STI">
-  <rect width="128" height="128" rx="28" fill="#1d4ed8"/>
-  <path d="M64 100V58" stroke="#fff" stroke-width="7" stroke-linecap="round"/>
-  <path d="M64 74c-18 0-29-12-29-28 16 0 29 11 29 28z" fill="#fff"/>
-  <path d="M64 62c0-17 12-30 30-30 0 17-12 30-30 30z" fill="#fbbf24"/>
-  <rect x="40" y="98" width="48" height="7" rx="3.5" fill="#fff"/>
-  <text x="152" y="72" font-family="Geist, 'Segoe UI', Arial, sans-serif" font-size="52" font-weight="700" fill="#1e293b">E-<tspan fill="#1d4ed8">Gabay</tspan></text>
-  <text x="154" y="102" font-family="Geist, 'Segoe UI', Arial, sans-serif" font-size="17" font-weight="500" letter-spacing="3" fill="#64748b">STI GUIDANCE SYSTEM</text>
-</svg>
