@@ -238,9 +238,7 @@ export default function CareerTracker() {
               </div>
               <div className="mt-2 max-h-48 overflow-y-auto border border-slate-200 rounded-md divide-y divide-slate-100">
                 {studentMatches.length === 0 ? (
-                  <p className="px-3 py-3 text-[13px] text-slate-500">
-                    {eligible.length === 0 ? "Everyone is already enrolled." : "No students match your search."}
-                  </p>
+                  <p className="px-3 py-3 text-[13px] text-slate-500">No students match your search.</p>
                 ) : (
                   studentMatches.map((s) => (
                     <button type="button" key={s.id} onClick={() => setNewStudent(s.name)}
