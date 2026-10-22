@@ -314,8 +314,10 @@ export async function getCareerPlans() {
 export async function addCareerPlanStudent(formData: { studentName: string; studentId: string; grade: string; facilitator?: string }) {
   try {
     const me = await counselorOnly();
+    // The Career Planning Program is for senior high students on record.
     const profile = await db.studentProfile.findUnique({ where: { name: formData.studentName } });
     if (!profile) return { success: false, error: "Add this student to the Individual Inventory first." };
+    if (!isShs(profile.department)) return { success: false, error: "The Career Planning Program is for senior high students only." };
     const existing = await db.careerPlan.findFirst({ where: { studentName: formData.studentName } });
     if (existing) return { success: false, error: `${formData.studentName} is already in the tracker.` };
 

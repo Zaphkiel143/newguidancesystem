@@ -4,6 +4,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Check, X, Loader2, Plus, Search } from 'lucide-react';
 import { CAREER_STEPS } from '../../config/careerSteps';
+import { isShs } from '../../config/studentLevels';
 import {
   getCareerPlans,
   addCareerPlanStudent,
@@ -53,7 +54,7 @@ export default function CareerTracker() {
   }, []);
 
   const enrolled = new Set(plans?.map((p) => p.studentName));
-  const eligible = profiles.filter((s) => !enrolled.has(s.name));
+  const eligible = profiles.filter((s) => isShs(s.department) && !enrolled.has(s.name));
 
   const sq = studentQuery.trim().toLowerCase();
   const studentMatches = eligible.filter(
@@ -222,7 +223,7 @@ export default function CareerTracker() {
             <div className="flex items-start justify-between gap-4">
               <div>
                 <h2 id="add-title" className="font-medium text-ink">Add to Career Planning Program</h2>
-                <p className="text-xs text-slate-500 mt-0.5">From the Individual Inventory</p>
+                <p className="text-xs text-slate-500 mt-0.5">Senior High School students from the Individual Inventory</p>
               </div>
               <button type="button" onClick={() => setIsAddOpen(false)} aria-label="Close" className="w-11 h-11 -m-2 grid place-items-center text-slate-500 hover:text-ink hover:bg-slate-100 rounded-full"><X size={18} /></button>
             </div>
