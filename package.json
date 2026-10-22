@@ -10,7 +10,6 @@
     "test": "node --test \"tests/**/*.test.ts\""
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.124.0",
     "@prisma/adapter-pg": "^7.8.0",
     "@prisma/client": "^7.8.0",
     "lucide-react": "^1.24.0",
@@ -41,8 +40,5 @@
     "@prisma/engines@7.8.0": true,
     "prisma@7.8.0": true,
     "sharp@0.34.5": true
-  },
-  "optionalDependencies": {
-    "@embedded-postgres/windows-x64": "^17.5.0-beta.15"
   }
 }

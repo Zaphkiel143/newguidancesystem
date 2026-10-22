@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from 'react';
-import { Plus, Calendar, Clock, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Plus, Calendar, Clock, CheckCircle2, AlertCircle, XCircle } from 'lucide-react';
 import { getMyAppointments, getBookedTimesForDate, bookAppointment } from '../../action/student';
 import BookAppointmentModal from '../../../components/BookAppointmentModal';
 import type { Appointment as DbAppointment } from '../../../lib/generated';
@@ -43,6 +43,14 @@ export const MyAppointments: React.FC = () => {
         <span className="inline-flex items-center gap-1.5 bg-emerald-50 text-emerald-600 text-xs font-semibold px-3 py-1 rounded border border-emerald-200">
           <CheckCircle2 size={14} className="stroke-[2.5]" />
           Confirmed
+        </span>
+      );
+    }
+    if (status === "CANCELLED") {
+      return (
+        <span className="inline-flex items-center gap-1.5 bg-slate-100 text-slate-600 text-xs font-semibold px-3 py-1 rounded border border-slate-200">
+          <XCircle size={14} className="stroke-[2.5]" />
+          Cancelled
         </span>
       );
     }
