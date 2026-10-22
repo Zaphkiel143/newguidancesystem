@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { ArrowLeft, ArrowRight, BookOpen, Briefcase, Heart, Loader2, Users } from 'lucide-react';
+import { ArrowLeft, ArrowRight, BookOpen, Heart, Loader2, Users } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { login, loginAsDemo, registerParent, requestLoginCode, verifyLoginCode, type SignInAs } from '../action/auth';
@@ -48,11 +48,23 @@ type Step = "who" | "email" | "code" | "details" | "parent" | "register" | "wait
 
 const RESEND_SECONDS = 60;
 
-const roleLabel = (role: UserRole) => WHO_OPTIONS.find((o) => o.value === role)?.label ?? role;
+// Labels for the "your account is registered as ___" notice - kept separate
+// from WHO_OPTIONS below now that one door (Student, Faculty or Staff) can
+// resolve to either of two roles.
+const ROLE_DOOR_LABEL: Record<UserRole, string> = {
+  STUDENT: "Student",
+  FACULTY: "Faculty or staff",
+  PARENT: "Parent or guardian",
+  COUNSELOR: "Guidance office",
+};
+const roleLabel = (role: UserRole) => ROLE_DOOR_LABEL[role] ?? role;
 
+// Students and faculty/staff sign in the same way (school email + code) and,
+// since a role change already forces a fresh sign-in, which door they click
+// never decides an existing account's role - so they share one door. A
+// brand-new account picks between the two at the details step below.
 const WHO_OPTIONS: { value: SignInAs | "PARENT"; label: string; hint: string; icon: typeof Users }[] = [
-  { value: "STUDENT", label: "Student", hint: "Senior high or tertiary", icon: BookOpen },
-  { value: "FACULTY", label: "Faculty or staff", hint: "Teachers and advisers", icon: Briefcase },
+  { value: "STUDENT", label: "Student, Faculty or Staff", hint: "Senior high, tertiary, teachers and advisers", icon: BookOpen },
   { value: "PARENT", label: "Parent or guardian", hint: "Sign in with your mobile number", icon: Heart },
   { value: "COUNSELOR", label: "Guidance office", hint: "Guidance Associates", icon: Users },
 ];
@@ -483,6 +495,20 @@ const LoginPage = () => {
                 ) : (
                   <div className="space-y-4">
                     {nameFields}
+                    {signInAs !== "COUNSELOR" && (
+                      <fieldset>
+                        <legend className={labelClass}>I am a</legend>
+                        <div className="grid grid-cols-2 gap-2">
+                          {(["STUDENT", "FACULTY"] as const).map((r) => (
+                            <label key={r} className={`flex items-center gap-2 rounded-lg border px-3 min-h-11 cursor-pointer text-[14px] ${signInAs === r ? "border-blue-600 bg-blue-50" : "border-slate-300"}`}>
+                              <input type="radio" name="signInAsDetails" checked={signInAs === r} className="accent-blue-700"
+                                onChange={() => setSignInAs(r)} />
+                              {r === "STUDENT" ? "Student" : "Faculty or staff"}
+                            </label>
+                          ))}
+                        </div>
+                      </fieldset>
+                    )}
                     {signInAs === "STUDENT" && (
                       <>
                         <div>
