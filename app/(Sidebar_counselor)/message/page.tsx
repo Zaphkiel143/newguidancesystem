@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { Search, MessageSquare, User, X } from 'lucide-react';
-import { listConversations, startConversation, getMessages, markConversationRead, sendMessage } from '../../action/counselor';
+import { listConversations, startConversation, getMessages, markConversationRead, sendMessage, listStudentProfiles } from '../../action/counselor';
 import ConversationPanel from '../../../components/ConversationPanel';
 import InlineError from '../../../components/InlineError';
 import { useCurrentUser } from '../../../components/CurrentUser';
@@ -18,6 +18,8 @@ interface Conversation {
   unreadCount: number;
 }
 
+type StudentProfile = Awaited<ReturnType<typeof listStudentProfiles>>[number];
+
 export const MessagesDashboard: React.FC = () => {
   const me = useCurrentUser();
   const [conversations, setConversations] = useState<Conversation[]>([]);
@@ -30,6 +32,19 @@ export const MessagesDashboard: React.FC = () => {
   const [newRole, setNewRole] = useState<'Student' | 'Faculty' | 'Parent'>('Student');
   const [newContent, setNewContent] = useState('');
   const [isStarting, setIsStarting] = useState(false);
+  const [studentProfiles, setStudentProfiles] = useState<StudentProfile[]>([]);
+  const [studentQuery, setStudentQuery] = useState('');
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const data = await listStudentProfiles();
+      if (!cancelled) setStudentProfiles(data);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const refreshConversations = async () => {
     const data = await listConversations();
@@ -60,6 +75,11 @@ export const MessagesDashboard: React.FC = () => {
 
   const selectedConversation = conversations.find((c) => c.id === selectedId) ?? null;
 
+  const sq = studentQuery.trim().toLowerCase();
+  const studentMatches = studentProfiles.filter(
+    (s) => !sq || s.name.toLowerCase().includes(sq) || s.studentId.toLowerCase().includes(sq) || s.gradeSection.toLowerCase().includes(sq)
+  );
+
   const handleStartConversation = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newName.trim() || !newContent.trim()) return;
@@ -76,6 +96,7 @@ export const MessagesDashboard: React.FC = () => {
     if (result.success && result.conversation) {
       setIsNewMessageOpen(false);
       setNewName('');
+      setStudentQuery('');
       setNewContent('');
       setNewRole('Student');
       await refreshConversations();
@@ -114,7 +135,7 @@ export const MessagesDashboard: React.FC = () => {
 
             {/* New Message Button */}
             <button
-              onClick={() => { setStartError(null); setIsNewMessageOpen(true); }}
+              onClick={() => { setStartError(null); setNewName(''); setStudentQuery(''); setIsNewMessageOpen(true); }}
               className="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 px-4 rounded-full transition-colors text-sm shadow-sm"
             >
               <MessageSquare className="w-4 h-4 fill-current" />
@@ -243,22 +264,10 @@ export const MessagesDashboard: React.FC = () => {
 
             <form onSubmit={handleStartConversation} className="space-y-4">
               <div className="space-y-1">
-                <label className="text-xs font-semibold text-slate-700">Recipient Name</label>
-                <input
-                  type="text"
-                  required
-                  value={newName}
-                  onChange={(e) => setNewName(e.target.value)}
-                  placeholder="e.g., Kurt Aquino"
-                  className="w-full text-sm bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 focus:outline-none"
-                />
-              </div>
-
-              <div className="space-y-1">
                 <label className="text-xs font-semibold text-slate-700">Recipient Role</label>
                 <select
                   value={newRole}
-                  onChange={(e) => setNewRole(e.target.value as 'Student' | 'Faculty' | 'Parent')}
+                  onChange={(e) => { setNewRole(e.target.value as 'Student' | 'Faculty' | 'Parent'); setNewName(''); setStudentQuery(''); }}
                   className="w-full text-sm bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 focus:outline-none"
                 >
                   <option value="Student">Student</option>
@@ -266,6 +275,48 @@ export const MessagesDashboard: React.FC = () => {
                   <option value="Parent">Parent</option>
                 </select>
               </div>
+
+              {newRole === 'Student' ? (
+                <div className="space-y-1">
+                  <label className="text-xs font-semibold text-slate-700">Recipient</label>
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
+                    <input
+                      type="text"
+                      value={studentQuery}
+                      onChange={(e) => { setStudentQuery(e.target.value); setNewName(''); }}
+                      placeholder="Search by name, student ID, or section"
+                      className="w-full pl-9 pr-3 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none"
+                    />
+                  </div>
+                  <div className="max-h-44 overflow-y-auto border border-slate-200 rounded-xl divide-y divide-slate-100">
+                    {studentMatches.length === 0 ? (
+                      <p className="px-3 py-3 text-[13px] text-slate-500">No students match your search.</p>
+                    ) : (
+                      studentMatches.map((s) => (
+                        <button type="button" key={s.id} onClick={() => setNewName(s.name)}
+                          className={`w-full text-left px-3 py-2.5 text-sm hover:bg-blue-50 transition-colors ${newName === s.name ? "bg-blue-50" : ""}`}>
+                          <span className="font-medium text-ink">{s.name}</span>
+                          <span className="block text-[12px] text-slate-500">{s.studentId} · {s.gradeSection}</span>
+                        </button>
+                      ))
+                    )}
+                  </div>
+                  {newName && <p className="text-[13px] text-emerald-700">Selected: {newName}</p>}
+                </div>
+              ) : (
+                <div className="space-y-1">
+                  <label className="text-xs font-semibold text-slate-700">Recipient Name</label>
+                  <input
+                    type="text"
+                    required
+                    value={newName}
+                    onChange={(e) => setNewName(e.target.value)}
+                    placeholder="e.g., Kurt Aquino"
+                    className="w-full text-sm bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 focus:outline-none"
+                  />
+                </div>
+              )}
 
               <div className="space-y-1">
                 <label className="text-xs font-semibold text-slate-700">Message</label>
@@ -291,7 +342,7 @@ export const MessagesDashboard: React.FC = () => {
                 </button>
                 <button
                   type="submit"
-                  disabled={isStarting}
+                  disabled={isStarting || !newName.trim()}
                   className="px-5 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 rounded-full transition"
                 >
                   {isStarting ? "Sending..." : "Send Message"}
