@@ -5,7 +5,6 @@ import Image from 'next/image';
 import { CalendarDays, ImagePlus, Loader2, X } from 'lucide-react';
 import { listAnnouncements, saveAnnouncement, deleteAnnouncement } from '../../action/counselor';
 import InlineError from '../../../components/InlineError';
-import { FacebookPost } from '../../../components/FacebookEmbed';
 import { useOptionList } from '../../../components/useOptionList';
 import { optionValue } from '../../../lib/optionListDefaults';
 
@@ -21,8 +20,6 @@ type Draft = {
   category: string;
   audience: string;
   isPublished: boolean;
-  facebookUrl: string;
-  showFacebook: boolean;
   // Photo: a new file, the existing one (by URL), or none.
   photoFile: File | null;
   photoPreview: string | null;
@@ -31,7 +28,7 @@ type Draft = {
 
 const EMPTY: Draft = {
   title: "", body: "", category: "General", audience: "All", isPublished: true,
-  facebookUrl: "", showFacebook: false, photoFile: null, photoPreview: null, removePhoto: false,
+  photoFile: null, photoPreview: null, removePhoto: false,
 };
 
 const imageUrl = (a: Announcement) => `/api/announcements/${a.id}/image?v=${new Date(a.updatedAt).getTime()}`;
@@ -49,8 +46,8 @@ function OfficeAvatar({ size = 40 }: { size?: number }) {
   return <Image src="/sti-logo.jpg" alt="" width={size} height={size} className="rounded-full ring-1 ring-rule shrink-0" />;
 }
 
-// The Facebook-style announcements feed. The composer's "Event" shortcut
-// switches to the Events tab of the same module.
+// The announcements feed. The composer's "Event" shortcut switches to the
+// Events tab of the same module.
 export default function AnnouncementsPanel({ onAddEvent }: { onAddEvent: () => void }) {
   const [categories] = useOptionList("announcementCategories");
   const [audiences] = useOptionList("announcementAudiences");
@@ -98,7 +95,6 @@ export default function AnnouncementsPanel({ onAddEvent }: { onAddEvent: () => v
   const openEdit = (a: Announcement) =>
     open({
       id: a.id, title: a.title, body: a.body, category: a.category, audience: a.audience, isPublished: a.isPublished,
-      facebookUrl: a.facebookUrl ?? "", showFacebook: Boolean(a.facebookUrl),
       photoPreview: a.hasImage ? imageUrl(a) : null,
     });
 
@@ -129,7 +125,6 @@ export default function AnnouncementsPanel({ onAddEvent }: { onAddEvent: () => v
       category: draft.category,
       audience: draft.audience,
       isPublished: draft.isPublished,
-      facebookUrl: draft.showFacebook ? draft.facebookUrl : "",
       image,
     });
     setIsSaving(false);
@@ -145,7 +140,7 @@ export default function AnnouncementsPanel({ onAddEvent }: { onAddEvent: () => v
     setRowError(null);
     const result = await saveAnnouncement({
       id: a.id, title: a.title, body: a.body, category: a.category, audience: a.audience,
-      facebookUrl: a.facebookUrl ?? "", isPublished: !a.isPublished,
+      isPublished: !a.isPublished,
     });
     if (result.success) await load();
     else setRowError({ id: a.id, message: "Couldn't change visibility. Try again." });
@@ -163,7 +158,7 @@ export default function AnnouncementsPanel({ onAddEvent }: { onAddEvent: () => v
 
   return (
     <div className="max-w-3xl">
-      {/* Composer bar, like Facebook's "What's on your mind?" */}
+      {/* Composer bar */}
       <section className="bg-sheet border border-rule rounded-2xl shadow-sm p-4">
         <div className="flex items-center gap-3">
           <OfficeAvatar />
@@ -175,14 +170,10 @@ export default function AnnouncementsPanel({ onAddEvent }: { onAddEvent: () => v
             What would you like to announce?
           </button>
         </div>
-        <div className="mt-3 pt-3 border-t border-rule grid grid-cols-3 gap-1">
+        <div className="mt-3 pt-3 border-t border-rule grid grid-cols-2 gap-1">
           <button type="button" onClick={() => open({}, true)}
             className="inline-flex items-center justify-center gap-2 min-h-11 rounded-full text-[14px] font-medium text-slate-600 hover:bg-slate-100 transition-colors">
             <ImagePlus size={19} className="text-emerald-600" /> Photo
-          </button>
-          <button type="button" onClick={() => open({ showFacebook: true })}
-            className="inline-flex items-center justify-center gap-2 min-h-11 rounded-full text-[14px] font-medium text-slate-600 hover:bg-slate-100 transition-colors">
-            <FacebookMark /> Facebook post
           </button>
           <button type="button" onClick={onAddEvent}
             className="inline-flex items-center justify-center gap-2 min-h-11 rounded-full text-[14px] font-medium text-slate-600 hover:bg-slate-100 transition-colors">
@@ -225,12 +216,6 @@ export default function AnnouncementsPanel({ onAddEvent }: { onAddEvent: () => v
                   className="mt-3 w-full max-h-[560px] object-contain bg-slate-50 border-y border-rule" />
               )}
 
-              {a.facebookUrl && (
-                <div className="px-4">
-                  <FacebookPost postUrl={a.facebookUrl} />
-                </div>
-              )}
-
               <div className="mt-3 mx-4 py-2 border-t border-rule flex flex-wrap items-center gap-1 text-[13px]">
                 <button onClick={() => setViewersOf(a)} className="px-3 min-h-9 rounded-full text-blue-700 hover:bg-blue-50">
                   Seen by {a.views.length}
@@ -248,7 +233,7 @@ export default function AnnouncementsPanel({ onAddEvent }: { onAddEvent: () => v
         )}
       </section>
 
-      {/* Composer pop-up, like Facebook's "Create post" */}
+      {/* Composer pop-up */}
       {draft && (
         <div className="fixed inset-0 z-50 flex items-start sm:items-center justify-center bg-ink/50 p-3 sm:p-6 overflow-y-auto"
           onClick={() => !isSaving && setDraft(null)}>
@@ -300,24 +285,6 @@ export default function AnnouncementsPanel({ onAddEvent }: { onAddEvent: () => v
                 </div>
               )}
 
-              {draft.showFacebook && (
-                <div className="mt-3 rounded-xl border border-rule p-3">
-                  <div className="flex items-center justify-between gap-2">
-                    <label htmlFor="c-fb" className="inline-flex items-center gap-2 text-[13px] font-medium text-slate-700">
-                      <FacebookMark /> Facebook post
-                    </label>
-                    <button type="button" onClick={() => setDraft({ ...draft, showFacebook: false, facebookUrl: "" })} aria-label="Remove Facebook post"
-                      className="w-8 h-8 grid place-items-center rounded-full hover:bg-slate-100 text-slate-500"><X size={15} /></button>
-                  </div>
-                  <textarea id="c-fb" rows={2} value={draft.facebookUrl} onChange={(e) => setDraft({ ...draft, facebookUrl: e.target.value })}
-                    placeholder="https://www.facebook.com/stamaria.sti.edu/posts/…"
-                    className="mt-2 w-full bg-sheet border border-slate-300 rounded-md px-3 py-2 text-sm resize-y" />
-                  <p className="text-xs text-slate-500 mt-1">
-                    Click the post&apos;s date or time on Facebook (like “1d”) and copy that link, or paste the code from ⋯ → Embed. “Copy link” share links don&apos;t work.
-                  </p>
-                </div>
-              )}
-
               <InlineError message={formError} onDismiss={() => setFormError(null)} className="mt-3" />
             </div>
 
@@ -327,8 +294,6 @@ export default function AnnouncementsPanel({ onAddEvent }: { onAddEvent: () => v
                 <span className="flex items-center gap-1">
                   <button type="button" onClick={() => photoInput.current?.click()} aria-label="Add a photo" title="Photo"
                     className="w-10 h-10 grid place-items-center rounded-full hover:bg-slate-100"><ImagePlus size={21} className="text-emerald-600" /></button>
-                  <button type="button" onClick={() => setDraft({ ...draft, showFacebook: true })} aria-label="Add a Facebook post" title="Facebook post"
-                    className="w-10 h-10 grid place-items-center rounded-full hover:bg-slate-100"><FacebookMark size={21} /></button>
                 </span>
               </div>
               <input ref={photoInput} type="file" accept="image/jpeg,image/png,image/webp,image/gif" className="hidden"
@@ -380,14 +345,5 @@ export default function AnnouncementsPanel({ onAddEvent }: { onAddEvent: () => v
         </div>
       )}
     </div>
-  );
-}
-
-function FacebookMark({ size = 18 }: { size?: number }) {
-  return (
-    <svg aria-hidden viewBox="0 0 24 24" width={size} height={size} className="shrink-0">
-      <circle cx="12" cy="12" r="12" fill="#1877F2" />
-      <path fill="#fff" d="M13.4 19.5v-6.1h2.1l.3-2.4h-2.4V9.5c0-.7.2-1.2 1.2-1.2h1.3V6.2c-.2 0-1-.1-1.9-.1-1.9 0-3.2 1.2-3.2 3.3v1.7H8.7v2.4h2.1v6.1z" />
-    </svg>
   );
 }

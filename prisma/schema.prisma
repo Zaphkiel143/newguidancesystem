@@ -253,8 +253,6 @@ model Announcement {
   category    String   // e.g. Seminar, Mental Health, Career, Reminder
   audience    String   @default("All") // All, Students, Faculty, Parents
   isPublished Boolean  @default(true)
-  // Optional link to a post on the school's Facebook page, embedded on request.
-  facebookUrl String?
   // Optional photo/poster shown with the announcement (served by /api/announcements/[id]/image).
   imageData   Bytes?
   imageType   String?

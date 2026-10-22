@@ -3,7 +3,6 @@
 import React, { useEffect, useState } from "react";
 import { CalendarDays, Loader2, MapPin } from "lucide-react";
 import { getBulletin } from "../app/action/bulletin";
-import { FacebookPost } from "./FacebookEmbed";
 import { LogoMark } from "./Logo";
 import { useCurrentUser } from "./CurrentUser";
 
@@ -93,11 +92,6 @@ export default function ParentFeed() {
                       alt={`Photo for ${a.title}`}
                       className="w-full max-h-[560px] object-contain bg-slate-50 border-t border-rule"
                     />
-                  )}
-                  {a.facebookUrl && (
-                    <div className="px-4 pb-4">
-                      <FacebookPost postUrl={a.facebookUrl} />
-                    </div>
                   )}
                 </article>
               ))

@@ -4,9 +4,6 @@ import React, { useEffect, useState } from "react";
 import { Loader2, MapPin } from "lucide-react";
 import { getBulletin } from "../app/action/bulletin";
 
-import { FacebookPageCard, FacebookPost } from "./FacebookEmbed";
-import { FACEBOOK_PAGE_URL } from "../app/config/school";
-
 // Information Service board + upcoming events, shared by the student, faculty
 // and parent routes. Announcements can be filtered by category.
 export default function BulletinBoard() {
@@ -80,7 +77,6 @@ export default function BulletinBoard() {
                         className="mt-3 w-full max-w-[560px] max-h-[640px] object-contain rounded-xl border border-rule bg-slate-50"
                       />
                     )}
-                    {a.facebookUrl && <FacebookPost postUrl={a.facebookUrl} />}
                   </li>
                 ))}
               </ul>
@@ -120,9 +116,6 @@ export default function BulletinBoard() {
                 })}
               </ul>
             )}
-
-            <h2 className="font-serif text-[22px] text-ink mt-12 mb-3">On Facebook</h2>
-            <FacebookPageCard pageUrl={FACEBOOK_PAGE_URL} pageName="STI College Sta. Maria" />
           </section>
         </div>
       )}

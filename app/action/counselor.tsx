@@ -8,7 +8,6 @@ import { CAREER_STEPS } from "../config/careerSteps";
 import { Prisma } from "../../lib/generated";
 import { requireActionUser } from "../../lib/session";
 import { formatAppointmentWhen, sendEmail } from "../../lib/email";
-import { normalizeFacebookPostUrl } from "../../lib/facebook";
 import { checkImage } from "../../lib/image";
 import { notifyByName } from "../../lib/notify";
 import { logRecordAccess } from "../../lib/accessLog";
@@ -758,21 +757,12 @@ export async function saveAnnouncement(formData: {
   category: string;
   audience: string;
   isPublished: boolean;
-  facebookUrl?: string;
   // undefined: keep the current photo; null: remove it; object: replace it.
   image?: { dataBase64: string } | null;
 }) {
   try {
     const me = await counselorOnly();
     if (!formData.title.trim() || !formData.body.trim()) return { success: false, error: "Add a title and a message." };
-
-    // Optional Facebook post: a permalink or the post's embed code (see lib/facebook.ts).
-    let fb: string | null = null;
-    if (formData.facebookUrl?.trim()) {
-      const parsed = normalizeFacebookPostUrl(formData.facebookUrl);
-      if (!parsed.ok) return { success: false, error: parsed.error };
-      fb = parsed.url;
-    }
 
     let imageFields: { imageData: Uint8Array<ArrayBuffer> | null; imageType: string | null } | Record<string, never> = {};
     if (formData.image === null) {
@@ -789,7 +779,6 @@ export async function saveAnnouncement(formData: {
       category: formData.category,
       audience: formData.audience,
       isPublished: formData.isPublished,
-      facebookUrl: fb,
       ...imageFields,
     };
     if (formData.id) await db.announcement.update({ where: { id: formData.id }, data });
