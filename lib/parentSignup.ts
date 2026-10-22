@@ -59,7 +59,14 @@ export type ParentSignupResult =
 
 const str = (v: unknown): string => String(v ?? "");
 
-export function validateParentSignup(input: ParentSignupInput): ParentSignupResult {
+// lists defaults to the static arrays above (used by tests and any caller
+// that doesn't have live option-list data on hand); callers that do - the
+// sign-up form and registerParent - pass the counselor-editable lists
+// instead, so a renamed/added choice is recognized without a code change.
+export function validateParentSignup(
+  input: ParentSignupInput,
+  lists: { nameExtensions: readonly string[]; relationships: readonly string[] } = { nameExtensions: NAME_EXTENSIONS, relationships: RELATIONSHIPS }
+): ParentSignupResult {
   const src = (input ?? {}) as Partial<ParentSignupInput>;
   const lastName = cleanName(str(src.lastName));
   const firstName = cleanName(str(src.firstName));
@@ -79,7 +86,7 @@ export function validateParentSignup(input: ParentSignupInput): ParentSignupResu
   if (!firstName) errors.firstName = "Enter your first name.";
   else if (firstName.length > 60) errors.firstName = "Keep your first name under 60 characters.";
 
-  if (nameExtension !== "" && !(NAME_EXTENSIONS as readonly string[]).includes(nameExtension)) {
+  if (nameExtension !== "" && !lists.nameExtensions.includes(nameExtension)) {
     errors.nameExtension = "Choose a name extension from the list.";
   }
 
@@ -103,7 +110,7 @@ export function validateParentSignup(input: ParentSignupInput): ParentSignupResu
     errors.childStudentId = "Enter your child's student ID number (letters, numbers and dashes only).";
   }
 
-  if (!(RELATIONSHIPS as readonly string[]).includes(relationship)) {
+  if (!lists.relationships.includes(relationship)) {
     errors.relationship = "Choose your relationship to the student.";
   }
 

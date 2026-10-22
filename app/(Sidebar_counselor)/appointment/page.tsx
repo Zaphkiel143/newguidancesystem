@@ -10,16 +10,16 @@ import {
   updateAppointmentStatus,
 } from "../../action/counselor";
 import { DAY_SCHEDULE, LUNCH_BREAK_LABEL, STANDARD_DAY_HOURS, SLOT_MINUTES, formatMinutesToTime, parseTimeToMinutes } from "../../config/timeSlots";
-import { APPOINTMENT_PURPOSES, OTHER } from "../../config/studentLevels";
+import { OTHER } from "../../config/studentLevels";
 import InlineError from "../../../components/InlineError";
 import ContactLinks from "../../../components/ContactLinks";
 import { manilaToday } from "../../../lib/time";
+import { useOptionList } from "../../../components/useOptionList";
+import { optionValue } from "../../../lib/optionListDefaults";
 
 type Schedule = Awaited<ReturnType<typeof getDaySchedule>>;
 type Appt = Schedule["appointments"][number];
 type Block = Schedule["blocks"][number];
-
-const BLOCK_REASONS = ["Meeting", "Seminar / Training", "Class or school activity", "On leave", OTHER];
 // End-time choices: the end of every bookable hour (9:00 AM … 4:00 PM).
 const END_TIMES = STANDARD_DAY_HOURS.map((t) => formatMinutesToTime(parseTimeToMinutes(t) + SLOT_MINUTES));
 
@@ -37,6 +37,8 @@ const field = "w-full text-sm bg-sheet border border-slate-300 rounded-lg px-3 p
 const fieldLabel = "text-xs font-semibold text-slate-700 block mb-1";
 
 export default function AppointmentScheduling() {
+  const [appointmentReasons] = useOptionList("appointmentReasons");
+  const purposeValues = appointmentReasons.map(optionValue);
   const today = manilaToday();
   const [date, setDate] = useState(today);
   const [schedule, setSchedule] = useState<Schedule | null>(null);
@@ -51,6 +53,7 @@ export default function AppointmentScheduling() {
   const [formError, setFormError] = useState<string | null>(null);
 
   // Block time
+  const [blockReasons] = useOptionList("blockReasons");
   const [blocking, setBlocking] = useState(false);
   const [block, setBlock] = useState({ wholeDay: false, start: STANDARD_DAY_HOURS[0], end: END_TIMES[0], reason: "Meeting", reasonOther: "" });
   const [blockResult, setBlockResult] = useState<string | null>(null);
@@ -97,13 +100,13 @@ export default function AppointmentScheduling() {
   };
 
   const openEditor = (a: Appt) => {
-    const known = (APPOINTMENT_PURPOSES as readonly string[]).includes(a.appointmentType ?? "");
+    const known = purposeValues.includes(a.appointmentType ?? "");
     const isOther = a.appointmentType?.startsWith("Other: ");
     setEditing(a);
     setEdit({
       date: new Date(a.date).toISOString().slice(0, 10),
       time: a.time,
-      purpose: known ? a.appointmentType! : isOther ? OTHER : a.appointmentType || APPOINTMENT_PURPOSES[0],
+      purpose: known ? a.appointmentType! : isOther ? OTHER : a.appointmentType || purposeValues[0] || "",
       purposeOther: isOther ? a.appointmentType!.slice(7) : "",
       notes: a.notes ?? "",
       requirement: "",
@@ -335,7 +338,8 @@ export default function AppointmentScheduling() {
               <div>
                 <label htmlFor="blk-reason" className={fieldLabel}>Reason</label>
                 <select id="blk-reason" className={field} value={block.reason} onChange={(e) => setBlock({ ...block, reason: e.target.value })}>
-                  {BLOCK_REASONS.map((r) => <option key={r} value={r}>{r}</option>)}
+                  {blockReasons.map((r) => <option key={r.id} value={optionValue(r)}>{r.label}</option>)}
+                  <option value={OTHER}>{OTHER}</option>
                 </select>
                 {block.reason === OTHER && (
                   <input aria-label="Reason" className={`${field} mt-2`} maxLength={80} placeholder="e.g. Parent conference" value={block.reasonOther}
@@ -386,8 +390,8 @@ export default function AppointmentScheduling() {
               <div>
                 <label htmlFor="ed-purpose" className={fieldLabel}>Purpose</label>
                 <select id="ed-purpose" className={field} value={edit.purpose} onChange={(e) => setEdit({ ...edit, purpose: e.target.value })}>
-                  {!(APPOINTMENT_PURPOSES as readonly string[]).includes(edit.purpose) && <option value={edit.purpose}>{edit.purpose}</option>}
-                  {APPOINTMENT_PURPOSES.map((p) => <option key={p} value={p}>{p}</option>)}
+                  {!purposeValues.includes(edit.purpose) && <option value={edit.purpose}>{edit.purpose}</option>}
+                  {appointmentReasons.map((r) => <option key={r.id} value={optionValue(r)}>{r.label}</option>)}
                 </select>
                 {edit.purpose === OTHER && (
                   <input aria-label="Purpose" className={`${field} mt-2`} maxLength={60} value={edit.purposeOther} onChange={(e) => setEdit({ ...edit, purposeOther: e.target.value })} />

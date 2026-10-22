@@ -3,12 +3,15 @@
 import React, { useEffect, useState } from 'react';
 import { Calendar as CalendarIcon, Clock, AlignLeft, Users, CheckCircle } from 'lucide-react';
 import { getBookedTimesForDate, bookAppointment } from '../../action/parent';
-import { APPOINTMENT_CATEGORIES, APPOINTMENT_REASONS } from '../../config/studentLevels';
 import { firstBookableDate, isClosedDay } from '../../config/timeSlots';
 import { DAY_SCHEDULE } from '../../config/timeSlots';
 import { useMyChildren } from '../useMyChildren';
+import { useOptionList } from '../../../components/useOptionList';
+import { optionValue } from '../../../lib/optionListDefaults';
 
 export const ParentBookAppointment: React.FC = () => {
+  const [categories] = useOptionList("appointmentCategories");
+  const [reasons] = useOptionList("appointmentReasons");
   const minSelectableDate = firstBookableDate();
 
   // State configurations matching parent metrics from image_85ac21.png
@@ -197,7 +200,7 @@ export const ParentBookAppointment: React.FC = () => {
                   className="w-full px-4 py-2.5 bg-white border border-slate-200 text-sm font-semibold rounded-xl text-slate-700 appearance-none focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all"
                 >
                   <option value="" disabled>Select...</option>
-                  {APPOINTMENT_CATEGORIES.map((p) => <option key={p} value={p}>{p}</option>)}
+                  {categories.map((c) => <option key={c.id} value={optionValue(c)}>{c.label}</option>)}
                 </select>
                 <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-slate-500 text-xs">
                   ▼
@@ -214,7 +217,7 @@ export const ParentBookAppointment: React.FC = () => {
                     className="w-full px-4 py-2.5 bg-white border border-slate-200 text-sm font-semibold rounded-xl text-slate-700 appearance-none focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all"
                   >
                     <option value="" disabled>Select...</option>
-                    {APPOINTMENT_REASONS[category as keyof typeof APPOINTMENT_REASONS].map((r) => <option key={r} value={r}>{r}</option>)}
+                    {reasons.filter((r) => r.parentItemKey === category).map((r) => <option key={r.id} value={optionValue(r)}>{r.label}</option>)}
                   </select>
                   <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-slate-500 text-xs">
                     ▼

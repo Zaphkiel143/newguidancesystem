@@ -4,7 +4,6 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { Loader2, Send } from "lucide-react";
 import {
-  CONCERN_TYPES,
   OTHER,
   SHS,
   programsFor,
@@ -32,19 +31,12 @@ interface Props {
   myReferralsPath: string;
 }
 
-const PRIORITIES = [
-  { value: "Low", label: "Low – mild concern" },
-  { value: "Medium", label: "Medium – noticeable concern" },
-  { value: "High", label: "High – needs attention soon" },
-];
-
-// Students and faculty use a deadline-oriented priority scale; parents use
-// the Low/Medium/High scale.
-const DEADLINE_PRIORITIES = [
-  { value: "Emergency", label: "Emergency" },
-  { value: "As soon as possible", label: "As soon as possible" },
-  { value: "Before this date", label: "Before this date" },
-];
+// Students and faculty use a deadline-oriented priority scale (the
+// "facultyPriorities" option list); parents use the Low/Medium/High scale
+// (the "priorities" option list). "High", "Emergency" and "Before this
+// date" are protected items - their itemKey stays frozen at these exact
+// strings even if a counselor renames the label, which is what the string
+// comparisons below depend on.
 const NEEDS_DATE = "Before this date";
 
 const EMPTY = {
@@ -65,7 +57,7 @@ const EMPTY = {
 };
 
 function emptyFor(mode: Mode) {
-  return { ...EMPTY, priority: mode === "parent" ? "Medium" : DEADLINE_PRIORITIES[0].value };
+  return { ...EMPTY, priority: mode === "parent" ? "Medium" : "Emergency" };
 }
 
 const input = "w-full px-3 py-2.5 bg-sheet border border-slate-300 rounded-lg text-[14px] focus:outline-none focus:ring-2 focus:ring-blue-500";
@@ -76,6 +68,9 @@ const req = <span className="text-rose-600" aria-hidden> *</span>;
 // reaches the guidance office with the same details.
 export default function ReferralForm({ mode, linkedChildren, onSubmit, myReferralsPath }: Props) {
   const [departments] = useOptionList("departments");
+  const [concernTypes] = useOptionList("concernTypes");
+  const [priorities] = useOptionList("priorities");
+  const [facultyPriorities] = useOptionList("facultyPriorities");
   const [f, setF] = useState(() => emptyFor(mode));
   const [saving, setSaving] = useState(false);
   const [done, setDone] = useState(false);
@@ -200,7 +195,8 @@ export default function ReferralForm({ mode, linkedChildren, onSubmit, myReferra
           <label htmlFor="ref-concern" className={label}>Type of concern{req}</label>
           <select id="ref-concern" className={input} value={f.concern} required onChange={(e) => set({ concern: e.target.value })}>
             <option value="" disabled>Choose…</option>
-            {CONCERN_TYPES.map((c) => <option key={c} value={c}>{c}</option>)}
+            {concernTypes.map((c) => <option key={c.id} value={optionValue(c)}>{c.label}</option>)}
+            <option value={OTHER}>{OTHER}</option>
           </select>
           {f.concern === OTHER && (
             <input aria-label="Describe the concern type" placeholder="What kind of concern?" className={`${input} mt-2`} value={f.concernOther}
@@ -210,7 +206,7 @@ export default function ReferralForm({ mode, linkedChildren, onSubmit, myReferra
         <div>
           <label htmlFor="ref-priority" className={label}>Level of priority{req}</label>
           <select id="ref-priority" className={input} value={f.priority} onChange={(e) => set({ priority: e.target.value, priorityDate: "" })}>
-            {(mode === "parent" ? PRIORITIES : DEADLINE_PRIORITIES).map((p) => <option key={p.value} value={p.value}>{p.label}</option>)}
+            {(mode === "parent" ? priorities : facultyPriorities).map((p) => <option key={p.id} value={optionValue(p)}>{p.label}</option>)}
           </select>
           {mode !== "parent" && f.priority === NEEDS_DATE && (
             <input

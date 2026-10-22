@@ -12,12 +12,14 @@ interface EditOptionsButtonProps {
   // Shows "Edit <text>" next to the icon - for placements away from the
   // field itself (e.g. a page header) where the icon alone has no context.
   text?: string;
+  // Set for a hierarchical list (e.g. appointment reasons) - see EditOptionsModal.
+  parentListKey?: string;
 }
 
 // Small inline trigger, dropped next to a dropdown (or a page header) on the
 // counselor's own pages, that opens EditOptionsModal for that dropdown's
 // option list.
-export default function EditOptionsButton({ listKey, listLabel, onSaved, className, text }: EditOptionsButtonProps) {
+export default function EditOptionsButton({ listKey, listLabel, onSaved, className, text, parentListKey }: EditOptionsButtonProps) {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
@@ -32,7 +34,7 @@ export default function EditOptionsButton({ listKey, listLabel, onSaved, classNa
         <Pencil size={13} />
         {text}
       </button>
-      {isOpen && <EditOptionsModal listKey={listKey} listLabel={listLabel} onClose={() => setIsOpen(false)} onSaved={onSaved} />}
+      {isOpen && <EditOptionsModal listKey={listKey} listLabel={listLabel} onClose={() => setIsOpen(false)} onSaved={onSaved} parentListKey={parentListKey} />}
     </>
   );
 }

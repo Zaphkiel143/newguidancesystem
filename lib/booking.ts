@@ -1,10 +1,11 @@
 import db from "./db";
-import { APPOINTMENT_PURPOSES, OTHER } from "../app/config/studentLevels";
 import { isBookableTime, isClosedDay } from "../app/config/timeSlots";
 import { manilaToday } from "./time";
 import { normalizePhone } from "./phone";
 import { notifyCounselors } from "./notify";
 import { formatAppointmentWhen } from "./email";
+import { getOptionList } from "../app/action/optionLists";
+import { optionValue } from "./optionListDefaults";
 
 // Checks shared by the student, faculty and parent booking actions. The client
 // already hides taken, blocked and past slots; this makes sure a request sent
@@ -21,7 +22,8 @@ export async function checkBooking(input: { dateString: string; timeSlot: string
   }
 
   const purpose = input.appointmentType.trim();
-  const knownPurpose = (APPOINTMENT_PURPOSES as readonly string[]).includes(purpose) && purpose !== OTHER;
+  const reasons = await getOptionList("appointmentReasons");
+  const knownPurpose = reasons.some((r) => optionValue(r) === purpose);
   if (!knownPurpose && !/^Other: .{2,60}$/.test(purpose)) return { error: "Choose the purpose of the appointment." } as const;
 
   const notes = input.notes.trim();

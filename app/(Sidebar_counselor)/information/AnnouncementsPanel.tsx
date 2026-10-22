@@ -6,16 +6,11 @@ import { CalendarDays, ImagePlus, Loader2, X } from 'lucide-react';
 import { listAnnouncements, saveAnnouncement, deleteAnnouncement } from '../../action/counselor';
 import InlineError from '../../../components/InlineError';
 import { FacebookPost } from '../../../components/FacebookEmbed';
+import { useOptionList } from '../../../components/useOptionList';
+import { optionValue } from '../../../lib/optionListDefaults';
 
 type Announcement = Awaited<ReturnType<typeof listAnnouncements>>[number];
 
-const CATEGORIES = ["General", "Seminar", "Mental Health", "Career", "Reminder", "Awareness Month"];
-const AUDIENCES = [
-  { value: "All", label: "Everyone" },
-  { value: "Students", label: "Students" },
-  { value: "Faculty", label: "Faculty" },
-  { value: "Parents", label: "Parents" },
-];
 const OFFICE = "Guidance and Counseling Office";
 const MAX_PHOTO_BYTES = 5 * 1024 * 1024;
 
@@ -35,7 +30,7 @@ type Draft = {
 };
 
 const EMPTY: Draft = {
-  title: "", body: "", category: CATEGORIES[0], audience: "All", isPublished: true,
+  title: "", body: "", category: "General", audience: "All", isPublished: true,
   facebookUrl: "", showFacebook: false, photoFile: null, photoPreview: null, removePhoto: false,
 };
 
@@ -57,6 +52,8 @@ function OfficeAvatar({ size = 40 }: { size?: number }) {
 // The Facebook-style announcements feed. The composer's "Event" shortcut
 // switches to the Events tab of the same module.
 export default function AnnouncementsPanel({ onAddEvent }: { onAddEvent: () => void }) {
+  const [categories] = useOptionList("announcementCategories");
+  const [audiences] = useOptionList("announcementAudiences");
   const [items, setItems] = useState<Announcement[] | null>(null);
   const [draft, setDraft] = useState<Draft | null>(null); // null = composer closed
   const [isSaving, setIsSaving] = useState(false);
@@ -209,7 +206,7 @@ export default function AnnouncementsPanel({ onAddEvent }: { onAddEvent: () => v
                   <p className="font-semibold text-ink text-[15px]">{OFFICE}</p>
                   <p className="text-xs text-slate-500 mt-0.5">
                     {new Date(a.createdAt).toLocaleDateString("en-PH", { month: "short", day: "numeric", year: "numeric" })} ·{" "}
-                    {AUDIENCES.find((x) => x.value === a.audience)?.label ?? a.audience} · {a.category}
+                    {audiences.find((x) => optionValue(x) === a.audience)?.label ?? a.audience} · {a.category}
                   </p>
                 </div>
                 <span className={`shrink-0 text-xs font-medium px-2.5 py-1 rounded-full ${a.isPublished ? "bg-emerald-50 text-emerald-700" : "bg-slate-100 text-slate-600"}`}>
@@ -273,11 +270,11 @@ export default function AnnouncementsPanel({ onAddEvent }: { onAddEvent: () => v
                   <div className="mt-1 flex flex-wrap gap-1.5">
                     <select aria-label="Who can see this" value={draft.audience} onChange={(e) => setDraft({ ...draft, audience: e.target.value })}
                       className="bg-slate-100 hover:bg-slate-200 border-0 rounded-full pl-3 pr-7 py-1 text-xs font-medium text-ink cursor-pointer">
-                      {AUDIENCES.map((x) => <option key={x.value} value={x.value}>{x.label}</option>)}
+                      {audiences.map((x) => <option key={x.id} value={optionValue(x)}>{x.label}</option>)}
                     </select>
                     <select aria-label="Category" value={draft.category} onChange={(e) => setDraft({ ...draft, category: e.target.value })}
                       className="bg-slate-100 hover:bg-slate-200 border-0 rounded-full pl-3 pr-7 py-1 text-xs font-medium text-ink cursor-pointer">
-                      {CATEGORIES.map((c) => <option key={c}>{c}</option>)}
+                      {categories.map((c) => <option key={c.id} value={optionValue(c)}>{c.label}</option>)}
                     </select>
                   </div>
                 </div>

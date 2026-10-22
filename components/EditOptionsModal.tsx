@@ -3,32 +3,46 @@
 import React, { useEffect, useState } from "react";
 import { X, Plus, Trash2, ChevronUp, ChevronDown, Loader2 } from "lucide-react";
 import { getOptionList, updateOptionList, type OptionItemData } from "../app/action/optionLists";
+import { optionValue } from "../lib/optionListDefaults";
 
 interface EditOptionsModalProps {
   listKey: string;
   listLabel: string;
   onClose: () => void;
   onSaved?: () => void;
+  // Set for a hierarchical list (e.g. appointment reasons) - the listKey of
+  // the parent list each row belongs to. Shows a category picker per row
+  // instead of treating the list as flat, and a brand-new row always gets a
+  // real category instead of silently becoming unreachable (parentItemKey: null).
+  parentListKey?: string;
 }
 
 type Row = { itemKey: string | null; parentItemKey: string | null; label: string; isProtected: boolean };
 
-export default function EditOptionsModal({ listKey, listLabel, onClose, onSaved }: EditOptionsModalProps) {
+export default function EditOptionsModal({ listKey, listLabel, onClose, onSaved, parentListKey }: EditOptionsModalProps) {
   const [rows, setRows] = useState<Row[] | null>(null);
+  const [parentOptions, setParentOptions] = useState<OptionItemData[]>([]);
   const [newLabel, setNewLabel] = useState("");
+  const [newParentItemKey, setNewParentItemKey] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      const items: OptionItemData[] = await getOptionList(listKey);
-      if (!cancelled) setRows(items.map((i) => ({ itemKey: i.itemKey, parentItemKey: i.parentItemKey, label: i.label, isProtected: i.isProtected })));
+      const [items, parents] = await Promise.all([
+        getOptionList(listKey),
+        parentListKey ? getOptionList(parentListKey) : Promise.resolve([]),
+      ]);
+      if (cancelled) return;
+      setRows(items.map((i) => ({ itemKey: i.itemKey, parentItemKey: i.parentItemKey, label: i.label, isProtected: i.isProtected })));
+      setParentOptions(parents);
+      if (parents.length > 0) setNewParentItemKey(optionValue(parents[0]));
     })();
     return () => {
       cancelled = true;
     };
-  }, [listKey]);
+  }, [listKey, parentListKey]);
 
   const move = (index: number, dir: -1 | 1) => {
     if (!rows) return;
@@ -46,6 +60,13 @@ export default function EditOptionsModal({ listKey, listLabel, onClose, onSaved 
     setRows(next);
   };
 
+  const setParentItem = (index: number, parentItemKey: string) => {
+    if (!rows) return;
+    const next = [...rows];
+    next[index] = { ...next[index], parentItemKey };
+    setRows(next);
+  };
+
   const remove = (index: number) => {
     if (!rows) return;
     setRows(rows.filter((_, i) => i !== index));
@@ -54,7 +75,7 @@ export default function EditOptionsModal({ listKey, listLabel, onClose, onSaved 
   const addItem = () => {
     const label = newLabel.trim();
     if (!label || !rows) return;
-    setRows([...rows, { itemKey: null, parentItemKey: null, label, isProtected: false }]);
+    setRows([...rows, { itemKey: null, parentItemKey: newParentItemKey, label, isProtected: false }]);
     setNewLabel("");
   };
 
@@ -109,6 +130,17 @@ export default function EditOptionsModal({ listKey, listLabel, onClose, onSaved 
                       onChange={(e) => rename(i, e.target.value)}
                       className="flex-1 text-sm bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
+                    {parentListKey && (
+                      <select
+                        aria-label={`Category for ${row.label}`}
+                        value={row.parentItemKey ?? ""}
+                        onChange={(e) => setParentItem(i, e.target.value)}
+                        className="shrink-0 w-32 text-xs bg-slate-50 border border-slate-200 rounded-lg px-2 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      >
+                        {row.parentItemKey === null && <option value="">No category</option>}
+                        {parentOptions.map((p) => <option key={p.id} value={optionValue(p)}>{p.label}</option>)}
+                      </select>
+                    )}
                     <button
                       type="button"
                       aria-label={`Remove ${row.label}`}
@@ -137,6 +169,16 @@ export default function EditOptionsModal({ listKey, listLabel, onClose, onSaved 
                   }}
                   className="flex-1 text-sm bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
+                {parentListKey && parentOptions.length > 0 && (
+                  <select
+                    aria-label="Category for the new choice"
+                    value={newParentItemKey ?? ""}
+                    onChange={(e) => setNewParentItemKey(e.target.value)}
+                    className="shrink-0 w-32 text-xs bg-slate-50 border border-slate-200 rounded-lg px-2 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    {parentOptions.map((p) => <option key={p.id} value={optionValue(p)}>{p.label}</option>)}
+                  </select>
+                )}
                 <button type="button" onClick={addItem} disabled={!newLabel.trim()} className="text-blue-600 hover:text-blue-800 disabled:opacity-30 disabled:cursor-not-allowed p-1.5 shrink-0">
                   <Plus size={18} />
                 </button>

@@ -7,16 +7,15 @@ import PhotoPicker from "../../../components/PhotoPicker";
 import { PushToggle } from "../../../components/LoginApproval";
 import InlineError from "../../../components/InlineError";
 import { formatPhone } from "../../../lib/phone";
+import { useOptionList } from "../../../components/useOptionList";
+import { optionValue } from "../../../lib/optionListDefaults";
 
 type Profile = NonNullable<Awaited<ReturnType<typeof getMyParentProfile>>>;
 
-const EXTENSIONS = ["Jr.", "Sr.", "II", "III", "IV", "V"];
-const RELATIONSHIPS = ["Mother", "Father", "Guardian", "Grandparent", "Sibling", "Other relative"];
-
 // Best guess at name parts from the stored full name ("First Middle Last Ext").
-function splitName(full: string) {
+function splitName(full: string, extensions: readonly string[]) {
   const parts = full.split(/\s+/).filter(Boolean);
-  const ext = EXTENSIONS.includes(parts[parts.length - 1] ?? "") ? parts.pop()! : "";
+  const ext = extensions.includes(parts[parts.length - 1] ?? "") ? parts.pop()! : "";
   const last = parts.length > 1 ? parts.pop()! : "";
   return { first: parts.join(" "), last, ext };
 }
@@ -32,6 +31,8 @@ const label = "block text-[13px] font-medium text-slate-700 mb-1.5";
 const primary = "inline-flex items-center justify-center gap-2 bg-blue-700 hover:bg-blue-800 text-white font-medium px-6 min-h-11 rounded-full text-[14px] disabled:opacity-60";
 
 export default function ParentProfilePage() {
+  const [nameExtensions] = useOptionList("nameExtensions");
+  const [relationships] = useOptionList("relationships");
   const [profile, setProfile] = useState<Profile | null | undefined>(undefined);
   const [form, setForm] = useState({ first: "", last: "", ext: "", phone: "", email: "" });
   const [saving, setSaving] = useState(false);
@@ -44,21 +45,28 @@ export default function ParentProfilePage() {
   const [link, setLink] = useState({ childStudentId: "", childName: "", relationship: "" });
   const [linkState, setLinkState] = useState<{ busy: boolean; error: string | null; done: boolean }>({ busy: false, error: null, done: false });
 
-  const apply = (p: Profile | null) => {
-    setProfile(p);
-    if (p) {
-      const n = splitName(p.name);
-      setForm({ first: n.first, last: n.last, ext: n.ext, phone: formatPhone(p.phone), email: p.email ?? "" });
-    }
-  };
-
   useEffect(() => {
     let cancelled = false;
-    getMyParentProfile().then((p) => !cancelled && apply(p));
+    getMyParentProfile().then((p) => !cancelled && setProfile(p));
     return () => {
       cancelled = true;
     };
   }, []);
+
+  // Re-split whenever the profile or the live extension list changes (the
+  // list may still be loading when the profile first arrives) - adjusted
+  // during render rather than in an effect, per React's "you might not
+  // need an effect" guidance for state derived from props/other state.
+  const [prevProfile, setPrevProfile] = useState(profile);
+  const [prevExtensions, setPrevExtensions] = useState(nameExtensions);
+  if (profile !== prevProfile || nameExtensions !== prevExtensions) {
+    setPrevProfile(profile);
+    setPrevExtensions(nameExtensions);
+    if (profile) {
+      const n = splitName(profile.name, nameExtensions.map(optionValue));
+      setForm({ first: n.first, last: n.last, ext: n.ext, phone: formatPhone(profile.phone), email: profile.email ?? "" });
+    }
+  }
 
   const save = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -90,7 +98,7 @@ export default function ParentProfilePage() {
     setLinkState({ busy: false, error: result.success ? null : result.error ?? "Couldn't send it.", done: result.success });
     if (result.success) {
       setLink({ childStudentId: "", childName: "", relationship: "" });
-      apply(await getMyParentProfile());
+      setProfile(await getMyParentProfile());
     }
   };
 
@@ -124,7 +132,7 @@ export default function ParentProfilePage() {
               <label htmlFor="p-ext" className={label}>Ext. <span className="font-normal text-slate-500">(optional)</span></label>
               <select id="p-ext" className={input} value={form.ext} onChange={(e) => setForm({ ...form, ext: e.target.value })}>
                 <option value="">None</option>
-                {EXTENSIONS.map((x) => <option key={x} value={x}>{x}</option>)}
+                {nameExtensions.map((x) => <option key={x.id} value={optionValue(x)}>{x.label}</option>)}
               </select>
             </div>
           </div>
@@ -181,7 +189,7 @@ export default function ParentProfilePage() {
               <label htmlFor="l-rel" className={label}>You are their</label>
               <select id="l-rel" className={input} value={link.relationship} required onChange={(e) => setLink({ ...link, relationship: e.target.value })}>
                 <option value="" disabled>Choose…</option>
-                {RELATIONSHIPS.map((r) => <option key={r} value={r}>{r}</option>)}
+                {relationships.map((r) => <option key={r.id} value={optionValue(r)}>{r.label}</option>)}
               </select>
             </div>
           </div>

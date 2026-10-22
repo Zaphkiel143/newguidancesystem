@@ -2,7 +2,8 @@
 
 import React, { useCallback, useEffect, useState } from 'react';
 import { Loader2, Plus, X, Users } from 'lucide-react';
-import { GRADE_LEVELS } from '../../config/gradeLevels';
+import { useOptionList } from '../../../components/useOptionList';
+import { optionValue } from '../../../lib/optionListDefaults';
 import {
   getGroupGuidancePrograms,
   addGroupGuidanceProgram,
@@ -42,12 +43,13 @@ const DEFAULT_TOPICS = [
 
 export default function GroupGuidance() {
   const minSelectableDate = getMinSelectableDate();
+  const [gradeLevels] = useOptionList("gradeLevels");
   const [programs, setPrograms] = useState<GroupGuidanceProgram[] | null>(null);
   const [assessments, setAssessments] = useState<Assessment[] | null>(null);
 
   // New program
   const [isProgramOpen, setIsProgramOpen] = useState(false);
-  const [program, setProgram] = useState({ title: "", gradeLevel: GRADE_LEVELS[0] as string, dateString: minSelectableDate, time: "" });
+  const [program, setProgram] = useState({ title: "", gradeLevel: "Grade 11", dateString: minSelectableDate, time: "" });
   const [programError, setProgramError] = useState<string | null>(null);
   const [isSavingProgram, setIsSavingProgram] = useState(false);
 
@@ -227,7 +229,7 @@ export default function GroupGuidance() {
       <section className="mt-14">
         <div className="flex flex-wrap items-baseline justify-between gap-3 mb-3">
           <h2 className="font-serif text-[22px] text-ink">Group sessions</h2>
-          <button onClick={() => { setProgram({ title: "", gradeLevel: GRADE_LEVELS[0], dateString: minSelectableDate, time: "" }); setProgramError(null); setIsProgramOpen(true); }}
+          <button onClick={() => { setProgram({ title: "", gradeLevel: "Grade 11", dateString: minSelectableDate, time: "" }); setProgramError(null); setIsProgramOpen(true); }}
             className="inline-flex items-center gap-2 border border-slate-300 hover:bg-slate-100 text-sm font-medium px-4 min-h-11 rounded-full transition-colors">
             <Plus size={16} /> Schedule a session
           </button>
@@ -279,7 +281,7 @@ export default function GroupGuidance() {
               <select id="na-grade" value={form.gradeLevel} onChange={(e) => setForm({ ...form, gradeLevel: e.target.value })}
                 className="w-full bg-paper border border-slate-300 rounded-md px-3 py-2.5 text-sm">
                 <option value="All">All students</option>
-                {GRADE_LEVELS.map((g) => <option key={g} value={g}>{g}</option>)}
+                {gradeLevels.map((g) => <option key={g.id} value={optionValue(g)}>{g.label}</option>)}
               </select>
             </Field>
             <Field id="na-topics" label="Topics students can choose (one per line)">
@@ -303,7 +305,7 @@ export default function GroupGuidance() {
             <Field id="gp-grade" label="Grade level">
               <select id="gp-grade" value={program.gradeLevel} onChange={(e) => setProgram({ ...program, gradeLevel: e.target.value })}
                 className="w-full bg-paper border border-slate-300 rounded-md px-3 py-2.5 text-sm">
-                {GRADE_LEVELS.map((g) => <option key={g} value={g}>{g}</option>)}
+                {gradeLevels.map((g) => <option key={g.id} value={optionValue(g)}>{g.label}</option>)}
               </select>
             </Field>
             <div className="grid grid-cols-2 gap-3">

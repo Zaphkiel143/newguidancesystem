@@ -206,7 +206,7 @@ export async function submitReferral(formData: {
 }) {
   try {
     const me = await requireActionUser("FACULTY");
-    const checked = checkReferral(formData);
+    const checked = await checkReferral(formData);
     if ("error" in checked) return { success: false, error: checked.error };
     if (!(await allow(`referral:${me.id}`, 5, HOUR)) || !(await allow(`referral-day:${me.id}`, 15, DAY))) {
       return { success: false, error: SLOW_DOWN };

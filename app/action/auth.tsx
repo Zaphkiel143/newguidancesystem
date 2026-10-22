@@ -8,6 +8,8 @@ import { emailConfigured, sendEmail } from "../../lib/email";
 import { notifyCounselors } from "../../lib/notify";
 import { normalizePhone } from "../../lib/phone";
 import { cleanName, FIX_FIELDS_MESSAGE, validateParentSignup, type ParentSignupErrors } from "../../lib/parentSignup";
+import { getOptionList } from "./optionLists";
+import { optionValue } from "../../lib/optionListDefaults";
 import { allow, clientIp, HOUR, MINUTE } from "../../lib/rateLimit";
 import type { UserRole } from "../../lib/generated";
 import { SCHOOL_EMAIL_DOMAIN } from "../config/school";
@@ -356,7 +358,11 @@ export async function registerParent(formData: {
     if (formData.website) return { success: true }; // quietly ignore bots
 
     // Same rules the form runs in the browser. Checked before the rate limit so a typo doesn't use up a sign-up.
-    const check = validateParentSignup(formData);
+    const [nameExtensions, relationships] = await Promise.all([getOptionList("nameExtensions"), getOptionList("relationships")]);
+    const check = validateParentSignup(formData, {
+      nameExtensions: nameExtensions.map(optionValue),
+      relationships: relationships.map(optionValue),
+    });
     if (!check.ok) return { success: false, error: FIX_FIELDS_MESSAGE, fieldErrors: check.errors };
 
     if (!(await allow(`register-ip:${await clientIp()}`, 3, HOUR))) {

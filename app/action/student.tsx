@@ -9,7 +9,9 @@ import { counselorEmails, formatAppointmentWhen, sendEmail } from "../../lib/ema
 import { announceNewBooking, checkBooking } from "../../lib/booking";
 import { parseTimeToMinutes } from "../config/timeSlots";
 import { DEPARTMENTS, gradeSectionLabel, isShs, isTertiaryLike, normalizeDepartment, programsFor, yearLevelsFor } from "../config/studentLevels";
-import { checkDocument, STUDENT_DOCUMENT_CATEGORIES } from "../../lib/documents";
+import { checkDocument } from "../../lib/documents";
+import { getOptionList } from "./optionLists";
+import { optionValue } from "../../lib/optionListDefaults";
 import { notifyCounselors } from "../../lib/notify";
 import { announceNewReferral, checkReferral } from "../../lib/referrals";
 import { cleanAnswers, validateAnswers, type Answers } from "../config/collegeCareerForm";
@@ -214,7 +216,7 @@ export async function submitReferral(formData: {
     if (formData.aboutMyself || studentName.toLocaleLowerCase() === me.name.toLocaleLowerCase()) {
       return { success: false, error: "You can only refer another student." };
     }
-    const checked = checkReferral({ ...formData, studentName });
+    const checked = await checkReferral({ ...formData, studentName });
     if ("error" in checked) return { success: false, error: checked.error };
     if (!(await allow(`referral:${me.id}`, 5, HOUR)) || !(await allow(`referral-day:${me.id}`, 15, DAY))) {
       return { success: false, error: SLOW_DOWN };
@@ -311,7 +313,8 @@ export async function submitStudentDocument(formData: {
 }) {
   try {
     const me = await requireActionUser("STUDENT");
-    if (!(STUDENT_DOCUMENT_CATEGORIES as readonly string[]).includes(formData.category)) return { success: false, error: "Choose the type of document." };
+    const categories = await getOptionList("documentCategories");
+    if (!categories.some((c) => optionValue(c) === formData.category)) return { success: false, error: "Choose the type of document." };
     const file = checkDocument(formData.dataBase64, formData.fileName);
     if (!file.ok) return { success: false, error: file.error };
     // Stops someone filling the review queue: at most 10 waiting at a time.

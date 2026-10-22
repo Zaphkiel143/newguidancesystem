@@ -229,7 +229,7 @@ export async function submitReferral(formData: {
 }) {
   try {
     const { me, child } = await requireOwnChild(formData.studentName);
-    const checked = checkReferral({ ...formData, studentName: child.name });
+    const checked = await checkReferral({ ...formData, studentName: child.name });
     if ("error" in checked) return { success: false, error: checked.error };
     if (!(await allow(`referral:${me.id}`, 5, HOUR)) || !(await allow(`referral-day:${me.id}`, 15, DAY))) {
       return { success: false, error: SLOW_DOWN };

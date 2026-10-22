@@ -1,24 +1,33 @@
-import { CONCERN_TYPES, OTHER } from "../app/config/studentLevels";
 import { notifyCounselors } from "./notify";
+import { getOptionList } from "../app/action/optionLists";
+import { optionValue } from "./optionListDefaults";
 
 // Server-side checks shared by the student, faculty and parent referral actions,
 // so a referral can't be saved with made-up categories or huge text.
 
-// Students and parents pick Low/Medium/High; faculty pick from a
-// deadline-oriented scale instead (see components/ReferralForm.tsx).
-const PRIORITIES = ["Low", "Medium", "High", "Emergency", "As soon as possible", "Before this date"];
+// Students and parents pick Low/Medium/High (the "priorities" option list);
+// faculty pick from a deadline-oriented scale instead, the "facultyPriorities"
+// list (see components/ReferralForm.tsx). A referral can carry either scale's
+// value regardless of who submitted it (e.g. a parent submitting on a
+// student's behalf), so both lists are accepted here.
 const MAX_DESCRIPTION = 6000;
 
-export function checkReferral(input: { studentName: string; concernType: string; priority: string; description: string }) {
+export async function checkReferral(input: { studentName: string; concernType: string; priority: string; description: string }) {
   const studentName = input.studentName.trim().replace(/\s+/g, " ");
   const concernType = input.concernType.trim();
   const description = input.description.trim();
 
   if (studentName.length < 2 || studentName.length > 120) return { error: "Enter the student's full name." } as const;
-  const knownConcern = (CONCERN_TYPES as readonly string[]).includes(concernType) && concernType !== OTHER;
+  const [concernTypes, priorities, facultyPriorities] = await Promise.all([
+    getOptionList("concernTypes"),
+    getOptionList("priorities"),
+    getOptionList("facultyPriorities"),
+  ]);
+  const knownConcern = concernTypes.some((c) => optionValue(c) === concernType);
   const otherConcern = /^Other: .{2,60}$/.test(concernType);
   if (!knownConcern && !otherConcern) return { error: "Choose a type of concern." } as const;
-  if (!PRIORITIES.includes(input.priority)) return { error: "Choose how urgent it is." } as const;
+  const knownPriority = [...priorities, ...facultyPriorities].some((p) => optionValue(p) === input.priority);
+  if (!knownPriority) return { error: "Choose how urgent it is." } as const;
   if (description.length < 5) return { error: "Describe the concern." } as const;
   if (description.length > MAX_DESCRIPTION) return { error: "The description is too long." } as const;
 

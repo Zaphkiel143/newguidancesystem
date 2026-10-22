@@ -3,7 +3,8 @@
 import React, { useEffect, useState } from "react";
 import { X, CheckCircle2 } from "lucide-react";
 import { DAY_SCHEDULE, firstBookableDate, isClosedDay } from "../app/config/timeSlots";
-import { APPOINTMENT_CATEGORIES, APPOINTMENT_REASONS } from "../app/config/studentLevels";
+import { useOptionList } from "./useOptionList";
+import { optionValue } from "../lib/optionListDefaults";
 
 interface BookingPayload {
   dateString: string;
@@ -32,6 +33,8 @@ export default function BookAppointmentModal({
   onBooked,
   showPhoneField = true,
 }: BookAppointmentModalProps) {
+  const [categories] = useOptionList("appointmentCategories");
+  const [reasons] = useOptionList("appointmentReasons");
   const minSelectableDate = firstBookableDate();
   const [date, setDate] = useState(() => firstBookableDate());
   const closed = isClosedDay(date);
@@ -175,8 +178,8 @@ export default function BookAppointmentModal({
               className="w-full text-sm bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 focus:outline-none"
             >
               <option value="" disabled>Select...</option>
-              {APPOINTMENT_CATEGORIES.map((option) => (
-                <option key={option} value={option}>{option}</option>
+              {categories.map((c) => (
+                <option key={c.id} value={optionValue(c)}>{c.label}</option>
               ))}
             </select>
             {category && (
@@ -189,8 +192,8 @@ export default function BookAppointmentModal({
                 className="w-full text-sm bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 focus:outline-none mt-2"
               >
                 <option value="" disabled>Select...</option>
-                {APPOINTMENT_REASONS[category as keyof typeof APPOINTMENT_REASONS].map((option) => (
-                  <option key={option} value={option}>{option}</option>
+                {reasons.filter((r) => r.parentItemKey === category).map((r) => (
+                  <option key={r.id} value={optionValue(r)}>{r.label}</option>
                 ))}
               </select>
             )}

@@ -42,7 +42,7 @@ export default function SettingsPage() {
             <div key={list.listKey} className="bg-white border border-slate-100 rounded-2xl shadow-sm p-5">
               <div className="flex items-start justify-between gap-2 mb-3">
                 <h3 className="font-semibold text-slate-900 text-sm">{list.label}</h3>
-                <EditOptionsButton listKey={list.listKey} listLabel={list.label} onSaved={load} />
+                <EditOptionsButton listKey={list.listKey} listLabel={list.label} onSaved={load} parentListKey={list.parentKey ?? undefined} />
               </div>
               <div className="flex flex-wrap gap-1.5">
                 {list.items.map((item) => (

@@ -15,9 +15,7 @@ import { useOptionList } from '../../components/useOptionList';
 import type { UserRole } from '../../lib/generated';
 import {
   FIX_FIELDS_MESSAGE,
-  NAME_EXTENSIONS,
   PARENT_SIGNUP_FIELDS,
-  RELATIONSHIPS,
   validateParentSignup,
   type ParentSignupErrors,
   type ParentSignupField,
@@ -69,6 +67,8 @@ const WHO_OPTIONS: { value: SignInAs | "PARENT"; label: string; hint: string; ic
 const LoginPage = () => {
   const router = useRouter();
   const [departments] = useOptionList("departments");
+  const [nameExtensions] = useOptionList("nameExtensions");
+  const [relationships] = useOptionList("relationships");
   const [step, setStep] = useState<Step>("who");
   const [signInAs, setSignInAs] = useState<SignInAs>("STUDENT");
   const [email, setEmail] = useState('');
@@ -230,18 +230,21 @@ const LoginPage = () => {
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
-    const check = validateParentSignup({
-      lastName: name.last,
-      firstName: name.first,
-      nameExtension: name.ext,
-      phone,
-      email: reg.email,
-      password: reg.password,
-      confirm: reg.confirm,
-      childStudentId: reg.childStudentId,
-      childName: reg.childName,
-      relationship: reg.relationship,
-    });
+    const check = validateParentSignup(
+      {
+        lastName: name.last,
+        firstName: name.first,
+        nameExtension: name.ext,
+        phone,
+        email: reg.email,
+        password: reg.password,
+        confirm: reg.confirm,
+        childStudentId: reg.childStudentId,
+        childName: reg.childName,
+        relationship: reg.relationship,
+      },
+      { nameExtensions: nameExtensions.map(optionValue), relationships: relationships.map(optionValue) }
+    );
     if (!check.ok) {
       setRegErrors(check.errors);
       setError(FIX_FIELDS_MESSAGE);
@@ -328,7 +331,7 @@ const LoginPage = () => {
             aria-invalid={regErrors.nameExtension ? true : undefined} aria-describedby={regErrors.nameExtension ? "r-nameExtension-error" : undefined}
             value={name.ext} onChange={(e) => { setName({ ...name, ext: e.target.value }); clearRegError("nameExtension"); }}>
             <option value="">None</option>
-            {NAME_EXTENSIONS.map((x) => <option key={x} value={x}>{x}</option>)}
+            {nameExtensions.map((x) => <option key={x.id} value={optionValue(x)}>{x.label}</option>)}
           </select>
           <FieldError id="r-nameExtension-error" message={regErrors.nameExtension} />
         </div>
@@ -635,7 +638,7 @@ const LoginPage = () => {
                         aria-invalid={regErrors.relationship ? true : undefined} aria-describedby={regErrors.relationship ? "r-relationship-error" : undefined}
                         onChange={(e) => { setReg({ ...reg, relationship: e.target.value }); clearRegError("relationship"); }}>
                         <option value="" disabled>Choose…</option>
-                        {RELATIONSHIPS.map((r) => <option key={r} value={r}>{r}</option>)}
+                        {relationships.map((r) => <option key={r.id} value={optionValue(r)}>{r.label}</option>)}
                       </select>
                       <FieldError id="r-relationship-error" message={regErrors.relationship} />
                     </div>

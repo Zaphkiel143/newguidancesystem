@@ -7,7 +7,7 @@ import InlineError from '../../../components/InlineError';
 import PhotoPicker from '../../../components/PhotoPicker';
 import AuthenticatorSetup from '../../../components/AuthenticatorSetup';
 import { PushToggle } from '../../../components/LoginApproval';
-import { ACCEPTED_FILE_TYPES, STUDENT_DOCUMENT_CATEGORIES as DOCUMENT_CATEGORIES } from '../../config/documents';
+import { ACCEPTED_FILE_TYPES } from '../../config/documents';
 import { SHS, programsFor, yearLevelsFor } from '../../config/studentLevels';
 import { optionValue } from '../../../lib/optionListDefaults';
 import { useOptionList } from '../../../components/useOptionList';
@@ -33,9 +33,10 @@ function readAsBase64(file: File): Promise<string> {
 
 export const StudentProfile: React.FC = () => {
   const [departments] = useOptionList("departments");
+  const [documentCategories] = useOptionList("documentCategories");
   const [data, setData] = useState<MyProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [category, setCategory] = useState<string>(DOCUMENT_CATEGORIES[0]);
+  const [category, setCategory] = useState<string>("Excuse letter");
   const [info, setInfo] = useState({ studentId: '', department: SHS as string, yearLevel: '', program: '', section: '' });
   const [infoState, setInfoState] = useState<{ busy: boolean; error: string | null }>({ busy: false, error: null });
   const [file, setFile] = useState<File | null>(null);
@@ -215,8 +216,8 @@ export const StudentProfile: React.FC = () => {
                     onChange={(e) => setCategory(e.target.value)}
                     className="w-full bg-sheet border border-slate-300 rounded-md px-3 py-2.5 text-sm"
                   >
-                    {DOCUMENT_CATEGORIES.map((c) => (
-                      <option key={c} value={c}>{c}</option>
+                    {documentCategories.map((c) => (
+                      <option key={c.id} value={optionValue(c)}>{c.label}</option>
                     ))}
                   </select>
                 </div>
