@@ -139,6 +139,9 @@ export default function AppointmentScheduling() {
     e.preventDefault();
     const reason = block.reason === OTHER ? block.reasonOther.trim() : block.reason;
     if (!reason) return setBlockError("Say why you're unavailable.");
+    if (!block.wholeDay && parseTimeToMinutes(block.end) <= parseTimeToMinutes(block.start)) {
+      return setBlockError("The end time must be after the start time.");
+    }
     setSaving(true);
     setBlockError(null);
     const result = await blockTime({ dateString: date, startTime: block.start, endTime: block.end, wholeDay: block.wholeDay, reason });
@@ -324,7 +327,7 @@ export default function AppointmentScheduling() {
                   <div>
                     <label htmlFor="blk-end" className={fieldLabel}>Until</label>
                     <select id="blk-end" className={field} value={block.end} onChange={(e) => setBlock({ ...block, end: e.target.value })}>
-                      {END_TIMES.filter((t) => parseTimeToMinutes(t) > parseTimeToMinutes(block.start)).map((t) => <option key={t} value={t}>{t}</option>)}
+                      {END_TIMES.map((t) => <option key={t} value={t}>{t}</option>)}
                     </select>
                   </div>
                 </div>

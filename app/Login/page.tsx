@@ -168,6 +168,7 @@ const LoginPage = () => {
 
   const checkCode = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (step === "code" && code.length !== 6) return setError("Enter the 6-digit code from your email.");
     setIsSubmitting(true);
     setError(null);
     const withDetails = step === "details";
@@ -456,9 +457,9 @@ const LoginPage = () => {
                 {step === "code" ? (
                   <div>
                     <label htmlFor="code" className={labelClass}>6-digit code</label>
-                    <input id="code" ref={codeInput} type="text" inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]{6}" maxLength={6}
+                    <input id="code" ref={codeInput} type="text" inputMode="numeric" autoComplete="one-time-code" maxLength={6}
                       placeholder="000000" className={`${inputClass} font-mono text-center text-xl tracking-[0.5em]`} value={code}
-                      onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 6))} required />
+                      onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 6))} />
                   </div>
                 ) : (
                   <div className="space-y-4">
@@ -519,7 +520,7 @@ const LoginPage = () => {
                   </div>
                 )}
                 <ErrorLine error={error} />
-                <button type="submit" disabled={isSubmitting || (step === "code" && code.length !== 6)} className={primaryButton}>
+                <button type="submit" disabled={isSubmitting} className={primaryButton}>
                   {isSubmitting ? <><Loader2 size={16} className="animate-spin" /> Checking</> : step === "code" ? "Sign in" : "Continue"}
                 </button>
                 {step === "code" && (

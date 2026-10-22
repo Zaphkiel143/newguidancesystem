@@ -103,6 +103,7 @@ export default function StudentInventory() {
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!form) return;
+    if (!form.studentId.trim() || !form.name.trim()) return setFormError("Student ID and full name are required.");
     setIsSaving(true);
     setFormError(null);
     const result = await saveStudentProfile(form);
@@ -325,7 +326,7 @@ export default function StudentInventory() {
       {/* Add / edit form */}
       {form && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-ink/40 p-4" onClick={() => setForm(null)}>
-          <form role="dialog" aria-modal="true" aria-labelledby="form-title" onSubmit={handleSave} onClick={(e) => e.stopPropagation()}
+          <form role="dialog" aria-modal="true" aria-labelledby="form-title" onSubmit={handleSave} onClick={(e) => e.stopPropagation()} noValidate
             className="bg-sheet w-full max-w-3xl max-h-[90vh] overflow-y-auto rounded-xl border border-rule shadow-xl">
             <div className="sticky top-0 bg-sheet border-b border-rule px-6 py-4 flex items-center justify-between">
               <h2 id="form-title" className="font-medium text-ink">{form.id ? `Edit ${form.name}` : "Add a student"}</h2>
