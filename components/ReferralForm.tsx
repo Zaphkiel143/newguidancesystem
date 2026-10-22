@@ -3,13 +3,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { Loader2, Send } from "lucide-react";
-import {
-  OTHER,
-  SHS,
-  programsFor,
-  withOther,
-  yearLevelsFor,
-} from "../app/config/studentLevels";
+import { OTHER, SHS, withOther } from "../app/config/studentLevels";
 import { optionValue } from "../lib/optionListDefaults";
 import { useOptionList } from "./useOptionList";
 
@@ -71,6 +65,10 @@ export default function ReferralForm({ mode, linkedChildren, onSubmit, myReferra
   const [concernTypes] = useOptionList("concernTypes");
   const [priorities] = useOptionList("priorities");
   const [facultyPriorities] = useOptionList("facultyPriorities");
+  const [shsGrades] = useOptionList("shsGrades");
+  const [tertiaryYears] = useOptionList("tertiaryYears");
+  const [shsStrands] = useOptionList("shsStrands");
+  const [tertiaryCourses] = useOptionList("tertiaryCourses");
   const [f, setF] = useState(() => emptyFor(mode));
   const [saving, setSaving] = useState(false);
   const [done, setDone] = useState(false);
@@ -172,14 +170,14 @@ export default function ReferralForm({ mode, linkedChildren, onSubmit, myReferra
               <label htmlFor="ref-year" className={label}>{isShs ? "Grade" : "Year level"}{req}</label>
               <select id="ref-year" className={input} value={f.yearLevel} required onChange={(e) => set({ yearLevel: e.target.value })}>
                 <option value="" disabled>Choose…</option>
-                {yearLevelsFor(f.department).map((y) => <option key={y} value={y}>{y}</option>)}
+                {(isShs ? shsGrades : tertiaryYears).map((y) => <option key={y.id} value={optionValue(y)}>{y.label}</option>)}
               </select>
             </div>
             <div>
               <label htmlFor="ref-program" className={label}>{isShs ? "Strand" : "Course"} <span className="font-normal text-slate-500">(if known)</span></label>
               <select id="ref-program" className={input} value={f.program} onChange={(e) => set({ program: e.target.value })}>
                 <option value="">Not sure</option>
-                {programsFor(f.department).map((p) => <option key={p} value={p}>{p}</option>)}
+                {(isShs ? shsStrands : tertiaryCourses).map((p) => <option key={p.id} value={optionValue(p)}>{p.label}</option>)}
               </select>
             </div>
             <div>

@@ -13,7 +13,7 @@ import { optionValue } from "../../lib/optionListDefaults";
 import { allow, clientIp, HOUR, MINUTE } from "../../lib/rateLimit";
 import type { UserRole } from "../../lib/generated";
 import { SCHOOL_EMAIL_DOMAIN } from "../config/school";
-import { DEPARTMENTS, gradeSectionLabel, programsFor, yearLevelsFor } from "../config/studentLevels";
+import { gradeSectionLabel, isShs } from "../config/studentLevels";
 import { logActivity } from "../../lib/activityLog";
 import { ROLE_LABEL } from "../../lib/session";
 
@@ -273,7 +273,7 @@ async function createSchoolAccount(
   const status = role === "STUDENT" || isListedCounselor ? "ACTIVE" : "PENDING";
 
   if (needsStudentDetails) {
-    const problem = checkStudentDetails(formData.student!);
+    const problem = await checkStudentDetails(formData.student!);
     if (problem) return { error: problem };
     const s = formData.student!;
     const studentId = s.studentId.trim();
@@ -326,11 +326,20 @@ async function createSchoolAccount(
   return { user };
 }
 
-function checkStudentDetails(s: StudentDetails): string | null {
+async function checkStudentDetails(s: StudentDetails): Promise<string | null> {
   if (!/^[A-Za-z0-9-]{4,20}$/.test(s.studentId.trim())) return "Enter your student ID number (letters, numbers and dashes only).";
-  if (!(DEPARTMENTS as readonly string[]).includes(s.department)) return "Choose Senior High School, Tertiary, Irregular, or Off Term.";
-  if (!yearLevelsFor(s.department).includes(s.yearLevel)) return "Choose your grade or year level.";
-  if (!programsFor(s.department).includes(s.program)) return "Choose your strand or course.";
+  const [departments, shsGrades, tertiaryYears, shsStrands, tertiaryCourses] = await Promise.all([
+    getOptionList("departments"),
+    getOptionList("shsGrades"),
+    getOptionList("tertiaryYears"),
+    getOptionList("shsStrands"),
+    getOptionList("tertiaryCourses"),
+  ]);
+  if (!departments.some((d) => optionValue(d) === s.department)) return "Choose Senior High School, Tertiary, Irregular, or Off Term.";
+  const levels = isShs(s.department) ? shsGrades : tertiaryYears;
+  if (!levels.some((l) => optionValue(l) === s.yearLevel)) return "Choose your grade or year level.";
+  const programs = isShs(s.department) ? shsStrands : tertiaryCourses;
+  if (!programs.some((p) => optionValue(p) === s.program)) return "Choose your strand or course.";
   if (!s.section.trim() || s.section.trim().length > 30) return "Enter your section.";
   return null;
 }

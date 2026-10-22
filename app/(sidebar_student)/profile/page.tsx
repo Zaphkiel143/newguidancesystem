@@ -8,7 +8,7 @@ import PhotoPicker from '../../../components/PhotoPicker';
 import AuthenticatorSetup from '../../../components/AuthenticatorSetup';
 import { PushToggle } from '../../../components/LoginApproval';
 import { ACCEPTED_FILE_TYPES } from '../../config/documents';
-import { SHS, programsFor, yearLevelsFor } from '../../config/studentLevels';
+import { SHS, isShs } from '../../config/studentLevels';
 import { optionValue } from '../../../lib/optionListDefaults';
 import { useOptionList } from '../../../components/useOptionList';
 
@@ -34,6 +34,10 @@ function readAsBase64(file: File): Promise<string> {
 export const StudentProfile: React.FC = () => {
   const [departments] = useOptionList("departments");
   const [documentCategories] = useOptionList("documentCategories");
+  const [shsStrands] = useOptionList("shsStrands");
+  const [tertiaryCourses] = useOptionList("tertiaryCourses");
+  const [shsGrades] = useOptionList("shsGrades");
+  const [tertiaryYears] = useOptionList("tertiaryYears");
   const [data, setData] = useState<MyProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [category, setCategory] = useState<string>("Excuse letter");
@@ -172,7 +176,7 @@ export const StudentProfile: React.FC = () => {
                     <select id="si-year" className="w-full bg-sheet border border-slate-300 rounded-md px-3 py-2.5 text-sm" value={info.yearLevel} required
                       onChange={(e) => setInfo({ ...info, yearLevel: e.target.value })}>
                       <option value="" disabled>Choose…</option>
-                      {yearLevelsFor(info.department).map((y) => <option key={y} value={y}>{y}</option>)}
+                      {(isShs(info.department) ? shsGrades : tertiaryYears).map((y) => <option key={y.id} value={optionValue(y)}>{y.label}</option>)}
                     </select>
                   </div>
                   <div>
@@ -180,7 +184,7 @@ export const StudentProfile: React.FC = () => {
                     <select id="si-program" className="w-full bg-sheet border border-slate-300 rounded-md px-3 py-2.5 text-sm" value={info.program} required
                       onChange={(e) => setInfo({ ...info, program: e.target.value })}>
                       <option value="" disabled>Choose…</option>
-                      {programsFor(info.department).map((x) => <option key={x} value={x}>{x}</option>)}
+                      {(isShs(info.department) ? shsStrands : tertiaryCourses).map((x) => <option key={x.id} value={optionValue(x)}>{x.label}</option>)}
                     </select>
                   </div>
                   <div>

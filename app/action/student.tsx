@@ -8,7 +8,7 @@ import { allow, DAY, HOUR, MINUTE, SLOW_DOWN } from "../../lib/rateLimit";
 import { counselorEmails, formatAppointmentWhen, sendEmail } from "../../lib/email";
 import { announceNewBooking, checkBooking } from "../../lib/booking";
 import { parseTimeToMinutes } from "../config/timeSlots";
-import { DEPARTMENTS, gradeSectionLabel, isShs, isTertiaryLike, normalizeDepartment, programsFor, yearLevelsFor } from "../config/studentLevels";
+import { gradeSectionLabel, isShs, isTertiaryLike, normalizeDepartment } from "../config/studentLevels";
 import { checkDocument } from "../../lib/documents";
 import { getOptionList } from "./optionLists";
 import { optionValue } from "../../lib/optionListDefaults";
@@ -479,9 +479,18 @@ export async function completeMyStudentInfo(formData: { studentId: string; depar
     }
     const studentId = formData.studentId.trim();
     if (!/^[A-Za-z0-9-]{4,20}$/.test(studentId)) return { success: false, error: "Enter your student ID number." };
-    if (!(DEPARTMENTS as readonly string[]).includes(formData.department)) return { success: false, error: "Choose Senior High School, Tertiary, Irregular, or Off Term." };
-    if (!yearLevelsFor(formData.department).includes(formData.yearLevel)) return { success: false, error: "Choose your grade or year level." };
-    if (!programsFor(formData.department).includes(formData.program)) return { success: false, error: "Choose your strand or course." };
+    const [departments, shsGrades, tertiaryYears, shsStrands, tertiaryCourses] = await Promise.all([
+      getOptionList("departments"),
+      getOptionList("shsGrades"),
+      getOptionList("tertiaryYears"),
+      getOptionList("shsStrands"),
+      getOptionList("tertiaryCourses"),
+    ]);
+    if (!departments.some((d) => optionValue(d) === formData.department)) return { success: false, error: "Choose Senior High School, Tertiary, Irregular, or Off Term." };
+    const levels = isShs(formData.department) ? shsGrades : tertiaryYears;
+    if (!levels.some((l) => optionValue(l) === formData.yearLevel)) return { success: false, error: "Choose your grade or year level." };
+    const programs = isShs(formData.department) ? shsStrands : tertiaryCourses;
+    if (!programs.some((p) => optionValue(p) === formData.program)) return { success: false, error: "Choose your strand or course." };
     const section = formData.section.trim();
     if (!section || section.length > 30) return { success: false, error: "Enter your section." };
 
@@ -652,7 +661,8 @@ export async function saveMyCareerForm(input: { answers: unknown; submit: boolea
     if (!(await allow(`careerform:${who.me.id}`, 60, HOUR))) return { success: false, error: SLOW_DOWN };
 
     const answers = cleanAnswers(input?.answers);
-    const fieldErrors = validateAnswers(answers, Boolean(input?.submit));
+    const tertiaryCourses = await getOptionList("tertiaryCourses");
+    const fieldErrors = validateAnswers(answers, Boolean(input?.submit), { program: tertiaryCourses.map(optionValue) });
     if (Object.keys(fieldErrors).length) {
       return { success: false, error: "Some answers need fixing. Check the messages under each question.", fieldErrors };
     }

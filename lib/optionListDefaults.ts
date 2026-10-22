@@ -58,6 +58,14 @@ export const OPTION_LIST_DEFAULTS: Record<string, DefaultOptionList> = {
       "Bachelor of Multimedia Arts",
     ]),
   },
+  shsGrades: {
+    label: "Senior High Grade Levels",
+    items: plain(["Grade 11", "Grade 12"]),
+  },
+  tertiaryYears: {
+    label: "Tertiary Year Levels",
+    items: plain(["1st Year", "2nd Year", "3rd Year", "4th Year"]),
+  },
   concernTypes: {
     label: "Referral Concern Types",
     items: plain([

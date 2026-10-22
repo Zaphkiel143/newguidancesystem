@@ -9,7 +9,7 @@ import { SCHOOL_EMAIL_DOMAIN } from '../config/school';
 import { LogoMark } from '../../components/Logo';
 import { signInWithTotp } from '../action/totp';
 import { checkLoginApproval, requestLoginApproval } from '../action/loginApproval';
-import { programsFor, SHS, yearLevelsFor } from '../config/studentLevels';
+import { isShs, SHS } from '../config/studentLevels';
 import { optionValue } from '../../lib/optionListDefaults';
 import { useOptionList } from '../../components/useOptionList';
 import type { UserRole } from '../../lib/generated';
@@ -69,6 +69,10 @@ const LoginPage = () => {
   const [departments] = useOptionList("departments");
   const [nameExtensions] = useOptionList("nameExtensions");
   const [relationships] = useOptionList("relationships");
+  const [shsGrades] = useOptionList("shsGrades");
+  const [tertiaryYears] = useOptionList("tertiaryYears");
+  const [shsStrands] = useOptionList("shsStrands");
+  const [tertiaryCourses] = useOptionList("tertiaryCourses");
   const [step, setStep] = useState<Step>("who");
   const [signInAs, setSignInAs] = useState<SignInAs>("STUDENT");
   const [email, setEmail] = useState('');
@@ -495,7 +499,7 @@ const LoginPage = () => {
                             <select id="yearLevel" className={inputClass} value={student.yearLevel} required
                               onChange={(e) => setStudent({ ...student, yearLevel: e.target.value })}>
                               <option value="" disabled>Choose…</option>
-                              {yearLevelsFor(student.department).map((y) => <option key={y} value={y}>{y}</option>)}
+                              {(isShs(student.department) ? shsGrades : tertiaryYears).map((y) => <option key={y.id} value={optionValue(y)}>{y.label}</option>)}
                             </select>
                           </div>
                           <div>
@@ -509,7 +513,7 @@ const LoginPage = () => {
                           <select id="program" className={inputClass} value={student.program} required
                             onChange={(e) => setStudent({ ...student, program: e.target.value })}>
                             <option value="" disabled>Choose…</option>
-                            {programsFor(student.department).map((p) => <option key={p} value={p}>{p}</option>)}
+                            {(isShs(student.department) ? shsStrands : tertiaryCourses).map((p) => <option key={p.id} value={optionValue(p)}>{p.label}</option>)}
                           </select>
                         </div>
                       </>

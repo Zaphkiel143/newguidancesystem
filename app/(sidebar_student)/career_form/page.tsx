@@ -13,6 +13,8 @@ import {
   type Field,
 } from "../../config/collegeCareerForm";
 import InlineError from "../../../components/InlineError";
+import { useOptionList } from "../../../components/useOptionList";
+import { optionValue } from "../../../lib/optionListDefaults";
 
 const inputClass = "w-full px-3.5 py-2.5 bg-sheet border border-slate-300 rounded-md text-[15px] placeholder:text-slate-400 transition-colors";
 const fieldClass = (bad?: string) => (bad ? inputClass.replace("border-slate-300", "border-red-500") : inputClass);
@@ -20,6 +22,8 @@ const fieldClass = (bad?: string) => (bad ? inputClass.replace("border-slate-300
 type Loaded = Extract<Awaited<ReturnType<typeof getMyCareerForm>>, { allowed: true }>;
 
 export default function CareerPlanningFormPage() {
+  const [tertiaryCourses] = useOptionList("tertiaryCourses");
+  const overrides: Record<string, string[]> = { program: tertiaryCourses.map(optionValue) };
   const [data, setData] = useState<Loaded | null | undefined>(undefined);
   const [answers, setAnswers] = useState<Answers>({});
   const [step, setStep] = useState(0);
@@ -64,7 +68,7 @@ export default function CareerPlanningFormPage() {
   // Check only this page before moving on, so students fix things as they go.
   const next = () => {
     const pageErrors = Object.fromEntries(
-      Object.entries(validateAnswers(answers, true)).filter(([id]) => section.fields.some((f) => f.id === id))
+      Object.entries(validateAnswers(answers, true, overrides)).filter(([id]) => section.fields.some((f) => f.id === id))
     );
     setErrors(pageErrors);
     if (Object.keys(pageErrors).length) {
@@ -79,7 +83,7 @@ export default function CareerPlanningFormPage() {
     setSaving(submit ? "submit" : "draft");
     setFormError(null);
     if (submit) {
-      const all = validateAnswers(answers, true);
+      const all = validateAnswers(answers, true, overrides);
       if (Object.keys(all).length) {
         setErrors(all);
         setSaving(null);
@@ -165,7 +169,13 @@ export default function CareerPlanningFormPage() {
 
         <div className="mt-5 space-y-5">
           {section.fields.filter((f) => isShown(f, answers)).map((f) => (
-            <Question key={f.id} field={f} value={answers[f.id]} error={errors[f.id]} onChange={(v) => set(f.id, v)} />
+            <Question
+              key={f.id}
+              field={overrides[f.id] ? { ...f, options: overrides[f.id] } : f}
+              value={answers[f.id]}
+              error={errors[f.id]}
+              onChange={(v) => set(f.id, v)}
+            />
           ))}
         </div>
 

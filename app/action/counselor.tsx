@@ -14,8 +14,10 @@ import { notifyByName } from "../../lib/notify";
 import { logRecordAccess } from "../../lib/accessLog";
 import { logActivity } from "../../lib/activityLog";
 import type { Answers } from "../config/collegeCareerForm";
-import { DEPARTMENTS, gradeSectionLabel, isShs, normalizeDepartment, programsFor, yearLevelsFor } from "../config/studentLevels";
+import { gradeSectionLabel, isShs, normalizeDepartment } from "../config/studentLevels";
 import { formatStudentName } from "../../lib/studentName";
+import { getOptionList } from "./optionLists";
+import { optionValue } from "../../lib/optionListDefaults";
 
 // Every action here requires a signed-in Guidance Associate (COUNSELOR role).
 const counselorOnly = () => requireActionUser("COUNSELOR");
@@ -469,12 +471,23 @@ export async function saveStudentProfile(input: StudentProfileInput) {
     if (!/^\p{L}+(?: \p{L}+)*$/u.test(rawName)) return { success: false, error: "Full name can only contain letters and spaces." };
     const name = formatStudentName(rawName);
     if (!/^[A-Za-z0-9-]{4,20}$/.test(studentId)) return { success: false, error: "Student IDs use letters, numbers and dashes only." };
-    if (!department || !(DEPARTMENTS as readonly string[]).includes(department)) return { success: false, error: "Choose Senior High School, Tertiary, Irregular, or Off Term." };
-    if (!yearLevelsFor(department).includes(input.yearLevel)) return { success: false, error: `Choose the ${isShs(department) ? "grade" : "year level"}.` };
+    const [departments, shsGrades, tertiaryYears, shsStrands, tertiaryCourses] = await Promise.all([
+      getOptionList("departments"),
+      getOptionList("shsGrades"),
+      getOptionList("tertiaryYears"),
+      getOptionList("shsStrands"),
+      getOptionList("tertiaryCourses"),
+    ]);
+    if (!department || !departments.some((d) => optionValue(d) === department)) return { success: false, error: "Choose Senior High School, Tertiary, Irregular, or Off Term." };
+    // Older records may hold a year level/strand/course that isn't in today's list; keeping it unchanged is fine.
+    const existing = input.id ? await db.studentProfile.findUnique({ where: { id: input.id }, select: { strandOrProgram: true, yearLevel: true } }) : null;
+    const levels = isShs(department) ? shsGrades : tertiaryYears;
+    if (!levels.some((l) => optionValue(l) === input.yearLevel) && input.yearLevel !== existing?.yearLevel) {
+      return { success: false, error: `Choose the ${isShs(department) ? "grade" : "year level"}.` };
+    }
     const program = t(input.strandOrProgram, 80);
-    // Older records may hold a strand/course that isn't in today's list; keeping it unchanged is fine.
-    const existing = input.id ? await db.studentProfile.findUnique({ where: { id: input.id }, select: { strandOrProgram: true } }) : null;
-    if (program && !programsFor(department).includes(program) && program !== existing?.strandOrProgram) {
+    const programs = isShs(department) ? shsStrands : tertiaryCourses;
+    if (program && !programs.some((p) => optionValue(p) === program) && program !== existing?.strandOrProgram) {
       return { success: false, error: `Choose a ${isShs(department) ? "strand" : "course"} from the list.` };
     }
     const section = t(input.section, 30);

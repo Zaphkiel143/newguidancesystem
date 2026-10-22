@@ -6,7 +6,7 @@ import { getMonthlyReport } from "../../action/reports";
 import { manilaToday } from "../../../lib/time";
 import { useOptionList } from "../../../components/useOptionList";
 import { buildXlsx, type XlsxRow } from "../../../lib/xlsx";
-import { OTHER, SHS_GRADES, TERTIARY_YEARS } from "../../config/studentLevels";
+import { OTHER } from "../../config/studentLevels";
 
 type Report = Awaited<ReturnType<typeof getMonthlyReport>>;
 type Log = Report["logs"][number];
@@ -246,6 +246,8 @@ export default function MonthlyReportPage() {
   const [shsStrands] = useOptionList("shsStrands");
   const [tertiaryCourses] = useOptionList("tertiaryCourses");
   const [appointmentReasons] = useOptionList("appointmentReasons");
+  const [shsGrades] = useOptionList("shsGrades");
+  const [tertiaryYears] = useOptionList("tertiaryYears");
 
   useEffect(() => {
     let cancelled = false;
@@ -296,7 +298,7 @@ export default function MonthlyReportPage() {
 
   const natureOptions = withExtras([...appointmentReasons.map((r) => r.itemKey ?? r.label), OTHER], logs.map((l) => l.nature));
   const programOptions = withExtras([...shsStrands, ...tertiaryCourses].map((i) => i.itemKey ?? i.label).concat(STAFF), logs.map((l) => l.program));
-  const levelOptions = withExtras([...SHS_GRADES, ...TERTIARY_YEARS, STAFF], logs.map((l) => l.level));
+  const levelOptions = withExtras([...shsGrades, ...tertiaryYears].map((i) => i.itemKey ?? i.label).concat(STAFF), logs.map((l) => l.level));
   const filtered = nature !== ALL || program !== ALL || level !== ALL;
 
   return (

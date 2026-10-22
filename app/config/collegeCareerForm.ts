@@ -295,11 +295,15 @@ export function cleanAnswers(input: unknown): Answers {
 }
 
 // One message per field that is wrong. With `forSubmit`, required fields must
-// be filled; drafts only check what has been typed so far.
-export function validateAnswers(answers: Answers, forSubmit: boolean): Record<string, string> {
+// be filled; drafts only check what has been typed so far. `overrides` lets a
+// caller with live data (e.g. the counselor-editable Tertiary Courses list)
+// check a field against that instead of this module's own static `options` -
+// this file stays database/Next.js-free, so it can't fetch that data itself.
+export function validateAnswers(answers: Answers, forSubmit: boolean, overrides: Record<string, readonly string[]> = {}): Record<string, string> {
   const errors: Record<string, string> = {};
   for (const f of ALL_FIELDS) {
     if (!isShown(f, answers)) continue;
+    const options = overrides[f.id] ?? f.options;
     const v = answers[f.id];
     if (isBlank(v)) {
       if (forSubmit && f.required) errors[f.id] = "Please answer this question.";
@@ -307,7 +311,7 @@ export function validateAnswers(answers: Answers, forSubmit: boolean): Record<st
     }
     if (f.type === "checks") {
       const list = v as string[];
-      const bad = list.find((x) => !(f.options ?? []).includes(x) && !(f.other && x.startsWith(OTHER_PREFIX) && x.length > OTHER_PREFIX.length));
+      const bad = list.find((x) => !(options ?? []).includes(x) && !(f.other && x.startsWith(OTHER_PREFIX) && x.length > OTHER_PREFIX.length));
       if (bad) errors[f.id] = "Pick from the list, or use Other.";
       else if (f.max && list.length > f.max) errors[f.id] = `Pick at most ${f.max}.`;
       else if (list.some((x) => x.length > MAX_TEXT)) errors[f.id] = `Keep each answer under ${MAX_TEXT} characters.`;
@@ -315,7 +319,7 @@ export function validateAnswers(answers: Answers, forSubmit: boolean): Record<st
     }
     const s = v as string;
     if (f.type === "select" || f.type === "radio") {
-      const ok = (f.options ?? []).includes(s) || (f.other && s.startsWith(OTHER_PREFIX) && s.length > OTHER_PREFIX.length);
+      const ok = (options ?? []).includes(s) || (f.other && s.startsWith(OTHER_PREFIX) && s.length > OTHER_PREFIX.length);
       if (!ok) errors[f.id] = "Pick one of the choices.";
     } else if (f.type === "date") {
       const d = /^(\d{4})-(\d{2})-(\d{2})$/.exec(s);

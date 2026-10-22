@@ -3,7 +3,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { Search, X, Loader2, Plus, Download } from 'lucide-react';
 import { listStudentProfiles, getStudentProfile, saveStudentProfile, type StudentProfileInput } from '../../action/counselor';
-import { SHS, isShs, normalizeDepartment, yearLevelsFor } from '../../config/studentLevels';
+import { SHS, isShs, normalizeDepartment } from '../../config/studentLevels';
 import { optionValue } from '../../../lib/optionListDefaults';
 import { formatPhone } from '../../../lib/phone';
 import { CAREER_STEPS } from '../../config/careerSteps';
@@ -47,6 +47,8 @@ export default function StudentInventory() {
   const [departments, refetchDepartments] = useOptionList("departments");
   const [shsStrands, refetchShsStrands] = useOptionList("shsStrands");
   const [tertiaryCourses, refetchTertiaryCourses] = useOptionList("tertiaryCourses");
+  const [shsGrades, refetchShsGrades] = useOptionList("shsGrades");
+  const [tertiaryYears, refetchTertiaryYears] = useOptionList("tertiaryYears");
   const [rows, setRows] = useState<Row[] | null>(null);
   const [query, setQuery] = useState("");
   const [department, setDepartment] = useState("All");
@@ -136,6 +138,8 @@ export default function StudentInventory() {
           <EditOptionsButton listKey="departments" listLabel="Student Level" text="Level" onSaved={refetchDepartments} />
           <EditOptionsButton listKey="shsStrands" listLabel="Senior High Strands" text="Strands" onSaved={refetchShsStrands} />
           <EditOptionsButton listKey="tertiaryCourses" listLabel="Tertiary Courses" text="Courses" onSaved={refetchTertiaryCourses} />
+          <EditOptionsButton listKey="shsGrades" listLabel="Senior High Grade Levels" text="Grades" onSaved={refetchShsGrades} />
+          <EditOptionsButton listKey="tertiaryYears" listLabel="Tertiary Year Levels" text="Years" onSaved={refetchTertiaryYears} />
           <button onClick={() => { setForm({ ...EMPTY }); setFormError(null); }}
             className="inline-flex items-center gap-2 bg-blue-700 hover:bg-blue-800 text-white text-sm font-medium px-4 min-h-11 rounded-full transition-colors">
             <Plus size={16} /> Add student
@@ -356,7 +360,18 @@ export default function StudentInventory() {
                 <select id="f-year" value={form.yearLevel} required onChange={(e) => setForm({ ...form, yearLevel: e.target.value })}
                   className="w-full bg-paper border border-slate-300 rounded-md px-3 py-2.5 text-sm">
                   <option value="" disabled>Choose…</option>
-                  {yearLevelsFor(form.department).map((y) => <option key={y} value={y}>{y}</option>)}
+                  {(() => {
+                    const levels = isShs(form.department) ? shsGrades : tertiaryYears;
+                    const values = levels.map(optionValue);
+                    return (
+                      <>
+                        {form.yearLevel && !values.includes(form.yearLevel) && (
+                          <option value={form.yearLevel}>{form.yearLevel} (older record)</option>
+                        )}
+                        {levels.map((y) => <option key={y.id} value={optionValue(y)}>{y.label}</option>)}
+                      </>
+                    );
+                  })()}
                 </select>
               </div>
               <div>
