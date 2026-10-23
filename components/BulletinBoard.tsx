@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { Loader2, MapPin } from "lucide-react";
 import { getBulletin } from "../app/action/bulletin";
+import { LogoMark } from "./Logo";
 
 // Information Service board + upcoming events, shared by the student, faculty
 // and parent routes. Announcements can be filtered by category.
@@ -63,9 +64,16 @@ export default function BulletinBoard() {
               <ul className="divide-y divide-rule border-t border-rule">
                 {shown.map((a) => (
                   <li key={a.id} className="py-5">
-                    <p className="text-xs text-slate-500">
-                      {a.category} · {new Date(a.createdAt).toLocaleDateString("en-PH", { month: "long", day: "numeric", year: "numeric" })}
-                    </p>
+                    {/* Every announcement comes from the guidance office, shown with the E-Gabay logo. */}
+                    <div className="flex items-center gap-2.5">
+                      <LogoMark size={32} className="shrink-0" />
+                      <div className="min-w-0 leading-tight">
+                        <p className="text-[13px] font-semibold text-ink">Guidance and Counseling Office</p>
+                        <p className="text-xs text-slate-500">
+                          {a.category} · {new Date(a.createdAt).toLocaleDateString("en-PH", { month: "long", day: "numeric", year: "numeric" })}
+                        </p>
+                      </div>
+                    </div>
                     <h3 className="font-serif text-xl text-ink mt-1">{a.title}</h3>
                     <p className="text-[15px] leading-relaxed text-slate-700 mt-2 whitespace-pre-wrap max-w-[65ch]">{a.body}</p>
                     {a.hasImage && (

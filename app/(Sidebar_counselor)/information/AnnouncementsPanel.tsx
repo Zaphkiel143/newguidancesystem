@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import Image from 'next/image';
+import { LogoMark } from '../../../components/Logo';
 import { CalendarDays, ImagePlus, Loader2, X } from 'lucide-react';
 import { listAnnouncements, saveAnnouncement, deleteAnnouncement } from '../../action/counselor';
 import InlineError from '../../../components/InlineError';
@@ -42,8 +42,10 @@ function readAsBase64(file: File): Promise<string> {
   });
 }
 
+// Every announcement is posted as the Guidance and Counseling Office, shown
+// with the E-Gabay logo rather than the person who wrote it.
 function OfficeAvatar({ size = 40 }: { size?: number }) {
-  return <Image src="/sti-logo.jpg" alt="" width={size} height={size} className="rounded-full ring-1 ring-rule shrink-0" />;
+  return <LogoMark size={size} className="shrink-0" title={OFFICE} />;
 }
 
 // The announcements feed. The composer's "Event" shortcut switches to the
