@@ -6,9 +6,11 @@ import { ChevronDown } from "lucide-react";
 import type { MenuItem } from "../app/config/navigation";
 
 // The sidebar's list of pages. An item with children shows them indented
-// under it (e.g. Referrals under Appointments); its arrow folds them away.
-// A group always opens when the current page is inside it. An item without a
-// path (e.g. Manage) is only a heading: clicking it opens or closes the group.
+// under it (e.g. Referrals under Appointments); its arrow opens and folds
+// them. A group starts folded unless a page inside it has a count waiting
+// (e.g. 2 referrals), and always opens when the current page is inside it.
+// An item without a path (e.g. Manage) is only a heading: clicking it opens
+// or closes the group.
 export default function SidebarMenu({
   items,
   pathname,
@@ -18,30 +20,26 @@ export default function SidebarMenu({
   pathname: string;
   badgeFor: (item: MenuItem) => number | undefined;
 }) {
-  const [folded, setFolded] = useState<Set<string>>(() => new Set());
-  const toggle = (name: string) =>
-    setFolded((prev) => {
-      const next = new Set(prev);
-      if (next.has(name)) next.delete(name);
-      else next.add(name);
-      return next;
-    });
+  // Groups the person opened or folded themselves; the rest follow their counts.
+  const [chosen, setChosen] = useState<Record<string, boolean>>({});
+  const toggle = (name: string, open: boolean) => setChosen((prev) => ({ ...prev, [name]: !open }));
 
   return (
     <ul className="space-y-0.5">
       {items.map((item) => {
         const children = item.children ?? [];
         const childActive = children.some((c) => c.path === pathname);
-        const open = children.length > 0 && (childActive || !folded.has(item.name));
+        const childHasCount = children.some((c) => !!badgeFor(c));
+        const open = children.length > 0 && (childActive || (chosen[item.name] ?? childHasCount));
         const groupId = `menu-group-${item.name.replace(/\W+/g, "-").toLowerCase()}`;
         return (
           <li key={item.name}>
             <div className="relative flex items-center">
-              <Row item={item} active={item.path === pathname} badge={badgeFor(item)} onHeadingClick={() => toggle(item.name)} expanded={children.length ? open : undefined} controls={groupId} />
+              <Row item={item} active={item.path === pathname} badge={badgeFor(item)} onHeadingClick={() => toggle(item.name, open)} expanded={children.length ? open : undefined} controls={groupId} />
               {children.length > 0 && item.path && (
                 <button
                   type="button"
-                  onClick={() => toggle(item.name)}
+                  onClick={() => toggle(item.name, open)}
                   aria-expanded={open}
                   aria-controls={groupId}
                   aria-label={`${open ? "Hide" : "Show"} pages under ${item.name}`}
