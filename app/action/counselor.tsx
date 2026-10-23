@@ -1186,7 +1186,12 @@ export async function exportCareerForms() {
 
 // ==== System-wide activity log ====
 
-export async function listActivity(filters: { role?: string; model?: string; search?: string; from?: string; to?: string; cursor?: string } = {}) {
+// One page of the activity log (page numbers start at 1; pageSize is how many
+// rows fit on the viewer's screen), plus the total so the page can show
+// "Page 2 of 9".
+export async function listActivity(
+  filters: { role?: string; model?: string; search?: string; from?: string; to?: string; page?: number; pageSize?: number } = {}
+) {
   try {
     await counselorOnly();
     const where: Prisma.ActivityLogWhereInput = {};
@@ -1200,17 +1205,22 @@ export async function listActivity(filters: { role?: string; model?: string; sea
       };
     }
 
-    const rows = await db.activityLog.findMany({
-      where,
-      orderBy: { createdAt: "desc" },
-      take: 51,
-      ...(filters.cursor ? { skip: 1, cursor: { id: filters.cursor } } : {}),
-    });
+    const pageSize = Math.min(Math.max(Math.floor(filters.pageSize ?? 20), 1), 100);
+    const page = Math.max(Math.floor(filters.page ?? 1), 1);
+    const [rows, total] = await Promise.all([
+      db.activityLog.findMany({
+        where,
+        orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+        skip: (page - 1) * pageSize,
+        take: pageSize,
+      }),
+      db.activityLog.count({ where }),
+    ]);
 
-    return { rows: rows.slice(0, 50), nextCursor: rows.length > 50 ? rows[49].id : null };
+    return { rows, total };
   } catch (error) {
     console.error("Failed to list activity:", error);
-    return { rows: [], nextCursor: null };
+    return { rows: [], total: 0 };
   }
 }
 
