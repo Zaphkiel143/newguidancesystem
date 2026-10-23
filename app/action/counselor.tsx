@@ -13,7 +13,7 @@ import { notifyByName } from "../../lib/notify";
 import { logRecordAccess } from "../../lib/accessLog";
 import { logActivity } from "../../lib/activityLog";
 import type { Answers } from "../config/collegeCareerForm";
-import { gradeSectionLabel, isShs, normalizeDepartment } from "../config/studentLevels";
+import { collegeSectionLabel, gradeSectionLabel, isShs, isTertiaryLike, normalizeDepartment } from "../config/studentLevels";
 import { formatStudentName } from "../../lib/studentName";
 import { getOptionList } from "./optionLists";
 import { optionValue } from "../../lib/optionListDefaults";
@@ -581,18 +581,21 @@ export async function listDocumentsForReview(status: "PENDING" | "APPROVED" | "R
     const profiles = names.length
       ? await db.studentProfile.findMany({
           where: { name: { in: names } },
-          select: { name: true, studentId: true, department: true, strandOrProgram: true, gradeSection: true },
+          select: { name: true, studentId: true, department: true, strandOrProgram: true, gradeSection: true, section: true, yearLevel: true },
         })
       : [];
     const byName = new Map(profiles.map((p) => [p.name, p]));
     return docs.map((d) => {
       const p = d.studentName ? byName.get(d.studentName) : undefined;
+      const program = p?.strandOrProgram?.trim() || null;
+      // College sections file as "BSIT 1-101"; senior high keeps its own label.
+      const college = p && isTertiaryLike(p.department) ? collegeSectionLabel({ ...p, program }) : null;
       return {
         ...d,
         studentId: p?.studentId ?? null,
         department: p ? normalizeDepartment(p.department) ?? p.department : null,
-        program: p?.strandOrProgram?.trim() || null,
-        section: p?.gradeSection?.trim() || null,
+        program,
+        section: college ?? (p?.gradeSection?.trim() || null),
       };
     });
   } catch (error) {

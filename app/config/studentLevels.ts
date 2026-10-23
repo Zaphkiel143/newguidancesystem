@@ -97,6 +97,44 @@ export function yearSectionsFor(yearLevel: string): string[] {
   return Array.from({ length: SECTIONS_PER_YEAR }, (_, i) => `${year}-${year}${String(i + 1).padStart(2, "0")}`);
 }
 
+// Short codes for every course, for labels like "BSBA 2-201". The five
+// section-picker codes above, plus the remaining courses.
+const COURSE_CODE: Record<string, string> = {
+  ...COURSE_SECTION_CODE,
+  "BS Information Systems": "BSIS",
+  "BS Business Administration": "BSBA",
+  "BS Hospitality Management": "BSHM",
+  "Bachelor of Multimedia Arts": "BMMA",
+};
+// A course's code; for a course added later, built from its words: an
+// abbreviation stays whole ("BS"), other capitalised words give their
+// initial ("BS Psychology" -> "BSP").
+export function courseCode(course: string) {
+  if (COURSE_CODE[course]) return COURSE_CODE[course];
+  const code = course
+    .split(/\s+/)
+    .map((w) => (/^[A-Z]{2,}$/.test(w) ? w : /^[A-Z]/.test(w) ? w[0] : ""))
+    .join("");
+  return code || course;
+}
+
+// A college student's section as "BSIT 1-101": the course code plus the
+// year-section. Older records only have a combined label such as
+// "1st Year - 101" or "4th Year - BSIT 4-102", so the year-section is read from
+// whichever field has it. Null when there isn't enough to build it.
+export function collegeSectionLabel(p: { program?: string | null; section?: string | null; gradeSection?: string | null; yearLevel?: string | null }) {
+  const section = (p.section ?? "").trim();
+  const stored = /^([A-Z]{2,6}) (\d-\d{3})$/.exec(section);
+  if (stored) return `${stored[1]} ${stored[2]}`;
+  if (!p.program) return null;
+  const text = `${section} ${p.gradeSection ?? ""}`;
+  const pair = /(\d)-(\d{3})/.exec(text);
+  const year = /^(\d)/.exec(p.yearLevel ?? "")?.[1] ?? /(\d)(?:st|nd|rd|th) Year/.exec(p.gradeSection ?? "")?.[1];
+  const number = /^\d{3}$/.test(section) ? section : /- (\d{3})$/.exec(p.gradeSection ?? "")?.[1];
+  const yearSection = pair ? `${pair[1]}-${pair[2]}` : year && number ? `${year}-${number}` : null;
+  return yearSection ? `${courseCode(p.program)} ${yearSection}` : null;
+}
+
 // "BSIT 1-101" -> { code: "BSIT", yearSection: "1-101" }; anything else -> null.
 export function splitCollegeSection(section: string | null | undefined) {
   const m = /^([A-Z]+) (\d-\d{3})$/.exec((section ?? "").trim());

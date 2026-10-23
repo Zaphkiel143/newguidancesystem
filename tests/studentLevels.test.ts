@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { isStudentId, sectionCodeForCourse, splitCollegeSection, yearSectionsFor } from "../app/config/studentLevels.ts";
+import { collegeSectionLabel, courseCode, isStudentId, sectionCodeForCourse, splitCollegeSection, yearSectionsFor } from "../app/config/studentLevels.ts";
 
 test("student IDs are exactly 11 digits", () => {
   assert.ok(isStudentId("02000123456"));
@@ -23,4 +23,19 @@ test("college sections split into program and year-section", () => {
 test("courses map to their section codes", () => {
   assert.equal(sectionCodeForCourse("BS Computer Engineering"), "BSCPE");
   assert.equal(sectionCodeForCourse("Bachelor of Multimedia Arts"), "");
+});
+
+test("college sections read as course code plus year-section", () => {
+  assert.equal(collegeSectionLabel({ program: "BS Information Technology", section: "BSIT 1-101" }), "BSIT 1-101");
+  assert.equal(collegeSectionLabel({ program: "BS Information Technology", gradeSection: "4th Year - BSIT 4-102" }), "BSIT 4-102");
+  assert.equal(collegeSectionLabel({ program: "BS Business Administration", section: "201", yearLevel: "2nd Year" }), "BSBA 2-201");
+  assert.equal(collegeSectionLabel({ program: "Bachelor of Multimedia Arts", gradeSection: "3rd Year - 301" }), "BMMA 3-301");
+  assert.equal(collegeSectionLabel({ program: "BS Computer Science", section: "A" }), null);
+  assert.equal(collegeSectionLabel({ section: "STEM-A" }), null);
+});
+
+test("every course has a short code", () => {
+  assert.equal(courseCode("BS Hospitality Management"), "BSHM");
+  assert.equal(courseCode("BS Information Systems"), "BSIS");
+  assert.equal(courseCode("BS Psychology"), "BSP");
 });
