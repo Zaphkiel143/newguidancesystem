@@ -90,7 +90,7 @@ const Dashboard = async () => {
           <SectionHeading title="Today's schedule" href="/appointment" linkLabel="Open calendar" />
           {todaysAppointments.length === 0 ? (
             <Empty>
-              No sessions booked for today. Students can request a slot from their own dashboard.
+              No sessions booked for today.
             </Empty>
           ) : (
             <ol className="divide-y divide-rule border-t border-rule">
