@@ -44,6 +44,14 @@ const ACCOUNT_PATH: Record<Role, string> = {
   parent: "/parent_profile",
 };
 
+// Each role's page listing all notifications (the bell's "See all").
+const NOTIFICATIONS_PATH: Record<Role, string> = {
+  counselor: "/notifications",
+  student: "/my_notifications",
+  faculty: "/faculty_notifications",
+  parent: "/parent_notifications",
+};
+
 // Where the floating message button leads, per role.
 const MESSAGES_PATH: Record<Role, string> = {
   counselor: "/message",
@@ -185,7 +193,7 @@ export function AppShell({ role, userName, displayName = userName, hiddenPaths =
         </Link>
 
         <div className="ml-auto flex items-center gap-1 sm:gap-3">
-          <NoticeBell />
+          <NoticeBell allPath={NOTIFICATIONS_PATH[role]} />
           <ProfileMenu userName={displayName} roleLabel={ROLE_LABEL[role]} avatar={avatar} accountPath={ACCOUNT_PATH[role]} />
         </div>
       </header>

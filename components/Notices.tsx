@@ -28,6 +28,13 @@ export function NoticesProvider({ children }: { children: React.ReactNode }) {
     refresh();
   }, [pathname, refresh]);
 
+  // Opening the page a notification points to counts as dealing with it, so
+  // its dot clears (e.g. visiting Appointments clears new-booking notices).
+  useEffect(() => {
+    const done = notices.items.filter((n) => !n.readAt && n.href && n.href.split("?")[0] === pathname).map((n) => n.id);
+    if (done.length) markNoticesRead(done).then(refresh);
+  }, [notices.items, pathname, refresh]);
+
   useEffect(() => {
     const tick = () => {
       if (document.visibilityState === "visible") refresh();
@@ -60,7 +67,7 @@ export function noticeLink(n: { href: string | null; body: string | null }) {
   return `/appointment?date=${m[3]}-${String(month).padStart(2, "0")}-${m[2].padStart(2, "0")}&time=${encodeURIComponent(m[4])}`;
 }
 
-function timeAgo(date: Date) {
+export function timeAgo(date: Date) {
   const s = Math.max(0, (Date.now() - new Date(date).getTime()) / 1000);
   if (s < 60) return "just now";
   if (s < 3600) return `${Math.floor(s / 60)} min ago`;
@@ -77,8 +84,64 @@ function Badge({ count }: { count: number }) {
   );
 }
 
-// Bell in the top bar with a dropdown of recent notifications.
-export function NoticeBell() {
+// One notification in a pop-up, where the whole message is easy to read,
+// with an Open button when it leads somewhere. Used by the bell and the
+// notifications page.
+export function NoticeDialog({ notice, onClose }: { notice: Notification | null; onClose: () => void }) {
+  useEffect(() => {
+    if (!notice) return;
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [notice, onClose]);
+
+  if (!notice) return null;
+  return (
+    <div className="fixed inset-0 z-[60] bg-black/40 grid place-items-center p-4" onClick={onClose}>
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="notice-title"
+        className="w-full max-w-md bg-sheet text-ink rounded-2xl p-6 shadow-xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-start gap-3">
+          <span className="w-10 h-10 rounded-full bg-blue-50 text-blue-700 grid place-items-center shrink-0" aria-hidden>
+            <Bell size={18} />
+          </span>
+          <div className="min-w-0 flex-1">
+            <h2 id="notice-title" className="text-[17px] font-semibold">
+              {notice.title}
+            </h2>
+            <p className="text-[12px] text-slate-500 mt-0.5">{timeAgo(notice.createdAt)}</p>
+          </div>
+          <button type="button" onClick={onClose} aria-label="Close" className="w-10 h-10 -m-2 grid place-items-center rounded-full hover:bg-slate-100">
+            <X size={18} />
+          </button>
+        </div>
+        {notice.body && <p className="mt-4 text-[14px] text-slate-700 whitespace-pre-line break-words">{notice.body}</p>}
+        <div className="mt-6 flex flex-col-reverse sm:flex-row sm:justify-end gap-2">
+          <button type="button" autoFocus onClick={onClose} className="min-h-11 px-5 rounded-full border border-slate-300 text-[14px] hover:bg-slate-50">
+            Close
+          </button>
+          {notice.href && (
+            <Link
+              href={noticeLink(notice) ?? notice.href}
+              onClick={onClose}
+              className="min-h-11 px-5 rounded-full bg-blue-700 hover:bg-blue-800 text-white text-[14px] font-medium inline-flex items-center justify-center"
+            >
+              Open
+            </Link>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Bell in the top bar with a dropdown of recent notifications, and a link to
+// the page that lists them all (allPath).
+export function NoticeBell({ allPath }: { allPath: string }) {
   const { notices, refresh } = useNotices();
   const [open, setOpen] = useState(false);
   const [viewing, setViewing] = useState<Notification | null>(null);
@@ -89,13 +152,6 @@ export function NoticeBell() {
     setLastPath(pathname);
     setOpen(false);
   }
-
-  useEffect(() => {
-    if (!viewing) return;
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setViewing(null);
-    document.addEventListener("keydown", onKey);
-    return () => document.removeEventListener("keydown", onKey);
-  }, [viewing]);
 
   useEffect(() => {
     if (!open) return;
@@ -116,16 +172,35 @@ export function NoticeBell() {
     refresh();
   };
 
+  // Opening the list counts as seeing what's in it: those are marked read
+  // right away, but their dots stay for this look so the new ones stand out,
+  // and the list refreshes (without the dots) once it's closed.
+  const seenWhileOpen = useRef(false);
+  const toggle = () => {
+    if (open) return setOpen(false);
+    setOpen(true);
+    const unseen = notices.items.filter((n) => !n.readAt).map((n) => n.id);
+    if (unseen.length) {
+      seenWhileOpen.current = true;
+      void markNoticesRead(unseen);
+    }
+  };
+  useEffect(() => {
+    if (open || !seenWhileOpen.current) return;
+    seenWhileOpen.current = false;
+    refresh();
+  }, [open, refresh]);
+
   return (
     <div ref={box} className="relative">
       <button
-        onClick={() => setOpen((o) => !o)}
+        onClick={toggle}
         className="relative w-11 h-11 grid place-items-center rounded-full hover:bg-white/10 transition-colors"
         aria-label={notices.unread > 0 ? `Notifications, ${notices.unread} unread` : "Notifications"}
         aria-expanded={open}
       >
         <Bell size={19} />
-        <Badge count={notices.unread} />
+        <Badge count={open ? 0 : notices.unread} />
       </button>
 
       {open && (
@@ -171,50 +246,13 @@ export function NoticeBell() {
               })}
             </ul>
           )}
+          <Link href={allPath} onClick={() => setOpen(false)} className="block px-4 py-3 border-t border-rule text-center text-[13px] font-medium text-blue-700 hover:bg-blue-50">
+            See all notifications
+          </Link>
         </div>
       )}
 
-      {viewing && (
-        <div className="fixed inset-0 z-[60] bg-black/40 grid place-items-center p-4" onClick={() => setViewing(null)}>
-          <div
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="notice-title"
-            className="w-full max-w-md bg-sheet text-ink rounded-2xl p-6 shadow-xl"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex items-start gap-3">
-              <span className="w-10 h-10 rounded-full bg-blue-50 text-blue-700 grid place-items-center shrink-0" aria-hidden>
-                <Bell size={18} />
-              </span>
-              <div className="min-w-0 flex-1">
-                <h2 id="notice-title" className="text-[17px] font-semibold">
-                  {viewing.title}
-                </h2>
-                <p className="text-[12px] text-slate-500 mt-0.5">{timeAgo(viewing.createdAt)}</p>
-              </div>
-              <button type="button" onClick={() => setViewing(null)} aria-label="Close" className="w-10 h-10 -m-2 grid place-items-center rounded-full hover:bg-slate-100">
-                <X size={18} />
-              </button>
-            </div>
-            {viewing.body && <p className="mt-4 text-[14px] text-slate-700 whitespace-pre-line break-words">{viewing.body}</p>}
-            <div className="mt-6 flex flex-col-reverse sm:flex-row sm:justify-end gap-2">
-              <button type="button" autoFocus onClick={() => setViewing(null)} className="min-h-11 px-5 rounded-full border border-slate-300 text-[14px] hover:bg-slate-50">
-                Close
-              </button>
-              {viewing.href && (
-                <Link
-                  href={noticeLink(viewing) ?? viewing.href}
-                  onClick={() => setViewing(null)}
-                  className="min-h-11 px-5 rounded-full bg-blue-700 hover:bg-blue-800 text-white text-[14px] font-medium inline-flex items-center justify-center"
-                >
-                  Open
-                </Link>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
+      <NoticeDialog notice={viewing} onClose={() => setViewing(null)} />
     </div>
   );
 }

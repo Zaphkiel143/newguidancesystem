@@ -23,7 +23,7 @@ function columnName(i: number) {
   return name;
 }
 
-function sheetXml(rows: XlsxRow[], widths: number[]) {
+function sheetXml(rows: XlsxRow[], widths: number[], print: { landscape?: boolean; onePage?: boolean } = {}) {
   const cols = widths.map((w, i) => `<col min="${i + 1}" max="${i + 1}" width="${w}" customWidth="1"/>`).join("");
   const body = rows
     .map((row, r) => {
@@ -42,7 +42,15 @@ function sheetXml(rows: XlsxRow[], widths: number[]) {
     })
     .join("");
   return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><cols>${cols}</cols><sheetData>${body}</sheetData></worksheet>`;
+<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">${
+    print.onePage ? `<sheetPr><pageSetUpPr fitToPage="1"/></sheetPr>` : ""
+  }<cols>${cols}</cols><sheetData>${body}</sheetData>${
+    print.landscape || print.onePage
+      ? `<pageMargins left="0.4" right="0.4" top="0.5" bottom="0.5" header="0.3" footer="0.3"/><pageSetup${
+          print.landscape ? ` orientation="landscape"` : ""
+        }${print.onePage ? ` fitToWidth="1" fitToHeight="1"` : ""}/>`
+      : ""
+  }</worksheet>`;
 }
 
 const STYLES = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
@@ -130,8 +138,14 @@ function zip(files: Record<string, string>) {
 }
 
 // Widths default to fit the longest text in each column (title-style cells
-// are ignored, since they may spill across empty neighbours).
-export function buildXlsx(rows: XlsxRow[], sheetName = "Report", widths?: number[]) {
+// are ignored, since they may spill across empty neighbours). `print` sets how
+// the sheet prints: landscape, and/or scaled to fit on one page.
+export function buildXlsx(
+  rows: XlsxRow[],
+  sheetName = "Report",
+  widths?: number[],
+  print: { landscape?: boolean; onePage?: boolean } = {}
+) {
   const columns = Math.max(...rows.map((r) => r.length), 1);
   const fitted = Array.from({ length: columns }, (_, c) => {
     const longest = Math.max(
@@ -145,6 +159,6 @@ export function buildXlsx(rows: XlsxRow[], sheetName = "Report", widths?: number
     );
     return Math.min(Math.ceil(longest * 1.15) + 2, 80);
   });
-  const bytes = zip(parts(sheetName, sheetXml(rows, widths ?? fitted)));
+  const bytes = zip(parts(sheetName, sheetXml(rows, widths ?? fitted, print)));
   return new Blob(bytes as BlobPart[], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
 }

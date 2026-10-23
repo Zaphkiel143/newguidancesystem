@@ -182,48 +182,81 @@ function Block({ title, children }: { title: string; children: React.ReactNode }
 
 type Charts = { tiles: Count[]; program: Count[]; level: Count[]; nature: Count[]; contact: Count[]; status: Count[] };
 
+// Tables per row in the Excel download. Each table takes two columns (label,
+// count) plus an empty column as a gap, so the report reads across the page
+// instead of running down one long column.
+const TABLES_PER_ROW = 3;
+
 // Workbook rows for the Excel download: the dashboard as filtered on screen,
-// then the month's other office activity.
+// then the month's other office activity, laid out in rows of tables.
 function toRows(r: Report, filters: [string, string][], charts: Charts): XlsxRow[] {
   const bold = (value: string | number) => ({ value, style: "bold" as const });
-  const rows: XlsxRow[] = [[{ value: `GCO Services Daily Log Report — ${monthLabel(r.month)}`, style: "title" }]];
-  for (const [label, value] of filters) rows.push([label, value]);
-  rows.push(["Generated", new Date().toLocaleString("en-PH", { timeZone: "Asia/Manila" })], []);
-  const add = (section: string, items: Count[], header = "Label") => {
-    rows.push([bold(section)], [bold(header), bold("Count")]);
-    if (items.length === 0) rows.push(["None"]);
-    for (const i of items) rows.push([i.label, i.count]);
-    rows.push([]);
+  const table = (section: string, items: Count[], header = "Label"): XlsxRow[] => [
+    [bold(section)],
+    [bold(header), bold("Count")],
+    ...(items.length === 0 ? [["None"]] : items.map((i): XlsxRow => [i.label, i.count])),
+  ];
+  // Places tables side by side, TABLES_PER_ROW at a time, with a blank row between bands.
+  const grid = (tables: XlsxRow[][]): XlsxRow[] => {
+    const out: XlsxRow[] = [];
+    for (let i = 0; i < tables.length; i += TABLES_PER_ROW) {
+      const band = tables.slice(i, i + TABLES_PER_ROW);
+      const height = Math.max(...band.map((t) => t.length));
+      for (let line = 0; line < height; line++) {
+        out.push(band.flatMap((t, k): XlsxRow => [t[line]?.[0] ?? null, t[line]?.[1] ?? null, ...(k < band.length - 1 ? [null] : [])]));
+      }
+      out.push([]);
+    }
+    return out;
   };
-  add("Summary", charts.tiles, "Item");
-  add("Program Breakdown", charts.program, "Program");
-  add("Level Distribution", charts.level, "Level");
-  add("Nature of Concern", charts.nature, "Nature of concern");
-  add("Contact Type", charts.contact, "Contact type");
-  add("Case Status", charts.status, "Status");
-  rows.push([{ value: "Other office activity (whole month, not filtered)", style: "title" }], []);
-  add("Sessions", [{ label: "Cancelled (not counted above)", count: r.sessions.cancelled }, { label: "Students seen", count: r.sessions.uniqueStudents }], "Item");
-  add("Referrals", [{ label: "Received", count: r.referrals.total }, { label: "High priority", count: r.referrals.highPriority }], "Item");
-  add("Referrals by concern type", r.referrals.byConcern, "Concern type");
-  add("Referrals by status", r.referrals.byStatus, "Status");
-  add("Referrals by source", r.referrals.bySource, "Referred by");
-  add("Needs assessment", [{ label: "Responses", count: r.needsAssessment.responses }, ...r.needsAssessment.topTopics], "Topic");
-  add("Group guidance", [{ label: "Sessions", count: r.groupGuidance.sessions }, { label: "Participants", count: r.groupGuidance.participants }], "Item");
-  add("Documents", [
-    { label: "Submitted", count: r.documents.submitted },
-    { label: "Accepted", count: r.documents.accepted },
-    { label: "Not accepted", count: r.documents.notAccepted },
-    { label: "Waiting", count: r.documents.waiting },
-    { label: "New student records", count: r.newStudents },
-  ], "Item");
-  add("E-Gabay chatbot", [
-    { label: "Replies", count: r.chatbot.replies },
-    ...(r.chatbot.understoodRate === null ? [] : [{ label: "Understood (%)", count: r.chatbot.understoodRate }]),
-    { label: "Sent to the guidance office", count: r.chatbot.forwarded },
-    { label: "Crisis messages", count: r.chatbot.crisis },
-  ], "Item");
-  add("Chatbot topics", r.chatbot.topTopics, "Topic");
-  return rows;
+
+  // Filters and the generated time as label/value pairs, as many per line as
+  // there are tables per row, so the header is as wide as the tables below.
+  const generated = new Date().toLocaleString("en-PH", { timeZone: "Asia/Manila" });
+  const pairs: [string, string][] = [...filters, ["Generated", generated]];
+  const pairLines: XlsxRow[] = [];
+  for (let i = 0; i < pairs.length; i += TABLES_PER_ROW) {
+    const line = pairs.slice(i, i + TABLES_PER_ROW);
+    pairLines.push(line.flatMap(([label, value], k): XlsxRow => [bold(label), value, ...(k < line.length - 1 ? [null] : [])]));
+  }
+  return [
+    [{ value: `GCO Services Daily Log Report — ${monthLabel(r.month)}`, style: "title" }],
+    ...pairLines,
+    [],
+    ...grid([
+      table("Summary", charts.tiles, "Item"),
+      table("Program Breakdown", charts.program, "Program"),
+      table("Level Distribution", charts.level, "Level"),
+      table("Nature of Concern", charts.nature, "Nature of concern"),
+      table("Contact Type", charts.contact, "Contact type"),
+      table("Case Status", charts.status, "Status"),
+    ]),
+    [{ value: "Other office activity (whole month, not filtered)", style: "title" }],
+    [],
+    ...grid([
+      table("Sessions", [{ label: "Cancelled (not counted above)", count: r.sessions.cancelled }, { label: "Students seen", count: r.sessions.uniqueStudents }], "Item"),
+      table("Referrals", [{ label: "Received", count: r.referrals.total }, { label: "High priority", count: r.referrals.highPriority }], "Item"),
+      table("Referrals by concern type", r.referrals.byConcern, "Concern type"),
+      table("Referrals by status", r.referrals.byStatus, "Status"),
+      table("Referrals by source", r.referrals.bySource, "Referred by"),
+      table("Needs assessment", [{ label: "Responses", count: r.needsAssessment.responses }, ...r.needsAssessment.topTopics], "Topic"),
+      table("Group guidance", [{ label: "Sessions", count: r.groupGuidance.sessions }, { label: "Participants", count: r.groupGuidance.participants }], "Item"),
+      table("Documents", [
+        { label: "Submitted", count: r.documents.submitted },
+        { label: "Accepted", count: r.documents.accepted },
+        { label: "Not accepted", count: r.documents.notAccepted },
+        { label: "Waiting", count: r.documents.waiting },
+        { label: "New student records", count: r.newStudents },
+      ], "Item"),
+      table("E-Gabay chatbot", [
+        { label: "Replies", count: r.chatbot.replies },
+        ...(r.chatbot.understoodRate === null ? [] : [{ label: "Understood (%)", count: r.chatbot.understoodRate }]),
+        { label: "Sent to the guidance office", count: r.chatbot.forwarded },
+        { label: "Crisis messages", count: r.chatbot.crisis },
+      ], "Item"),
+      table("Chatbot topics", r.chatbot.topTopics, "Topic"),
+    ]),
+  ];
 }
 
 // Print only the report, on one landscape page.
@@ -290,7 +323,7 @@ export default function MonthlyReportPage() {
     if (!r) return;
     const filters: [string, string][] = [["Nature of Concern", nature], ["Program", program], ["Level", level]];
     const a = document.createElement("a");
-    a.href = URL.createObjectURL(buildXlsx(toRows(r, filters, charts), monthLabel(r.month)));
+    a.href = URL.createObjectURL(buildXlsx(toRows(r, filters, charts), monthLabel(r.month), undefined, { landscape: true, onePage: true }));
     a.download = `GCO Daily Log Report ${r.month}.xlsx`;
     a.click();
     URL.revokeObjectURL(a.href);

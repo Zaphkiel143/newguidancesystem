@@ -42,3 +42,23 @@ export async function markNoticesRead(ids?: string[]) {
     return { success: false };
   }
 }
+
+const PAGE_SIZE = 30;
+
+// The full notifications page: newest first, a page at a time (cursor = the
+// last id shown), optionally only the unread ones.
+export async function getMyNoticePage(opts: { cursor?: string; unreadOnly?: boolean } = {}) {
+  try {
+    const me = await requireActionUser();
+    const rows = await db.notification.findMany({
+      where: { userId: me.id, ...(opts.unreadOnly ? { readAt: null } : {}) },
+      orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+      take: PAGE_SIZE + 1,
+      ...(opts.cursor ? { cursor: { id: opts.cursor }, skip: 1 } : {}),
+    });
+    const items = rows.slice(0, PAGE_SIZE);
+    return { items, nextCursor: rows.length > PAGE_SIZE ? items[items.length - 1].id : null };
+  } catch {
+    return { items: [], nextCursor: null };
+  }
+}
