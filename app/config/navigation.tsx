@@ -81,6 +81,7 @@ parent: [
 
 student: [
     { name: 'Dashboard', icon: LayoutDashboard, path: '/student_dashboard' },
+    { name: 'Announcements & Events', icon: Megaphone, path: '/bulletin' },
     { name: 'Chat with E-Gabay', icon: Sparkles, path: '/ai_chat' },
     { name: 'My Appointments', icon: Calendar, path: '/my_appointments' },
     { name: 'My Career Plan', icon: Route, path: '/my_career' },
@@ -88,7 +89,6 @@ student: [
     { name: 'Needs Assessment', icon: ClipboardList, path: '/assessments' },
     { name: 'Submit Referral', icon: Send, path: '/refer_student' },
     { name: 'My Referrals', icon: Inbox, path: '/my_referrals' },
-    { name: 'Announcements & Events', icon: Megaphone, path: '/bulletin' },
     { name: 'My Messages', icon: MessageSquare, path: '/my_messages' },
     { name: 'Profile', icon: User, path: '/profile' },
 ]
