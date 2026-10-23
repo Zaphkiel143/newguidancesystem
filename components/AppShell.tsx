@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { LogOut, Menu, X } from "lucide-react";
 import { navigationConfig, MenuItem } from "../app/config/navigation";
 import SignOutButton from "./SignOutButton";
+import SidebarMenu from "./SidebarMenu";
 import AppFooter from "./AppFooter";
 import { getDashboardStats } from "../app/action/counselor";
 import { CurrentUserProvider } from "./CurrentUser";
@@ -123,7 +124,11 @@ export function AppShell({ role, userName, displayName = userName, hiddenPaths =
     approvalsWaiting: number;
   } | null>(null);
 
-  const menuItems = (navigationConfig[role] || []).filter((item) => !hiddenPaths.includes(item.path));
+  // Pages this person can't use (hiddenPaths) are left out, including inside groups.
+  const visible = (item: MenuItem) => !item.path || !hiddenPaths.includes(item.path);
+  const menuItems = (navigationConfig[role] || [])
+    .filter(visible)
+    .map((item) => (item.children ? { ...item, children: item.children.filter(visible) } : item));
 
   useEffect(() => {
     if (role !== "counselor") return;
@@ -153,6 +158,20 @@ export function AppShell({ role, userName, displayName = userName, hiddenPaths =
     setIsOpen(false);
   }
 
+  const badgeFor = (item: MenuItem) => {
+    const counselorCount =
+      item.path === "/appointment"
+        ? counselorCounts?.activeAppointments
+        : item.path === "/referral"
+          ? counselorCounts?.pendingReferrals
+          : item.path === "/documents"
+            ? counselorCounts?.documentsToReview
+            : item.path === "/accounts"
+              ? counselorCounts?.approvalsWaiting
+              : undefined;
+    return counselorCount ?? item.unreadCount;
+  };
+
   const avatar = (
     <span className="w-9 h-9 rounded-full bg-sti-yellow text-blue-900 grid place-items-center text-xs font-bold shrink-0 overflow-hidden">
       {avatarUrl ? (
@@ -179,7 +198,7 @@ export function AppShell({ role, userName, displayName = userName, hiddenPaths =
           <Menu size={20} />
         </button>
 
-        <Link href={menuItems[0]?.path ?? "/"} className="flex items-center gap-3 min-w-0">
+        <Link href={menuItems.find((i) => i.path)?.path ?? "/"} className="flex items-center gap-3 min-w-0">
           <LogoMark size={36} tone="light" className="shrink-0" />
           <span className="min-w-0 leading-tight">
             <span className="block font-semibold text-[17px] tracking-tight">E-Gabay</span>
@@ -227,49 +246,7 @@ export function AppShell({ role, userName, displayName = userName, hiddenPaths =
         </div>
 
         <nav className="flex-1 px-3 pt-2 md:pt-5 overflow-y-auto" aria-label="Main">
-          <p className="px-3 mb-2 text-xs font-medium text-slate-500">Menu</p>
-          <ul className="space-y-0.5">
-            {menuItems.map((item: MenuItem) => {
-              const Icon = item.icon;
-              const isActive = pathname === item.path;
-              const counselorCount = item.path === "/appointment"
-                ? counselorCounts?.activeAppointments
-                : item.path === "/referral"
-                  ? counselorCounts?.pendingReferrals
-                  : item.path === "/documents"
-                    ? counselorCounts?.documentsToReview
-                    : item.path === "/accounts"
-                      ? counselorCounts?.approvalsWaiting
-                      : undefined;
-              const badgeCount = counselorCount ?? item.unreadCount;
-
-              return (
-                <li key={item.path}>
-                  <Link
-                    href={item.path}
-                    aria-current={isActive ? "page" : undefined}
-                    className={`relative flex items-center gap-3 px-4 min-h-11 rounded-full text-[14px] transition-colors ${
-                      isActive
-                        ? "bg-butter-200 text-ink font-semibold shadow-sm"
-                        : "text-slate-600 hover:text-ink hover:bg-blue-100"
-                    }`}
-                  >
-                    <Icon
-                      size={17}
-                      strokeWidth={1.9}
-                      className={isActive ? "text-blue-700" : "text-blue-500"}
-                    />
-                    <span>{item.name}</span>
-                    {!!badgeCount && (
-                      <span aria-label={`${badgeCount} items`} className="ml-auto min-w-5 h-5 px-1.5 inline-flex items-center justify-center rounded-full bg-blue-700 text-[11px] leading-none font-semibold text-white tabular">
-                        {badgeCount}
-                      </span>
-                    )}
-                  </Link>
-                </li>
-              );
-            })}
-          </ul>
+          <SidebarMenu items={menuItems} pathname={pathname} badgeFor={badgeFor} />
         </nav>
 
         <div className="md:hidden px-5 py-4 border-t border-blue-100">

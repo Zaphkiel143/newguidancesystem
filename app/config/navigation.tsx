@@ -22,13 +22,16 @@ Newspaper,
 BarChart3,
 Settings,
 History,
-LucideIcon, ClipboardPen } from 'lucide-react';
+LucideIcon, ClipboardPen, SlidersHorizontal } from 'lucide-react';
 
 export interface MenuItem {
     name: string;
     icon: LucideIcon;
-    path: string;
+    // Left out for a heading that only groups other items (e.g. Manage).
+    path?: string;
     unreadCount?: number;
+    // Items shown indented under this one, e.g. Referrals under Appointments.
+    children?: MenuItem[];
 }
 
 // Maps your route groups/roles to their respective menus
@@ -46,19 +49,23 @@ faculty: [
     ],
 counselor: [
     { name: 'Dashboard', icon: LayoutDashboard, path: '/dashboard' },
-    { name: 'Appointments', icon: Calendar, path: '/appointment' },
+    { name: 'Announcements & Events', icon: Megaphone, path: '/information' },
+    { name: 'Appointments', icon: Calendar, path: '/appointment', children: [
+        { name: 'Referrals', icon: FileText, path: '/referral' },
+    ] },
     { name: 'Daily Log', icon: NotebookPen, path: '/daily_log' },
     { name: 'Monthly Report', icon: BarChart3, path: '/reports' },
-    { name: 'Referrals', icon: FileText, path: '/referral' },
-    { name: 'Individual Inventory', icon: Archive, path: '/inventory' },
-    { name: 'Document Review', icon: FileCheck, path: '/documents' },
+    { name: 'Individual Inventory', icon: Archive, path: '/inventory', children: [
+        { name: 'Document Review', icon: FileCheck, path: '/documents' },
+    ] },
     { name: 'Career Guidance', icon: Compass, path: '/careerguidance' },
     { name: 'Group Guidance', icon: Users, path: '/groupguidance' },
-    { name: 'Announcements & Events', icon: Megaphone, path: '/information' },
     { name: 'Messages', icon: MessageSquare, path: '/message' },
     { name: 'Accounts & Approvals', icon: UserCog, path: '/accounts' },
-    { name: 'Activity Log', icon: History, path: '/activity' },
-    { name: 'Manage Options', icon: Settings, path: '/settings' },
+    { name: 'Manage', icon: Settings, children: [
+        { name: 'Activity Log', icon: History, path: '/activity' },
+        { name: 'Manage Options', icon: SlidersHorizontal, path: '/settings' },
+    ] },
     { name: 'My Account', icon: User, path: '/my_account' },
 ],
 
