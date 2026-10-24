@@ -48,6 +48,7 @@ export async function announceNewBooking(a: { who: string; role: string; forWhom
   await notifyCounselors({
     title: "New appointment request",
     body: `${a.who} (${a.role})${a.forWhom ? ` for ${a.forWhom}` : ""} · ${a.purpose} · ${formatAppointmentWhen(a.date, a.time)}`,
-    href: "/appointment",
+    // Opens the Appointments page on that day. Dates are calendar days stored as UTC midnight.
+    href: `/appointment?date=${a.date.toISOString().slice(0, 10)}`,
   });
 }

@@ -47,6 +47,18 @@ function useNotices() {
   return useContext(NoticesContext);
 }
 
+const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+
+// Where a notification leads. Booking notices sent before their links carried
+// the day ("/appointment" only) still open on that day, read from their text
+// ("… Tuesday, October 27, 2026 at 2:00 PM").
+export function noticeLink(n: { href: string | null; body: string | null }) {
+  if (n.href !== "/appointment" || !n.body) return n.href;
+  const m = /, ([A-Z][a-z]+) (\d{1,2}), (\d{4}) at /.exec(n.body);
+  const month = m ? MONTHS.indexOf(m[1]) + 1 : 0;
+  return m && month ? `/appointment?date=${m[3]}-${String(month).padStart(2, "0")}-${m[2].padStart(2, "0")}` : n.href;
+}
+
 function timeAgo(date: Date) {
   const s = Math.max(0, (Date.now() - new Date(date).getTime()) / 1000);
   if (s < 60) return "just now";
@@ -191,7 +203,7 @@ export function NoticeBell() {
               </button>
               {viewing.href && (
                 <Link
-                  href={viewing.href}
+                  href={noticeLink(viewing) ?? viewing.href}
                   onClick={() => setViewing(null)}
                   className="min-h-11 px-5 rounded-full bg-blue-700 hover:bg-blue-800 text-white text-[14px] font-medium inline-flex items-center justify-center"
                 >

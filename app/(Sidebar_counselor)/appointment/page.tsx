@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { Ban, Check, ChevronLeft, ChevronRight, Loader2, Lock, X } from "lucide-react";
 import {
   blockTime,
@@ -41,7 +42,16 @@ export default function AppointmentScheduling() {
   const [appointmentReasons] = useOptionList("appointmentReasons");
   const purposeValues = appointmentReasons.map(optionValue);
   const today = manilaToday();
-  const [date, setDate] = useState(today);
+  // A link like /appointment?date=2026-10-27 (e.g. from a booking notification)
+  // opens that day, including when this page is already open.
+  const linked = useSearchParams().get("date");
+  const linkedDate = linked && /^\d{4}-\d{2}-\d{2}$/.test(linked) ? linked : null;
+  const [date, setDate] = useState(linkedDate ?? today);
+  const [lastLinked, setLastLinked] = useState(linkedDate);
+  if (linkedDate !== lastLinked) {
+    setLastLinked(linkedDate);
+    if (linkedDate) setDate(linkedDate);
+  }
   const [schedule, setSchedule] = useState<Schedule | null>(null);
   const [loadedDate, setLoadedDate] = useState("");
   const [busyId, setBusyId] = useState<string | null>(null);
