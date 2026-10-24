@@ -2,14 +2,35 @@
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, Loader2, Lock, X } from "lucide-react";
-import { getCareerForm, listCareerForms } from "../../../action/counselor";
-import { COLLEGE_CAREER_FORM, isShown } from "../../../config/collegeCareerForm";
+import { ArrowLeft, Download, Loader2, Lock, X } from "lucide-react";
+import { exportCareerForms, getCareerForm, listCareerForms } from "../../../action/counselor";
+import { ANSWER_FIELDS, COLLEGE_CAREER_FORM, standaloneLabel, type Answers } from "../../../config/collegeCareerForm";
+import { buildXlsx, type XlsxRow } from "../../../../lib/xlsx";
 
 type Row = Awaited<ReturnType<typeof listCareerForms>>[number];
 type Form = NonNullable<Awaited<ReturnType<typeof getCareerForm>>>;
+type Exported = NonNullable<Awaited<ReturnType<typeof exportCareerForms>>>;
 
 const fmt = (d: Date | string | null) => (d ? new Date(d).toLocaleDateString("en-PH", { dateStyle: "medium" }) : "");
+const answerText = (v: Answers[string] | undefined) => (Array.isArray(v) ? v.join(", ") : v ?? "");
+
+// One row per student, one column per question, in form order.
+function exportRows(forms: Exported): XlsxRow[] {
+  const header: XlsxRow = ["Student", "Student ID", "Program (student record)", "Section (student record)", "Status", "Submitted", "Last updated", ...ANSWER_FIELDS.map(standaloneLabel)].map(
+    (h) => ({ value: h, style: "bold" as const })
+  );
+  const body = forms.map((f): XlsxRow => [
+    f.studentName,
+    f.profile?.studentId ?? "",
+    f.profile?.strandOrProgram ?? "",
+    f.profile?.gradeSection ?? "",
+    f.submittedAt ? "Submitted" : "Draft",
+    fmt(f.submittedAt),
+    fmt(f.updatedAt),
+    ...ANSWER_FIELDS.map((q) => answerText(f.answers[q.id])),
+  ]);
+  return [[{ value: "Career Planning Forms", style: "title" }], [`Exported ${fmt(new Date())}`], [], header, ...body];
+}
 
 export default function CareerFormsPage() {
   const [rows, setRows] = useState<Row[] | null>(null);
@@ -17,6 +38,20 @@ export default function CareerFormsPage() {
   const [open, setOpen] = useState<Form | null>(null);
   const [loadingName, setLoadingName] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [exporting, setExporting] = useState(false);
+
+  const download = async () => {
+    setExporting(true);
+    setError(null);
+    const forms = await exportCareerForms();
+    setExporting(false);
+    if (!forms) return setError("The forms could not be exported. Please try again.");
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(buildXlsx(exportRows(forms), "Career Planning Forms"));
+    a.download = `Career Planning Forms ${new Date().toISOString().slice(0, 10)}.xlsx`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+  };
 
   useEffect(() => {
     let cancelled = false;
@@ -53,8 +88,17 @@ export default function CareerFormsPage() {
       <Link href="/careerguidance" className="inline-flex items-center gap-1.5 text-[13px] text-slate-500 hover:text-blue-700">
         <ArrowLeft size={14} /> Career Guidance
       </Link>
-      <header className="mt-3">
+      <header className="mt-3 flex flex-wrap items-end justify-between gap-3">
         <h1 className="page-title">Career Planning Forms</h1>
+        <button
+          type="button"
+          onClick={download}
+          disabled={exporting || !rows?.length}
+          className="min-h-10 px-4 rounded-full bg-blue-700 text-white text-[13px] font-medium hover:bg-blue-800 inline-flex items-center gap-2 disabled:opacity-60"
+        >
+          {exporting ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
+          Export to Excel
+        </button>
       </header>
 
       <input
@@ -121,8 +165,8 @@ export default function CareerFormsPage() {
               </button>
             </div>
             {COLLEGE_CAREER_FORM.filter((s) => s.id !== "consent" && s.id !== "certification").map((s) => {
-              const fields = s.fields.filter((f) => isShown(f, open.answers));
-              const answered = fields.filter((f) => open.answers[f.id] !== undefined);
+              // Every saved answer, including ones from an older version of the form.
+              const answered = s.fields.filter((f) => open.answers[f.id] !== undefined);
               return (
                 <section key={s.id} className="mt-7">
                   <h3 className="text-[13px] font-semibold uppercase tracking-wide text-slate-500 flex items-center gap-1.5">
@@ -137,7 +181,7 @@ export default function CareerFormsPage() {
                         const v = open.answers[f.id];
                         return (
                           <div key={f.id} className="py-2 grid sm:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] gap-x-4 gap-y-0.5">
-                            <dt className="text-[13px] text-slate-500">{f.label}</dt>
+                            <dt className="text-[13px] text-slate-500">{standaloneLabel(f)}</dt>
                             <dd className="text-[14px] text-ink whitespace-pre-line break-words">{Array.isArray(v) ? v.join(", ") : v}</dd>
                           </div>
                         );

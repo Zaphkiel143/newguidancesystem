@@ -1160,6 +1160,30 @@ export async function getCareerForm(studentName: string) {
   }
 }
 
+// Every form with its answers, for the Excel export. Each student included is
+// recorded in their record-access log, the same as opening their form.
+export async function exportCareerForms() {
+  try {
+    const me = await counselorOnly();
+    const forms = await db.collegeCareerForm.findMany({ orderBy: { studentName: "asc" } });
+    const profiles = await db.studentProfile.findMany({
+      where: { name: { in: forms.map((f) => f.studentName) } },
+      select: { name: true, studentId: true, gradeSection: true, strandOrProgram: true },
+    });
+    for (const f of forms) await logRecordAccess(me, f.studentName, "Exported Career Planning Form");
+    return forms.map((f) => ({
+      studentName: f.studentName,
+      answers: f.answers as Answers,
+      submittedAt: f.submittedAt,
+      updatedAt: f.updatedAt,
+      profile: profiles.find((p) => p.name === f.studentName) ?? null,
+    }));
+  } catch (error) {
+    console.error("Failed to export career forms:", error);
+    return null;
+  }
+}
+
 // ==== System-wide activity log ====
 
 export async function listActivity(filters: { role?: string; model?: string; search?: string; from?: string; to?: string; cursor?: string } = {}) {

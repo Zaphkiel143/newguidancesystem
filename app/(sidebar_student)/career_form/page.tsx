@@ -1,14 +1,18 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
-import { Loader2, Lock, Check } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Loader2, Lock, Check, CircleCheck } from "lucide-react";
 import { getMyCareerForm, saveMyCareerForm } from "../../action/student";
 import {
   COLLEGE_CAREER_FORM,
   OTHER_PREFIX,
+  capitalizeName,
   firstSectionWithError,
   isShown,
+  phoneChars,
   validateAnswers,
+  withLegacyDefaults,
   type Answers,
   type Field,
 } from "../../config/collegeCareerForm";
@@ -19,9 +23,13 @@ import { optionValue } from "../../../lib/optionListDefaults";
 const inputClass = "w-full px-3.5 py-2.5 bg-sheet border border-slate-300 rounded-md text-[15px] placeholder:text-slate-400 transition-colors";
 const fieldClass = (bad?: string) => (bad ? inputClass.replace("border-slate-300", "border-red-500") : inputClass);
 
+// After a successful submit, the dashboard opens on its own after this long.
+const REDIRECT_MS = 3000;
+
 type Loaded = Extract<Awaited<ReturnType<typeof getMyCareerForm>>, { allowed: true }>;
 
 export default function CareerPlanningFormPage() {
+  const router = useRouter();
   const [tertiaryCourses] = useOptionList("tertiaryCourses");
   const overrides: Record<string, string[]> = { program: tertiaryCourses.map(optionValue) };
   const [data, setData] = useState<Loaded | null | undefined>(undefined);
@@ -32,6 +40,7 @@ export default function CareerPlanningFormPage() {
   const [saving, setSaving] = useState<"draft" | "submit" | null>(null);
   const [savedNote, setSavedNote] = useState<string | null>(null);
   const [submittedAt, setSubmittedAt] = useState<Date | null>(null);
+  const [justSubmitted, setJustSubmitted] = useState(false);
   const topRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -41,7 +50,7 @@ export default function CareerPlanningFormPage() {
       if (cancelled) return;
       if (!res.allowed) return setData(null);
       // Start with what the school already knows about the student.
-      setAnswers({ email: res.email ?? "", ...res.answers });
+      setAnswers(withLegacyDefaults({ email: res.email ?? "", ...res.answers }));
       setSubmittedAt(res.submittedAt);
       setData(res);
     })();
@@ -49,6 +58,13 @@ export default function CareerPlanningFormPage() {
       cancelled = true;
     };
   }, []);
+
+  // The success pop-up hands over to the dashboard by itself.
+  useEffect(() => {
+    if (!justSubmitted) return;
+    const t = setTimeout(() => router.push("/student_dashboard"), REDIRECT_MS);
+    return () => clearTimeout(t);
+  }, [justSubmitted, router]);
 
   const section = COLLEGE_CAREER_FORM[step];
   const last = step === COLLEGE_CAREER_FORM.length - 1;
@@ -83,6 +99,7 @@ export default function CareerPlanningFormPage() {
     setSaving(submit ? "submit" : "draft");
     setFormError(null);
     if (submit) {
+      // Every page is checked again, so a skipped question can't slip through.
       const all = validateAnswers(answers, true, overrides);
       if (Object.keys(all).length) {
         setErrors(all);
@@ -103,7 +120,8 @@ export default function CareerPlanningFormPage() {
       return;
     }
     setSubmittedAt(res.submittedAt ? new Date(res.submittedAt) : null);
-    setSavedNote(submit ? "Submitted. The Guidance Associate can now see your form." : "Draft saved. You can finish it later.");
+    if (submit) setJustSubmitted(true);
+    else setSavedNote("Draft saved. You can finish it later.");
   };
 
   if (data === undefined) {
@@ -116,14 +134,16 @@ export default function CareerPlanningFormPage() {
 
   if (data === null) {
     return (
-      <div className="px-5 sm:px-8 lg:px-12 pt-8 lg:pt-12 pb-16 max-w-3xl text-slate-800">
+      <div className="px-5 sm:px-8 lg:px-12 pt-8 lg:pt-12 pb-16 max-w-4xl mx-auto text-slate-800">
         <h1 className="page-title">Career Planning Form</h1>
       </div>
     );
   }
 
+  const fields = section.fields.filter((f) => isShown(f, answers));
+
   return (
-    <div ref={topRef} className="px-5 sm:px-8 lg:px-12 pt-8 lg:pt-12 pb-16 max-w-3xl text-slate-800 scroll-mt-24">
+    <div ref={topRef} className="px-5 sm:px-8 lg:px-12 pt-8 lg:pt-12 pb-16 max-w-4xl mx-auto text-slate-800 scroll-mt-24">
       <header>
         <h1 className="page-title">Career Planning Form</h1>
         {submittedAt && (
@@ -149,7 +169,7 @@ export default function CareerPlanningFormPage() {
           if (last) save(true);
           else next();
         }}
-        className="mt-6 bg-sheet border border-rule rounded-2xl p-5 sm:p-7"
+        className="mt-6 bg-sheet border border-rule rounded-2xl p-5 sm:p-8"
       >
         <h2 className="text-lg font-semibold text-ink flex items-center gap-2">
           {section.title}
@@ -167,15 +187,17 @@ export default function CareerPlanningFormPage() {
           </p>
         )}
 
-        <div className="mt-5 space-y-5">
-          {section.fields.filter((f) => isShown(f, answers)).map((f) => (
-            <Question
-              key={f.id}
-              field={overrides[f.id] ? { ...f, options: overrides[f.id] } : f}
-              value={answers[f.id]}
-              error={errors[f.id]}
-              onChange={(v) => set(f.id, v)}
-            />
+        <div className="mt-5 grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-5">
+          {fields.map((f) => (
+            <div key={f.id} className={f.half ? undefined : "sm:col-span-2"}>
+              <Question
+                field={overrides[f.id] ? { ...f, options: overrides[f.id] } : f}
+                value={answers[f.id]}
+                error={errors[f.id]}
+                onChange={(v) => set(f.id, v)}
+                copySource={f.copyFrom ? answers[f.copyFrom.field] : undefined}
+              />
+            </div>
           ))}
         </div>
 
@@ -186,7 +208,7 @@ export default function CareerPlanningFormPage() {
           </p>
         )}
 
-        <div className="mt-7 flex flex-wrap items-center gap-3">
+        <div className="mt-8 flex flex-wrap items-center gap-3">
           {step > 0 && (
             <button type="button" onClick={() => goTo(step - 1)} className="min-h-11 px-5 rounded-full border border-slate-300 text-[14px] hover:bg-slate-50">
               Back
@@ -202,11 +224,45 @@ export default function CareerPlanningFormPage() {
           </button>
         </div>
       </form>
+
+      {justSubmitted && (
+        <div className="fixed inset-0 z-50 bg-black/40 grid place-items-center p-4" role="dialog" aria-modal="true" aria-labelledby="submitted-title">
+          <div className="w-full max-w-sm bg-sheet rounded-2xl p-6 sm:p-7 text-center shadow-xl">
+            <CircleCheck size={48} className="mx-auto text-emerald-600" aria-hidden />
+            <h2 id="submitted-title" className="mt-3 text-xl font-semibold text-ink">
+              Form submitted
+            </h2>
+            <p className="mt-2 text-[14px] text-slate-600">
+              Your Career Planning Form was sent to the Guidance Associate. Taking you to your dashboard…
+            </p>
+            <button
+              type="button"
+              autoFocus
+              onClick={() => router.push("/student_dashboard")}
+              className="mt-5 w-full min-h-11 rounded-full bg-blue-700 text-white text-[14px] font-medium hover:bg-blue-800"
+            >
+              Go to dashboard
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
 
-function Question({ field, value, error, onChange }: { field: Field; value: string | string[] | undefined; error?: string; onChange: (v: string | string[]) => void }) {
+function Question({
+  field,
+  value,
+  error,
+  onChange,
+  copySource,
+}: {
+  field: Field;
+  value: string | string[] | undefined;
+  error?: string;
+  onChange: (v: string | string[]) => void;
+  copySource?: string | string[];
+}) {
   const id = `q-${field.id}`;
   const describedBy = [field.hint && `${id}-hint`, error && `${id}-error`].filter(Boolean).join(" ") || undefined;
   const label = (
@@ -225,6 +281,26 @@ function Question({ field, value, error, onChange }: { field: Field; value: stri
       {error}
     </p>
   );
+
+  if (field.type === "toggle") {
+    return (
+      <div>
+        <label className="flex items-center gap-3 min-h-11 text-[15px] font-medium text-ink cursor-pointer">
+          <input
+            id={id}
+            type="checkbox"
+            checked={value === "Yes"}
+            onChange={(e) => onChange(e.target.checked ? "Yes" : "")}
+            aria-describedby={describedBy}
+            className="w-5 h-5 accent-blue-700"
+          />
+          {field.label}
+        </label>
+        {hint}
+        {err}
+      </div>
+    );
+  }
 
   if (field.type === "radio" || field.type === "checks") {
     const isChecks = field.type === "checks";
@@ -246,7 +322,7 @@ function Question({ field, value, error, onChange }: { field: Field; value: stri
       <fieldset aria-describedby={describedBy} aria-invalid={error ? true : undefined}>
         <legend className="text-[14px] font-medium text-ink">{label}</legend>
         {hint}
-        <div className={`mt-2 ${isChecks ? "grid sm:grid-cols-2 gap-x-6" : "flex flex-wrap gap-x-6"} gap-y-1`}>
+        <div className={`mt-2 ${isChecks ? "grid sm:grid-cols-2 lg:grid-cols-3 gap-x-6" : "flex flex-wrap gap-x-6"} gap-y-1`}>
           {(field.options ?? []).map((opt, i) => (
             <label key={opt} className="flex items-center gap-2.5 min-h-10 text-[14px] cursor-pointer">
               <input
@@ -273,6 +349,7 @@ function Question({ field, value, error, onChange }: { field: Field; value: stri
               <input
                 type="text"
                 aria-label={`${field.label}: other`}
+                placeholder="Please specify"
                 value={otherValue.slice(OTHER_PREFIX.length)}
                 onChange={(e) => setOther(e.target.value, true)}
                 className={`${inputClass} py-1.5 max-w-xs`}
@@ -288,15 +365,30 @@ function Question({ field, value, error, onChange }: { field: Field; value: stri
   const common = {
     id,
     value: (value as string | undefined) ?? "",
+    placeholder: field.placeholder,
     "aria-describedby": describedBy,
     "aria-invalid": error ? true : undefined,
     className: fieldClass(error),
   };
+  const canCopy = typeof copySource === "string" && copySource.trim() !== "";
   return (
     <div>
-      <label htmlFor={id} className="block text-[14px] font-medium text-ink mb-1.5">
-        {label}
-      </label>
+      <div className="flex flex-wrap items-end justify-between gap-x-3 gap-y-1 mb-1.5">
+        <label htmlFor={id} className="block text-[14px] font-medium text-ink">
+          {label}
+        </label>
+        {field.copyFrom && (
+          <button
+            type="button"
+            onClick={() => canCopy && onChange(copySource as string)}
+            disabled={!canCopy}
+            title={canCopy ? undefined : "Fill in the present address first."}
+            className="text-[13px] text-blue-700 font-medium hover:underline disabled:text-slate-400 disabled:no-underline"
+          >
+            {field.copyFrom.label}
+          </button>
+        )}
+      </div>
       {field.type === "textarea" ? (
         <textarea {...common} rows={3} onChange={(e) => onChange(e.target.value)} />
       ) : field.type === "select" ? (
@@ -308,8 +400,19 @@ function Question({ field, value, error, onChange }: { field: Field; value: stri
             </option>
           ))}
         </select>
+      ) : field.type === "phone" ? (
+        <input {...common} type="tel" inputMode="tel" autoComplete="tel" maxLength={13} onChange={(e) => onChange(phoneChars(e.target.value))} />
+      ) : field.type === "name" ? (
+        <input {...common} type="text" autoCapitalize="words" onChange={(e) => onChange(capitalizeName(e.target.value))} />
+      ) : field.id === "homeNumber" ? (
+        <input {...common} type="tel" inputMode="numeric" maxLength={11} onChange={(e) => onChange(e.target.value.replace(/\D/g, ""))} />
       ) : (
-        <input {...common} type={field.type === "date" ? "date" : "text"} max={field.type === "date" ? new Date().toISOString().slice(0, 10) : undefined} onChange={(e) => onChange(e.target.value)} />
+        <input
+          {...common}
+          type={field.type === "date" ? "date" : field.id.toLowerCase().includes("email") ? "email" : "text"}
+          max={field.type === "date" ? new Date().toISOString().slice(0, 10) : undefined}
+          onChange={(e) => onChange(e.target.value)}
+        />
       )}
       {hint}
       {err}

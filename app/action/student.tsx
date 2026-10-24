@@ -260,10 +260,20 @@ export async function getMyStudentLevel() {
   try {
     const me = await requireActionUser("STUDENT");
     const profile = await db.studentProfile.findUnique({ where: { name: me.name }, select: { department: true } });
-    return { hasProfile: Boolean(profile), department: normalizeDepartment(profile?.department), isShs: isShs(profile?.department) };
+    const takesCareerForm = isTertiaryLike(profile?.department);
+    const careerForm = takesCareerForm
+      ? await db.collegeCareerForm.findUnique({ where: { studentName: me.name }, select: { submittedAt: true } })
+      : null;
+    return {
+      hasProfile: Boolean(profile),
+      department: normalizeDepartment(profile?.department),
+      isShs: isShs(profile?.department),
+      takesCareerForm,
+      careerFormSubmittedAt: careerForm?.submittedAt ?? null,
+    };
   } catch (error) {
     console.error("[student] Failed to fetch level:", error);
-    return { hasProfile: false, department: null, isShs: false };
+    return { hasProfile: false, department: null, isShs: false, takesCareerForm: false, careerFormSubmittedAt: null };
   }
 }
 
@@ -638,7 +648,7 @@ export async function getMyCareerForm() {
     const form = await db.collegeCareerForm.findUnique({ where: { studentName: who.me.name } });
     return {
       allowed: true as const,
-      name: who.me.name,
+      name: shownName(who.me),
       studentId: who.profile.studentId,
       email: who.me.email,
       answers: (form?.answers ?? {}) as Answers,

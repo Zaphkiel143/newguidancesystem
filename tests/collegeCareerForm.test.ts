@@ -3,7 +3,10 @@ import assert from "node:assert/strict";
 import {
   COLLEGE_CAREER_FORM,
   CONFIDENTIAL_FIELDS,
+  capitalizeName,
   cleanAnswers,
+  phoneChars,
+  withLegacyDefaults,
   firstSectionWithError,
   validateAnswers,
   type Answers,
@@ -18,6 +21,9 @@ function complete(): Answers {
       if (f.type === "date") a[f.id] = "2000-01-15";
       else if (f.type === "checks") a[f.id] = [f.options![0]];
       else if (f.type === "select" || f.type === "radio") a[f.id] = f.options![f.options!.length - 1];
+      else if (f.type === "phone") a[f.id] = "09171234567";
+      else if (f.type === "name") a[f.id] = "Dela Cruz, Juan A.";
+      else if (f.id === "email") a[f.id] = "juan@stamaria.sti.edu.ph";
       else a[f.id] = "N/A";
     }
   return a;
@@ -88,6 +94,63 @@ test("unknown fields and odd input are ignored without throwing", () => {
   assert.equal(c.hacker, undefined);
   assert.equal(c.nickname, "Jun");
   assert.equal(c.concerns, undefined);
+});
+
+test("phone numbers must be Philippine mobile numbers", () => {
+  const a = complete();
+  for (const bad of ["0917123456", "091712345678", "0917-123-4567", "+6309171234567", "abc"]) {
+    a.cellphone = bad;
+    assert.ok(validateAnswers(cleanAnswers(a), true).cellphone, bad);
+  }
+  for (const good of ["09171234567", "+639171234567"]) {
+    a.cellphone = good;
+    assert.equal(validateAnswers(cleanAnswers(a), true).cellphone, undefined, good);
+  }
+  assert.equal(phoneChars("+63 917-123 4567+"), "+639171234567");
+});
+
+test("names are capitalised and letters only", () => {
+  assert.equal(capitalizeName("dela cruz-santos, juan o'neil (jun)"), "Dela Cruz-Santos, Juan O'Neil (Jun)");
+  assert.equal(capitalizeName("niño mcArthur"), "Niño McArthur");
+  const a = complete();
+  a.guardianName = "Juan 123";
+  assert.ok(validateAnswers(cleanAnswers(a), true).guardianName);
+});
+
+test("sibling questions follow how many siblings there are", () => {
+  const a = complete();
+  a.siblingCount = "None";
+  for (const id of ["sibling1Name", "sibling2Name", "otherSiblings"]) delete a[id];
+  assert.deepEqual(validateAnswers(cleanAnswers(a), true), {});
+  a.siblingCount = "1";
+  const e = validateAnswers(cleanAnswers(a), true);
+  assert.ok(e.sibling1Name);
+  assert.equal(e.sibling2Name, undefined);
+  assert.equal(e.otherSiblings, undefined);
+});
+
+test("work experience can be left out entirely", () => {
+  const a = complete();
+  for (const id of ["hasWork", "company", "position", "duration", "jobDescription", "otherWork"]) delete a[id];
+  assert.deepEqual(validateAnswers(cleanAnswers(a), true), {});
+  a.hasWork = "Yes";
+  assert.ok(validateAnswers(cleanAnswers(a), true).company);
+});
+
+test("other nationalities come from the list", () => {
+  const a = complete();
+  a.nationality = "Other";
+  a.nationalityOther = "Martian";
+  assert.ok(validateAnswers(cleanAnswers(a), true).nationalityOther);
+  a.nationalityOther = "Japanese";
+  assert.equal(validateAnswers(cleanAnswers(a), true).nationalityOther, undefined);
+});
+
+test("older saved forms keep their sibling and work answers", () => {
+  const a = withLegacyDefaults({ sibling1Name: "Ana", sibling2Name: "Ben", company: "Jollibee" });
+  assert.equal(a.siblingCount, "2");
+  assert.equal(a.hasWork, "Yes");
+  assert.equal(withLegacyDefaults({ company: "N/A" }).hasWork, undefined);
 });
 
 test("the health section is confidential", () => {

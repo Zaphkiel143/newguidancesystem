@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, CircleCheck, ClipboardList } from 'lucide-react';
 import { getMyAppointments, getMyCareerPlan, getMyReferrals, getMyStudentLevel } from '../../action/student';
 import { manilaToday } from '../../../lib/time';
 import { greetingName } from '../../../lib/demo';
@@ -143,6 +143,31 @@ export const DashboardContent: React.FC = () => {
               <p>You&apos;re not enrolled in the Career Planning Program yet. The guidance office adds students to it.</p>
             )}
           </div>
+
+          {/* Tertiary students: whether their Career Planning Form is in. */}
+          {data?.level.takesCareerForm && (
+            <Link
+              href="/career_form"
+              className={`mt-6 flex items-center gap-3 rounded-xl border px-4 py-3.5 transition-colors ${
+                data.level.careerFormSubmittedAt ? "border-emerald-200 bg-emerald-50 hover:bg-emerald-100" : "border-blue-100 bg-sheet hover:bg-blue-50"
+              }`}
+            >
+              {data.level.careerFormSubmittedAt ? (
+                <CircleCheck size={22} className="text-emerald-600 shrink-0" aria-hidden />
+              ) : (
+                <ClipboardList size={22} className="text-blue-700 shrink-0" aria-hidden />
+              )}
+              <span className="flex-1 min-w-0">
+                <span className="block text-[15px] font-medium text-ink">Career Planning Form</span>
+                <span className={`block text-[13px] ${data.level.careerFormSubmittedAt ? "text-emerald-700" : "text-slate-500"}`}>
+                  {data.level.careerFormSubmittedAt
+                    ? `Submitted ${new Date(data.level.careerFormSubmittedAt).toLocaleDateString("en-PH", { dateStyle: "medium" })}`
+                    : "Not submitted yet. Fill it in when you're ready."}
+                </span>
+              </span>
+              <ArrowRight size={16} className="text-slate-400 shrink-0" aria-hidden />
+            </Link>
+          )}
         </section>
 
         <div className="space-y-12">
