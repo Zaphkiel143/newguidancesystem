@@ -181,9 +181,7 @@ export default function PhotoPicker({ name, hasPhoto, compact = false }: { name:
 
             {view === "avatars" && (
               <div className="mt-4">
-                <AvatarGroup title="Avatars 1–5" avatars={AVATARS.filter((a) => a.group === "male")} busy={busy} onPick={chooseAvatar} />
-                <AvatarGroup title="Avatars 6–10" avatars={AVATARS.filter((a) => a.group === "female")} busy={busy} onPick={chooseAvatar} />
-                <p className="mt-3 text-[12px] text-slate-500">Anyone can use any avatar.</p>
+                <AvatarGroup avatars={AVATARS} busy={busy} onPick={chooseAvatar} />
                 <button type="button" onClick={() => setView("menu")} disabled={busy} className="mt-4 min-h-10 px-4 rounded-full border border-slate-300 text-[14px] hover:bg-slate-50">
                   Back
                 </button>
@@ -198,10 +196,10 @@ export default function PhotoPicker({ name, hasPhoto, compact = false }: { name:
   );
 }
 
-function AvatarGroup({ title, avatars, busy, onPick }: { title: string; avatars: AvatarStyle[]; busy: boolean; onPick: (a: AvatarStyle) => void }) {
+function AvatarGroup({ avatars, busy, onPick }: { avatars: AvatarStyle[]; busy: boolean; onPick: (a: AvatarStyle) => void }) {
   return (
-    <fieldset className="mt-3 first:mt-0">
-      <legend className="text-[13px] font-medium text-slate-600 mb-2">{title}</legend>
+    <fieldset>
+      <legend className="sr-only">Avatars</legend>
       <div className="grid grid-cols-5 gap-2">
         {avatars.map((a) => (
           <button

@@ -54,6 +54,11 @@ function useNotices() {
   return useContext(NoticesContext);
 }
 
+// Unread messages, for the sidebar's Messages item (same count as the chat button).
+export function useUnreadMessages() {
+  return useNotices().notices.unreadMessages;
+}
+
 const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 
 // Where a notification leads. Booking notices sent before their links carried

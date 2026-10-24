@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache";
 import { STANDARD_DAY_HOURS, isBookableTime, isClosedDay, parseTimeToMinutes } from "../config/timeSlots";
 import { randomUUID } from "crypto";
 import { CAREER_STEPS } from "../config/careerSteps";
-import { Prisma } from "../../lib/generated";
+import { Prisma, type UserRole } from "../../lib/generated";
 import { requireActionUser } from "../../lib/session";
 import { formatAppointmentWhen, sendEmail } from "../../lib/email";
 import { checkImage } from "../../lib/image";
@@ -1035,7 +1035,16 @@ export async function deleteEvent(id: string) {
 export async function listConversations() {
   try {
     await counselorOnly();
-    const conversations = await db.conversation.findMany({ orderBy: { updatedAt: "desc" } });
+    const [conversations, archives] = await Promise.all([
+      db.conversation.findMany({ orderBy: { updatedAt: "desc" } }),
+      // Separate so the inbox still loads if the archive table isn't on the database yet.
+      db.conversationArchive.findMany().catch((error) => {
+        console.error("Failed to load archived conversations:", error);
+        return [];
+      }),
+    ]);
+    const archivedAt = new Map(archives.map((a) => [a.conversationId, a.archivedAt.getTime()]));
+    const avatars = await participantAvatars(conversations);
 
     return await Promise.all(
       conversations.map(async (c) => {
@@ -1043,14 +1052,19 @@ export async function listConversations() {
           db.message.findFirst({ where: { conversationId: c.id }, orderBy: { createdAt: "desc" } }),
           db.message.count({ where: { conversationId: c.id, senderRole: { not: "Counselor" }, readAt: null } }),
         ]);
+        const lastMessageAt = lastMessage?.createdAt ?? c.createdAt;
+        const archived = archivedAt.get(c.id);
 
         return {
           id: c.id,
           participantName: c.participantName,
           participantRole: c.participantRole,
           lastMessage: lastMessage?.content ?? "",
-          lastMessageAt: lastMessage?.createdAt ?? c.createdAt,
+          lastMessageAt,
           unreadCount,
+          // A message after archiving brings it back to the inbox.
+          isArchived: archived !== undefined && lastMessageAt.getTime() <= archived,
+          avatarUrl: avatars.get(`${c.participantRole}|${c.participantName}`) ?? null,
         };
       })
     );
@@ -1058,6 +1072,36 @@ export async function listConversations() {
     console.error("Failed to list conversations:", error);
     return [];
   }
+}
+
+const ROLE_FOR_LABEL: Record<string, UserRole> = { Student: "STUDENT", Faculty: "FACULTY", Parent: "PARENT" };
+
+// Each participant's profile photo, keyed "Role|Name" (conversations store the
+// name, not the account). The URL carries a fingerprint of the photo, so a new
+// or changed photo shows on the next refresh and a removed one disappears.
+async function participantAvatars(conversations: { participantName: string; participantRole: string }[]) {
+  const urls = new Map<string, string>();
+  try {
+    const names = Array.from(new Set(conversations.map((c) => c.participantName)));
+    if (names.length === 0) return urls;
+    const users = await db.user.findMany({
+      where: { name: { in: names }, avatarType: { not: null } },
+      select: { id: true, name: true, role: true },
+    });
+    if (users.length === 0) return urls;
+    const prints = await db.$queryRaw<{ id: string; v: string }[]>`
+      SELECT id, md5("avatarData") AS v FROM "User" WHERE id = ANY(${users.map((u) => u.id)}) AND "avatarData" IS NOT NULL`;
+    const printFor = new Map(prints.map((p) => [p.id, p.v.slice(0, 12)]));
+    for (const [label, role] of Object.entries(ROLE_FOR_LABEL)) {
+      for (const u of users) {
+        const key = `${label}|${u.name}`;
+        if (u.role === role && printFor.has(u.id) && !urls.has(key)) urls.set(key, `/api/avatar/${u.id}?v=${printFor.get(u.id)}`);
+      }
+    }
+  } catch (error) {
+    console.error("Failed to load participant photos:", error);
+  }
+  return urls;
 }
 
 export async function startConversation(formData: { participantName: string; participantRole: string; content: string }) {
@@ -1119,6 +1163,29 @@ export async function sendMessage(formData: { conversationId: string; content: s
   } catch (error) {
     console.error("Failed to send message:", error);
     return { success: false, error: String(error) };
+  }
+}
+
+// Archiving only tidies the Guidance Associate's inbox; nothing is deleted
+// and the other person still sees the conversation.
+export async function setConversationArchived(conversationId: string, archived: boolean) {
+  try {
+    const me = await counselorOnly();
+    if (archived) {
+      await db.conversationArchive.upsert({
+        where: { conversationId },
+        update: { archivedAt: new Date() },
+        create: { conversationId },
+      });
+    } else {
+      await db.conversationArchive.deleteMany({ where: { conversationId } });
+    }
+    await logActivity(me, archived ? "Archived a conversation" : "Moved a conversation back to the inbox", "Conversation", conversationId);
+    revalidatePath("/message");
+    return { success: true };
+  } catch (error) {
+    console.error("Failed to archive conversation:", error);
+    return { success: false, error: "Couldn't update this conversation. Try again." };
   }
 }
 

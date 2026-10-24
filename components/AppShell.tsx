@@ -11,7 +11,7 @@ import AppFooter from "./AppFooter";
 import { getDashboardStats } from "../app/action/counselor";
 import { CurrentUserProvider } from "./CurrentUser";
 import { LogoMark } from "./Logo";
-import { FloatingDock, NoticeBell, NoticesProvider } from "./Notices";
+import { FloatingDock, NoticeBell, NoticesProvider, useUnreadMessages } from "./Notices";
 import { LoginApprovalPrompt } from "./LoginApproval";
 import PrivacyNotice from "./PrivacyNotice";
 import ProfileMenu from "./ProfileMenu";
@@ -246,7 +246,7 @@ export function AppShell({ role, userName, displayName = userName, hiddenPaths =
         </div>
 
         <nav className="flex-1 px-3 pt-2 md:pt-5 overflow-y-auto" aria-label="Main">
-          <SidebarMenu items={menuItems} pathname={pathname} badgeFor={badgeFor} />
+          <MenuWithMessages items={menuItems} pathname={pathname} badgeFor={badgeFor} />
         </nav>
 
         <div className="md:hidden px-5 py-4 border-t border-blue-100">
@@ -278,5 +278,19 @@ export function AppShell({ role, userName, displayName = userName, hiddenPaths =
       {needsPrivacyConsent && <PrivacyNotice />}
     </div>
     </NoticesProvider>
+  );
+}
+
+const MESSAGE_PATHS = new Set(["/message", "/faculty_message", "/parent_message", "/my_messages"]);
+
+// The sidebar, with the unread message count on Messages (it sits inside
+// NoticesProvider, which keeps that count).
+function MenuWithMessages({ badgeFor, ...props }: React.ComponentProps<typeof SidebarMenu>) {
+  const unreadMessages = useUnreadMessages();
+  return (
+    <SidebarMenu
+      {...props}
+      badgeFor={(item) => (item.path && MESSAGE_PATHS.has(item.path) ? unreadMessages || undefined : badgeFor(item))}
+    />
   );
 }

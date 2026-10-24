@@ -1,8 +1,8 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from 'react';
-import { Search, MessageSquare, User, X } from 'lucide-react';
-import { listConversations, startConversation, getMessages, markConversationRead, sendMessage, deleteConversation, listStudentProfiles } from '../../action/counselor';
+import { Archive, ArchiveRestore, Search, MessageSquare, User, X } from 'lucide-react';
+import { listConversations, startConversation, getMessages, markConversationRead, sendMessage, deleteConversation, listStudentProfiles, setConversationArchived } from '../../action/counselor';
 import ConversationPanel from '../../../components/ConversationPanel';
 import InlineError from '../../../components/InlineError';
 import { useCurrentUser } from '../../../components/CurrentUser';
@@ -16,6 +16,8 @@ interface Conversation {
   lastMessage: string;
   lastMessageAt: Date;
   unreadCount: number;
+  isArchived: boolean;
+  avatarUrl: string | null;
 }
 
 type StudentProfile = Awaited<ReturnType<typeof listStudentProfiles>>[number];
@@ -25,6 +27,8 @@ const MessagesDashboard: React.FC = () => {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>('');
+  const [showArchived, setShowArchived] = useState(false);
+  const [archiveError, setArchiveError] = useState<string | null>(null);
 
   const [isNewMessageOpen, setIsNewMessageOpen] = useState(false);
   const [startError, setStartError] = useState<string | null>(null);
@@ -61,7 +65,8 @@ const MessagesDashboard: React.FC = () => {
     return () => clearInterval(interval);
   }, []);
 
-  const filteredConversations = conversations.filter((chat) =>
+  const archivedCount = conversations.filter((c) => c.isArchived).length;
+  const filteredConversations = conversations.filter((chat) => chat.isArchived === showArchived).filter((chat) =>
     chat.participantName.toLowerCase().includes(searchQuery.toLowerCase()) ||
     chat.lastMessage.toLowerCase().includes(searchQuery.toLowerCase()) ||
     chat.participantRole.toLowerCase().includes(searchQuery.toLowerCase())
@@ -73,6 +78,18 @@ const MessagesDashboard: React.FC = () => {
   const studentMatches = studentProfiles.filter(
     (s) => !sq || s.name.toLowerCase().includes(sq) || s.studentId.toLowerCase().includes(sq) || s.gradeSection.toLowerCase().includes(sq)
   );
+
+  // Archiving hides it from the inbox (until someone writes again); closes it here.
+  const toggleArchived = async (chat: Conversation) => {
+    setArchiveError(null);
+    const result = await setConversationArchived(chat.id, !chat.isArchived);
+    if (result.success) {
+      setSelectedId(null);
+      await refreshConversations();
+    } else {
+      setArchiveError(result.error || "Couldn't update this conversation.");
+    }
+  };
 
   const handleStartConversation = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -135,6 +152,17 @@ const MessagesDashboard: React.FC = () => {
               <MessageSquare className="w-4 h-4 fill-current" />
               <span>New Message</span>
             </button>
+
+            <div role="tablist" aria-label="Conversations" className="flex gap-1">
+              {[false, true].map((archived) => (
+                <button key={String(archived)} role="tab" aria-selected={showArchived === archived}
+                  onClick={() => { setShowArchived(archived); setSelectedId(null); }}
+                  className={`flex-1 min-h-9 rounded-full text-[13px] transition-colors ${showArchived === archived ? 'bg-butter-200 text-ink font-medium' : 'text-slate-600 hover:bg-slate-100'}`}>
+                  {archived ? `Archived${archivedCount ? ` (${archivedCount})` : ''}` : 'Inbox'}
+                </button>
+              ))}
+            </div>
+            <InlineError message={archiveError} onDismiss={() => setArchiveError(null)} />
           </div>
 
           {/* Conversations Scroll Container */}
@@ -152,9 +180,14 @@ const MessagesDashboard: React.FC = () => {
                   >
                     {/* Avatar Badge Container */}
                     <div className="relative shrink-0 mt-0.5">
-                      <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 border border-slate-200">
-                        <User className="w-5 h-5" />
-                      </div>
+                      {chat.avatarUrl ? (
+                        // eslint-disable-next-line @next/next/no-img-element -- private, session-checked photo route
+                        <img src={chat.avatarUrl} alt="" className="w-10 h-10 rounded-full object-cover border border-slate-200 bg-slate-100" />
+                      ) : (
+                        <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 border border-slate-200">
+                          <User className="w-5 h-5" />
+                        </div>
+                      )}
                     </div>
 
                     {/* Chat Metatext & Excerpt */}
@@ -190,7 +223,7 @@ const MessagesDashboard: React.FC = () => {
               })
             ) : (
               <div className="p-6 text-center text-sm text-slate-500">
-                No conversations found
+                {showArchived && !searchQuery ? "No archived conversations" : "No conversations found"}
               </div>
             )}
           </div>
@@ -205,11 +238,22 @@ const MessagesDashboard: React.FC = () => {
             viewerName={me.name}
             title={selectedConversation.participantName}
             subtitle={selectedConversation.participantRole}
+            avatarUrl={selectedConversation.avatarUrl}
             onMessageSent={refreshConversations}
             getMessages={getMessages}
             markConversationRead={markConversationRead}
             sendMessage={sendMessage}
             deleteConversation={deleteConversation}
+            headerActions={
+              <button
+                type="button"
+                onClick={() => toggleArchived(selectedConversation)}
+                className="inline-flex items-center gap-1.5 px-3 min-h-9 rounded-full text-[13px] text-slate-600 hover:text-ink hover:bg-slate-100 transition-colors shrink-0"
+              >
+                {selectedConversation.isArchived ? <ArchiveRestore size={16} /> : <Archive size={16} />}
+                {selectedConversation.isArchived ? 'Move to inbox' : 'Archive'}
+              </button>
+            }
             onDeleted={(deletedId) => {
               setSelectedId(null);
               setConversations((prev) => prev.filter((c) => c.id !== deletedId));

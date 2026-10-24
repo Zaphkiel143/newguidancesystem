@@ -171,9 +171,18 @@ model Conversation {
   participantRole String   // Student, Faculty, Parent
 
   messages        Message[]
+  archive         ConversationArchive?
 
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
+}
+
+// The Guidance Associate archived this conversation, hiding it from their
+// inbox until someone writes in it again. The other person still sees it.
+model ConversationArchive {
+  conversationId String       @id
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  archivedAt     DateTime     @default(now())
 }
 
 model Message {

@@ -11,6 +11,8 @@ interface ConversationPanelProps {
   viewerName: string;
   title: string;
   subtitle?: string;
+  // The other person's profile photo; their initials show without one.
+  avatarUrl?: string | null;
   onMessageSent?: () => void;
   getMessages: (conversationId: string) => Promise<DbMessage[]>;
   markConversationRead: (conversationId: string) => Promise<{ success: boolean }>;
@@ -19,6 +21,8 @@ interface ConversationPanelProps {
   // Omit to hide the delete control (not every caller wants it exposed).
   deleteConversation?: (conversationId: string) => Promise<{ success: boolean; error?: string }>;
   onDeleted?: (conversationId: string) => void;
+  // Extra buttons for the header, before delete (e.g. Archive).
+  headerActions?: React.ReactNode;
 }
 
 const POLL_INTERVAL_MS = 4000;
@@ -29,12 +33,14 @@ export default function ConversationPanel({
   viewerName,
   title,
   subtitle,
+  avatarUrl,
   onMessageSent,
   getMessages,
   markConversationRead,
   sendMessage,
   deleteConversation,
   onDeleted,
+  headerActions,
 }: ConversationPanelProps) {
   const [messages, setMessages] = useState<DbMessage[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -115,13 +121,19 @@ export default function ConversationPanel({
   return (
     <div className="flex-1 flex flex-col bg-paper h-full min-h-0">
       <div className="px-6 py-4 border-b border-rule shrink-0 flex items-center gap-3">
-        <span className="w-9 h-9 rounded-md bg-slate-200 text-slate-700 grid place-items-center text-xs font-semibold">
-          {initials}
-        </span>
+        {avatarUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element -- private, session-checked photo route
+          <img src={avatarUrl} alt="" className="w-9 h-9 rounded-full object-cover bg-slate-200" />
+        ) : (
+          <span className="w-9 h-9 rounded-md bg-slate-200 text-slate-700 grid place-items-center text-xs font-semibold">
+            {initials}
+          </span>
+        )}
         <div className="leading-tight flex-1 min-w-0">
           <h3 className="font-medium text-ink text-[15px]">{title}</h3>
           {subtitle && <p className="text-[12px] text-slate-500 mt-0.5">{subtitle}</p>}
         </div>
+        {headerActions}
         {deleteConversation && (
           <button
             type="button"
