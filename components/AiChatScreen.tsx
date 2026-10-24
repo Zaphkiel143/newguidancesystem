@@ -8,7 +8,7 @@ import AiChatThread from "./AiChat";
 // person's own Messages page, for talking to the guidance associate instead.
 export default function AiChatScreen({ messagesPath }: { messagesPath: string }) {
   return (
-    <div className="flex flex-col h-[calc(100dvh-var(--topbar-h)-var(--footer-h))] text-slate-800">
+    <div className="fill-screen flex flex-col h-[calc(100dvh-var(--topbar-h)-var(--footer-h))] text-slate-800">
       <header className="px-5 sm:px-8 lg:px-12 pt-8 pb-5 border-b border-rule flex items-end justify-between gap-4 flex-wrap">
         <div>
           <h1 className="page-title inline-flex items-center gap-2.5"><Bot size={28} className="text-blue-700" aria-hidden /> E-Gabay Chatbot</h1>

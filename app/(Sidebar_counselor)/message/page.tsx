@@ -20,7 +20,7 @@ interface Conversation {
 
 type StudentProfile = Awaited<ReturnType<typeof listStudentProfiles>>[number];
 
-export const MessagesDashboard: React.FC = () => {
+const MessagesDashboard: React.FC = () => {
   const me = useCurrentUser();
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -101,7 +101,7 @@ export const MessagesDashboard: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col h-[calc(100dvh-var(--topbar-h)-var(--footer-h))] bg-paper font-sans antialiased text-slate-800">
+    <div className="fill-screen flex flex-col h-[calc(100dvh-var(--topbar-h)-var(--footer-h))] bg-paper font-sans antialiased text-slate-800">
       {/* Header Section */}
       <header className="px-5 sm:px-8 lg:px-12 pt-8 pb-5 border-b border-rule">
         <h1 className="page-title">Messages</h1>

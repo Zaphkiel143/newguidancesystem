@@ -19,7 +19,8 @@ const plexMono = IBM_Plex_Mono({
 
 // Applies the saved Appearance setting before the first paint, so dark mode
 // doesn't flash white on load (components/ThemeSetting.tsx saves it).
-const THEME_SCRIPT = `try{var t=localStorage.getItem("egabay-theme");if(t==="dark"||(t==="system"&&matchMedia("(prefers-color-scheme: dark)").matches))document.documentElement.dataset.theme="dark"}catch(e){}`;
+// It also restores a hidden desktop sidebar (components/AppShell.tsx).
+const THEME_SCRIPT = `try{var t=localStorage.getItem("egabay-theme");if(t==="dark"||(t==="system"&&matchMedia("(prefers-color-scheme: dark)").matches))document.documentElement.dataset.theme="dark";if(localStorage.getItem("egabay-sidebar")==="collapsed")document.documentElement.dataset.sidebar="collapsed"}catch(e){}`;
 
 export const metadata: Metadata = {
   title: "E-Gabay · STI College Sta. Maria",

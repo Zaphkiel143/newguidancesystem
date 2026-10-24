@@ -79,7 +79,9 @@ function initials(name: string): string {
 export function AppShell({ role, userName, displayName = userName, hiddenPaths = [], avatarUrl, needsPrivacyConsent = false, children }: AppShellProps) {
   const pathname = usePathname();
   // isOpen: the phone drawer. collapsed: the sidebar hidden on wider screens
-  // (the burger button toggles it; remembered on this device).
+  // (the burger button toggles it; remembered on this device). The hiding
+  // itself is CSS keyed on <html data-sidebar="collapsed">, which the script
+  // in app/layout.tsx sets before the page paints, so it never flashes open.
   const [isOpen, setIsOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
   const [lastPathname, setLastPathname] = useState(pathname);
@@ -87,7 +89,7 @@ export function AppShell({ role, userName, displayName = userName, hiddenPaths =
   useEffect(() => {
     try {
       // eslint-disable-next-line react-hooks/set-state-in-effect -- syncing from browser storage once
-      if (localStorage.getItem(SIDEBAR_KEY) === "collapsed") setCollapsed(true);
+      if (document.documentElement.dataset.sidebar === "collapsed") setCollapsed(true);
     } catch {
       // Storage blocked: the sidebar just starts open.
     }
@@ -95,14 +97,16 @@ export function AppShell({ role, userName, displayName = userName, hiddenPaths =
 
   const toggleMenu = () => {
     if (!window.matchMedia("(min-width: 768px)").matches) return setIsOpen(true);
-    setCollapsed((c) => {
-      try {
-        localStorage.setItem(SIDEBAR_KEY, c ? "open" : "collapsed");
-      } catch {
-        // Storage blocked: the choice lasts until the page reloads.
-      }
-      return !c;
-    });
+    const next = !collapsed;
+    setCollapsed(next);
+    document.documentElement.dataset.sidebarAnim = "";
+    if (next) document.documentElement.dataset.sidebar = "collapsed";
+    else delete document.documentElement.dataset.sidebar;
+    try {
+      localStorage.setItem(SIDEBAR_KEY, next ? "collapsed" : "open");
+    } catch {
+      // Storage blocked: the choice lasts until the page reloads.
+    }
   };
   const [counselorCounts, setCounselorCounts] = useState<{
     activeAppointments: number;
@@ -197,7 +201,7 @@ export function AppShell({ role, userName, displayName = userName, hiddenPaths =
         id="main-menu"
         className={`w-(--sidebar-w) bg-blue-50 border-r border-blue-100 flex flex-col fixed left-0 z-50 md:z-30 top-0 h-screen md:top-(--topbar-h) md:h-[calc(100vh-var(--topbar-h))] transition-[translate,visibility] duration-300 ease-out ${
           isOpen ? "translate-x-0" : "-translate-x-full"
-        } ${collapsed ? "md:-translate-x-full md:invisible" : "md:translate-x-0 md:visible"}`}
+        } md:translate-x-0 md:visible`}
       >
         {/* Drawer header, phones only (the top bar carries the brand on wider screens) */}
         <div className="md:hidden px-5 pt-5 pb-4 flex items-center justify-between">
@@ -275,9 +279,12 @@ export function AppShell({ role, userName, displayName = userName, hiddenPaths =
         </div>
       </aside>
 
-      <main className={`${collapsed ? "md:pl-0" : "md:pl-(--sidebar-w)"} min-w-0 pb-[calc(var(--footer-h)+5rem)] transition-[padding] duration-300 ease-out`}>
-        <CurrentUserProvider user={{ name: userName, displayName, roleLabel: RECORD_ROLE[role] }}>{children}</CurrentUserProvider>
-        <AppFooter sidebarHidden={collapsed} />
+      <main className={`app-main md:pl-(--sidebar-w) min-w-0 pb-[calc(var(--footer-h)+5rem)] transition-[padding] duration-300 ease-out`}>
+        {/* With the sidebar hidden, pages sit centred in the wider space (see .page-area in globals.css). */}
+        <div className="page-area">
+          <CurrentUserProvider user={{ name: userName, displayName, roleLabel: RECORD_ROLE[role] }}>{children}</CurrentUserProvider>
+        </div>
+        <AppFooter showHotlines={role !== "counselor"} />
       </main>
 
       <FloatingDock messagesPath={MESSAGES_PATH[role]} withChatbot={role === "student" || role === "faculty"} />

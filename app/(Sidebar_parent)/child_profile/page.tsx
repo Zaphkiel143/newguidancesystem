@@ -8,7 +8,7 @@ import { useMyChildren } from '../useMyChildren';
 
 type ChildProfile = NonNullable<Awaited<ReturnType<typeof getChildProfile>>>;
 
-export const ChildProfilePage: React.FC = () => {
+const ChildProfilePage: React.FC = () => {
   const children = useMyChildren();
   const [chosenChild, setChosenChild] = useState('');
   const childName = chosenChild || children?.[0]?.name || '';

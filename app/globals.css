@@ -340,3 +340,35 @@ body {
     font-size: 16px !important;
   }
 }
+
+/* The desktop sidebar hidden with the burger button (components/AppShell.tsx;
+   app/layout.tsx sets the attribute before the page paints). The page and
+   footer take the freed space, and width-capped pages (max-w-*) sit centred
+   instead of hugging the left edge; full-width pages are unaffected. */
+@media (min-width: 768px) {
+  html[data-sidebar="collapsed"] #main-menu {
+    translate: -100% 0;
+    visibility: hidden;
+  }
+  html[data-sidebar="collapsed"] .app-main {
+    padding-left: 0;
+  }
+  html[data-sidebar="collapsed"] .app-footer {
+    left: 0;
+  }
+  html[data-sidebar="collapsed"] .page-area > * {
+    margin-inline: auto;
+  }
+  /* Slide only when the burger is pressed, never when a page loads. */
+  html:not([data-sidebar-anim]) :is(#main-menu, .app-main, .app-footer) {
+    transition: none;
+  }
+}
+
+/* Pages that fill the screen exactly (chat, messages; class .fill-screen)
+   only need room for the fixed footer, so the page itself doesn't scroll and
+   drag the conversation along. Other pages keep extra room at the bottom for
+   the floating message button. */
+.app-main:has(.fill-screen) {
+  padding-bottom: var(--footer-h);
+}
