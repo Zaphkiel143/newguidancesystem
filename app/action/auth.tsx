@@ -146,7 +146,7 @@ export async function requestLoginCode(rawEmail: string): Promise<CodeRequestRes
     const code = String(randomInt(0, 1_000_000)).padStart(6, "0");
     // Older unused codes stop working once a new one is issued.
     await db.loginCode.updateMany({ where: { email, usedAt: null }, data: { usedAt: new Date() } });
-    await db.loginCode.create({
+    const issued = await db.loginCode.create({
       data: { email, codeHash: hashPassword(code), expiresAt: new Date(Date.now() + CODE_TTL_MS) },
     });
 
@@ -157,7 +157,9 @@ export async function requestLoginCode(rawEmail: string): Promise<CodeRequestRes
       { logBody: "[sign-in code email; code not stored]" }
     );
     if (status === "FAILED") {
-      return { success: false, error: "We couldn't send the code. Try again in a moment." };
+      // A code that never went out mustn't start the resend wait or use up the hourly limit.
+      await db.loginCode.delete({ where: { id: issued.id } }).catch(() => {});
+      return { success: false, error: "We couldn't send the code to your email. Try again in a moment; if it keeps failing, tell the guidance office." };
     }
 
     return { success: true, email };

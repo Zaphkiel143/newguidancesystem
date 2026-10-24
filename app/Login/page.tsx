@@ -181,7 +181,10 @@ const LoginPage = () => {
     e?.preventDefault();
     setIsSubmitting(true);
     setError(null);
-    const result = await requestLoginCode(email);
+    // A request the host cuts off (or a dropped connection) throws instead of returning.
+    const result: Awaited<ReturnType<typeof requestLoginCode>> = await requestLoginCode(email).catch(
+      () => ({ success: false, error: "Sending the code took too long. Try again in a moment." })
+    );
     setIsSubmitting(false);
     if (result.success) {
       setEmail(result.email);

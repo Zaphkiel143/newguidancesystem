@@ -13,6 +13,11 @@ const transporter = process.env.SMTP_HOST
       port: Number(process.env.SMTP_PORT ?? 587),
       secure: Number(process.env.SMTP_PORT) === 465,
       auth: process.env.SMTP_USER ? { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS } : undefined,
+      // Fail fast instead of nodemailer's minutes-long defaults, so an unreachable
+      // mail server ends in an error the page can show, not a request the host cuts off.
+      connectionTimeout: 10_000,
+      greetingTimeout: 10_000,
+      socketTimeout: 15_000,
     })
   : null;
 
