@@ -4,6 +4,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Archive, ArchiveRestore, Search, MessageSquare, X } from 'lucide-react';
 import { listConversations, startConversation, getMessages, markConversationRead, sendMessage, listStudentProfiles, setConversationArchived } from '../../action/counselor';
 import ConversationPanel from '../../../components/ConversationPanel';
+import { listAccounts } from '../../action/accounts';
 import InlineError from '../../../components/InlineError';
 import { useCurrentUser } from '../../../components/CurrentUser';
 
@@ -22,6 +23,8 @@ interface Conversation {
 }
 
 type StudentProfile = Awaited<ReturnType<typeof listStudentProfiles>>[number];
+type Role = 'Student' | 'Faculty' | 'Parent';
+type Recipient = { key: string; name: string; role: Role; detail: string };
 
 // "Jeron Abanes" -> "JA"; the picture for people without a profile photo.
 function initialsOf(name: string) {
@@ -36,21 +39,26 @@ const MessagesDashboard: React.FC = () => {
   const [showArchived, setShowArchived] = useState(false);
   const [archiveError, setArchiveError] = useState<string | null>(null);
 
-  const [isNewMessageOpen, setIsNewMessageOpen] = useState(false);
-  const [startError, setStartError] = useState<string | null>(null);
-  const [newName, setNewName] = useState('');
-  const [newRole, setNewRole] = useState<'Student' | 'Faculty' | 'Parent'>('Student');
+  // New Message: a blank chat whose "To:" box picks the person.
+  const [composing, setComposing] = useState(false);
+  const [toQuery, setToQuery] = useState('');
   // A chat with someone who has no conversation yet; it's created when the first message is sent.
-  const [draft, setDraft] = useState<{ name: string; role: 'Student' | 'Faculty' | 'Parent' } | null>(null);
+  const [draft, setDraft] = useState<{ name: string; role: Role } | null>(null);
   const startedId = useRef<string | null>(null);
   const [studentProfiles, setStudentProfiles] = useState<StudentProfile[]>([]);
-  const [studentQuery, setStudentQuery] = useState('');
+  const [otherPeople, setOtherPeople] = useState<{ id: string; name: string; role: Role }[]>([]);
 
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      const data = await listStudentProfiles();
-      if (!cancelled) setStudentProfiles(data);
+      const [students, accounts] = await Promise.all([listStudentProfiles(), listAccounts()]);
+      if (cancelled) return;
+      setStudentProfiles(students);
+      setOtherPeople(
+        accounts
+          .filter((a) => a.status === "ACTIVE" && (a.role === "FACULTY" || a.role === "PARENT"))
+          .map((a) => ({ id: a.id, name: a.name, role: a.role === "FACULTY" ? "Faculty" : "Parent" }))
+      );
     })();
     return () => {
       cancelled = true;
@@ -81,10 +89,12 @@ const MessagesDashboard: React.FC = () => {
 
   const selectedConversation = conversations.find((c) => c.id === selectedId) ?? null;
 
-  const sq = studentQuery.trim().toLowerCase();
-  const studentMatches = studentProfiles.filter(
-    (s) => !sq || s.name.toLowerCase().includes(sq) || s.studentId.toLowerCase().includes(sq) || s.gradeSection.toLowerCase().includes(sq)
-  );
+  // Everyone the "To:" box can find: students (by name, ID or section), then faculty and parents.
+  const tq = toQuery.trim().toLowerCase();
+  const recipients: Recipient[] = [
+    ...studentProfiles.map((s) => ({ key: `s-${s.id}`, name: s.name, role: 'Student' as const, detail: `${s.studentId} · ${s.gradeSection}` })),
+    ...otherPeople.map((p) => ({ key: `u-${p.id}`, name: p.name, role: p.role, detail: '' })),
+  ].filter((r) => !tq || r.name.toLowerCase().includes(tq) || r.detail.toLowerCase().includes(tq) || r.role.toLowerCase().startsWith(tq));
 
   // Archiving hides it from the inbox (until someone writes again); closes it here.
   const toggleArchived = async (chat: Conversation) => {
@@ -99,29 +109,30 @@ const MessagesDashboard: React.FC = () => {
   };
 
   const openConversation = (id: string) => {
+    setComposing(false);
     setDraft(null);
     setSelectedId(id);
   };
 
+  const startComposing = () => {
+    setSelectedId(null);
+    setDraft(null);
+    setToQuery('');
+    setComposing(true);
+  };
+
   // Opens the chat with this person: their existing conversation (archived or
   // not), or an empty one that is saved once the first message is sent.
-  const handleOpenChat = (e: React.FormEvent) => {
-    e.preventDefault();
-    const name = newName.trim();
-    if (!name) return;
-    const existing = conversations.find((c) => c.participantRole === newRole && c.participantName.toLowerCase() === name.toLowerCase());
+  const chooseRecipient = (r: Recipient) => {
+    const existing = conversations.find((c) => c.participantRole === r.role && c.participantName.toLowerCase() === r.name.toLowerCase());
     if (existing) {
       setShowArchived(existing.isArchived);
       openConversation(existing.id);
     } else {
-      setSelectedId(null);
+      setComposing(false);
       setShowArchived(false);
-      setDraft({ name, role: newRole });
+      setDraft({ name: r.name, role: r.role });
     }
-    setIsNewMessageOpen(false);
-    setNewName('');
-    setStudentQuery('');
-    setNewRole('Student');
   };
 
   const draftProfile = draft?.role === 'Student' ? studentProfiles.find((s) => s.name === draft.name) : undefined;
@@ -155,7 +166,7 @@ const MessagesDashboard: React.FC = () => {
 
             {/* New Message Button */}
             <button
-              onClick={() => { setStartError(null); setNewName(''); setStudentQuery(''); setIsNewMessageOpen(true); }}
+              onClick={startComposing}
               className="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 px-4 rounded-full transition-colors text-sm shadow-sm"
             >
               <MessageSquare className="w-4 h-4 fill-current" />
@@ -165,7 +176,7 @@ const MessagesDashboard: React.FC = () => {
             <div role="tablist" aria-label="Conversations" className="flex gap-1">
               {[false, true].map((archived) => (
                 <button key={String(archived)} role="tab" aria-selected={showArchived === archived}
-                  onClick={() => { setShowArchived(archived); setSelectedId(null); }}
+                  onClick={() => { setShowArchived(archived); setSelectedId(null); setDraft(null); setComposing(false); }}
                   className={`flex-1 min-h-9 rounded-full text-[13px] transition-colors ${showArchived === archived ? 'bg-butter-200 text-ink font-medium' : 'text-slate-600 hover:bg-slate-100'}`}>
                   {archived ? `Archived${archivedCount ? ` (${archivedCount})` : ''}` : 'Inbox'}
                 </button>
@@ -286,6 +297,48 @@ const MessagesDashboard: React.FC = () => {
               startedId.current = null;
             }}
           />
+        ) : composing ? (
+          <div className="flex-1 flex flex-col bg-paper h-full min-h-0">
+            <div className="px-6 py-3 border-b border-rule shrink-0 flex items-center gap-3">
+              <label htmlFor="to-query" className="text-[14px] font-medium text-slate-600 shrink-0">To:</label>
+              <input
+                id="to-query"
+                autoFocus
+                type="text"
+                value={toQuery}
+                onChange={(e) => setToQuery(e.target.value)}
+                onKeyDown={(e) => { if (e.key === 'Enter' && recipients.length > 0) chooseRecipient(recipients[0]); if (e.key === 'Escape') setComposing(false); }}
+                placeholder="Name, student ID, or section"
+                className="flex-1 min-w-0 bg-transparent py-2 text-[15px] placeholder:text-slate-400 focus:outline-none"
+              />
+              <button type="button" onClick={() => setComposing(false)} aria-label="Cancel new message"
+                className="w-9 h-9 grid place-items-center rounded-full text-slate-500 hover:text-ink hover:bg-slate-100 shrink-0">
+                <X size={18} />
+              </button>
+            </div>
+            <div className="flex-1 overflow-y-auto min-h-0">
+              <ul className="max-w-3xl mx-auto py-2">
+                {recipients.length === 0 ? (
+                  <li className="px-6 py-6 text-center text-sm text-slate-500">No one matches “{toQuery.trim()}”.</li>
+                ) : (
+                  recipients.slice(0, 60).map((r) => (
+                    <li key={r.key}>
+                      <button type="button" onClick={() => chooseRecipient(r)}
+                        className="w-full text-left px-6 py-2.5 flex items-center gap-3 hover:bg-blue-50 rounded-lg transition-colors">
+                        <span aria-hidden className="w-9 h-9 rounded-full bg-blue-100 text-blue-800 grid place-items-center text-xs font-semibold shrink-0">
+                          {initialsOf(r.name)}
+                        </span>
+                        <span className="min-w-0">
+                          <span className="block text-[14px] font-medium text-ink truncate">{r.name}</span>
+                          <span className="block text-[12px] text-slate-500 truncate">{r.role}{r.detail ? ` · ${r.detail}` : ''}</span>
+                        </span>
+                      </button>
+                    </li>
+                  ))
+                )}
+              </ul>
+            </div>
+          </div>
         ) : (
           <main className="flex-1 bg-white flex flex-col items-center justify-center p-8 select-none">
             <div className="text-center max-w-sm flex flex-col items-center">
@@ -315,102 +368,6 @@ const MessagesDashboard: React.FC = () => {
 
       </div>
 
-      {/* NEW MESSAGE MODAL */}
-      {isNewMessageOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-          <div className="bg-white w-full max-w-md p-6 rounded-2xl shadow-xl border border-slate-100 space-y-4">
-            <div className="flex items-start justify-between">
-              <div>
-                <h3 className="text-lg font-semibold text-slate-900">New Message</h3>
-                <p className="text-xs text-slate-500">Open a chat with a student, faculty member, or parent</p>
-              </div>
-              <button
-                onClick={() => setIsNewMessageOpen(false)}
-                aria-label="Close" className="w-11 h-11 -m-2 grid place-items-center text-slate-500 hover:text-ink hover:bg-slate-100 rounded-full transition"
-              >
-                <X size={18} />
-              </button>
-            </div>
-
-            <form onSubmit={handleOpenChat} className="space-y-4">
-              <div className="space-y-1">
-                <label className="text-xs font-semibold text-slate-700">Recipient Role</label>
-                <select
-                  value={newRole}
-                  onChange={(e) => { setNewRole(e.target.value as 'Student' | 'Faculty' | 'Parent'); setNewName(''); setStudentQuery(''); }}
-                  className="w-full text-sm bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 focus:outline-none"
-                >
-                  <option value="Student">Student</option>
-                  <option value="Faculty">Faculty</option>
-                  <option value="Parent">Parent</option>
-                </select>
-              </div>
-
-              {newRole === 'Student' ? (
-                <div className="space-y-1">
-                  <label className="text-xs font-semibold text-slate-700">Recipient</label>
-                  <div className="relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
-                    <input
-                      type="text"
-                      value={studentQuery}
-                      onChange={(e) => { setStudentQuery(e.target.value); setNewName(''); }}
-                      placeholder="Search by name, student ID, or section"
-                      className="w-full pl-9 pr-3 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none"
-                    />
-                  </div>
-                  <div className="max-h-44 overflow-y-auto border border-slate-200 rounded-xl divide-y divide-slate-100">
-                    {studentMatches.length === 0 ? (
-                      <p className="px-3 py-3 text-[13px] text-slate-500">No students match your search.</p>
-                    ) : (
-                      studentMatches.map((s) => (
-                        <button type="button" key={s.id} onClick={() => setNewName(s.name)}
-                          className={`w-full text-left px-3 py-2.5 text-sm hover:bg-blue-50 transition-colors ${newName === s.name ? "bg-blue-50" : ""}`}>
-                          <span className="font-medium text-ink">{s.name}</span>
-                          <span className="block text-[12px] text-slate-500">{s.studentId} · {s.gradeSection}</span>
-                        </button>
-                      ))
-                    )}
-                  </div>
-                  {newName && <p className="text-[13px] text-emerald-700">Selected: {newName}</p>}
-                </div>
-              ) : (
-                <div className="space-y-1">
-                  <label className="text-xs font-semibold text-slate-700">Recipient Name</label>
-                  <input
-                    type="text"
-                    required
-                    value={newName}
-                    onChange={(e) => setNewName(e.target.value)}
-                    placeholder="e.g., Kurt Aquino"
-                    className="w-full text-sm bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 focus:outline-none"
-                  />
-                </div>
-              )}
-
-
-              <InlineError message={startError} onDismiss={() => setStartError(null)} />
-
-              <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
-                <button
-                  type="button"
-                  onClick={() => setIsNewMessageOpen(false)}
-                  className="px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 rounded-full transition"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={!newName.trim()}
-                  className="px-5 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 rounded-full transition"
-                >
-                  Open chat
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
     </div>
   );
 };
