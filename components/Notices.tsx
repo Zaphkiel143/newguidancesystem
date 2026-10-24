@@ -54,9 +54,10 @@ const MONTHS = ["January", "February", "March", "April", "May", "June", "July", 
 // ("… Tuesday, October 27, 2026 at 2:00 PM").
 export function noticeLink(n: { href: string | null; body: string | null }) {
   if (n.href !== "/appointment" || !n.body) return n.href;
-  const m = /, ([A-Z][a-z]+) (\d{1,2}), (\d{4}) at /.exec(n.body);
+  const m = /, ([A-Z][a-z]+) (\d{1,2}), (\d{4}) at (\d{1,2}:\d{2} [AP]M)/.exec(n.body);
   const month = m ? MONTHS.indexOf(m[1]) + 1 : 0;
-  return m && month ? `/appointment?date=${m[3]}-${String(month).padStart(2, "0")}-${m[2].padStart(2, "0")}` : n.href;
+  if (!m || !month) return n.href;
+  return `/appointment?date=${m[3]}-${String(month).padStart(2, "0")}-${m[2].padStart(2, "0")}&time=${encodeURIComponent(m[4])}`;
 }
 
 function timeAgo(date: Date) {

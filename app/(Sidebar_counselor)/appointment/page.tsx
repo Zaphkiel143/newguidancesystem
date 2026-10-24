@@ -42,15 +42,23 @@ export default function AppointmentScheduling() {
   const [appointmentReasons] = useOptionList("appointmentReasons");
   const purposeValues = appointmentReasons.map(optionValue);
   const today = manilaToday();
-  // A link like /appointment?date=2026-10-27 (e.g. from a booking notification)
-  // opens that day, including when this page is already open.
-  const linked = useSearchParams().get("date");
-  const linkedDate = linked && /^\d{4}-\d{2}-\d{2}$/.test(linked) ? linked : null;
+  // A link like /appointment?date=2026-10-27&time=2:00 PM (e.g. from a booking
+  // notification) opens that day and points out that appointment, including
+  // when this page is already open.
+  const params = useSearchParams();
+  const rawDate = params.get("date");
+  const rawTime = params.get("time");
+  const linkedDate = rawDate && /^\d{4}-\d{2}-\d{2}$/.test(rawDate) ? rawDate : null;
+  const linkedTime = linkedDate && rawTime && STANDARD_DAY_HOURS.includes(rawTime) ? rawTime : null;
+  const linkKey = linkedDate ? `${linkedDate}|${linkedTime ?? ""}` : null;
   const [date, setDate] = useState(linkedDate ?? today);
-  const [lastLinked, setLastLinked] = useState(linkedDate);
-  if (linkedDate !== lastLinked) {
-    setLastLinked(linkedDate);
+  // The slot to scroll to and highlight once that day has loaded.
+  const [highlight, setHighlight] = useState<string | null>(linkedTime);
+  const [lastLink, setLastLink] = useState(linkKey);
+  if (linkKey !== lastLink) {
+    setLastLink(linkKey);
     if (linkedDate) setDate(linkedDate);
+    setHighlight(linkedTime);
   }
   const [schedule, setSchedule] = useState<Schedule | null>(null);
   const [loadedDate, setLoadedDate] = useState("");
@@ -89,6 +97,15 @@ export default function AppointmentScheduling() {
   }, [date]);
 
   const loading = loadedDate !== date;
+
+  // Once the linked day is on screen, bring the appointment into view; the
+  // highlight fades after a few seconds.
+  useEffect(() => {
+    if (!highlight || loading) return;
+    document.querySelector(`[data-slot="${highlight}"]`)?.scrollIntoView({ behavior: "smooth", block: "center" });
+    const t = setTimeout(() => setHighlight(null), 4000);
+    return () => clearTimeout(t);
+  }, [highlight, loading]);
   const appts = schedule?.appointments ?? [];
   const blocks = schedule?.blocks ?? [];
   const confirmed = appts.filter((a) => a.status === "CONFIRMED").length;
@@ -235,10 +252,14 @@ export default function AppointmentScheduling() {
             const a = appts.find((x) => x.time === entry.time);
             const b = blocks.find((x) => x.time === entry.time);
             return (
-              <li key={entry.time} className="py-3 grid grid-cols-[5.5rem_1fr] gap-3">
+              <li key={entry.time} data-slot={entry.time} className="py-3 grid grid-cols-[5.5rem_1fr] gap-3 scroll-mt-24">
                 <span className="font-mono text-[13px] text-slate-600 pt-0.5">{entry.time}</span>
                 {a ? (
-                  <div className="min-w-0 bg-sheet border border-rule rounded-xl p-4 space-y-3">
+                  <div
+                    className={`min-w-0 border rounded-xl p-4 space-y-3 transition-[background-color,border-color,box-shadow] duration-700 ${
+                      highlight === entry.time ? "bg-butter-50 border-butter-400 ring-4 ring-butter-200" : "bg-sheet border-rule"
+                    }`}
+                  >
                     <div className="flex flex-wrap items-start justify-between gap-2">
                       <div className="min-w-0">
                         <p className="font-semibold text-ink">{a.studentName}</p>
