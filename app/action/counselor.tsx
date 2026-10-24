@@ -18,6 +18,7 @@ import { collegeSectionLabel, gradeSectionLabel, isShs, isTertiaryLike, normaliz
 import { formatStudentName } from "../../lib/studentName";
 import { getOptionList } from "./optionLists";
 import { optionValue } from "../../lib/optionListDefaults";
+import { manilaMinutes, manilaTodayAsStoredDate } from "../../lib/time";
 
 // Every action here requires a signed-in Guidance Associate (COUNSELOR role).
 const counselorOnly = () => requireActionUser("COUNSELOR");
@@ -1333,16 +1334,23 @@ export async function sendReferralFeedback(referralId: string, content: string) 
 export async function getDashboardStats() {
   try {
     await counselorOnly();
-    const [totalStudents, pendingReferrals, activeCareerPlans, documentsToReview, pendingAccounts, pendingParentLinks, pendingAppointments, activeAppointments] = await Promise.all([
+    const today = manilaTodayAsStoredDate();
+    const [totalStudents, pendingReferrals, activeCareerPlans, documentsToReview, pendingAccounts, pendingParentLinks, pendingRequests, activeAppointments] = await Promise.all([
       db.studentProfile.count(),
       db.referral.count({ where: { status: { not: "CLOSED" } } }),
       db.careerPlan.count(),
       db.document.count({ where: { reviewStatus: "PENDING" } }),
       db.user.count({ where: { status: "PENDING", role: { not: "PARENT" } } }),
       db.parentChildLink.count({ where: { status: "PENDING", parent: { status: { not: "REJECTED" } } } }),
-      db.appointment.count({ where: { status: "PENDING" } }),
+      // Requests still waiting to be confirmed, from today on (earlier days are past).
+      db.appointment.findMany({ where: { status: "PENDING", date: { gte: today } }, select: { date: true, time: true } }),
       db.appointment.count({ where: { status: { not: "CANCELLED" } } }),
     ]);
+    // A request for today drops off once its start time has passed.
+    const nowMinutes = manilaMinutes();
+    const pendingAppointments = pendingRequests.filter(
+      (a) => a.date.getTime() > today.getTime() || parseTimeToMinutes(a.time) > nowMinutes
+    ).length;
 
     return {
       totalStudents,
