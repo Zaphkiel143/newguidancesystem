@@ -8,7 +8,7 @@ import { allow, DAY, HOUR, MINUTE, SLOW_DOWN } from "../../lib/rateLimit";
 import { counselorEmails, formatAppointmentWhen, sendEmail } from "../../lib/email";
 import { announceNewBooking, checkBooking } from "../../lib/booking";
 import { parseTimeToMinutes } from "../config/timeSlots";
-import { gradeSectionLabel, isShs, isTertiaryLike, normalizeDepartment } from "../config/studentLevels";
+import { gradeSectionLabel, isShs, isStudentId, isTertiaryLike, normalizeDepartment, splitCollegeSection } from "../config/studentLevels";
 import { checkDocument } from "../../lib/documents";
 import { getOptionList } from "./optionLists";
 import { optionValue } from "../../lib/optionListDefaults";
@@ -479,17 +479,32 @@ export async function sendAiMessage(formData: { conversationId: string; content:
   }
 }
 
-// First sign-in before this feature, or a record the office hasn't made yet:
-// the student fills in their own school details once. After that only the
-// guidance office can change them.
-export async function completeMyStudentInfo(formData: { studentId: string; department: string; yearLevel: string; program: string; section: string }) {
+export type MyStudentInfo = {
+  studentId: string;
+  department: string;
+  yearLevel: string;
+  program: string;
+  // Senior high: as typed (e.g. "STEM-A"). College: "BSIT 1-101".
+  section: string;
+  phone?: string;
+  birthDate?: string;
+  address?: string;
+  guardianName?: string;
+  guardianContact?: string;
+};
+
+const PH_MOBILE = /^(09\d{9}|\+639\d{9})$/;
+const NAME_CHARS = /^[\p{L}\s.,'’\-()]+$/u;
+
+// The student's own school and contact details, from My Profile: creates the
+// record the first time, then updates it. Guidance notes and background
+// written by the office are never touched here.
+export async function saveMyStudentInfo(formData: MyStudentInfo) {
   try {
     const me = await requireActionUser("STUDENT");
-    if (await db.studentProfile.findUnique({ where: { name: me.name } })) {
-      return { success: false, error: "Your record is already on file. Message the guidance office to change it." };
-    }
+    const existing = await db.studentProfile.findUnique({ where: { name: me.name }, select: { id: true } });
     const studentId = formData.studentId.trim();
-    if (!/^[A-Za-z0-9-]{4,20}$/.test(studentId)) return { success: false, error: "Enter your student ID number." };
+    if (!isStudentId(studentId)) return { success: false, error: "Your student ID is 11 digits, numbers only." };
     const [departments, shsGrades, tertiaryYears, shsStrands, tertiaryCourses] = await Promise.all([
       getOptionList("departments"),
       getOptionList("shsGrades"),
@@ -504,23 +519,47 @@ export async function completeMyStudentInfo(formData: { studentId: string; depar
     if (!programs.some((p) => optionValue(p) === formData.program)) return { success: false, error: "Choose your strand or course." };
     const section = formData.section.trim();
     if (!section || section.length > 30) return { success: false, error: "Enter your section." };
+    if (!isShs(formData.department) && !splitCollegeSection(section)) {
+      return { success: false, error: "Choose your section's program and year-section, e.g. BSIT 1-101." };
+    }
 
-    const sameId = await db.studentProfile.findUnique({ where: { studentId } });
-    if (sameId) return { success: false, error: "That student ID is already on file under another name. Please see the guidance office." };
+    const optional = (v: string | undefined) => (v ?? "").trim() || null;
+    const phone = optional(formData.phone);
+    const guardianContact = optional(formData.guardianContact);
+    const guardianName = optional(formData.guardianName);
+    const birthDate = optional(formData.birthDate);
+    const address = optional(formData.address);
+    if (phone && !PH_MOBILE.test(phone)) return { success: false, error: "Your phone number must be 09XXXXXXXXX or +639XXXXXXXXX, numbers only." };
+    if (guardianContact && !PH_MOBILE.test(guardianContact)) return { success: false, error: "Your guardian's number must be 09XXXXXXXXX or +639XXXXXXXXX, numbers only." };
+    if (guardianName && (!NAME_CHARS.test(guardianName) || guardianName.length > 120)) return { success: false, error: "Your guardian's name can only have letters." };
+    if (birthDate && (!/^\d{4}-\d{2}-\d{2}$/.test(birthDate) || Number.isNaN(Date.parse(birthDate)) || new Date(birthDate) > new Date())) {
+      return { success: false, error: "Enter a valid date of birth." };
+    }
+    if (address && address.length > 300) return { success: false, error: "Keep your address under 300 characters." };
 
-    await db.studentProfile.create({
-      data: {
-        studentId,
-        name: me.name,
-        email: me.email,
-        department: formData.department,
-        yearLevel: formData.yearLevel,
-        section,
-        strandOrProgram: formData.program,
-        gradeSection: gradeSectionLabel(formData.yearLevel, section),
-      },
-    });
-    await logActivity(me, "Completed their own school details", "StudentProfile", undefined, formData.department);
+    const sameId = await db.studentProfile.findUnique({ where: { studentId }, select: { id: true } });
+    if (sameId && sameId.id !== existing?.id) return { success: false, error: "That student ID is already on file under another name. Please see the guidance office." };
+
+    const details = {
+      studentId,
+      department: formData.department,
+      yearLevel: formData.yearLevel,
+      section,
+      strandOrProgram: formData.program,
+      gradeSection: gradeSectionLabel(formData.yearLevel, section),
+      phone,
+      birthDate,
+      address,
+      guardianName,
+      guardianContact,
+    };
+    if (existing) {
+      await db.studentProfile.update({ where: { id: existing.id }, data: details });
+      await logActivity(me, "Updated their own details", "StudentProfile", existing.id, formData.department);
+    } else {
+      await db.studentProfile.create({ data: { ...details, name: me.name, email: me.email } });
+      await logActivity(me, "Completed their own school details", "StudentProfile", undefined, formData.department);
+    }
     revalidatePath("/", "layout");
     return { success: true };
   } catch (error) {

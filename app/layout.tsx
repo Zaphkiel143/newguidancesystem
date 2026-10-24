@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Poppins, IBM_Plex_Mono } from "next/font/google";
+import Script from "next/script";
 import "./globals.css";
 
 // Poppins matches STI's eLMS; used for both headings and body text.
@@ -16,6 +17,10 @@ const plexMono = IBM_Plex_Mono({
   weight: ["400", "500"],
 });
 
+// Applies the saved Appearance setting before the first paint, so dark mode
+// doesn't flash white on load (components/ThemeSetting.tsx saves it).
+const THEME_SCRIPT = `try{var t=localStorage.getItem("egabay-theme");if(t==="dark"||(t==="system"&&matchMedia("(prefers-color-scheme: dark)").matches))document.documentElement.dataset.theme="dark"}catch(e){}`;
+
 export const metadata: Metadata = {
   title: "E-Gabay · STI College Sta. Maria",
   description: "Guidance and Counseling Office — STI College Sta. Maria",
@@ -30,8 +35,15 @@ export default function RootLayout({
     <html
       lang="en"
       className={`${poppins.variable} ${plexMono.variable} h-full antialiased`}
+      // The theme script below sets data-theme before React loads.
+      suppressHydrationWarning
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        <Script id="theme" strategy="beforeInteractive">
+          {THEME_SCRIPT}
+        </Script>
+        {children}
+      </body>
     </html>
   );
 }

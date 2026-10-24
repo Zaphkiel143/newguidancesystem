@@ -29,7 +29,7 @@ interface DashboardData {
   event: DbEvent | null;
 }
 
-export const DashboardContent: React.FC = () => {
+const DashboardContent: React.FC = () => {
   const me = useCurrentUser();
   const [data, setData] = useState<DashboardData | null>(null);
 

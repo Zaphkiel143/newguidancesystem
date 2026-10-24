@@ -124,6 +124,90 @@
   --sidebar-w: 16rem;
 }
 
+/*
+ * Dark mode (account page → Settings → Appearance; see components/ThemeSetting.tsx).
+ * Swaps the palette's values so every class keeps working: page and card
+ * surfaces go dark, the grey scale flips (slate-800 text becomes light), and
+ * the pale tints (50-300) become deep tints. Mid and deep colours (400+) stay,
+ * since they're mostly button fills under white text; coloured *text* classes
+ * are lightened separately below so links and status text stay readable.
+ */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
+  --color-paper: #0d1522;
+  --color-sheet: #152033;
+  --color-ink: #e6edf5;
+  --color-rule: #263750;
+
+  --color-slate-50: #18243a;
+  --color-slate-100: #1d2b42;
+  --color-slate-200: #283a55;
+  --color-slate-300: #3a4f6e;
+  --color-slate-400: #7f91a8;
+  --color-slate-500: #9aabbf;
+  --color-slate-600: #b2c0d0;
+  --color-slate-700: #c6d1de;
+  --color-slate-800: #d9e1eb;
+  --color-slate-900: #e6edf5;
+  --color-slate-950: #f2f6fa;
+
+  --color-blue-50: #142a43;
+  --color-blue-100: #183454;
+  --color-blue-200: #1f4468;
+  --color-blue-300: #2b5b88;
+  --color-blue-700: #1567ab;
+  --color-blue-800: #1a76bf;
+
+  --color-butter-50: #2a2512;
+  --color-butter-100: #2f2914;
+  --color-butter-200: #4a3f17;
+  --color-butter-300: #6b5a1c;
+
+  --color-emerald-50: #12261a;
+  --color-emerald-100: #173221;
+  --color-emerald-200: #24502f;
+  --color-green-50: #12261a;
+  --color-green-100: #173221;
+  --color-orange-50: #2b1e0e;
+  --color-orange-100: #3a2913;
+  --color-orange-200: #5a3d18;
+  --color-amber-50: #2b1e0e;
+  --color-amber-100: #3a2913;
+  --color-red-50: #2d1515;
+  --color-red-100: #3d1c1b;
+  --color-red-200: #5c2a27;
+  --color-rose-50: #2d1515;
+  --color-rose-100: #3d1c1b;
+
+  --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.3);
+  --shadow-md: 0 4px 14px -6px rgb(0 0 0 / 0.45);
+  --shadow-lg: 0 12px 30px -12px rgb(0 0 0 / 0.55);
+  --shadow-xl: 0 20px 44px -16px rgb(0 0 0 / 0.6);
+  --shadow-2xl: 0 28px 60px -20px rgb(0 0 0 / 0.65);
+}
+
+/* Coloured text on dark surfaces: lighter shades of the same hues. */
+:root[data-theme="dark"] :is(.text-blue-700, .text-blue-800, .text-blue-600, .text-blue-500) {
+  color: #7cc0ee;
+}
+:root[data-theme="dark"] :is(.hover\:text-blue-700:hover, .hover\:text-blue-800:hover) {
+  color: #a6d4f4;
+}
+:root[data-theme="dark"] :is(.text-emerald-700, .text-emerald-600, .text-green-700, .text-green-600) {
+  color: #8fd1a1;
+}
+:root[data-theme="dark"] :is(.text-orange-700, .text-orange-800, .text-orange-600, .text-amber-700, .text-amber-600, .text-butter-700) {
+  color: #ebb877;
+}
+:root[data-theme="dark"] :is(.text-red-700, .text-red-600, .text-red-500, .text-rose-700, .text-rose-600) {
+  color: #f0a097;
+}
+/* Initials avatars keep dark text on the yellow disc. */
+:root[data-theme="dark"] .bg-sti-yellow {
+  color: #0a3b61;
+}
+
 html {
   background: var(--color-paper);
 }

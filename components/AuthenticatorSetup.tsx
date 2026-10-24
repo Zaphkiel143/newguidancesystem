@@ -2,7 +2,8 @@
 
 import React, { useEffect, useState } from "react";
 import { Loader2, ShieldCheck, Smartphone } from "lucide-react";
-import { confirmTotpSetup, disableTotp, getMyTotpStatus, startTotpSetup } from "../app/action/totp";
+import { confirmTotpSetup, disableTotp, disableTotpWithoutApp, getMyTotpStatus, startTotpSetup } from "../app/action/totp";
+import ConfirmDialog from "./ConfirmDialog";
 import InlineError from "./InlineError";
 
 // "Sign in with Microsoft Authenticator": scan a QR code once, then sign in
@@ -14,6 +15,7 @@ export default function AuthenticatorSetup() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState<string | null>(null);
+  const [askNoApp, setAskNoApp] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -60,6 +62,19 @@ export default function AuthenticatorSetup() {
     } else setError(result.error ?? "Couldn't turn it off.");
   };
 
+  const turnOffWithoutApp = async () => {
+    setBusy(true);
+    setError(null);
+    const result = await disableTotpWithoutApp();
+    setBusy(false);
+    setAskNoApp(false);
+    if (result.success) {
+      setCode("");
+      setDone("Authenticator sign-in is turned off. You can set it up again any time.");
+      setStatus(await getMyTotpStatus());
+    } else setError(result.error ?? "Couldn't turn it off.");
+  };
+
   const codeInput = (id: string) => (
     <input id={id} inputMode="numeric" autoComplete="one-time-code" maxLength={6} placeholder="000000" value={code}
       onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
@@ -93,6 +108,22 @@ export default function AuthenticatorSetup() {
               Turn off
             </button>
           </form>
+          <p className="text-[13px] text-slate-600">
+            Deleted E-Gabay from your authenticator app, or changed phones?{" "}
+            <button type="button" onClick={() => setAskNoApp(true)} disabled={busy} className="text-blue-700 font-medium underline underline-offset-4 hover:text-blue-800">
+              Turn it off without a code
+            </button>
+          </p>
+          <ConfirmDialog
+            open={askNoApp}
+            title="Turn off authenticator sign-in?"
+            message="You'll sign in with email codes instead. To use an authenticator again, set it up from here and scan a new QR code."
+            confirmLabel="Turn off"
+            danger
+            busy={busy}
+            onCancel={() => setAskNoApp(false)}
+            onConfirm={turnOffWithoutApp}
+          />
         </div>
       ) : setup ? (
         <div className="mt-4 grid gap-5 sm:grid-cols-[auto_1fr] items-start">

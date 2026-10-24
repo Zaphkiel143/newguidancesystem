@@ -4,7 +4,7 @@ import React, { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ChevronDown, LogOut, Settings, UserRound } from "lucide-react";
-import { logout } from "../app/action/auth";
+import SignOutButton from "./SignOutButton";
 
 // Name and photo in the top bar; opens My account, Settings and Sign out.
 export default function ProfileMenu({
@@ -73,9 +73,9 @@ export default function ProfileMenu({
           <Link role="menuitem" href={`${accountPath}#settings`} className={item} onClick={() => setOpen(false)}>
             <Settings size={17} className="text-blue-700" /> Settings
           </Link>
-          <button role="menuitem" type="button" onClick={() => logout()} className={`${item} border-t border-rule text-red-700 hover:bg-red-50`}>
+          <SignOutButton role="menuitem" className={`${item} border-t border-rule text-red-700 hover:bg-red-50`}>
             <LogOut size={17} /> Sign out
-          </button>
+          </SignOutButton>
         </div>
       )}
     </div>

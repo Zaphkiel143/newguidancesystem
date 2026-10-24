@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { LogOut, Menu, X } from "lucide-react";
 import { navigationConfig, MenuItem } from "../app/config/navigation";
-import { logout } from "../app/action/auth";
+import SignOutButton from "./SignOutButton";
 import { getDashboardStats } from "../app/action/counselor";
 import { CurrentUserProvider } from "./CurrentUser";
 import { LogoMark } from "./Logo";
@@ -232,13 +232,10 @@ export function AppShell({ role, userName, displayName = userName, hiddenPaths =
               <p className="text-[12px] text-slate-500 truncate">{ROLE_LABEL[role]}</p>
             </div>
           </div>
-          <button
-            onClick={() => logout()}
-            className="w-full px-4 min-h-11 inline-flex items-center gap-2 text-[14px] text-slate-600 hover:text-red-700 hover:bg-red-50 rounded-full transition-colors"
-          >
+          <SignOutButton className="w-full px-4 min-h-11 inline-flex items-center gap-2 text-[14px] text-slate-600 hover:text-red-700 hover:bg-red-50 rounded-full transition-colors">
             <LogOut size={16} strokeWidth={1.9} />
             Sign out
-          </button>
+          </SignOutButton>
         </div>
       </aside>
 

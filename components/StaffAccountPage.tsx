@@ -1,6 +1,7 @@
 import PhotoPicker from "./PhotoPicker";
 import AuthenticatorSetup from "./AuthenticatorSetup";
 import { PushToggle } from "./LoginApproval";
+import ThemeSetting from "./ThemeSetting";
 import { getCurrentUser } from "../lib/auth";
 import { shownName } from "../lib/demo";
 
@@ -18,6 +19,7 @@ export default async function StaffAccountPage() {
         <PhotoPicker name={shownName(me)} hasPhoto={Boolean(me.avatarType)} />
       </section>
       <div id="settings" className="scroll-mt-24 space-y-6">
+        <ThemeSetting />
         <PushToggle />
         <AuthenticatorSetup />
       </div>

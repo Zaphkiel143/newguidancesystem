@@ -6,6 +6,7 @@ import { createSession, dashboardPathForRole } from "../../lib/auth";
 import { requireActionUser } from "../../lib/session";
 import { currentStep, newTotpSecret, totpUri, verifyTotp } from "../../lib/totp";
 import { allow, clientIp, MINUTE } from "../../lib/rateLimit";
+import { logActivity } from "../../lib/activityLog";
 
 // Sign in with Microsoft Authenticator (or any authenticator app) instead of
 // waiting for an email code. Students, faculty and guidance staff set it up
@@ -65,6 +66,22 @@ export async function disableTotp(code: string) {
     if (!row?.totpSecret) return { success: true };
     if (verifyTotp(row.totpSecret, code) === null) return { success: false, error: "Enter the current code from your authenticator app to turn it off." };
     await db.user.update({ where: { id: me.id }, data: { totpSecret: null, totpPending: null, totpLastStep: null, totpEnabledAt: null } });
+    return { success: true };
+  } catch (error) {
+    console.error("Failed to turn off authenticator:", error);
+    return { success: false, error: "Couldn't turn it off. Try again." };
+  }
+}
+
+// For when E-Gabay was deleted from the authenticator app, so there's no code
+// to type. The authenticator is only an extra way to sign in (email codes
+// always work), and the person is already signed in, so their session is
+// enough to turn it off.
+export async function disableTotpWithoutApp() {
+  try {
+    const me = await requireActionUser("STUDENT", "FACULTY", "COUNSELOR");
+    await db.user.update({ where: { id: me.id }, data: { totpSecret: null, totpPending: null, totpLastStep: null, totpEnabledAt: null } });
+    await logActivity(me, "Turned off authenticator sign-in (app removed)", "User", me.id);
     return { success: true };
   } catch (error) {
     console.error("Failed to turn off authenticator:", error);

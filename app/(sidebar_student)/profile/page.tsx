@@ -1,18 +1,21 @@
 "use client";
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Loader2, Upload, FileText } from 'lucide-react';
-import { completeMyStudentInfo, getMyProfile, submitStudentDocument } from '../../action/student';
+import { Loader2, Upload, FileText, Pencil } from 'lucide-react';
+import { getMyProfile, saveMyStudentInfo, submitStudentDocument, type MyStudentInfo } from '../../action/student';
 import InlineError from '../../../components/InlineError';
 import PhotoPicker from '../../../components/PhotoPicker';
 import AuthenticatorSetup from '../../../components/AuthenticatorSetup';
+import ThemeSetting from '../../../components/ThemeSetting';
 import { PushToggle } from '../../../components/LoginApproval';
 import { ACCEPTED_FILE_TYPES } from '../../config/documents';
-import { SHS, isShs } from '../../config/studentLevels';
+import { SECTION_PROGRAMS, SHS, STUDENT_ID_DIGITS, isShs, normalizeDepartment, splitCollegeSection, yearSectionsFor } from '../../config/studentLevels';
+import { capitalizeName, phoneChars } from '../../config/collegeCareerForm';
 import { optionValue } from '../../../lib/optionListDefaults';
 import { useOptionList } from '../../../components/useOptionList';
 
 type MyProfile = NonNullable<Awaited<ReturnType<typeof getMyProfile>>>;
+type Profile = NonNullable<MyProfile["profile"]>;
 
 const REVIEW: Record<string, { label: string; className: string }> = {
   PENDING: { label: "Waiting for review", className: "text-orange-700 bg-orange-50" },
@@ -21,6 +24,8 @@ const REVIEW: Record<string, { label: string; className: string }> = {
 };
 
 const MAX_BYTES = 5 * 1024 * 1024;
+const inputClass = "w-full bg-sheet border border-slate-300 rounded-md px-3 py-2.5 text-sm";
+const labelClass = "block text-[13px] font-medium text-slate-700 mb-1.5";
 
 function readAsBase64(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -31,7 +36,30 @@ function readAsBase64(file: File): Promise<string> {
   });
 }
 
-export const StudentProfile: React.FC = () => {
+// The edit form's starting values: what's on file, or blanks for a new record.
+// Older records only have the combined "Grade 12 - STEM-A" label and phone
+// numbers with spaces or dashes, so those are split and cleaned here.
+function formFrom(p: Profile | null | undefined) {
+  const [labelYear, ...labelSection] = (p?.gradeSection ?? '').split(' - ');
+  const section = p?.section ?? (labelSection.join(' - ') || '');
+  const college = splitCollegeSection(section);
+  return {
+    studentId: p?.studentId ?? '',
+    department: (normalizeDepartment(p?.department) ?? SHS) as string,
+    yearLevel: p?.yearLevel ?? (labelSection.length ? labelYear : ''),
+    program: p?.strandOrProgram ?? '',
+    section: college ? '' : section,
+    sectionCode: college?.code ?? '',
+    yearSection: college?.yearSection ?? '',
+    phone: phoneChars(p?.phone ?? ''),
+    birthDate: p?.birthDate ?? '',
+    address: p?.address ?? '',
+    guardianName: p?.guardianName ?? '',
+    guardianContact: phoneChars(p?.guardianContact ?? ''),
+  };
+}
+
+const StudentProfile: React.FC = () => {
   const [departments] = useOptionList("departments");
   const [documentCategories] = useOptionList("documentCategories");
   const [shsStrands] = useOptionList("shsStrands");
@@ -41,8 +69,9 @@ export const StudentProfile: React.FC = () => {
   const [data, setData] = useState<MyProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [category, setCategory] = useState<string>("Excuse letter");
-  const [info, setInfo] = useState({ studentId: '', department: SHS as string, yearLevel: '', program: '', section: '' });
-  const [infoState, setInfoState] = useState<{ busy: boolean; error: string | null }>({ busy: false, error: null });
+  const [editing, setEditing] = useState(false);
+  const [info, setInfo] = useState(() => formFrom(null));
+  const [infoState, setInfoState] = useState<{ busy: boolean; error: string | null; saved: boolean }>({ busy: false, error: null, saved: false });
   const [file, setFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
@@ -61,6 +90,7 @@ export const StudentProfile: React.FC = () => {
       const result = await getMyProfile();
       if (cancelled) return;
       setData(result);
+      setInfo(formFrom(result?.profile));
       setIsLoading(false);
     })();
     return () => {
@@ -95,16 +125,38 @@ export const StudentProfile: React.FC = () => {
     }
   };
 
+  const infoIsShs = isShs(info.department);
+
   const saveInfo = async (e: React.FormEvent) => {
     e.preventDefault();
-    setInfoState({ busy: true, error: null });
-    const result = await completeMyStudentInfo(info);
-    setInfoState({ busy: false, error: result.success ? null : result.error ?? "Couldn't save." });
-    // Reload so the menu (e.g. My Career Plan for senior high) matches the new record.
-    if (result.success) window.location.reload();
+    if (!infoIsShs && (!info.sectionCode || !info.yearSection)) {
+      return setInfoState({ busy: false, saved: false, error: "Choose your section's program and year-section." });
+    }
+    setInfoState({ busy: true, error: null, saved: false });
+    const payload: MyStudentInfo = {
+      studentId: info.studentId,
+      department: info.department,
+      yearLevel: info.yearLevel,
+      program: info.program,
+      section: infoIsShs ? info.section : `${info.sectionCode} ${info.yearSection}`,
+      phone: info.phone,
+      birthDate: info.birthDate,
+      address: info.address,
+      guardianName: info.guardianName,
+      guardianContact: info.guardianContact,
+    };
+    const hadProfile = Boolean(data?.profile);
+    const result = await saveMyStudentInfo(payload);
+    if (!result.success) return setInfoState({ busy: false, saved: false, error: result.error ?? "Couldn't save." });
+    // A new record (or a new level) changes the menu, e.g. My Career Plan for senior high.
+    if (!hadProfile || data?.profile?.department !== info.department) return window.location.reload();
+    await load();
+    setEditing(false);
+    setInfoState({ busy: false, error: null, saved: true });
   };
 
   const p = data?.profile;
+  const showForm = !p || editing;
 
   return (
     <div className="px-5 sm:px-8 lg:px-12 pt-8 lg:pt-12 pb-16 max-w-5xl text-slate-800 space-y-8">
@@ -121,89 +173,168 @@ export const StudentProfile: React.FC = () => {
       ) : (
         <>
           <section className="bg-white border border-rule rounded-xl overflow-hidden">
-            <div className="px-6 py-6 flex items-center gap-5 border-b border-rule">
-              <div className="min-w-0">
+            <div className="px-6 py-6 flex flex-wrap items-center gap-5 border-b border-rule">
+              <PhotoPicker name={data.name} hasPhoto={data.hasPhoto} compact />
+              <div className="min-w-0 flex-1">
                 <h2 className="font-serif text-[28px] leading-tight text-ink">{data.name}</h2>
                 <p className="font-mono text-[13px] text-slate-500 mt-0.5">
                   {p ? `Student ID ${p.studentId}` : data.email}
                 </p>
               </div>
+              {p && !editing && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setInfo(formFrom(p));
+                    setInfoState({ busy: false, error: null, saved: false });
+                    setEditing(true);
+                  }}
+                  className="inline-flex items-center gap-2 border border-slate-300 hover:bg-slate-100 text-sm px-4 min-h-10 rounded-full"
+                >
+                  <Pencil size={15} /> Edit details
+                </button>
+              )}
             </div>
-            <div className="px-6 py-4 border-b border-rule">
-              <PhotoPicker name={data.name} hasPhoto={data.hasPhoto} />
-            </div>
-            {p ? (
-              <dl className="p-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-5 text-sm">
-                <Field label="Department" value={p.department} />
-                <Field label="Grade & section" value={p.gradeSection} />
-                <Field label="Strand / program" value={p.strandOrProgram} />
-                <Field label="School email" value={p.email} />
-                <Field label="Phone" value={p.phone} />
-                <Field label="Date of birth" value={p.birthDate} />
-                <Field label="Address" value={p.address} />
-                <Field label="Guardian" value={p.guardianName} />
-                <Field label="Guardian contact" value={p.guardianContact} />
-              </dl>
+            {!showForm ? (
+              <>
+                <dl className="p-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-5 text-sm">
+                  <Field label="Department" value={p.department} />
+                  <Field label="Grade & section" value={p.gradeSection} />
+                  <Field label="Strand / program" value={p.strandOrProgram} />
+                  <Field label="School email" value={p.email} />
+                  <Field label="Phone" value={p.phone} />
+                  <Field label="Date of birth" value={p.birthDate} />
+                  <Field label="Address" value={p.address} />
+                  <Field label="Guardian" value={p.guardianName} />
+                  <Field label="Guardian contact" value={p.guardianContact} />
+                </dl>
+                {infoState.saved && (
+                  <p role="status" className="px-6 pb-5 text-sm text-emerald-700">Your details were saved.</p>
+                )}
+              </>
             ) : (
-              <form onSubmit={saveInfo} className="p-6 space-y-4 max-w-xl">
-                <p className="text-sm text-slate-700">
-                  <strong className="font-semibold">Add your school details</strong> so the guidance office can find your records. You can
-                  only do this once; after that, ask the guidance office to change anything.
-                </p>
-                <div>
-                  <label htmlFor="si-id" className="block text-[13px] font-medium text-slate-700 mb-1.5">Student ID number</label>
-                  <input id="si-id" className="w-full bg-sheet border border-slate-300 rounded-md px-3 py-2.5 text-sm" value={info.studentId} maxLength={20} required
-                    onChange={(e) => setInfo({ ...info, studentId: e.target.value })} />
+              <form onSubmit={saveInfo} className="p-6 space-y-5">
+                {!p && (
+                  <p className="text-sm text-slate-700">
+                    <strong className="font-semibold">Add your school details</strong> so the guidance office can find your records.
+                    You can change them here later.
+                  </p>
+                )}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label htmlFor="si-id" className={labelClass}>Student ID number</label>
+                    <input id="si-id" className={inputClass} value={info.studentId} inputMode="numeric" required placeholder="02000123456"
+                      aria-describedby="si-id-hint" onChange={(e) => setInfo({ ...info, studentId: e.target.value.replace(/\D/g, '').slice(0, STUDENT_ID_DIGITS) })} />
+                    <p id="si-id-hint" className="text-[12px] text-slate-500 mt-1">Numbers only, {STUDENT_ID_DIGITS} digits.</p>
+                  </div>
+                  <div>
+                    <label htmlFor="si-email" className={labelClass}>School email</label>
+                    <input id="si-email" className={`${inputClass} text-slate-500`} value={data.email ?? ''} readOnly aria-describedby="si-email-hint" />
+                    <p id="si-email-hint" className="text-[12px] text-slate-500 mt-1">You sign in with this, so it can&apos;t be changed here.</p>
+                  </div>
                 </div>
                 <fieldset>
-                  <legend className="block text-[13px] font-medium text-slate-700 mb-1.5">Level</legend>
-                  <div className="grid grid-cols-2 gap-2">
+                  <legend className={labelClass}>Level</legend>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                     {departments.map((d) => {
                       const value = optionValue(d);
                       return (
                         <label key={d.id} className={`flex items-center gap-2 rounded-lg border px-3 min-h-11 cursor-pointer text-sm ${info.department === value ? "border-blue-600 bg-blue-50" : "border-slate-300"}`}>
                           <input type="radio" name="si-dept" className="accent-blue-700" checked={info.department === value}
-                            onChange={() => setInfo({ ...info, department: value, yearLevel: '', program: '' })} />
+                            onChange={() => setInfo({ ...info, department: value, yearLevel: '', program: '', section: '', sectionCode: '', yearSection: '' })} />
                           {d.label}
                         </label>
                       );
                     })}
                   </div>
                 </fieldset>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <div>
-                    <label htmlFor="si-year" className="block text-[13px] font-medium text-slate-700 mb-1.5">{info.department === SHS ? "Grade" : "Year level"}</label>
-                    <select id="si-year" className="w-full bg-sheet border border-slate-300 rounded-md px-3 py-2.5 text-sm" value={info.yearLevel} required
-                      onChange={(e) => setInfo({ ...info, yearLevel: e.target.value })}>
+                    <label htmlFor="si-year" className={labelClass}>{infoIsShs ? "Grade" : "Year level"}</label>
+                    <select id="si-year" className={inputClass} value={info.yearLevel} required
+                      onChange={(e) => setInfo({ ...info, yearLevel: e.target.value, yearSection: '' })}>
                       <option value="" disabled>Choose…</option>
-                      {(isShs(info.department) ? shsGrades : tertiaryYears).map((y) => <option key={y.id} value={optionValue(y)}>{y.label}</option>)}
+                      {(infoIsShs ? shsGrades : tertiaryYears).map((y) => <option key={y.id} value={optionValue(y)}>{y.label}</option>)}
                     </select>
                   </div>
                   <div>
-                    <label htmlFor="si-program" className="block text-[13px] font-medium text-slate-700 mb-1.5">{info.department === SHS ? "Strand" : "Course"}</label>
-                    <select id="si-program" className="w-full bg-sheet border border-slate-300 rounded-md px-3 py-2.5 text-sm" value={info.program} required
+                    <label htmlFor="si-program" className={labelClass}>{infoIsShs ? "Strand" : "Course"}</label>
+                    <select id="si-program" className={inputClass} value={info.program} required
                       onChange={(e) => setInfo({ ...info, program: e.target.value })}>
                       <option value="" disabled>Choose…</option>
-                      {(isShs(info.department) ? shsStrands : tertiaryCourses).map((x) => <option key={x.id} value={optionValue(x)}>{x.label}</option>)}
+                      {(infoIsShs ? shsStrands : tertiaryCourses).map((x) => <option key={x.id} value={optionValue(x)}>{x.label}</option>)}
                     </select>
                   </div>
                   <div>
-                    <label htmlFor="si-section" className="block text-[13px] font-medium text-slate-700 mb-1.5">Section</label>
-                    <input id="si-section" className="w-full bg-sheet border border-slate-300 rounded-md px-3 py-2.5 text-sm" value={info.section} maxLength={30} required
-                      onChange={(e) => setInfo({ ...info, section: e.target.value })} />
+                    <label htmlFor="si-section" className={labelClass}>Section</label>
+                    {infoIsShs ? (
+                      <input id="si-section" className={inputClass} value={info.section} maxLength={30} required placeholder="e.g. STEM-A"
+                        onChange={(e) => setInfo({ ...info, section: e.target.value })} />
+                    ) : (
+                      <div className="grid grid-cols-2 gap-2">
+                        <select id="si-section" aria-label="Section program" className={inputClass} value={info.sectionCode} required
+                          onChange={(e) => setInfo({ ...info, sectionCode: e.target.value })}>
+                          <option value="">Program</option>
+                          {SECTION_PROGRAMS.map((s) => <option key={s} value={s}>{s}</option>)}
+                        </select>
+                        <select aria-label="Year and section" className={inputClass} value={info.yearSection} required disabled={!info.yearLevel}
+                          onChange={(e) => setInfo({ ...info, yearSection: e.target.value })}>
+                          <option value="">{info.yearLevel ? "Section" : "Year first"}</option>
+                          {yearSectionsFor(info.yearLevel).map((s) => <option key={s} value={s}>{s}</option>)}
+                        </select>
+                      </div>
+                    )}
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label htmlFor="si-phone" className={labelClass}>Phone <span className="font-normal text-slate-500">(optional)</span></label>
+                    <input id="si-phone" type="tel" inputMode="tel" className={inputClass} value={info.phone} placeholder="09171234567"
+                      onChange={(e) => setInfo({ ...info, phone: phoneChars(e.target.value) })} />
+                    <p className="text-[12px] text-slate-500 mt-1">Numbers only: 09XXXXXXXXX or +639XXXXXXXXX.</p>
+                  </div>
+                  <div>
+                    <label htmlFor="si-birth" className={labelClass}>Date of birth <span className="font-normal text-slate-500">(optional)</span></label>
+                    <input id="si-birth" type="date" className={inputClass} value={info.birthDate} max={new Date().toISOString().slice(0, 10)}
+                      onChange={(e) => setInfo({ ...info, birthDate: e.target.value })} />
+                  </div>
+                </div>
+                <div>
+                  <label htmlFor="si-address" className={labelClass}>Address <span className="font-normal text-slate-500">(optional)</span></label>
+                  <input id="si-address" className={inputClass} value={info.address} maxLength={300} placeholder="House no., street, barangay, city / municipality, province"
+                    onChange={(e) => setInfo({ ...info, address: e.target.value })} />
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label htmlFor="si-guardian" className={labelClass}>Guardian <span className="font-normal text-slate-500">(optional)</span></label>
+                    <input id="si-guardian" className={inputClass} value={info.guardianName} maxLength={120} placeholder="e.g. Rosa Dela Cruz"
+                      onChange={(e) => setInfo({ ...info, guardianName: capitalizeName(e.target.value) })} />
+                  </div>
+                  <div>
+                    <label htmlFor="si-gcontact" className={labelClass}>Guardian contact <span className="font-normal text-slate-500">(optional)</span></label>
+                    <input id="si-gcontact" type="tel" inputMode="tel" className={inputClass} value={info.guardianContact} placeholder="09171234567"
+                      onChange={(e) => setInfo({ ...info, guardianContact: phoneChars(e.target.value) })} />
                   </div>
                 </div>
                 <InlineError message={infoState.error} onDismiss={() => setInfoState({ ...infoState, error: null })} />
-                <button type="submit" disabled={infoState.busy}
-                  className="inline-flex items-center gap-2 bg-blue-700 hover:bg-blue-800 disabled:opacity-60 text-white text-sm font-medium px-5 min-h-11 rounded-full">
-                  {infoState.busy && <Loader2 size={15} className="animate-spin" />} Save my details
-                </button>
+                <div className="flex flex-wrap gap-2">
+                  <button type="submit" disabled={infoState.busy}
+                    className="inline-flex items-center gap-2 bg-blue-700 hover:bg-blue-800 disabled:opacity-60 text-white text-sm font-medium px-5 min-h-11 rounded-full">
+                    {infoState.busy && <Loader2 size={15} className="animate-spin" />} {p ? "Save changes" : "Save my details"}
+                  </button>
+                  {p && (
+                    <button type="button" onClick={() => setEditing(false)} disabled={infoState.busy}
+                      className="px-5 min-h-11 rounded-full border border-slate-300 text-sm hover:bg-slate-50 disabled:opacity-60">
+                      Cancel
+                    </button>
+                  )}
+                </div>
               </form>
             )}
-            <p className="px-6 pb-5 text-xs text-slate-500">Something wrong? Message the guidance office to have it corrected.</p>
           </section>
 
           <div id="settings" className="scroll-mt-24 space-y-8">
+            <ThemeSetting />
             <PushToggle />
             <AuthenticatorSetup />
           </div>
@@ -213,12 +344,12 @@ export const StudentProfile: React.FC = () => {
               <h2 className="font-serif text-[22px] text-ink mb-3">Submit a document</h2>
               <form onSubmit={handleUpload} className="border-t border-rule pt-4 space-y-4">
                 <div>
-                  <label htmlFor="doc-category" className="block text-[13px] font-medium text-slate-700 mb-1.5">Type of document</label>
+                  <label htmlFor="doc-category" className={labelClass}>Type of document</label>
                   <select
                     id="doc-category"
                     value={category}
                     onChange={(e) => setCategory(e.target.value)}
-                    className="w-full bg-sheet border border-slate-300 rounded-md px-3 py-2.5 text-sm"
+                    className={inputClass}
                   >
                     {documentCategories.map((c) => (
                       <option key={c.id} value={optionValue(c)}>{c.label}</option>
@@ -226,7 +357,7 @@ export const StudentProfile: React.FC = () => {
                   </select>
                 </div>
                 <div>
-                  <label htmlFor="doc-file" className="block text-[13px] font-medium text-slate-700 mb-1.5">File (PDF, Word .docx, or a photo; up to 5 MB)</label>
+                  <label htmlFor="doc-file" className={labelClass}>File (PDF, Word .docx, or a photo; up to 5 MB)</label>
                   <input
                     id="doc-file"
                     ref={fileInput}

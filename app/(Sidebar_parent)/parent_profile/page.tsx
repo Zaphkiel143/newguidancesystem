@@ -5,6 +5,7 @@ import { Loader2 } from "lucide-react";
 import { changeMyPassword, getMyParentProfile, requestChildLink, updateMyParentProfile } from "../../action/parent";
 import PhotoPicker from "../../../components/PhotoPicker";
 import { PushToggle } from "../../../components/LoginApproval";
+import ThemeSetting from "../../../components/ThemeSetting";
 import InlineError from "../../../components/InlineError";
 import { formatPhone } from "../../../lib/phone";
 import { useOptionList } from "../../../components/useOptionList";
@@ -204,6 +205,7 @@ export default function ParentProfilePage() {
       </section>
 
       <div id="settings" className="scroll-mt-24 mt-8 space-y-8">
+        <ThemeSetting />
         <PushToggle />
       <section className="bg-sheet border border-rule rounded-2xl p-5 sm:p-6" aria-labelledby="pw-heading">
         <h2 id="pw-heading" className="font-semibold text-[17px] text-ink">Change password</h2>
