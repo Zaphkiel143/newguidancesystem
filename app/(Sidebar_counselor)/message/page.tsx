@@ -2,7 +2,7 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import { Archive, ArchiveRestore, Search, MessageSquare, X } from 'lucide-react';
-import { listConversations, startConversation, getMessages, markConversationRead, sendMessage, deleteConversation, listStudentProfiles, setConversationArchived } from '../../action/counselor';
+import { listConversations, startConversation, getMessages, markConversationRead, sendMessage, listStudentProfiles, setConversationArchived } from '../../action/counselor';
 import ConversationPanel from '../../../components/ConversationPanel';
 import InlineError from '../../../components/InlineError';
 import { useCurrentUser } from '../../../components/CurrentUser';
@@ -250,7 +250,6 @@ const MessagesDashboard: React.FC = () => {
             getMessages={getMessages}
             markConversationRead={markConversationRead}
             sendMessage={sendMessage}
-            deleteConversation={deleteConversation}
             headerActions={
               <button
                 type="button"
@@ -261,10 +260,6 @@ const MessagesDashboard: React.FC = () => {
                 {selectedConversation.isArchived ? 'Move to inbox' : 'Archive'}
               </button>
             }
-            onDeleted={(deletedId) => {
-              setSelectedId(null);
-              setConversations((prev) => prev.filter((c) => c.id !== deletedId));
-            }}
           />
         ) : (
           <main className="flex-1 bg-white flex flex-col items-center justify-center p-8 select-none">

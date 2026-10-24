@@ -1199,20 +1199,6 @@ export async function setConversationArchived(conversationId: string, archived: 
   }
 }
 
-export async function deleteConversation(conversationId: string) {
-  try {
-    const me = await counselorOnly();
-    await db.message.deleteMany({ where: { conversationId } });
-    await db.conversation.delete({ where: { id: conversationId } });
-    await logActivity(me, "Deleted a conversation", "Conversation", conversationId);
-
-    revalidatePath("/message");
-    return { success: true };
-  } catch (error) {
-    console.error("Failed to delete conversation:", error);
-    return { success: false, error: String(error) };
-  }
-}
 
 // ==== Referral Service ====
 

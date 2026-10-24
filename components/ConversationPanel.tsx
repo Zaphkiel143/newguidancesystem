@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
-import { ArrowUp, Loader2, Trash2 } from "lucide-react";
+import { ArrowUp, Loader2 } from "lucide-react";
 import type { Message as DbMessage } from "../lib/generated";
 import Link from "next/link";
 import InlineError from "./InlineError";
@@ -21,10 +21,7 @@ interface ConversationPanelProps {
   markConversationRead: (conversationId: string) => Promise<{ success: boolean }>;
   // The server takes the sender from the session; viewerName/viewerRole are only for display.
   sendMessage: (formData: { conversationId: string; content: string }) => Promise<{ success: boolean; error?: string }>;
-  // Omit to hide the delete control (not every caller wants it exposed).
-  deleteConversation?: (conversationId: string) => Promise<{ success: boolean; error?: string }>;
-  onDeleted?: (conversationId: string) => void;
-  // Extra buttons for the header, before delete (e.g. Archive).
+  // Extra buttons for the header (e.g. Archive).
   headerActions?: React.ReactNode;
 }
 
@@ -42,8 +39,6 @@ export default function ConversationPanel({
   getMessages,
   markConversationRead,
   sendMessage,
-  deleteConversation,
-  onDeleted,
   headerActions,
 }: ConversationPanelProps) {
   const [messages, setMessages] = useState<DbMessage[]>([]);
@@ -51,8 +46,6 @@ export default function ConversationPanel({
   const [draft, setDraft] = useState("");
   const [isSending, setIsSending] = useState(false);
   const [sendError, setSendError] = useState<string | null>(null);
-  const [isDeleting, setIsDeleting] = useState(false);
-  const [deleteError, setDeleteError] = useState<string | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -108,16 +101,6 @@ export default function ConversationPanel({
     }
   };
 
-  const handleDelete = async () => {
-    if (!deleteConversation) return;
-    if (!window.confirm("Delete this conversation? All its messages will be permanently removed for both sides.")) return;
-    setIsDeleting(true);
-    setDeleteError(null);
-    const result = await deleteConversation(conversationId);
-    setIsDeleting(false);
-    if (result.success) onDeleted?.(conversationId);
-    else setDeleteError(`Couldn't delete this conversation: ${result.error || "unknown error"}.`);
-  };
 
   const initials = title
     .split(/\s+/)
@@ -129,8 +112,7 @@ export default function ConversationPanel({
   return (
     <div className="flex-1 flex flex-col bg-paper h-full min-h-0">
       <div className="px-6 py-4 border-b border-rule shrink-0">
-        {/* The chat keeps to a readable column in the middle of wide screens. */}
-        <div className="max-w-3xl mx-auto flex items-center gap-3">
+        <div className="flex items-center gap-3">
         {(() => {
           const who = (
             <>
@@ -159,25 +141,8 @@ export default function ConversationPanel({
           );
         })()}
         {headerActions}
-        {deleteConversation && (
-          <button
-            type="button"
-            onClick={handleDelete}
-            disabled={isDeleting}
-            aria-label="Delete conversation"
-            title="Delete conversation"
-            className="w-9 h-9 grid place-items-center rounded-full text-slate-400 hover:text-red-700 hover:bg-red-50 disabled:opacity-50 transition-colors shrink-0"
-          >
-            {isDeleting ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={16} />}
-          </button>
-        )}
         </div>
       </div>
-      {deleteError && (
-        <div className="px-6 pt-3 shrink-0 w-full max-w-3xl mx-auto">
-          <InlineError message={deleteError} onDismiss={() => setDeleteError(null)} />
-        </div>
-      )}
 
       <div className="flex-1 overflow-y-auto px-6 py-6 flex flex-col min-h-0">
         <div className="flex-1 w-full max-w-3xl mx-auto flex flex-col gap-4">
