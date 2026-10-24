@@ -40,7 +40,7 @@ function fileToBase64(file: File): Promise<string> {
   });
 }
 
-export const UploadDocuments: React.FC = () => {
+const UploadDocuments: React.FC = () => {
   const [isDragging, setIsDragging] = useState(false);
   const [documents, setDocuments] = useState<DocumentMeta[]>([]);
   const [isUploading, setIsUploading] = useState(false);

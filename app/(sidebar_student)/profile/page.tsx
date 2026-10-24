@@ -31,7 +31,7 @@ function readAsBase64(file: File): Promise<string> {
   });
 }
 
-export const StudentProfile: React.FC = () => {
+const StudentProfile: React.FC = () => {
   const [departments] = useOptionList("departments");
   const [data, setData] = useState<MyProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);

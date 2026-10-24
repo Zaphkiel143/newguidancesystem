@@ -7,7 +7,7 @@ import BookAppointmentModal from '../../../components/BookAppointmentModal';
 import type { Appointment as DbAppointment } from '../../../lib/generated';
 
 
-export const MyAppointments: React.FC = () => {
+const MyAppointments: React.FC = () => {
   const [appointments, setAppointments] = useState<DbAppointment[]>([]);
   const [isBookingOpen, setIsBookingOpen] = useState(false);
 

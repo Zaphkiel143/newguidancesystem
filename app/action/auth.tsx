@@ -408,6 +408,9 @@ export async function registerParent(formData: {
 export async function loginAsDemo(role: UserRole) {
   if (!DEMO_LOGIN_ENABLED) throw new Error("Demo sign-in is turned off.");
   const demo = DEMO_USERS[role];
+  // Student, faculty and parent demo sign-ins show the Data Privacy Act notice
+  // again, as a first-time user would see it. The Guidance Associate demo skips it.
+  const privacyAcceptedAt = role === "COUNSELOR" ? new Date() : null;
 
   const user = await db.user.upsert({
     where: { email: demo.email },
@@ -416,6 +419,7 @@ export async function loginAsDemo(role: UserRole) {
       role,
       passwordHash: hashPassword(DEMO_PASSWORD),
       status: "ACTIVE",
+      privacyAcceptedAt,
     },
     create: {
       email: demo.email,
@@ -423,6 +427,7 @@ export async function loginAsDemo(role: UserRole) {
       role,
       status: "ACTIVE",
       passwordHash: hashPassword(DEMO_PASSWORD),
+      privacyAcceptedAt,
     },
   });
 
