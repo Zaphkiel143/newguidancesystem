@@ -1,5 +1,6 @@
 "use client";
 
+import LevelPicker from "../../components/LevelPicker";
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { ArrowLeft, ArrowRight, BookOpen, Heart, Loader2, Users } from 'lucide-react';
 import { useRouter } from 'next/navigation';
@@ -562,18 +563,8 @@ const LoginPage = () => {
                         </div>
                         <fieldset>
                           <legend className={labelClass}>Level</legend>
-                          <div className="grid grid-cols-2 gap-2">
-                            {departments.map((d) => {
-                              const value = optionValue(d);
-                              return (
-                                <label key={d.id} className={`flex items-center gap-2 rounded-lg border px-3 min-h-11 cursor-pointer text-[14px] ${student.department === value ? "border-blue-600 bg-blue-50" : "border-slate-300"}`}>
-                                  <input type="radio" name="department" checked={student.department === value} className="accent-blue-700"
-                                    onChange={() => setStudent({ ...student, department: value, yearLevel: '', program: '' })} />
-                                  {d.label}
-                                </label>
-                              );
-                            })}
-                          </div>
+                          <LevelPicker name="department" departments={departments} value={student.department}
+                            onChange={(department, sameTrack) => setStudent(sameTrack ? { ...student, department } : { ...student, department, yearLevel: '', program: '' })} />
                         </fieldset>
                         <div className="grid grid-cols-2 gap-3">
                           <div>

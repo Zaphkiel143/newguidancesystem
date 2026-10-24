@@ -1,5 +1,6 @@
 "use client";
 
+import LevelPicker from "../../../components/LevelPicker";
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Loader2, Upload, FileText, Pencil } from 'lucide-react';
 import { getMyProfile, saveMyStudentInfo, submitStudentDocument, type MyStudentInfo } from '../../action/student';
@@ -235,18 +236,8 @@ const StudentProfile: React.FC = () => {
                 </div>
                 <fieldset>
                   <legend className={labelClass}>Level</legend>
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                    {departments.map((d) => {
-                      const value = optionValue(d);
-                      return (
-                        <label key={d.id} className={`flex items-center gap-2 rounded-lg border px-3 min-h-11 cursor-pointer text-sm ${info.department === value ? "border-blue-600 bg-blue-50" : "border-slate-300"}`}>
-                          <input type="radio" name="si-dept" className="accent-blue-700" checked={info.department === value}
-                            onChange={() => setInfo({ ...info, department: value, yearLevel: '', program: '', section: '', sectionCode: '', yearSection: '' })} />
-                          {d.label}
-                        </label>
-                      );
-                    })}
-                  </div>
+                  <LevelPicker name="si-dept" departments={departments} value={info.department} columns="grid-cols-2 sm:grid-cols-4"
+                    onChange={(department, sameTrack) => setInfo(sameTrack ? { ...info, department } : { ...info, department, yearLevel: '', program: '', section: '', sectionCode: '', yearSection: '' })} />
                 </fieldset>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <div>

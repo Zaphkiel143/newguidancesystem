@@ -1,5 +1,6 @@
 "use client";
 
+import LevelPicker from "./LevelPicker";
 import React, { useState } from "react";
 import Link from "next/link";
 import { Loader2, Send } from "lucide-react";
@@ -240,18 +241,8 @@ export default function ReferralForm({ mode, onSubmit, myReferralsPath }: Props)
     
           <fieldset>
             <legend className={label}>Level{req}</legend>
-            <div className="grid grid-cols-2 gap-2 max-w-md">
-              {departments.map((d) => {
-                const value = optionValue(d);
-                return (
-                  <label key={d.id} className={`flex items-center gap-2 rounded-lg border px-3 min-h-11 cursor-pointer text-[14px] ${f.department === value ? "border-blue-600 bg-blue-50" : "border-slate-300"}`}>
-                    <input type="radio" name="ref-dept" className="accent-blue-700" checked={f.department === value}
-                      onChange={() => set({ department: value, yearLevel: "", program: "", section: "", sectionCode: "", yearSection: "" })} />
-                    {d.label}
-                  </label>
-                );
-              })}
-            </div>
+            <LevelPicker name="ref-dept" departments={departments} value={f.department}
+              onChange={(department, sameTrack) => set(sameTrack ? { department } : { department, yearLevel: "", program: "", section: "", sectionCode: "", yearSection: "" })} />
           </fieldset>
     
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">

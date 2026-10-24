@@ -1,5 +1,6 @@
 "use client";
 
+import LevelPicker from "../../../components/LevelPicker";
 import React, { useCallback, useEffect, useState } from 'react';
 import { Search, X, Loader2, Plus, Download, AlertTriangle } from 'lucide-react';
 import { listStudentProfiles, getStudentProfile, saveStudentProfile, type StudentProfileInput } from '../../action/counselor';
@@ -350,18 +351,8 @@ export default function StudentInventory() {
                 hint={form.id ? "Renaming also updates this student's appointments, referrals and account." : undefined} />
               <fieldset className="sm:col-span-2">
                 <legend className="text-[13px] font-medium text-slate-700 mb-1.5">Level *</legend>
-                <div className="grid grid-cols-2 gap-2 max-w-md">
-                  {departments.map((d) => {
-                    const value = optionValue(d);
-                    return (
-                      <label key={d.id} className={`flex items-center gap-2 rounded-md border px-3 min-h-11 cursor-pointer text-sm ${form.department === value ? "border-blue-600 bg-blue-50" : "border-slate-300"}`}>
-                        <input type="radio" name="f-dept" className="accent-blue-700" checked={form.department === value}
-                          onChange={() => setForm({ ...form, department: value, yearLevel: "", strandOrProgram: "" })} />
-                        {d.label}
-                      </label>
-                    );
-                  })}
-                </div>
+                <LevelPicker name="f-dept" departments={departments} value={form.department} rounded="rounded-md"
+                  onChange={(department, sameTrack) => setForm(sameTrack ? { ...form, department } : { ...form, department, yearLevel: "", strandOrProgram: "" })} />
               </fieldset>
               <div>
                 <label htmlFor="f-year" className="block text-[13px] font-medium text-slate-700 mb-1.5">{form.department === SHS ? "Grade *" : "Year level *"}</label>
