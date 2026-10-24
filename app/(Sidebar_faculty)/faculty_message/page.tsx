@@ -22,7 +22,7 @@ const MessagesPage: React.FC = () => {
     };
   }, []);
 
-  // Deleting clears all messages; a fresh (empty) conversation is ready right after.
+  // Deleting clears all messages; a fresh (empty) conversation is ready right after
   const handleDeleted = async () => {
     setConversationId(null);
     const conversation = await getMyConversation();
@@ -32,12 +32,10 @@ const MessagesPage: React.FC = () => {
   return (
     <div className="px-5 sm:px-8 lg:px-12 pt-8 lg:pt-12 pb-16 max-w-7xl font-sans antialiased text-slate-800 space-y-6">
 
-      {/* Page Heading Section Header */}
       <div>
         <h1 className="page-title">Messages</h1>
       </div>
 
-      {/* Main Messaging Container */}
       <div className="bg-white border border-slate-100 rounded-2xl shadow-sm h-[600px] flex overflow-hidden">
         {conversationId ? (
           <ConversationPanel

@@ -4,10 +4,7 @@ import React, { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { ExternalLink } from "lucide-react";
 
-// Facebook's Page Plugin (whole feed) only shows this page's header, so the
-// page itself is a link card. Single public posts DO render without logging in
-// through the Post Plugin, so posts attached to announcements are embedded,
-// with a "View on Facebook" link as a fallback.
+// Facebook's Page Plugin (whole feed) only shows this page's header
 
 function FacebookMark({ size = 18 }: { size?: number }) {
   return (
@@ -21,7 +18,7 @@ function FacebookMark({ size = 18 }: { size?: number }) {
   );
 }
 
-// Only real facebook.com / fb.watch https links are shown.
+// Only real facebook.com / fb.watch https links are shown
 export function isFacebookUrl(value: string): boolean {
   try {
     const url = new URL(value);
@@ -58,8 +55,7 @@ export function FacebookPageCard({ pageUrl, pageName }: { pageUrl: string; pageN
   );
 }
 
-// Facebook's post widget doesn't resize itself; a photo post at 500px wide is
-// about 600px tall, so size the frame to the available width at that ratio.
+// Facebook's post widget doesn't resize itself
 export function FacebookPost({ postUrl }: { postUrl: string }) {
   const box = useRef<HTMLDivElement>(null);
   const [width, setWidth] = useState<number | null>(null);

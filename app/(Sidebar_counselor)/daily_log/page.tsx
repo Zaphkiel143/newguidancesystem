@@ -11,8 +11,7 @@ function toDateInput(d: Date) {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
 
-// GCO Daily Log: built from the session entries the Guidance Associate already
-// writes in the appointment form, so nothing is logged twice.
+// GCO Daily Log, built from the session notes saved in Appointments
 export default function DailyLogPage() {
   const today = new Date();
   const weekAgo = new Date(today);

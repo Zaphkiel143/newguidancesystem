@@ -6,8 +6,7 @@ import { Loader2, ShieldCheck } from "lucide-react";
 import { acceptPrivacyNotice } from "../app/action/privacy";
 import { logout } from "../app/action/auth";
 
-// Shown once, before first use, to every role. Required by the Data Privacy
-// Act of 2012 (RA 10173): people must know what's collected and why, and agree.
+// Shown once, before first use, to every role
 export default function PrivacyNotice() {
   const router = useRouter();
   const [busy, setBusy] = useState(false);

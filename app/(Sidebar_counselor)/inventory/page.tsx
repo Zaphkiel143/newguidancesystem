@@ -27,7 +27,7 @@ function toInput(row: Row): StudentProfileInput {
     studentId: row.studentId,
     name: row.name,
     department: normalizeDepartment(row.department) ?? SHS,
-    // Older records only have the combined label ("Grade 12 - STEM-A").
+    // Older records only have the combined label ("Grade 12 - STEM-A")
     yearLevel: row.yearLevel ?? row.gradeSection.split(" - ")[0] ?? "",
     section: row.section ?? row.gradeSection.split(" - ").slice(1).join(" - "),
     strandOrProgram: row.strandOrProgram ?? "",
@@ -75,7 +75,7 @@ export default function StudentInventory() {
     };
   }, []);
 
-  // Load the details whenever a student is opened (from the list or a link).
+  // Load the details whenever a student is opened (from the list or a link)
   useEffect(() => {
     if (!viewing) return;
     let cancelled = false;
@@ -120,7 +120,7 @@ export default function StudentInventory() {
     }
   };
 
-  // Opens the file in a new tab (PDFs and photos) or downloads it (Word files).
+  // Opens the file in a new tab (PDFs and photos) or downloads it (Word files)
   const download = (id: string) => {
     setDownloadError(null);
     window.open(`/api/files/document/${id}`, "_blank", "noopener");
@@ -200,7 +200,6 @@ export default function StudentInventory() {
         </div>
       )}
 
-      {/* Student record panel */}
       {viewing && (
         <div className="fixed inset-0 z-50 flex justify-end bg-ink/30" onClick={() => setViewing(null)}>
           <aside role="dialog" aria-modal="true" aria-labelledby="student-title" onClick={(e) => e.stopPropagation()}
@@ -323,7 +322,6 @@ export default function StudentInventory() {
         </div>
       )}
 
-      {/* Add / edit form */}
       {form && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-ink/40 p-4" onClick={() => setForm(null)}>
           <form role="dialog" aria-modal="true" aria-labelledby="form-title" onSubmit={handleSave} onClick={(e) => e.stopPropagation()} noValidate

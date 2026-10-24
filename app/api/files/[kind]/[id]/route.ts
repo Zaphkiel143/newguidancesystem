@@ -4,9 +4,7 @@ import { getCurrentUser } from "../../../../../lib/auth";
 import { detectFileType } from "../../../../../lib/documents";
 import { logRecordAccess } from "../../../../../lib/accessLog";
 
-// Opens an uploaded document (kind "document") or a photo the Guidance
-// Associate attached (kind "attachment"). Guidance Associates only. Files were
-// checked by content when uploaded (PDF, DOCX or image), so the stored type is real.
+// Opens an uploaded document or an attached photo (Guidance Associate only)
 export async function GET(req: NextRequest, ctx: RouteContext<"/api/files/[kind]/[id]">) {
   const { kind, id } = await ctx.params;
   const user = await getCurrentUser();
@@ -20,7 +18,7 @@ export async function GET(req: NextRequest, ctx: RouteContext<"/api/files/[kind]
       select: { data: true, fileType: true, fileName: true, studentName: true, uploaderName: true, category: true },
     });
     if (doc) {
-      // Confidentiality trail: who opened which student's document.
+      // Confidentiality trail: who opened which student's document
       await logRecordAccess({ name: user.name, roleLabel: "Counselor" }, doc.studentName ?? doc.uploaderName, `Opened document: ${doc.category ?? doc.fileName}`);
       file = doc;
     }
@@ -29,8 +27,7 @@ export async function GET(req: NextRequest, ctx: RouteContext<"/api/files/[kind]
   }
   if (!file) return new Response("Not found", { status: 404 });
 
-  // Older uploads stored whatever type the browser claimed, so check the bytes
-  // again; anything unrecognised is only ever downloaded, never shown in the page.
+  // Older uploads stored whatever type the browser claimed, so check the bytes again
   const bytes = Buffer.from(file.data);
   const realType = detectFileType(bytes) ?? "application/octet-stream";
   const viewable = realType === "application/pdf" || realType.startsWith("image/");

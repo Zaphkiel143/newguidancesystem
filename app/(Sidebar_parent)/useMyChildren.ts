@@ -5,8 +5,7 @@ import { getMyChildren } from "../action/parent";
 
 export type Child = Awaited<ReturnType<typeof getMyChildren>>[number];
 
-// The students the guidance office has linked to the signed-in parent.
-// `children` is null while loading.
+// The students the guidance office has linked to the signed-in parent
 export function useMyChildren() {
   const [children, setChildren] = useState<Child[] | null>(null);
 

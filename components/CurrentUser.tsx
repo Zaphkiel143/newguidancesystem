@@ -14,8 +14,7 @@ export function CurrentUserProvider({ user, children }: { user: CurrentUser; chi
   return <CurrentUserContext.Provider value={user}>{children}</CurrentUserContext.Provider>;
 }
 
-// For display and "is this message mine" checks only. Server actions never
-// trust this; they read the user from the session themselves.
+// For display and "is this message mine" checks only
 export function useCurrentUser(): CurrentUser {
   const user = useContext(CurrentUserContext);
   if (!user) throw new Error("useCurrentUser must be used inside the role layout");

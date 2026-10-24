@@ -17,10 +17,10 @@ import type { Answers } from "../config/collegeCareerForm";
 import { DEPARTMENTS, gradeSectionLabel, isShs, normalizeDepartment, programsFor, yearLevelsFor } from "../config/studentLevels";
 import { formatStudentName } from "../../lib/studentName";
 
-// Every action here requires a signed-in Guidance Associate (COUNSELOR role).
+// Every action here requires a signed-in Guidance Associate (COUNSELOR role)
 const counselorOnly = () => requireActionUser("COUNSELOR");
 
-// ==== Consultation Service: appointments ====
+// Consultation Service: appointments
 
 export async function getAppointmentsByDate(dateString: string) {
   try {
@@ -28,7 +28,7 @@ export async function getAppointmentsByDate(dateString: string) {
     const rows = await db.appointment.findMany({
       where: { date: new Date(dateString), status: { not: "CANCELLED" } },
     });
-    // Times are text ("8:00 AM"), so sort by clock time, not alphabetically.
+    // Times are text ("8:00 AM"), so sort by clock time, not alphabetically
     return rows.sort((x, y) => parseTimeToMinutes(x.time) - parseTimeToMinutes(y.time));
   } catch (error) {
     console.error("Failed to fetch appointments:", error);
@@ -36,8 +36,7 @@ export async function getAppointmentsByDate(dateString: string) {
   }
 }
 
-// Tells whoever booked the appointment (student, faculty or parent) what changed:
-// a notification in E-Gabay, and an email when we have their address.
+// Tells whoever booked the appointment (student, faculty or parent) what changed
 const APPOINTMENTS_PAGE: Record<string, string> = { Student: "/my_appointments", Faculty: "/faculty_appointment", Parent: "/parent_dashboard" };
 
 async function notifyBooker(
@@ -63,8 +62,7 @@ async function notifyBooker(
 export async function updateAppointmentStatus(id: string, status: "PENDING" | "CONFIRMED" | "COMPLETED" | "CANCELLED") {
   try {
     const me = await counselorOnly();
-    // Cancelled appointments are kept (not deleted) so the history and the
-    // cancellation email both still have the details.
+    // Cancelled appointments are kept (not deleted)
     const appointment = await db.appointment.update({ where: { id }, data: { status } });
     await logActivity(me, `Marked an appointment as ${status === "COMPLETED" ? "terminated" : status.toLowerCase()}`, "Appointment", id, appointment.studentName ?? undefined);
 
@@ -92,10 +90,9 @@ export async function updateAppointmentStatus(id: string, status: "PENDING" | "C
   }
 }
 
-// ---- Day schedule with contact details, and blocking time for meetings ----
+// Day schedule with contact details, and blocking time for meetings
 
-// Everything the Appointments page shows for one day: bookings with a way to
-// reach whoever made them, and blocked time.
+// Everything the Appointments page shows for one day
 export async function getDaySchedule(dateString: string) {
   try {
     await counselorOnly();
@@ -105,7 +102,7 @@ export async function getDaySchedule(dateString: string) {
       db.blockedSlot.findMany({ where: { date } }),
     ]);
 
-    // Fill in contact details the booking didn't carry (older bookings), from the accounts.
+    // Fill in contact details the booking didn't carry (older bookings), from the accounts
     const names = [...new Set(appointments.map((a) => a.bookedByName ?? a.studentName).filter(Boolean))] as string[];
     const users = await db.user.findMany({ where: { name: { in: names } }, select: { name: true, role: true, email: true, phone: true } });
     const contactFor = (name: string | null, role: string | null) => {
@@ -135,9 +132,7 @@ export async function getDaySchedule(dateString: string) {
   }
 }
 
-// Blocks every hourly slot from startTime up to (not including) endTime, or the
-// whole day, so nobody can book it. Slots that already have an appointment are
-// left alone and reported back.
+// Blocks every hourly slot from startTime up to (not including) endTime
 export async function blockTime(formData: { dateString: string; startTime: string; endTime: string; wholeDay: boolean; reason: string }) {
   try {
     const me = await counselorOnly();
@@ -177,7 +172,7 @@ export async function blockTime(formData: { dateString: string; startTime: strin
   }
 }
 
-// Removes one blocked slot, or every slot blocked together with it.
+// Removes one blocked slot, or every slot blocked together with it
 export async function unblockTime(blockId: string, wholeGroup: boolean) {
   try {
     const me = await counselorOnly();
@@ -251,8 +246,7 @@ export async function saveAppointmentDetails(formData: {
           );
         }
       } catch (err) {
-        // The id the client sent doesn't exist (e.g. a stale/local-only id) —
-        // treat this the same as a brand new appointment instead of failing.
+        // Unknown id: treat it as a new appointment
         if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2025") {
           await db.appointment.create({ data: createData });
         } else {
@@ -278,9 +272,7 @@ export async function saveAppointmentDetails(formData: {
   }
 }
 
-// GCO Daily Log: every logged session (appointments with session notes),
-// newest first. Each session is written once, in the appointment form, and
-// shows up here and on the student's Individual Inventory profile.
+// GCO Daily Log: every logged session (appointments with session notes), newest first
 export async function getDailyLog(fromDate: string, toDate: string) {
   try {
     await counselorOnly();
@@ -291,7 +283,7 @@ export async function getDailyLog(fromDate: string, toDate: string) {
         studentName: { not: null },
       },
     });
-    // Newest day first; within a day, by clock time (times are text like "8:00 AM").
+    // Newest day first; within a day, by clock time (times are text like "8:00 AM")
     return rows.sort((x, y) => y.date.getTime() - x.date.getTime() || parseTimeToMinutes(x.time) - parseTimeToMinutes(y.time));
   } catch (error) {
     console.error("Failed to fetch daily log:", error);
@@ -299,7 +291,7 @@ export async function getDailyLog(fromDate: string, toDate: string) {
   }
 }
 
-// ==== Career Guidance Service ====
+// Career Guidance Service
 
 export async function getCareerPlans() {
   try {
@@ -314,7 +306,7 @@ export async function getCareerPlans() {
 export async function addCareerPlanStudent(formData: { studentName: string; studentId: string; grade: string; facilitator?: string }) {
   try {
     const me = await counselorOnly();
-    // The Career Planning Program is for senior high students on record.
+    // The Career Planning Program is for senior high students on record
     const profile = await db.studentProfile.findUnique({ where: { name: formData.studentName } });
     if (!profile) return { success: false, error: "Add this student to the Individual Inventory first." };
     if (!isShs(profile.department)) return { success: false, error: "The Career Planning Program is for senior high students only." };
@@ -341,7 +333,7 @@ export async function addCareerPlanStudent(formData: { studentName: string; stud
   }
 }
 
-// Marks the next incomplete stage done, with an optional note on what was completed.
+// Marks the next incomplete stage done, with an optional note on what was completed
 export async function advanceCareerPlanProgress(id: string, activityNote = "") {
   try {
     const me = await counselorOnly();
@@ -389,7 +381,7 @@ export async function updateCareerPlanDetails(id: string, formData: { facilitato
   }
 }
 
-// ==== Individual Inventory ====
+// Individual Inventory
 
 export async function listStudentProfiles() {
   try {
@@ -410,8 +402,7 @@ export async function listStudentProfiles() {
   }
 }
 
-// One place for everything about a student: profile, sessions, career plan,
-// referrals and submitted documents.
+// One place for everything about a student
 export async function getStudentProfile(studentName: string) {
   try {
     const me = await counselorOnly();
@@ -472,7 +463,7 @@ export async function saveStudentProfile(input: StudentProfileInput) {
     if (!department || !(DEPARTMENTS as readonly string[]).includes(department)) return { success: false, error: "Choose Senior High School, Tertiary, Irregular, or Off Term." };
     if (!yearLevelsFor(department).includes(input.yearLevel)) return { success: false, error: `Choose the ${isShs(department) ? "grade" : "year level"}.` };
     const program = t(input.strandOrProgram, 80);
-    // Older records may hold a strand/course that isn't in today's list; keeping it unchanged is fine.
+    // Older records may hold a strand/course that isn't in today's list
     const existing = input.id ? await db.studentProfile.findUnique({ where: { id: input.id }, select: { strandOrProgram: true } }) : null;
     if (program && !programsFor(department).includes(program) && program !== existing?.strandOrProgram) {
       return { success: false, error: `Choose a ${isShs(department) ? "strand" : "course"} from the list.` };
@@ -501,8 +492,7 @@ export async function saveStudentProfile(input: StudentProfileInput) {
     if (input.id) {
       const before = await db.studentProfile.findUnique({ where: { id: input.id } });
       if (!before) return { success: false, error: "This record no longer exists." };
-      // Records across the system are linked by the student's name, so a
-      // rename carries over to everything that belongs to them.
+      // Records across the system are linked by the student's name
       const renamed = before.name !== name;
       await db.$transaction([
         db.studentProfile.update({ where: { id: input.id }, data }),
@@ -542,10 +532,9 @@ export async function saveStudentProfile(input: StudentProfileInput) {
   }
 }
 
-// ==== Document review ====
+// Document review
 
-// Everything students and faculty upload waits here until a Guidance Associate
-// checks it. Newest waiting first; reviewed ones after.
+// Everything students and faculty upload waits here until a Guidance Associate checks it
 export async function listDocumentsForReview(status: "PENDING" | "APPROVED" | "REJECTED") {
   try {
     await counselorOnly();
@@ -558,8 +547,7 @@ export async function listDocumentsForReview(status: "PENDING" | "APPROVED" | "R
       orderBy: { createdAt: status === "PENDING" ? "asc" : "desc" },
       take: 500,
     });
-    // Documents link to the student's inventory record by name; that record
-    // says which level, strand/course, and section the file belongs under.
+    // Documents link to the student's inventory record by name
     const names = [...new Set(docs.map((d) => d.studentName).filter((n): n is string => Boolean(n)))];
     const profiles = names.length
       ? await db.studentProfile.findMany({
@@ -608,7 +596,7 @@ export async function reviewDocument(id: string, approve: boolean, note: string)
   }
 }
 
-// ==== Group Guidance Service ====
+// Group Guidance Service
 
 export async function getGroupGuidancePrograms() {
   try {
@@ -636,8 +624,7 @@ export async function addGroupGuidanceProgram(formData: { title: string; gradeLe
   }
 }
 
-// Attendance can be typed (one name per line), or just counted when a photo of
-// the signed attendance sheet is attached instead.
+// Attendance can be typed (one name per line)
 export async function recordGroupSession(id: string, formData: { attendees: string[]; outcomes: string; headcount?: number }) {
   try {
     const me = await counselorOnly();
@@ -656,7 +643,7 @@ export async function recordGroupSession(id: string, formData: { attendees: stri
   }
 }
 
-// Needs assessments, with responses tallied per topic (most-selected first).
+// Needs assessments, with responses tallied per topic (most-selected first)
 export async function listNeedsAssessments() {
   try {
     await counselorOnly();
@@ -720,12 +707,12 @@ export async function setNeedsAssessmentOpen(id: string, isOpen: boolean) {
   }
 }
 
-// ==== Information Service: announcements ====
+// Information Service: announcements
 
 export async function listAnnouncements() {
   try {
     await counselorOnly();
-    // Photos are fetched separately from /api/announcements/[id]/image.
+    // Photos are fetched separately from /api/announcements/[id]/image
     const rows = await db.announcement.findMany({
       omit: { imageData: true },
       include: { views: { orderBy: { viewedAt: "desc" } } },
@@ -746,14 +733,14 @@ export async function saveAnnouncement(formData: {
   audience: string;
   isPublished: boolean;
   facebookUrl?: string;
-  // undefined: keep the current photo; null: remove it; object: replace it.
+  // undefined: keep the current photo; null: remove it; object: replace it
   image?: { dataBase64: string } | null;
 }) {
   try {
     const me = await counselorOnly();
     if (!formData.title.trim() || !formData.body.trim()) return { success: false, error: "Add a title and a message." };
 
-    // Optional Facebook post: a permalink or the post's embed code (see lib/facebook.ts).
+    // Optional Facebook post: a permalink or the post's embed code (see lib/facebook.ts)
     let fb: string | null = null;
     if (formData.facebookUrl?.trim()) {
       const parsed = normalizeFacebookPostUrl(formData.facebookUrl);
@@ -805,7 +792,7 @@ export async function deleteAnnouncement(id: string) {
   }
 }
 
-// ==== Events ====
+// Events
 
 export async function listEvents() {
   try {
@@ -863,7 +850,7 @@ export async function deleteEvent(id: string) {
   }
 }
 
-// ==== Messages: the counselor sees and replies to every conversation ====
+// Messages: the counselor sees and replies to every conversation
 
 export async function listConversations() {
   try {
@@ -970,10 +957,9 @@ export async function deleteConversation(conversationId: string) {
   }
 }
 
-// ==== Referral Service ====
+// Referral Service
 
-// Each referral comes with a way to reach the person who sent it and the
-// student it's about (school email for Outlook/Teams, mobile number if known).
+// Each referral comes with a way to reach the person who sent it and the student it's about
 export async function listReferrals() {
   try {
     await counselorOnly();
@@ -1034,8 +1020,7 @@ export async function addReferralNotes(id: string, notes: string) {
   }
 }
 
-// Sends feedback on a referral straight to the person who submitted it,
-// reusing the same conversation/messaging system as the Messages page.
+// Sends feedback on a referral straight to the person who submitted it
 export async function sendReferralFeedback(referralId: string, content: string) {
   try {
     const me = await counselorOnly();
@@ -1070,7 +1055,7 @@ export async function sendReferralFeedback(referralId: string, content: string) 
   }
 }
 
-// ==== Dashboard overview stats ====
+// Dashboard overview stats
 
 export async function getDashboardStats() {
   try {
@@ -1101,7 +1086,7 @@ export async function getDashboardStats() {
   }
 }
 
-// Quick search from the dashboard: students on record by name or student ID.
+// Quick search from the dashboard: students on record by name or student ID
 export async function searchStudents(query: string) {
   try {
     await counselorOnly();
@@ -1119,7 +1104,7 @@ export async function searchStudents(query: string) {
   }
 }
 
-// ==== Career Guidance: Career Planning Forms (tertiary) ====
+// Career Guidance: Career Planning Forms (tertiary)
 
 export async function listCareerForms() {
   try {
@@ -1139,7 +1124,7 @@ export async function listCareerForms() {
   }
 }
 
-// Opening a form is recorded in the student's record-access log.
+// Opening a form is recorded in the student's record-access log
 export async function getCareerForm(studentName: string) {
   try {
     const me = await counselorOnly();
@@ -1153,7 +1138,7 @@ export async function getCareerForm(studentName: string) {
   }
 }
 
-// ==== System-wide activity log ====
+// System-wide activity log
 
 export async function listActivity(filters: { role?: string; model?: string; search?: string; from?: string; to?: string; cursor?: string } = {}) {
   try {
@@ -1183,8 +1168,7 @@ export async function listActivity(filters: { role?: string; model?: string; sea
   }
 }
 
-// Distinct roles/models actually present, so the filter dropdowns only show
-// choices that will return results.
+// Only offer filter choices that have results
 export async function getActivityFilterOptions() {
   try {
     await counselorOnly();

@@ -13,7 +13,7 @@ type Profile = NonNullable<Awaited<ReturnType<typeof getMyParentProfile>>>;
 const EXTENSIONS = ["Jr.", "Sr.", "II", "III", "IV", "V"];
 const RELATIONSHIPS = ["Mother", "Father", "Guardian", "Grandparent", "Sibling", "Other relative"];
 
-// Best guess at name parts from the stored full name ("First Middle Last Ext").
+// Best guess at name parts from the stored full name ("First Middle Last Ext")
 function splitName(full: string) {
   const parts = full.split(/\s+/).filter(Boolean);
   const ext = EXTENSIONS.includes(parts[parts.length - 1] ?? "") ? parts.pop()! : "";
@@ -69,7 +69,7 @@ export default function ParentProfilePage() {
     setSaving(false);
     if (result.success) {
       setSaved(true);
-      // The name in the top bar comes from the server.
+      // The name in the top bar comes from the server
       window.location.reload();
     } else setError(result.error ?? "Couldn't save.");
   };

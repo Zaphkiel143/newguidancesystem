@@ -1,6 +1,4 @@
-// Crisis hotlines shown when E-Gabay detects a crisis message.
-// Confirmed by the Guidance Associate (Ms. Eslie Rose Clemente), October 2026.
-// Please double-check these numbers with the Guidance Associate each school year.
+// Crisis hotlines shown when E-Gabay detects a crisis message
 export const CRISIS_HOTLINES: { name: string; numbers: { label: string; tel: string }[] }[] = [
   {
     name: "Emergency",

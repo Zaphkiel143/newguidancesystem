@@ -11,13 +11,11 @@ const TABS: { value: InfoTab; label: string }[] = [
   { value: "events", label: "Events" },
 ];
 
-// Information Service: announcements and events are both ways the office
-// tells students, faculty, and parents what's happening, so they share one
-// module with a tab each.
+// Information Service: announcements and events, one tab each
 export default function InformationModule({ initialTab }: { initialTab: InfoTab }) {
   const [tab, setTab] = useState<InfoTab>(initialTab);
 
-  // Keep the tab in the address so a refresh or shared link opens the same one.
+  // Keep the tab in the address so a refresh or shared link opens the same one
   const choose = (t: InfoTab) => {
     setTab(t);
     window.history.replaceState(null, "", t === "events" ? "/information?tab=events" : "/information");

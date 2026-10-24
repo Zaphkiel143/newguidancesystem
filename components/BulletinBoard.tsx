@@ -7,8 +7,7 @@ import { getBulletin } from "../app/action/bulletin";
 import { FacebookPageCard, FacebookPost } from "./FacebookEmbed";
 import { FACEBOOK_PAGE_URL } from "../app/config/school";
 
-// Information Service board + upcoming events, shared by the student, faculty
-// and parent routes. Announcements can be filtered by category.
+// Information Service board + upcoming events
 export default function BulletinBoard() {
   const [data, setData] = useState<Awaited<ReturnType<typeof getBulletin>> | null>(null);
   const [category, setCategory] = useState("All");

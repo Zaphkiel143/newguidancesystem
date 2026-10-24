@@ -1,7 +1,6 @@
 import type { MetadataRoute } from "next";
 
-// Lets people add E-Gabay to their phone's home screen. On iPhone this is
-// required before the site can show notifications.
+// Lets people add E-Gabay to their phone's home screen
 export default function manifest(): MetadataRoute.Manifest {
   return {
     name: "E-Gabay STI",

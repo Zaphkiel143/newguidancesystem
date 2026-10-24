@@ -46,8 +46,7 @@ const MessagesDashboard: React.FC = () => {
     };
   }, []);
 
-  // Guards against an in-flight poll resolving after a more recent refresh
-  // (e.g. right after a delete) and overwriting it with stale data.
+  // Ignore a poll that finishes after a newer refresh
   const refreshRequestId = useRef(0);
   const refreshConversations = async () => {
     const requestId = ++refreshRequestId.current;
@@ -102,19 +101,14 @@ const MessagesDashboard: React.FC = () => {
 
   return (
     <div className="flex flex-col h-[calc(100dvh-var(--topbar-h))] bg-paper font-sans antialiased text-slate-800">
-      {/* Header Section */}
       <header className="px-5 sm:px-8 lg:px-12 pt-8 pb-5 border-b border-rule">
         <h1 className="page-title">Messages</h1>
       </header>
 
-      {/* Main Content Area */}
       <div className="flex flex-1 overflow-hidden">
 
-        {/* Left Sidebar: Conversation List */}
         <aside className="w-[360px] border-r border-slate-200 flex flex-col bg-white shrink-0">
-          {/* Action Area: Search & New Message Button */}
           <div className="p-4 space-y-3 border-b border-slate-100">
-            {/* Search Input */}
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 w-5 h-5" />
               <input
@@ -127,7 +121,6 @@ const MessagesDashboard: React.FC = () => {
               />
             </div>
 
-            {/* New Message Button */}
             <button
               onClick={() => { setStartError(null); setNewName(''); setStudentQuery(''); setIsNewMessageOpen(true); }}
               className="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 px-4 rounded-full transition-colors text-sm shadow-sm"
@@ -137,7 +130,6 @@ const MessagesDashboard: React.FC = () => {
             </button>
           </div>
 
-          {/* Conversations Scroll Container */}
           <div className="flex-1 overflow-y-auto divide-y divide-slate-100">
             {filteredConversations.length > 0 ? (
               filteredConversations.map((chat) => {
@@ -150,14 +142,12 @@ const MessagesDashboard: React.FC = () => {
                       isSelected ? 'bg-slate-50' : 'hover:bg-slate-50/60'
                     }`}
                   >
-                    {/* Avatar Badge Container */}
                     <div className="relative shrink-0 mt-0.5">
                       <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 border border-slate-200">
                         <User className="w-5 h-5" />
                       </div>
                     </div>
 
-                    {/* Chat Metatext & Excerpt */}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-start justify-between gap-2">
                         <div>
@@ -169,7 +159,6 @@ const MessagesDashboard: React.FC = () => {
                           </span>
                         </div>
 
-                        {/* Unread Pill Indicator */}
                         {chat.unreadCount > 0 && (
                           <span className="bg-blue-600 text-white text-xs font-semibold min-w-[18px] h-[18px] px-1 rounded flex items-center justify-center shrink-0">
                             {chat.unreadCount}
@@ -196,7 +185,6 @@ const MessagesDashboard: React.FC = () => {
           </div>
         </aside>
 
-        {/* Right Main Panel: Workspace View */}
         {selectedConversation ? (
           <ConversationPanel
             key={selectedConversation.id}
@@ -218,7 +206,6 @@ const MessagesDashboard: React.FC = () => {
         ) : (
           <main className="flex-1 bg-white flex flex-col items-center justify-center p-8 select-none">
             <div className="text-center max-w-sm flex flex-col items-center">
-              {/* Minimalist Dialogue Bubble Icon */}
               <div className="text-slate-300 mb-4 transform scale-[2.5]">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -244,7 +231,6 @@ const MessagesDashboard: React.FC = () => {
 
       </div>
 
-      {/* NEW MESSAGE MODAL */}
       {isNewMessageOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
           <div className="bg-white w-full max-w-md p-6 rounded-2xl shadow-xl border border-slate-100 space-y-4">

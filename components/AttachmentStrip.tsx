@@ -16,8 +16,7 @@ function readAsBase64(file: File): Promise<string> {
   });
 }
 
-// Thumbnails of the photos attached to one record, with "Add photo" (which opens
-// the camera on phones) and remove. Counselor pages only.
+// Thumbnails of the photos attached to one record
 export default function AttachmentStrip({
   kind,
   refId,

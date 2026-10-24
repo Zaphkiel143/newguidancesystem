@@ -1,10 +1,4 @@
-// The Career Planning Form for tertiary (college) students: first-year students
-// and transferees fill it in once, and the Guidance Associate reads it in
-// Career Guidance. The sections and questions follow the guidance office's own
-// form; the consent wording below is written for E-Gabay.
-//
-// Pure module (no database or Next.js imports) so the page, the server action
-// and the tests all use the same questions and the same checks.
+// The Career Planning Form for tertiary (college) students
 
 import { TERTIARY_COURSES } from "./studentLevels.ts";
 
@@ -275,8 +269,7 @@ function isBlank(v: string | string[] | undefined) {
   return v === undefined || (Array.isArray(v) ? v.length === 0 : v.trim() === "");
 }
 
-// Cleans what the browser sent: keeps only known fields, trims text, drops
-// answers to questions that are hidden. Never throws on odd input.
+// Cleans submitted answers: known fields only, trimmed, hidden questions dropped
 export function cleanAnswers(input: unknown): Answers {
   const raw = input && typeof input === "object" ? (input as Record<string, unknown>) : {};
   const out: Answers = {};
@@ -294,8 +287,7 @@ export function cleanAnswers(input: unknown): Answers {
   return out;
 }
 
-// One message per field that is wrong. With `forSubmit`, required fields must
-// be filled; drafts only check what has been typed so far.
+// One message per field that is wrong
 export function validateAnswers(answers: Answers, forSubmit: boolean): Record<string, string> {
   const errors: Record<string, string> = {};
   for (const f of ALL_FIELDS) {
@@ -329,7 +321,7 @@ export function validateAnswers(answers: Answers, forSubmit: boolean): Record<st
   return errors;
 }
 
-// The first section that has an error, so the form can jump back to it.
+// The first section that has an error, so the form can jump back to it
 export function firstSectionWithError(errors: Record<string, string>) {
   return COLLEGE_CAREER_FORM.findIndex((s) => s.fields.some((f) => errors[f.id]));
 }

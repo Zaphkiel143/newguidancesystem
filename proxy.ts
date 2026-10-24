@@ -1,10 +1,7 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-// Keeps people signed in while they keep using E-Gabay: every page visit
-// pushes the session cookie's expiry 30 days ahead (like staying logged in to
-// Facebook). The server checks the session itself on every request; this only
-// renews the cookie's lifetime.
+// Keeps people signed in while they keep using E-Gabay
 const SESSION_COOKIE = "session";
 const SESSION_DAYS = 30;
 
@@ -24,6 +21,6 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  // Pages only: not API routes, Next.js assets, or files like images.
+  // Pages only: not API routes, Next.js assets, or files like images
   matcher: ["/((?!api|_next/static|_next/image|.*\\.(?:png|jpg|jpeg|gif|svg|webp|ico|css|js|map|woff2?|txt|xml)$).*)"],
 };

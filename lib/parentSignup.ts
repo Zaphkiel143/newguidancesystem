@@ -1,6 +1,4 @@
-// Parent / guardian sign-up rules, shared by the browser (so parents see every
-// problem at once) and the server action (which never trusts the browser).
-// Keep this file free of server-only and browser-only imports.
+// Parent / guardian sign-up rules, shared by the browser
 import { normalizePhone } from "./phone.ts";
 
 export const MIN_PASSWORD = 8;
@@ -13,7 +11,7 @@ export function cleanName(name: string | undefined): string {
   return (name ?? "").trim().replace(/\s+/g, " ");
 }
 
-// Field keys in on-screen order (used to focus the first bad field).
+// Field keys in on-screen order (used to focus the first bad field)
 export const PARENT_SIGNUP_FIELDS = [
   "lastName",
   "firstName",

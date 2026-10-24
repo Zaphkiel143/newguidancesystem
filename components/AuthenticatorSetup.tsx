@@ -5,8 +5,7 @@ import { Loader2, ShieldCheck, Smartphone } from "lucide-react";
 import { confirmTotpSetup, disableTotp, getMyTotpStatus, startTotpSetup } from "../app/action/totp";
 import InlineError from "./InlineError";
 
-// "Sign in with Microsoft Authenticator": scan a QR code once, then sign in
-// with the 6-digit code from the app instead of waiting for an email.
+// Set up sign-in with an authenticator app (scan a QR code once)
 export default function AuthenticatorSetup() {
   const [status, setStatus] = useState<{ enabled: boolean; since: Date | null } | null>(null);
   const [setup, setSetup] = useState<{ qr: string; secret: string } | null>(null);

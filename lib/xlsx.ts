@@ -1,6 +1,4 @@
-// Minimal single-sheet .xlsx writer (no dependency): text and number cells,
-// three styles, and column widths. The workbook is a zip of a few XML parts,
-// stored uncompressed.
+// Minimal single-sheet .xlsx writer (no dependency)
 
 export type XlsxStyle = "normal" | "bold" | "title";
 export type XlsxCell = string | number | null | { value: string | number; style?: XlsxStyle };
@@ -85,7 +83,7 @@ function crc32(data: Uint8Array) {
   return (c ^ 0xffffffff) >>> 0;
 }
 
-// Uncompressed ("stored") zip archive.
+// Uncompressed ("stored") zip archive
 function zip(files: Record<string, string>) {
   const enc = new TextEncoder();
   const chunks: Uint8Array[] = [];
@@ -129,8 +127,7 @@ function zip(files: Record<string, string>) {
   return [...chunks, ...central, new Uint8Array(end.buffer)];
 }
 
-// Widths default to fit the longest text in each column (title-style cells
-// are ignored, since they may spill across empty neighbours).
+// Widths default to fit the longest text in each column
 export function buildXlsx(rows: XlsxRow[], sheetName = "Report", widths?: number[]) {
   const columns = Math.max(...rows.map((r) => r.length), 1);
   const fitted = Array.from({ length: columns }, (_, c) => {

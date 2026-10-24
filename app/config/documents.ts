@@ -1,4 +1,4 @@
-// Kinds of documents students hand in to the guidance office (Individual Inventory).
+// Kinds of documents students hand in to the guidance office (Individual Inventory)
 export const STUDENT_DOCUMENT_CATEGORIES = [
   "Excuse letter",
   "Medical certificate",

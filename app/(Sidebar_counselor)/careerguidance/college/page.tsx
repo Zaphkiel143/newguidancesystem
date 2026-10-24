@@ -29,7 +29,7 @@ export default function CareerFormsPage() {
     };
   }, []);
 
-  // Escape closes the form panel.
+  // Escape closes the form panel
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && setOpen(null);

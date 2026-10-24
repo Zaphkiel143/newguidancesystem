@@ -1,5 +1,4 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
+// Database schema (Prisma)
 
 // Get a free hosted Postgres database in seconds: `npx create-db`
 
@@ -24,8 +23,7 @@ model Appointment {
   notes           String? @db.Text
   requirements    String[] // Array of strings for checklists (Prisma supports this natively in PostgreSQL)
 
-  // Who made the booking (student, faculty, or a parent booking for their child),
-  // so confirmation/change/cancellation emails reach the right person.
+  // Who made the booking (student, faculty, or a parent booking for their child)
   bookedByName    String?
   bookedByRole    String?
   bookedByEmail   String?
@@ -39,8 +37,7 @@ model BlockedSlot {
   counselorId String
   date        DateTime // Keep this matching the type used in Appointment
   time        String   // one hourly slot start, e.g. "9:00 AM"
-  // Why the Guidance Associate is unavailable (e.g. "Meeting"); slots blocked
-  // together share a groupId so the whole block can be removed at once.
+  // Why the Guidance Associate is unavailable (e.g. "Meeting")
   reason      String?
   groupId     String?
   createdAt   DateTime @default(now())
@@ -52,11 +49,10 @@ model CareerPlan {
   studentId   String
   grade       String
 
-  // One entry per step in app/config/careerSteps.ts, in order.
-  // "" means that step isn't completed yet; otherwise it holds the completion date (YYYY-MM-DD).
+  // One entry per step in app/config/careerSteps.ts, in order
   stepDates   String[]
 
-  // Free-text record of completed activities, one entry per step (same order as stepDates).
+  // Free-text record of completed activities, one entry per step (same order as stepDates)
   stepNotes   String[] @default([])
   facilitator String?
 
@@ -87,26 +83,23 @@ enum UserRole {
 
 model User {
   id           String   @id @default(uuid())
-  // School email (students, faculty, guidance). Parents sign in with a phone
-  // number instead and may add an email later for notices.
+  // School email (students, faculty, guidance)
   email        String?  @unique
   phone        String?  @unique
   passwordHash String
   name         String
   role         UserRole
-  // ACTIVE can use the system. PENDING (new faculty or parent accounts) waits
-  // for the Guidance Associate to approve it; REJECTED cannot sign in.
+  // ACTIVE can use the system
   status       String   @default("ACTIVE")
-  // Optional profile photo (validated image bytes, see lib/image.ts).
+  // Optional profile photo (validated image bytes, see lib/image.ts)
   avatarData   Bytes?
   avatarType   String?
-  // Authenticator app sign-in (Microsoft/Google Authenticator), optional.
-  // totpPending holds a new secret until the person confirms a code from the app.
+  // Authenticator app sign-in (Microsoft/Google Authenticator), optional
   totpSecret   String?
   totpPending  String?
   totpLastStep Int?     // last code step used, so a code can't be reused
   totpEnabledAt DateTime?
-  // When this person agreed to the privacy notice (Data Privacy Act, RA 10173).
+  // When this person agreed to the privacy notice (Data Privacy Act, RA 10173)
   privacyAcceptedAt DateTime?
 
   sessions      Session[]
@@ -150,12 +143,10 @@ model Document {
   data         Bytes
 
   // For documents students submit to their Individual Inventory record
-  // (excuse letter, medical certificate, ...). Null for faculty uploads.
   studentName  String?
   category     String?
 
-  // Every upload is checked by the Guidance Associate before it counts:
-  // PENDING, APPROVED or REJECTED (with a note telling the uploader why).
+  // Every upload is checked by the Guidance Associate before it counts
   reviewStatus String    @default("PENDING")
   reviewNote   String?
   reviewedAt   DateTime?
@@ -187,9 +178,7 @@ model Message {
   createdAt      DateTime @default(now())
 }
 
-// One row per chat with E-Gabay. A student has at most one open chat
-// (endedAt null); starting a new chat or closing the chat panel ends it, and
-// ended chats stay in the student's history.
+// One row per chat with E-Gabay
 model AiConversation {
   id          String    @id @default(uuid())
   studentName String
@@ -210,15 +199,15 @@ model AiMessage {
 
   role           String   // "user" or "assistant"
   content        String   @db.Text
-  // For E-Gabay's replies: the topic it recognised ("fallback" = not understood).
+  // For E-Gabay's replies: the topic it recognised ("fallback" = not understood)
   intent         String?
-  // Set when the student sent the unanswered question to the guidance office.
+  // Set when the student sent the unanswered question to the guidance office
   forwardedAt    DateTime?
 
   createdAt      DateTime @default(now())
 }
 
-// ---- Individual Inventory ----
+// Individual Inventory
 
 model StudentProfile {
   id                 String   @id @default(uuid())
@@ -244,7 +233,7 @@ model StudentProfile {
   updatedAt          DateTime @updatedAt
 }
 
-// ---- Information Service ----
+// Information Service
 
 model Announcement {
   id          String   @id @default(uuid())
@@ -253,9 +242,9 @@ model Announcement {
   category    String   // e.g. Seminar, Mental Health, Career, Reminder
   audience    String   @default("All") // All, Students, Faculty, Parents
   isPublished Boolean  @default(true)
-  // Optional link to a post on the school's Facebook page, embedded on request.
+  // Optional link to a post on the school's Facebook page, embedded on request
   facebookUrl String?
-  // Optional photo/poster shown with the announcement (served by /api/announcements/[id]/image).
+  // Optional photo/poster shown with the announcement
   imageData   Bytes?
   imageType   String?
 
@@ -276,7 +265,7 @@ model AnnouncementView {
   @@unique([announcementId, viewerName, viewerRole])
 }
 
-// ---- Events ----
+// Events
 
 model Event {
   id          String   @id @default(uuid())
@@ -290,7 +279,7 @@ model Event {
   updatedAt   DateTime @updatedAt
 }
 
-// ---- Group Guidance: needs assessment ----
+// Group Guidance: needs assessment
 
 model NeedsAssessment {
   id         String   @id @default(uuid())
@@ -317,10 +306,9 @@ model NeedsAssessmentResponse {
   @@unique([assessmentId, studentName])
 }
 
-// ---- Email notifications ----
+// Email notifications
 
-// Every notification the system tries to send, kept for auditing and so the
-// review copy can show what would have gone out when no SMTP server is set.
+// Every notification the system tries to send
 model EmailLog {
   id        String   @id @default(uuid())
   to        String
@@ -332,10 +320,9 @@ model EmailLog {
   createdAt DateTime @default(now())
 }
 
-// ---- Sign-in with a school email code ----
+// Sign-in with a school email code
 
-// One-time 6-digit codes sent to a school email. Only a hash of the code is
-// stored; a code works once, for 10 minutes, with at most 5 wrong guesses.
+// One-time 6-digit codes sent to a school email
 model LoginCode {
   id        String    @id @default(uuid())
   email     String
@@ -350,11 +337,9 @@ model LoginCode {
 }
 
 
-// ---- Parent / guardian accounts ----
+// Parent / guardian accounts
 
-// A parent asks to be linked to a child by the child's student ID number. The
-// Guidance Associate checks it against the Individual Inventory and approves
-// it; only then can the parent see that child's profile.
+// A parent asks to be linked to a child by the child's student ID number
 model ParentChildLink {
   id               String    @id @default(uuid())
   parentId         String
@@ -363,7 +348,7 @@ model ParentChildLink {
   childName        String
   relationship     String    // Mother, Father, Guardian, ...
   status           String    @default("PENDING") // PENDING, APPROVED, REJECTED
-  // Set when approved: the inventory record this link points to.
+  // Set when approved: the inventory record this link points
   studentProfileId String?
   note             String?
   reviewedAt       DateTime?
@@ -373,7 +358,7 @@ model ParentChildLink {
   @@unique([parentId, studentIdNumber])
 }
 
-// ---- In-app notifications (bell in the top bar) ----
+// In-app notifications (bell in the top bar)
 
 model Notification {
   id        String    @id @default(uuid())
@@ -389,10 +374,9 @@ model Notification {
   @@index([userId, readAt])
 }
 
-// ---- Photos attached by the Guidance Associate ----
+// Photos attached by the Guidance Associate
 
-// kind DAILY_LOG: photo of a document for a logged session (refId = Appointment.id)
-// kind GROUP_ATTENDANCE: attendance sheet for a group session (refId = GroupGuidanceProgram.id)
+// Photos attached to a Daily Log session or a group guidance session
 model Attachment {
   id        String   @id @default(uuid())
   kind      String
@@ -405,11 +389,9 @@ model Attachment {
   @@index([kind, refId])
 }
 
-// ---- Anti-spam ----
+// Anti-spam
 
-// One row per limited action (sign-in try, referral, message, ...), keyed by
-// what it's limiting, e.g. "login:+639171234567" or "referral:<userId>".
-// See lib/rateLimit.ts. Rows older than a day are cleared automatically.
+// One row per limited action
 model RateEvent {
   id        String   @id @default(uuid())
   key       String
@@ -418,11 +400,9 @@ model RateEvent {
   @@index([key, createdAt])
 }
 
-// ---- Approve sign-in from your phone ----
+// Approve sign-in from your phone
 
-// A sign-in waiting for approval from a device where the person is already
-// signed in. The new browser shows \`number\`; the phone must pick that same
-// number from three choices (number matching), like Microsoft's approvals.
+// A sign-in waiting for approval from a device where the person is already signed
 model LoginRequest {
   id          String    @id @default(uuid())
   userId      String
@@ -437,8 +417,7 @@ model LoginRequest {
   @@index([userId, status])
 }
 
-// Browser push subscriptions, so a phone can get the approval notification
-// even when E-Gabay isn't open.
+// Browser push subscriptions for sign-in approval notifications
 model PushSubscription {
   id        String   @id @default(uuid())
   userId    String
@@ -450,10 +429,9 @@ model PushSubscription {
   @@index([userId])
 }
 
-// ---- Confidentiality: who looked at which student's records ----
+// Confidentiality: who looked at which student's records
 
-// One row each time someone opens a student's Individual Inventory record, a
-// submitted document, or (for parents) their child's profile.
+// One row each time someone opens a student's Individual Inventory record
 model RecordAccess {
   id          String   @id @default(uuid())
   viewerName  String
@@ -465,12 +443,9 @@ model RecordAccess {
   @@index([studentName, createdAt])
 }
 
-// ---- Career Guidance: Career Planning Form (tertiary) ----
+// Career Guidance: Career Planning Form (tertiary)
 
-// One form per tertiary student (first-year students and transferees). Saved
-// as a draft while the student fills it in; submittedAt is set when they
-// submit. The health answers are only shown to the student and the Guidance
-// Associate. Questions: app/config/collegeCareerForm.ts.
+// One form per tertiary student (first-year students and transferees)
 model CollegeCareerForm {
   id          String    @id @default(uuid())
   studentName String    @unique // linked to StudentProfile.name, like other records
@@ -481,18 +456,12 @@ model CollegeCareerForm {
   updatedAt   DateTime  @updatedAt
 }
 
-// Counselor-editable dropdown option lists (e.g. concern types, courses,
-// appointment reasons). Each list is identified by a stable listKey that
-// code refers to; items may also carry a stable itemKey when code branches
-// on that specific value (see app/action/optionLists.tsx). Renaming a
-// label never changes itemKey, so logic tied to a protected item keeps
-// working even after the counselor relabels it.
+// Counselor-editable dropdown option lists
 model OptionList {
   id        String       @id @default(uuid())
   listKey   String       @unique
   label     String
-  // Set only for hierarchical lists (e.g. appointment reasons, scoped per
-  // category) - points at the parent list's listKey.
+  // Set only for hierarchical lists (e.g. appointment reasons, scoped per category)
   parentKey String?
   items     OptionItem[]
 
@@ -504,15 +473,13 @@ model OptionItem {
   listId         String
   list           OptionList @relation(fields: [listId], references: [id], onDelete: Cascade)
 
-  // Stable identifier for items code depends on (e.g. "SHS"); null for
-  // plain, freely-editable items.
+  // Stable identifier for items code depends on (e.g. "SHS")
   itemKey        String?
-  // For hierarchical lists: which parent-list item (by its itemKey) this
-  // item belongs to.
+  // For hierarchical lists: which parent-list item (by its itemKey) this item belongs
   parentItemKey  String?
   label          String
   sortOrder      Int
-  // Protected items can be relabeled and reordered, but not deleted.
+  // Protected items can be relabeled and reordered, but not deleted
   isProtected    Boolean    @default(false)
 
   createdAt      DateTime   @default(now())
@@ -520,8 +487,7 @@ model OptionItem {
   @@index([listId, sortOrder])
 }
 
-// System-wide activity log, counselor/associate only. Every create/update/
-// delete across the app writes one row here via lib/activityLog.ts.
+// System-wide activity log, counselor/associate only
 model ActivityLog {
   id          String   @id @default(uuid())
   actorName   String

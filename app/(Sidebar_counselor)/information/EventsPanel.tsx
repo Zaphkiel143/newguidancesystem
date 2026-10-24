@@ -8,7 +8,7 @@ import type { Event as DbEvent } from '../../../lib/generated';
 
 const EMPTY = { title: "", description: "", dateString: "", time: "", location: "" };
 
-// Event dates are calendar days stored as UTC midnight.
+// Event dates are calendar days stored as UTC midnight
 function toDateInput(d: Date) {
   return new Date(d).toISOString().slice(0, 10);
 }

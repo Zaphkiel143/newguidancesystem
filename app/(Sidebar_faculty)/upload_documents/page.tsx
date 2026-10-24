@@ -129,14 +129,12 @@ const UploadDocuments: React.FC = () => {
   return (
     <div className="px-5 sm:px-8 lg:px-12 pt-8 lg:pt-12 pb-16 max-w-4xl font-sans antialiased text-slate-800 space-y-6">
 
-      {/* 1. Header Section */}
       <div>
         <h1 className="page-title">Upload Documents</h1>
       </div>
 
       <div className="space-y-6">
 
-        {/* 2. Drag & Drop Zone Area */}
         <div
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
@@ -148,7 +146,6 @@ const UploadDocuments: React.FC = () => {
             }
           `}
         >
-          {/* Hidden Core File Input Trigger */}
           <input
             type="file"
             multiple
@@ -179,7 +176,6 @@ const UploadDocuments: React.FC = () => {
           </div>
         )}
 
-        {/* 3. Render Upload Queue List Panel */}
         {documents.length > 0 && (
           <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
             <div className="px-6 py-4 border-b border-slate-50 bg-slate-50/30">
@@ -192,7 +188,6 @@ const UploadDocuments: React.FC = () => {
                   key={file.id}
                   className="border border-slate-200/80 rounded-xl p-4 bg-white flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-all hover:border-slate-300"
                 >
-                  {/* File Metadata Cluster */}
                   <div className="flex items-start gap-3.5 min-w-0 flex-1">
                     <div className="p-2.5 bg-slate-50 text-slate-500 rounded-xl shrink-0 mt-0.5">
                       <FileText size={20} />
@@ -216,7 +211,6 @@ const UploadDocuments: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* Status Indicator & Action Triggers Column */}
                   <div className="flex items-center justify-between sm:justify-end gap-4 shrink-0 border-t border-slate-50 pt-2 sm:pt-0 sm:border-0">
                     <div className="text-xs">
                       <span className={`inline-flex items-center gap-1.5 font-semibold px-2.5 py-1 rounded-full border ${REVIEW[file.reviewStatus]?.className ?? ""}`}>

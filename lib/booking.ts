@@ -6,9 +6,7 @@ import { normalizePhone } from "./phone";
 import { notifyCounselors } from "./notify";
 import { formatAppointmentWhen } from "./email";
 
-// Checks shared by the student, faculty and parent booking actions. The client
-// already hides taken, blocked and past slots; this makes sure a request sent
-// straight to the server can't get around that.
+// Checks shared by the student, faculty and parent booking actions
 export async function checkBooking(input: { dateString: string; timeSlot: string; appointmentType: string; notes: string; phone?: string }) {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(input.dateString)) return { error: "Choose a date." } as const;
   if (input.dateString <= manilaToday()) return { error: "Book from tomorrow onward. For today, message or visit the guidance office." } as const;

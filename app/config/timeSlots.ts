@@ -1,6 +1,4 @@
-// Bookable consultation hours: one-hour sessions starting 8:00 AM through
-// 3:00 PM, with no sessions during the 12:00–1:00 PM lunch break.
-// Change the numbers below to adjust the office schedule.
+// Bookable consultation hours
 
 export const FIRST_SLOT_HOUR = 8; // 8:00 AM
 export const LAST_SLOT_HOUR = 15; // 3:00 PM (last session starts here)
@@ -27,7 +25,7 @@ export function parseTimeToMinutes(time: string): number {
 
 export const LUNCH_BREAK_LABEL = `${formatMinutesToTime(LUNCH_HOUR * 60)} – ${formatMinutesToTime((LUNCH_HOUR + 1) * 60)}`;
 
-// The day in order, with the lunch break in its place, for slot pickers.
+// The day in order, with the lunch break in its place, for slot pickers
 export const DAY_SCHEDULE: ({ kind: "slot"; time: string } | { kind: "lunch"; label: string })[] = [];
 for (let hour = FIRST_SLOT_HOUR; hour <= LAST_SLOT_HOUR; hour++) {
   if (hour === LUNCH_HOUR) DAY_SCHEDULE.push({ kind: "lunch", label: LUNCH_BREAK_LABEL });
@@ -43,13 +41,13 @@ export function isBookableTime(time: string) {
   return STANDARD_DAY_HOURS.includes(time);
 }
 
-// Consultations are Monday to Friday (GCO FAQ). Dates are YYYY-MM-DD calendar days.
+// Consultations are Monday to Friday (GCO FAQ)
 export function isClosedDay(dateString: string) {
   const day = new Date(`${dateString}T00:00:00Z`).getUTCDay();
   return day === 0 || day === 6;
 }
 
-// Earliest day people can book: the next weekday after today in the Philippines.
+// Earliest day people can book: the next weekday after today in the Philippines
 export function firstBookableDate(now = new Date()) {
   const today = now.toLocaleDateString("en-CA", { timeZone: "Asia/Manila" });
   const d = new Date(`${today}T00:00:00Z`);

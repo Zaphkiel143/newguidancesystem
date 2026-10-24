@@ -1,7 +1,6 @@
 import AiChatClient from "./AiChatClient";
 
-// The Anthropic call can take longer than the platform's default function
-// timeout, especially with thinking enabled - give the Server Action room.
+// Gives the chatbot reply more time than the default server limit
 export const maxDuration = 60;
 
 export default function AiChatPage() {

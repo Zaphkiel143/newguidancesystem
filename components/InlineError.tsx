@@ -9,8 +9,7 @@ interface InlineErrorProps {
   className?: string;
 }
 
-// Error shown next to the control that failed, instead of a window.alert().
-// role="alert" makes screen readers announce it as soon as it appears.
+// Error shown next to the control that failed, instead of a window.alert()
 export default function InlineError({ message, onDismiss, className = "" }: InlineErrorProps) {
   if (!message) return null;
 

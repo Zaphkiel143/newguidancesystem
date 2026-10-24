@@ -1,10 +1,4 @@
-// Turns what a Guidance Associate pastes into a Facebook post URL that the
-// Embedded Posts plugin can render. Accepted:
-//   - a post permalink, e.g. https://www.facebook.com/stamaria.sti.edu/posts/pfbid…
-//     (click the post's date/time on Facebook and copy that link)
-//   - the embed code from the post's  ⋯ → Embed  menu (we pull the href out)
-// Not accepted: facebook.com/share/… links from "Copy link". The plugin can't
-// resolve them ("This Facebook post is no longer available").
+// Turns what a Guidance Associate pastes into a Facebook post URL
 
 export type FacebookUrlResult = { ok: true; url: string } | { ok: false; error: string };
 
@@ -43,7 +37,7 @@ export function normalizeFacebookPostUrl(raw: string): FacebookUrlResult {
     };
   }
 
-  // permalink.php needs its query (story_fbid, id); other post URLs don't.
+  // permalink.php needs its query (story_fbid, id); other post URLs don't
   if (url.pathname === "/permalink.php" || url.pathname === "/story.php") {
     const keep = new URLSearchParams();
     for (const k of ["story_fbid", "id"]) {

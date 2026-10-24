@@ -15,8 +15,7 @@ export interface OptionItemData {
   isProtected: boolean;
 }
 
-// Seeds a list from its hardcoded defaults the first time it's read, so a
-// fresh environment (or one where the one-time seed never ran) still works.
+// Seeds a list from its hardcoded defaults the first time it's read
 async function ensureSeeded(listKey: string) {
   const def = OPTION_LIST_DEFAULTS[listKey];
   if (!def) return null;
@@ -43,8 +42,7 @@ async function ensureSeeded(listKey: string) {
   return created.id;
 }
 
-// Any signed-in (or pre-auth, e.g. sign-up) caller can read - these are
-// vocabulary, not sensitive data.
+// Anyone can read option lists; they hold no sensitive data
 export async function getOptionList(listKey: string): Promise<OptionItemData[]> {
   try {
     const listId = await ensureSeeded(listKey);
@@ -72,7 +70,7 @@ export interface OptionListSummary {
   items: OptionItemData[];
 }
 
-// Counselor-only: every list, for the Manage Options page.
+// Counselor-only: every list, for the Manage Options page
 export async function listAllOptionLists(): Promise<OptionListSummary[]> {
   await counselorOnly();
   await Promise.all(Object.keys(OPTION_LIST_DEFAULTS).map(ensureSeeded));
@@ -90,10 +88,7 @@ export async function listAllOptionLists(): Promise<OptionListSummary[]> {
   }));
 }
 
-// Counselor edits a list: reorders/renames/adds/removes plain items.
-// Protected items must stay present with their itemKey unchanged (their
-// label may change) - that's what keeps existing records and app logic
-// correct after an edit.
+// Counselor edits a list: reorders/renames/adds/removes plain items
 export async function updateOptionList(
   listKey: string,
   items: { itemKey: string | null; parentItemKey?: string | null; label: string }[]

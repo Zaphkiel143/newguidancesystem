@@ -65,7 +65,6 @@ const MyAppointments: React.FC = () => {
   return (
     <div className="px-5 sm:px-8 lg:px-12 pt-8 lg:pt-12 pb-16 min-h-[calc(100dvh-var(--topbar-h))] font-sans antialiased text-slate-800">
 
-      {/* Top Header Row with Action Button */}
       <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div>
           <h1 className="page-title">My Appointments</h1>
@@ -80,13 +79,11 @@ const MyAppointments: React.FC = () => {
         </button>
       </header>
 
-      {/* Appointment History Main Card Panel */}
       <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden max-w-6xl">
         <div className="px-6 py-5 border-b border-slate-100">
           <h2 className="font-semibold text-slate-900 text-base">Appointment History</h2>
         </div>
 
-        {/* List of Historical Rows */}
         {appointments.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 text-center">
             <p className="text-sm font-semibold text-slate-500">No appointments yet</p>
@@ -107,7 +104,6 @@ const MyAppointments: React.FC = () => {
                     With: <span className="text-slate-700">Guidance Associate</span>
                   </p>
 
-                  {/* Embedded Inline Schedule Stamps */}
                   <div className="flex flex-wrap items-center gap-x-4 gap-y-1 pt-1.5 text-xs text-slate-500 font-medium">
                     <div className="flex items-center gap-1.5">
                       <Calendar size={14} className="text-slate-500" />
@@ -120,7 +116,6 @@ const MyAppointments: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Status Badge Alignment Wrapper */}
                 <div className="shrink-0 self-start sm:self-center">
                   {renderStatusBadge(apt.status)}
                 </div>

@@ -1,11 +1,7 @@
 import nodemailer from "nodemailer";
 import db from "./db";
 
-// Appointment emails over SMTP. Configure with:
-//   SMTP_HOST, SMTP_PORT (default 587), SMTP_USER, SMTP_PASS, SMTP_FROM
-// Without SMTP_HOST nothing is sent: the email is only recorded in EmailLog
-// (status LOGGED) and printed to the server console, so a review copy can
-// show exactly what would go out without mailing anyone.
+// Appointment emails over SMTP
 
 const transporter = process.env.SMTP_HOST
   ? nodemailer.createTransport({
@@ -16,19 +12,18 @@ const transporter = process.env.SMTP_HOST
     })
   : null;
 
-// Sign-in codes can only be delivered when SMTP is configured.
+// Sign-in codes can only be delivered when SMTP is configured
 export const emailConfigured = transporter !== null;
 
 const FROM = process.env.SMTP_FROM ?? "E-Gabay STI <no-reply@egabay.local>";
 
-// Every email is automated, so say so; replies go nowhere useful.
+// Every email is automated, so say so; replies go nowhere useful
 const NO_REPLY_NOTE =
   "\n\n—\nThis is an automated message from E-Gabay. Please don't reply to this email. To reach the Guidance and Counseling Office, message them in E-Gabay or visit the office.";
 
 export type EmailStatus = "SENT" | "LOGGED" | "FAILED";
 
-// Never throws: a failed email must not undo the booking that triggered it.
-// Pass logBody to keep secrets (e.g. sign-in codes) out of the EmailLog table.
+// Never throws: a failed email must not undo the booking that triggered it
 export async function sendEmail(
   to: string | null | undefined,
   subject: string,
@@ -47,7 +42,7 @@ export async function sendEmail(
         to,
         subject,
         text: body + NO_REPLY_NOTE,
-        // Tells mail apps this is a bulk/automatic message (no auto-replies back).
+        // Tells mail apps this is a bulk/automatic message (no auto-replies back)
         headers: { "Auto-Submitted": "auto-generated", "X-Auto-Response-Suppress": "All" },
       });
       status = "SENT";
@@ -73,8 +68,7 @@ export async function counselorEmails(): Promise<string[]> {
   return counselors.map((c) => c.email).filter((e): e is string => Boolean(e));
 }
 
-// Appointment dates are calendar days stored as UTC midnight, so format in UTC;
-// otherwise a server in a timezone behind UTC would print the previous day.
+// Appointment dates are calendar days stored as UTC midnight, so format in UTC
 export function formatAppointmentWhen(date: Date, time: string) {
   const day = date.toLocaleDateString("en-PH", { weekday: "long", month: "long", day: "numeric", year: "numeric", timeZone: "UTC" });
   return `${day} at ${time}`;

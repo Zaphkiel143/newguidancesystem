@@ -9,14 +9,11 @@ interface EditOptionsButtonProps {
   listLabel: string;
   onSaved?: () => void;
   className?: string;
-  // Shows "Edit <text>" next to the icon - for placements away from the
-  // field itself (e.g. a page header) where the icon alone has no context.
+  // Shows "Edit <text>" next to the icon
   text?: string;
 }
 
-// Small inline trigger, dropped next to a dropdown (or a page header) on the
-// counselor's own pages, that opens EditOptionsModal for that dropdown's
-// option list.
+// Small inline trigger, dropped next to a dropdown
 export default function EditOptionsButton({ listKey, listLabel, onSaved, className, text }: EditOptionsButtonProps) {
   const [isOpen, setIsOpen] = useState(false);
 

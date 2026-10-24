@@ -26,7 +26,7 @@ type Mode = "student" | "faculty" | "parent";
 
 interface Props {
   mode: Mode;
-  // Parents choose among their linked children (null while loading).
+  // Parents choose among their linked children (null while loading)
   linkedChildren?: { name: string; studentId: string; gradeSection: string }[] | null;
   onSubmit: (payload: ReferralPayload) => Promise<{ success: boolean; error?: string }>;
   myReferralsPath: string;
@@ -38,8 +38,7 @@ const PRIORITIES = [
   { value: "High", label: "High – needs attention soon" },
 ];
 
-// Students and faculty use a deadline-oriented priority scale; parents use
-// the Low/Medium/High scale.
+// Students and faculty use a deadline-oriented priority scale
 const DEADLINE_PRIORITIES = [
   { value: "Emergency", label: "Emergency" },
   { value: "As soon as possible", label: "As soon as possible" },
@@ -72,8 +71,7 @@ const input = "w-full px-3 py-2.5 bg-sheet border border-slate-300 rounded-lg te
 const label = "text-[13px] font-semibold text-slate-700 block mb-1.5";
 const req = <span className="text-rose-600" aria-hidden> *</span>;
 
-// One referral form for students, faculty and parents, so every referral
-// reaches the guidance office with the same details.
+// One referral form for students, faculty and parents
 export default function ReferralForm({ mode, linkedChildren, onSubmit, myReferralsPath }: Props) {
   const [departments] = useOptionList("departments");
   const [f, setF] = useState(() => emptyFor(mode));

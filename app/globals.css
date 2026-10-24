@@ -1,14 +1,6 @@
 @import "tailwindcss";
 
-/*
- * E-Gabay design system — STI College
- *
- * Follows STI's own sites (eLMS, One STI): Poppins, STI navy #0B5793 for the
- * top bar, buttons and links, STI sky blue #28A0DE as a fill/accent (too light
- * for text), and STI yellow for the stripe and highlights. Surfaces stay soft
- * and pastel: light grey-blue page (as on eLMS), pale sky tints, butter
- * yellow for "you are here". Status colors are only used for meaning.
- */
+/* E-Gabay design system, based on STI's eLMS colors and fonts */
 @theme {
   /* Primary: STI sky blue deepening to STI navy */
   --color-blue-50: #eaf5fc;
@@ -40,7 +32,7 @@
   --color-slate-100: #edf1f6;
   --color-slate-200: #dfe5ee;
   --color-slate-300: #c5cfdc;
-  /* 400 is for icons and borders (3.2:1 on paper); 500 is the lightest text tone (5:1). */
+  /* 400 is for icons and borders (3.2:1 on paper); 500 is the lightest text tone (5:1) */
   --color-slate-400: #7b8ba0;
   --color-slate-500: #5a6b80;
   --color-slate-600: #45546a;
@@ -101,7 +93,7 @@
   --color-rule: #dfe5ee;
 
   --font-sans: var(--font-poppins), ui-sans-serif, system-ui, sans-serif;
-  /* Headings that used the old serif now use Poppins too (semibold, see below). */
+  /* Headings that used the old serif now use Poppins too (semibold, see below) */
   --font-serif: var(--font-poppins), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-plex-mono), ui-monospace, monospace;
 
@@ -134,7 +126,7 @@ body {
   font-family: var(--font-sans);
 }
 
-/* Cards across the app sit on paper as slightly brighter sheets. */
+/* Cards across the app sit on paper as slightly brighter sheets */
 .bg-white {
   background-color: var(--color-sheet);
 }
@@ -180,13 +172,13 @@ body {
 }
 
 @layer components {
-  /* Former serif headings (section titles, figures) read best semibold in Poppins. */
+  /* Former serif headings (section titles, figures) read best semibold in Poppins */
   .font-serif {
     font-weight: 600;
     letter-spacing: -0.01em;
   }
 
-  /* Page titles are set in the serif — the one place the type gets to speak. */
+  /* Page titles are set in the serif — the one place the type gets to speak */
   .page-title {
     font-family: var(--font-serif);
     font-size: 1.875rem;
@@ -233,7 +225,7 @@ body {
   }
 }
 
-/* Respect reduced-motion everywhere, not just our own animations. */
+/* Respect reduced-motion everywhere, not just our own animations */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -245,8 +237,7 @@ body {
   }
 }
 
-/* Phones: iOS zooms the page when a field under 16px is focused, so form
-   fields use 16px text on small screens. */
+/* Phones: iOS zooms the page when a field under 16px is focused */
 @media (max-width: 640px) {
   input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
   select,

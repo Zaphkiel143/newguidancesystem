@@ -14,8 +14,7 @@ const POLL_MS = 30_000;
 
 const NoticesContext = createContext<{ notices: Notices; refresh: () => void }>({ notices: EMPTY, refresh: () => {} });
 
-// Loads the signed-in user's notifications and unread message count, and
-// refreshes them every 30 seconds (and on every page change) while the tab is open.
+// Loads the signed-in user's notifications and unread message count
 export function NoticesProvider({ children }: { children: React.ReactNode }) {
   const [notices, setNotices] = useState<Notices>(EMPTY);
   const pathname = usePathname();
@@ -64,7 +63,7 @@ function Badge({ count }: { count: number }) {
   );
 }
 
-// Bell in the top bar with a dropdown of recent notifications.
+// Bell in the top bar with a dropdown of recent notifications
 export function NoticeBell() {
   const { notices, refresh } = useNotices();
   const [open, setOpen] = useState(false);
@@ -159,15 +158,14 @@ export function NoticeBell() {
   );
 }
 
-// Floating button (bottom right, every page): messages with the guidance
-// office, with an unread badge; students can also open E-Gabay from here.
+// Floating button (bottom right, every page)
 export function FloatingDock({ messagesPath, withChatbot }: { messagesPath: string; withChatbot: boolean }) {
   const { notices } = useNotices();
   const [open, setOpen] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
   const pathname = usePathname();
 
-  // Not needed on the pages it would open.
+  // Not needed on the pages it would open
   const onMessagesPage = pathname === messagesPath;
   const onChatPage = pathname === "/ai_chat";
   if (onMessagesPage || onChatPage) return null;

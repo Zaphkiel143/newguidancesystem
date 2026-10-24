@@ -70,7 +70,6 @@ export default function AccountsPage() {
         <h1 className="page-title">Accounts &amp; approvals</h1>
       </header>
 
-      {/* Waiting for approval */}
       <section className="mt-8" aria-labelledby="waiting-heading">
         <h2 id="waiting-heading" className="font-serif text-[22px] text-ink">
           Waiting for approval {waiting > 0 && <span className="ml-1 text-base text-red-700 tabular">({waiting})</span>}
@@ -174,7 +173,6 @@ export default function AccountsPage() {
         )}
       </section>
 
-      {/* All accounts */}
       <section className="mt-12" aria-labelledby="all-heading">
         <h2 id="all-heading" className="font-serif text-[22px] text-ink">All accounts</h2>
         <div className="relative mt-3 max-w-md">

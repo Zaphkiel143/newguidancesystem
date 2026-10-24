@@ -14,9 +14,9 @@ interface ConversationPanelProps {
   onMessageSent?: () => void;
   getMessages: (conversationId: string) => Promise<DbMessage[]>;
   markConversationRead: (conversationId: string) => Promise<{ success: boolean }>;
-  // The server takes the sender from the session; viewerName/viewerRole are only for display.
+  // The server takes the sender from the session; viewerName/viewerRole are only for display
   sendMessage: (formData: { conversationId: string; content: string }) => Promise<{ success: boolean; error?: string }>;
-  // Omit to hide the delete control (not every caller wants it exposed).
+  // Omit to hide the delete control (not every caller wants it exposed)
   deleteConversation?: (conversationId: string) => Promise<{ success: boolean; error?: string }>;
   onDeleted?: (conversationId: string) => void;
 }

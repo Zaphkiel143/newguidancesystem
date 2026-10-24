@@ -1,8 +1,4 @@
-"""E-Gabay intent-classification chatbot service.
-
-Run after training (see train.py):
-    uvicorn app:app --reload --port 8000
-"""
+"""E-Gabay intent-classification chatbot service"""
 
 import json
 import os
@@ -20,16 +16,10 @@ BASE_DIR = Path(__file__).parent
 INTENTS_PATH = BASE_DIR / "intents.json"
 MODEL_PATH = BASE_DIR / "model" / "intent_classifier.joblib"
 
-# Confidence below this falls back to the "fallback" intent instead of a
-# low-confidence guess. With the current model, real questions score about
-# 0.55 or more and off-topic messages ("what's the weather") 0.35 or less.
+# Below this confidence, reply with the fallback instead of guessing
 CONFIDENCE_THRESHOLD = 0.45
 
-# Belt-and-suspenders safety net: these phrases always force the "crisis"
-# response regardless of what the classifier predicts, since a
-# misclassification here matters far more than for any other intent.
-# Covers both languages independently of the language detector, so a
-# detector miss can never suppress the crisis path.
+# Crisis phrases always get the crisis reply, whatever the model predicts
 CRISIS_KEYWORDS_EN = [
     "kill myself", "suicide", "end my life", "hurt myself", "self harm",
     "self-harm", "cutting myself", "want to die", "don't want to live",
@@ -48,9 +38,7 @@ CRISIS_KEYWORDS = CRISIS_KEYWORDS_EN + CRISIS_KEYWORDS_TL
 
 app = FastAPI(title="E-Gabay NLP Service")
 
-# Comma-separated list of origins allowed to call this service. Defaults to
-# local dev; set ALLOWED_ORIGINS on the host (e.g. Render) to include the
-# deployed Next.js site's origin.
+# Comma-separated list of origins allowed to call this service
 ALLOWED_ORIGINS = os.environ.get("ALLOWED_ORIGINS", "http://localhost:3000").split(",")
 
 app.add_middleware(

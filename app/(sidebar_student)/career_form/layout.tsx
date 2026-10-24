@@ -3,9 +3,7 @@ import { requireRole } from "../../../lib/auth";
 import db from "../../../lib/db";
 import { isTertiaryLike } from "../../config/studentLevels";
 
-// The Career Planning Form is for tertiary-like (incl. irregular/off term)
-// students; senior high students follow the Career Planning Program (My
-// Career Plan) instead.
+// The Career Planning Form is for tertiary-like (incl. irregular/off term) students
 export default async function CareerFormLayout({ children }: { children: React.ReactNode }) {
   const user = await requireRole("STUDENT");
   const profile = await db.studentProfile.findUnique({ where: { name: user.name }, select: { department: true } });

@@ -1,11 +1,9 @@
 import { CONCERN_TYPES, OTHER } from "../app/config/studentLevels";
 import { notifyCounselors } from "./notify";
 
-// Server-side checks shared by the student, faculty and parent referral actions,
-// so a referral can't be saved with made-up categories or huge text.
+// Server-side checks shared by every referral form
 
-// Students and parents pick Low/Medium/High; faculty pick from a
-// deadline-oriented scale instead (see components/ReferralForm.tsx).
+// Students and parents pick Low/Medium/High
 const PRIORITIES = ["Low", "Medium", "High", "Emergency", "As soon as possible", "Before this date"];
 const MAX_DESCRIPTION = 6000;
 

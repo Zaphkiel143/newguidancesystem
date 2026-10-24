@@ -1,7 +1,6 @@
 import React from "react";
 
-// E-Gabay sprout mark (source: public/brand/egabay-mark-sprout.svg).
-// "navy" for light backgrounds, "light" for the navy top bar.
+// E-Gabay sprout mark (source: public/brand/egabay-mark-sprout.svg)
 const TONES = {
   navy: { tile: "#0b5793", stem: "#ffffff", leaf: "#ffd200" },
   light: { tile: "#ffffff", stem: "#0b5793", leaf: "#e3ae20" },

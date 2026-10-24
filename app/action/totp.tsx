@@ -7,9 +7,7 @@ import { requireActionUser } from "../../lib/session";
 import { currentStep, newTotpSecret, totpUri, verifyTotp } from "../../lib/totp";
 import { allow, clientIp, MINUTE } from "../../lib/rateLimit";
 
-// Sign in with Microsoft Authenticator (or any authenticator app) instead of
-// waiting for an email code. Students, faculty and guidance staff set it up
-// once from their account page, after signing in with an email code.
+// Sign in with an authenticator app instead of an email code
 
 export async function getMyTotpStatus() {
   try {
@@ -21,7 +19,7 @@ export async function getMyTotpStatus() {
   }
 }
 
-// Step 1: make a new secret and show it as a QR code.
+// Step 1: make a new secret and show it as a QR code
 export async function startTotpSetup() {
   try {
     const me = await requireActionUser("STUDENT", "FACULTY", "COUNSELOR");
@@ -37,7 +35,7 @@ export async function startTotpSetup() {
   }
 }
 
-// Step 2: the person types the code the app shows, proving it's set up right.
+// Step 2: the person types the code the app shows, proving it's set up right
 export async function confirmTotpSetup(code: string) {
   try {
     const me = await requireActionUser("STUDENT", "FACULTY", "COUNSELOR");
@@ -72,7 +70,7 @@ export async function disableTotp(code: string) {
   }
 }
 
-// Sign-in with email + the authenticator code.
+// Sign-in with email + the authenticator code
 export async function signInWithTotp(formData: { email: string; code: string }) {
   try {
     const email = formData.email.trim().toLowerCase();
@@ -81,7 +79,7 @@ export async function signInWithTotp(formData: { email: string; code: string }) 
       return { success: false as const, error: "Too many tries. Wait 15 minutes and try again." };
     }
     const user = await db.user.findUnique({ where: { email } });
-    // Same answer whether the email is unknown or the code is wrong.
+    // Same answer whether the email is unknown or the code is wrong
     const wrong = {
       success: false as const,
       error:

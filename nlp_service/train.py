@@ -1,11 +1,4 @@
-"""Trains the E-Gabay intent classifier on nlp_service/intents.json.
-
-Usage:
-    python train.py
-
-Produces model/intent_classifier.joblib, a scikit-learn Pipeline
-(TF-IDF -> Logistic Regression) that app.py loads at request time.
-"""
+"""Trains the E-Gabay intent classifier on nlp_service/intents.json"""
 
 import json
 from pathlib import Path
@@ -28,12 +21,7 @@ def load_training_data():
 
     texts, labels = [], []
     for intent in data["intents"]:
-        # "fallback" has no patterns - it's only ever reached via low
-        # classifier confidence, not trained as its own class.
-        # English and Tagalog patterns are combined into one training set -
-        # the classifier predicts intent regardless of language; the language
-        # itself is detected separately (see lang.py) to pick which
-        # response set to reply with.
+        # "fallback" has no patterns; it is only used when confidence is low
         for pattern in intent["patterns_en"] + intent["patterns_tl"]:
             texts.append(pattern)
             labels.append(intent["tag"])
@@ -45,10 +33,7 @@ def main():
     texts, labels = load_training_data()
     print(f"Loaded {len(texts)} training examples across {len(set(labels))} intents.")
 
-    # Word features catch phrasing; character features (parts of words) catch
-    # spelling variations common in chat ("walk-in"/"walk in", "pano"/"paano").
-    # C=10 lets the model be confident on this small dataset; with the default
-    # (C=1) even clear messages scored below app.py's confidence threshold.
+    # Word features catch phrasing; character features catch spelling variations
     pipeline = Pipeline([
         ("features", FeatureUnion([
             ("words", TfidfVectorizer(ngram_range=(1, 2), lowercase=True, sublinear_tf=True)),
@@ -57,8 +42,7 @@ def main():
         ("clf", LogisticRegression(max_iter=3000, C=10)),
     ])
 
-    # Small dataset, so cross-validation (rather than a held-out split) gives
-    # a rough sense of how well the classifier generalizes.
+    # Small dataset, so cross-validation estimates accuracy
     scores = cross_val_score(pipeline, texts, labels, cv=StratifiedKFold(3, shuffle=True, random_state=0))
     print(f"Cross-validation accuracy: {scores.mean():.2f} (folds: {[round(s, 2) for s in scores]})")
 

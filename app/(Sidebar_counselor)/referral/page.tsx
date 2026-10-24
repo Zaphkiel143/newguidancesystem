@@ -104,12 +104,10 @@ const ReferralManagement = () => {
 
   return (
     <div className="px-5 sm:px-8 lg:px-12 pt-8 lg:pt-12 pb-16 min-h-[calc(100dvh-var(--topbar-h))] font-sans text-slate-900">
-      {/* Header */}
       <header className="mb-8">
         <h1 className="page-title">Referral Management</h1>
       </header>
 
-      {/* Toolbar */}
       <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-8">
         <div className="relative w-full md:max-w-xl">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
@@ -140,7 +138,6 @@ const ReferralManagement = () => {
         </div>
       </div>
 
-      {/* Referral Cards List */}
       <div className="space-y-6">
         {filteredReferrals.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 border-2 border-dashed border-slate-200 rounded-2xl bg-white">
@@ -162,7 +159,6 @@ const ReferralManagement = () => {
         )}
       </div>
 
-      {/* NOTES / FEEDBACK MODAL */}
       {modal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
           <div className="bg-white w-full max-w-md p-6 rounded-2xl shadow-xl border border-slate-100 space-y-4">
@@ -239,7 +235,6 @@ const ReferralCard = ({ referral, isUpdating, onAdvanceStatus, onAddNotes, onSen
   return (
     <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden transition-hover hover:shadow-md">
       <div className="p-6">
-        {/* Card Header Tags */}
         <div className="flex justify-between items-start mb-4">
           <div>
             <h3 className="text-lg font-semibold text-slate-800">{referral.studentName}</h3>
@@ -263,14 +258,12 @@ const ReferralCard = ({ referral, isUpdating, onAdvanceStatus, onAddNotes, onSen
           </div>
         </div>
 
-        {/* Details Section */}
         <div className="space-y-1 mb-4">
           <p className="text-sm text-slate-600"><span className="text-slate-500">Concern type:</span> {referral.concernType}</p>
           <p className="text-sm text-slate-600"><span className="text-slate-500">Date:</span> {new Date(referral.createdAt).toLocaleDateString()}</p>
           <p className="text-xs font-semibold text-slate-500 mt-2">Description:</p>
         </div>
 
-        {/* Reason Box */}
         <div className="bg-slate-50/80 p-4 rounded-lg border border-slate-100 mb-4 italic text-sm text-slate-700 whitespace-pre-wrap">
           {referral.description}
         </div>
@@ -282,7 +275,6 @@ const ReferralCard = ({ referral, isUpdating, onAdvanceStatus, onAddNotes, onSen
           </div>
         )}
 
-        {/* Reach the people involved */}
         <div className="mb-5 grid gap-3 sm:grid-cols-2">
           <div>
             <p className="text-xs font-semibold text-slate-500 mb-1.5">Contact {referral.referrerName} ({referral.referrerRole.toLowerCase()})</p>
@@ -298,7 +290,6 @@ const ReferralCard = ({ referral, isUpdating, onAdvanceStatus, onAddNotes, onSen
           )}
         </div>
 
-        {/* Actions */}
         <div className="flex flex-wrap gap-3">
           {!isClosed && (
             isOpen ? (
