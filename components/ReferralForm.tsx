@@ -30,8 +30,6 @@ type Mode = "student" | "faculty" | "parent";
 
 interface Props {
   mode: Mode;
-  // Parents choose among their linked children (null while loading).
-  linkedChildren?: { name: string; studentId: string; gradeSection: string }[] | null;
   onSubmit: (payload: ReferralPayload) => Promise<{ success: boolean; error?: string }>;
   myReferralsPath: string;
 }
@@ -45,7 +43,6 @@ interface Props {
 const NEEDS_DATE = "Before this date";
 
 const EMPTY = {
-  childName: "",
   studentName: "",
   studentId: "",
   department: SHS as string,
@@ -74,7 +71,7 @@ const req = <span className="text-rose-600" aria-hidden> *</span>;
 
 // One referral form for students, faculty and parents, so every referral
 // reaches the guidance office with the same details.
-export default function ReferralForm({ mode, linkedChildren, onSubmit, myReferralsPath }: Props) {
+export default function ReferralForm({ mode, onSubmit, myReferralsPath }: Props) {
   const [departments] = useOptionList("departments");
   const [concernTypes] = useOptionList("concernTypes");
   const [priorities] = useOptionList("priorities");
@@ -91,8 +88,6 @@ export default function ReferralForm({ mode, linkedChildren, onSubmit, myReferra
   const [foundNote, setFoundNote] = useState<string | null>(null);
 
   const set = (patch: Partial<typeof EMPTY>) => setF((prev) => ({ ...prev, ...patch }));
-  const aboutSomeoneElse = mode !== "parent";
-  const child = mode === "parent" ? linkedChildren?.find((c) => c.name === f.childName) ?? linkedChildren?.[0] : undefined;
   const isShs = f.department === SHS;
   const collegeSection = f.sectionCode && f.yearSection ? `${f.sectionCode} ${f.yearSection}` : "";
 
@@ -124,21 +119,20 @@ export default function ReferralForm({ mode, linkedChildren, onSubmit, myReferra
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (aboutSomeoneElse && f.studentId && !isStudentId(f.studentId)) return setError(`A student ID has ${STUDENT_ID_DIGITS} digits.`);
-    if (aboutSomeoneElse && !isShs && Boolean(f.sectionCode) !== Boolean(f.yearSection)) return setError("Choose both parts of the section, or leave both empty.");
+    if (f.studentId && !isStudentId(f.studentId)) return setError(`A student ID has ${STUDENT_ID_DIGITS} digits.`);
+    if (!isShs && Boolean(f.sectionCode) !== Boolean(f.yearSection)) return setError("Choose both parts of the section, or leave both empty.");
     if (f.concern === OTHER && !f.concernOther.trim()) return setError("Tell us what the concern is.");
     if (mode !== "parent" && f.priority === NEEDS_DATE && !f.priorityDate) return setError("Choose the date it's needed by.");
-    if (mode === "parent" && !child) return setError("No student is linked to your account yet.");
     setSaving(true);
     setError(null);
     setDone(false);
 
     const details = [
-      aboutSomeoneElse && f.studentId.trim() && `Student ID: ${f.studentId.trim()}`,
-      aboutSomeoneElse && `Level: ${f.department}`,
-      aboutSomeoneElse && f.yearLevel && `${isShs ? "Grade" : "Year level"}: ${f.yearLevel}`,
-      aboutSomeoneElse && f.program && `${isShs ? "Strand" : "Course"}: ${f.program}`,
-      aboutSomeoneElse && (isShs ? f.section.trim() : collegeSection) && `Section: ${isShs ? f.section.trim() : collegeSection}`,
+      f.studentId.trim() && `Student ID: ${f.studentId.trim()}`,
+      `Level: ${f.department}`,
+      f.yearLevel && `${isShs ? "Grade" : "Year level"}: ${f.yearLevel}`,
+      f.program && `${isShs ? "Strand" : "Course"}: ${f.program}`,
+      (isShs ? f.section.trim() : collegeSection) && `Section: ${isShs ? f.section.trim() : collegeSection}`,
       f.observed.trim() && `Observed behaviors: ${f.observed.trim()}`,
       mode !== "parent" && f.priority === NEEDS_DATE && f.priorityDate && `Needed by: ${f.priorityDate}`,
       mode === "parent" && f.contactTime.trim() && `Best time to contact me: ${f.contactTime.trim()}`,
@@ -146,7 +140,7 @@ export default function ReferralForm({ mode, linkedChildren, onSubmit, myReferra
 
     const result = await onSubmit({
       aboutMyself: false,
-      studentName: mode === "parent" ? child!.name : f.studentName.trim(),
+      studentName: f.studentName.trim(),
       concernType: withOther(f.concern, f.concernOther),
       priority: f.priority,
       description: [f.description.trim(), ...details].join("\n\n"),
@@ -155,107 +149,91 @@ export default function ReferralForm({ mode, linkedChildren, onSubmit, myReferra
     if (result.success) {
       setDone(true);
       setFoundNote(null);
-      setF({ ...emptyFor(mode), childName: f.childName });
+      setF(emptyFor(mode));
     } else {
       setError(result.error || "Couldn't send the referral. Try again.");
     }
   };
 
-  if (mode === "parent" && linkedChildren && linkedChildren.length === 0) {
-    return (
-      <p className="border-l-2 border-orange-500 bg-orange-50 pl-3 py-2 text-sm text-orange-800">
-        No student is linked to your account yet. Add your child from{" "}
-        <Link href="/parent_profile" className="text-blue-700 underline underline-offset-4">My Profile</Link>; once the guidance office
-        confirms it, you can refer them here.
-      </p>
-    );
-  }
-
   return (
     <form onSubmit={submit} className="bg-sheet rounded-2xl border border-rule shadow-sm p-5 sm:p-6 space-y-5">
       {mode === "parent" && (
+        <p className="text-[13px] text-slate-600">
+          Tell the guidance office about a student you&apos;re worried about. For your own child, you can also{" "}
+          <Link href="/parent_dashboard" className="text-blue-700 underline underline-offset-4">book an appointment</Link>.
+        </p>
+      )}
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <label htmlFor="ref-child" className={label}>Child</label>
-          <select id="ref-child" className={input} value={child?.name ?? ""} onChange={(e) => set({ childName: e.target.value })} disabled={!linkedChildren}>
-            {(linkedChildren ?? []).map((c) => <option key={c.studentId} value={c.name}>{c.name} · {c.gradeSection}</option>)}
+          <label htmlFor="ref-id" className={label}>Student ID <span className="font-normal text-slate-500">(if you know it)</span></label>
+          <input id="ref-id" className={input} value={f.studentId} inputMode="numeric" placeholder="02000123456"
+            aria-describedby="ref-id-hint" onChange={(e) => changeStudentId(e.target.value)} />
+          <p id="ref-id-hint" className="text-[12px] text-slate-500 mt-1">
+            Numbers only, {STUDENT_ID_DIGITS} digits. If the student is in the school records, the rest fills in for you.
+          </p>
+        </div>
+        <div>
+          <label htmlFor="ref-name" className={label}>Student&apos;s full name{req}</label>
+          <input id="ref-name" className={input} value={f.studentName} maxLength={120} required placeholder="e.g. Juan A. Dela Cruz"
+            onChange={(e) => set({ studentName: e.target.value })} />
+        </div>
+      </div>
+      {foundNote && (
+        <p role="status" className="-mt-2 text-[13px] text-emerald-700">{foundNote}</p>
+      )}
+
+      <fieldset>
+        <legend className={label}>Level{req}</legend>
+        <div className="grid grid-cols-2 gap-2 max-w-md">
+          {departments.map((d) => {
+            const value = optionValue(d);
+            return (
+              <label key={d.id} className={`flex items-center gap-2 rounded-lg border px-3 min-h-11 cursor-pointer text-[14px] ${f.department === value ? "border-blue-600 bg-blue-50" : "border-slate-300"}`}>
+                <input type="radio" name="ref-dept" className="accent-blue-700" checked={f.department === value}
+                  onChange={() => set({ department: value, yearLevel: "", program: "", section: "", sectionCode: "", yearSection: "" })} />
+                {d.label}
+              </label>
+            );
+          })}
+        </div>
+      </fieldset>
+
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div>
+          <label htmlFor="ref-year" className={label}>{isShs ? "Grade" : "Year level"}{req}</label>
+          <select id="ref-year" className={input} value={f.yearLevel} required onChange={(e) => set({ yearLevel: e.target.value, yearSection: "" })}>
+            <option value="" disabled>Choose…</option>
+            {(isShs ? shsGrades : tertiaryYears).map((y) => <option key={y.id} value={optionValue(y)}>{y.label}</option>)}
           </select>
         </div>
-      )}
-
-      {aboutSomeoneElse && (
-        <>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label htmlFor="ref-id" className={label}>Student ID <span className="font-normal text-slate-500">(if you know it)</span></label>
-              <input id="ref-id" className={input} value={f.studentId} inputMode="numeric" placeholder="02000123456"
-                aria-describedby="ref-id-hint" onChange={(e) => changeStudentId(e.target.value)} />
-              <p id="ref-id-hint" className="text-[12px] text-slate-500 mt-1">
-                Numbers only, {STUDENT_ID_DIGITS} digits. If the student is in the school records, the rest fills in for you.
-              </p>
+        <div>
+          <label htmlFor="ref-program" className={label}>{isShs ? "Strand" : "Course"} <span className="font-normal text-slate-500">(if known)</span></label>
+          <select id="ref-program" className={input} value={f.program}
+            onChange={(e) => set({ program: e.target.value, ...(isShs ? {} : { sectionCode: sectionCodeForCourse(e.target.value) || f.sectionCode }) })}>
+            <option value="">Not sure</option>
+            {(isShs ? shsStrands : tertiaryCourses).map((p) => <option key={p.id} value={optionValue(p)}>{p.label}</option>)}
+          </select>
+        </div>
+        <div>
+          <label htmlFor="ref-section" className={label}>Section <span className="font-normal text-slate-500">(if known)</span></label>
+          {isShs ? (
+            <input id="ref-section" className={input} value={f.section} maxLength={30} placeholder="e.g. STEM-A" onChange={(e) => set({ section: e.target.value })} />
+          ) : (
+            <div className="grid grid-cols-2 gap-2">
+              <select id="ref-section" aria-label="Section program" className={input} value={f.sectionCode} onChange={(e) => set({ sectionCode: e.target.value })}>
+                <option value="">Program</option>
+                {SECTION_PROGRAMS.map((p) => <option key={p} value={p}>{p}</option>)}
+              </select>
+              <select aria-label="Year and section" className={input} value={f.yearSection} disabled={!f.yearLevel}
+                title={f.yearLevel ? undefined : "Choose the year level first."} onChange={(e) => set({ yearSection: e.target.value })}>
+                <option value="">{f.yearLevel ? "Section" : "Year first"}</option>
+                {yearSectionsFor(f.yearLevel).map((s) => <option key={s} value={s}>{s}</option>)}
+              </select>
             </div>
-            <div>
-              <label htmlFor="ref-name" className={label}>Student&apos;s full name{req}</label>
-              <input id="ref-name" className={input} value={f.studentName} maxLength={120} required placeholder="e.g. Juan A. Dela Cruz"
-                onChange={(e) => set({ studentName: e.target.value })} />
-            </div>
-          </div>
-          {foundNote && (
-            <p role="status" className="-mt-2 text-[13px] text-emerald-700">{foundNote}</p>
           )}
-
-          <fieldset>
-            <legend className={label}>Level{req}</legend>
-            <div className="grid grid-cols-2 gap-2 max-w-md">
-              {departments.map((d) => {
-                const value = optionValue(d);
-                return (
-                  <label key={d.id} className={`flex items-center gap-2 rounded-lg border px-3 min-h-11 cursor-pointer text-[14px] ${f.department === value ? "border-blue-600 bg-blue-50" : "border-slate-300"}`}>
-                    <input type="radio" name="ref-dept" className="accent-blue-700" checked={f.department === value}
-                      onChange={() => set({ department: value, yearLevel: "", program: "", section: "", sectionCode: "", yearSection: "" })} />
-                    {d.label}
-                  </label>
-                );
-              })}
-            </div>
-          </fieldset>
-
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div>
-              <label htmlFor="ref-year" className={label}>{isShs ? "Grade" : "Year level"}{req}</label>
-              <select id="ref-year" className={input} value={f.yearLevel} required onChange={(e) => set({ yearLevel: e.target.value, yearSection: "" })}>
-                <option value="" disabled>Choose…</option>
-                {(isShs ? shsGrades : tertiaryYears).map((y) => <option key={y.id} value={optionValue(y)}>{y.label}</option>)}
-              </select>
-            </div>
-            <div>
-              <label htmlFor="ref-program" className={label}>{isShs ? "Strand" : "Course"} <span className="font-normal text-slate-500">(if known)</span></label>
-              <select id="ref-program" className={input} value={f.program}
-                onChange={(e) => set({ program: e.target.value, ...(isShs ? {} : { sectionCode: sectionCodeForCourse(e.target.value) || f.sectionCode }) })}>
-                <option value="">Not sure</option>
-                {(isShs ? shsStrands : tertiaryCourses).map((p) => <option key={p.id} value={optionValue(p)}>{p.label}</option>)}
-              </select>
-            </div>
-            <div>
-              <label htmlFor="ref-section" className={label}>Section <span className="font-normal text-slate-500">(if known)</span></label>
-              {isShs ? (
-                <input id="ref-section" className={input} value={f.section} maxLength={30} placeholder="e.g. STEM-A" onChange={(e) => set({ section: e.target.value })} />
-              ) : (
-                <div className="grid grid-cols-2 gap-2">
-                  <select id="ref-section" aria-label="Section program" className={input} value={f.sectionCode} onChange={(e) => set({ sectionCode: e.target.value })}>
-                    <option value="">Program</option>
-                    {SECTION_PROGRAMS.map((p) => <option key={p} value={p}>{p}</option>)}
-                  </select>
-                  <select aria-label="Year and section" className={input} value={f.yearSection} disabled={!f.yearLevel}
-                    title={f.yearLevel ? undefined : "Choose the year level first."} onChange={(e) => set({ yearSection: e.target.value })}>
-                    <option value="">{f.yearLevel ? "Section" : "Year first"}</option>
-                    {yearSectionsFor(f.yearLevel).map((s) => <option key={s} value={s}>{s}</option>)}
-                  </select>
-                </div>
-              )}
-            </div>
-          </div>
-        </>
-      )}
+        </div>
+      </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>

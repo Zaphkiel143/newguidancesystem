@@ -39,6 +39,11 @@ export const STANDARD_DAY_HOURS = DAY_SCHEDULE.flatMap((d) => (d.kind === "slot"
 
 export const TOTAL_SLOTS = STANDARD_DAY_HOURS.length;
 
+// True when every time on the day is booked or blocked.
+export function isFullyBooked(takenTimes: readonly string[]) {
+  return STANDARD_DAY_HOURS.every((t) => takenTimes.includes(t));
+}
+
 export function isBookableTime(time: string) {
   return STANDARD_DAY_HOURS.includes(time);
 }

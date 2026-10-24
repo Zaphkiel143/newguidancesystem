@@ -2,8 +2,9 @@
 
 import React, { useEffect, useState } from "react";
 import { X, CheckCircle2 } from "lucide-react";
-import { DAY_SCHEDULE, firstBookableDate, isClosedDay } from "../app/config/timeSlots";
+import { DAY_SCHEDULE, firstBookableDate, isClosedDay, isFullyBooked } from "../app/config/timeSlots";
 import { useOptionList } from "./useOptionList";
+import FullyBookedNotice from "./FullyBookedNotice";
 import { optionValue } from "../lib/optionListDefaults";
 
 interface BookingPayload {
@@ -124,6 +125,7 @@ export default function BookAppointmentModal({
               required
               className="w-full text-sm bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 focus:outline-none"
             />
+            {!closed && isFullyBooked(bookedTimes) && <FullyBookedNotice onRefresh={async () => setBookedTimes(await getBookedTimesForDate(date))} />}
           </div>
 
           <div className="space-y-1">

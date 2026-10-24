@@ -12,6 +12,7 @@ import {
 import { DAY_SCHEDULE, LUNCH_BREAK_LABEL, STANDARD_DAY_HOURS, SLOT_MINUTES, formatMinutesToTime, parseTimeToMinutes } from "../../config/timeSlots";
 import { OTHER } from "../../config/studentLevels";
 import InlineError from "../../../components/InlineError";
+import ConfirmDialog from "../../../components/ConfirmDialog";
 import ContactLinks from "../../../components/ContactLinks";
 import { manilaToday } from "../../../lib/time";
 import { useOptionList } from "../../../components/useOptionList";
@@ -85,13 +86,16 @@ export default function AppointmentScheduling() {
   const pending = appts.filter((a) => a.status === "PENDING").length;
   const open = Math.max(0, STANDARD_DAY_HOURS.length - appts.length - blocks.length);
 
-  const setStatus = async (a: Appt, status: "CONFIRMED" | "COMPLETED" | "CANCELLED") => {
-    if (status === "CANCELLED" && !window.confirm(`Cancel the ${a.time} appointment for ${a.studentName}? They'll be notified.`)) return;
-    if (status === "COMPLETED" && !window.confirm(`Mark the ${a.time} appointment for ${a.studentName} as terminated?`)) return;
+  // Cancelling or terminating asks first, in a dialog.
+  const [asking, setAsking] = useState<{ appt: Appt; status: "COMPLETED" | "CANCELLED" } | null>(null);
+
+  const setStatus = async (a: Appt, status: "CONFIRMED" | "COMPLETED" | "CANCELLED", confirmed = false) => {
+    if (status !== "CONFIRMED" && !confirmed) return setAsking({ appt: a, status });
     setBusyId(a.id);
     setRowError(null);
     const result = await updateAppointmentStatus(a.id, status);
     setBusyId(null);
+    setAsking(null);
     if (result.success) await load(date);
     else setRowError({
       id: a.id,
@@ -431,6 +435,23 @@ export default function AppointmentScheduling() {
           </div>
         </div>
       )}
+
+      <ConfirmDialog
+        open={asking !== null}
+        title={asking?.status === "CANCELLED" ? "Cancel this appointment?" : "Mark this appointment as terminated?"}
+        message={
+          asking &&
+          (asking.status === "CANCELLED"
+            ? `The ${asking.appt.time} appointment for ${asking.appt.studentName} will be cancelled, and they'll be notified.`
+            : `The ${asking.appt.time} appointment for ${asking.appt.studentName} will be marked as terminated.`)
+        }
+        confirmLabel={asking?.status === "CANCELLED" ? "Cancel appointment" : "Mark as terminated"}
+        cancelLabel={asking?.status === "CANCELLED" ? "Keep it" : "Go back"}
+        danger={asking?.status === "CANCELLED"}
+        busy={asking !== null && busyId === asking.appt.id}
+        onCancel={() => setAsking(null)}
+        onConfirm={() => asking && setStatus(asking.appt, asking.status, true)}
+      />
     </div>
   );
 }

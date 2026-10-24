@@ -67,8 +67,11 @@ export async function getBookedTimesForDate(dateString: string) {
   }
 }
 
+// Books for one of the parent's linked children, or for the parent themself
+// (forSelf) when they have a concern of their own to talk through.
 export async function bookAppointment(formData: {
   childName: string;
+  forSelf?: boolean;
   dateString: string;
   timeSlot: string;
   appointmentType: string;
@@ -76,7 +79,9 @@ export async function bookAppointment(formData: {
   phone?: string;
 }) {
   try {
-    const { me, child } = await requireOwnChild(formData.childName);
+    const { me, child } = formData.forSelf
+      ? { me: await requireActionUser("PARENT"), child: null }
+      : await requireOwnChild(formData.childName);
     const checked = await checkBooking(formData);
     if ("error" in checked) return { success: false, error: checked.error };
     const pending = await db.appointment.count({
@@ -90,7 +95,7 @@ export async function bookAppointment(formData: {
       data: {
         date,
         time: formData.timeSlot,
-        studentName: child.name,
+        studentName: child?.name ?? me.name,
         appointmentType: checked.appointmentType,
         notes: checked.notes,
         requirements: [],
@@ -101,15 +106,15 @@ export async function bookAppointment(formData: {
         bookedByPhone: checked.phone ?? me.phone,
       },
     });
-    await announceNewBooking({ who: me.name, role: "Parent", forWhom: child.name, date, time: formData.timeSlot, purpose: checked.appointmentType });
-    await logActivity(me, `Booked an appointment for ${child.name}`, "Appointment", appt.id, checked.appointmentType);
+    await announceNewBooking({ who: me.name, role: "Parent", forWhom: child?.name ?? "themself", date, time: formData.timeSlot, purpose: checked.appointmentType });
+    await logActivity(me, child ? `Booked an appointment for ${child.name}` : "Booked an appointment for themself", "Appointment", appt.id, checked.appointmentType);
 
     const when = formatAppointmentWhen(date, formData.timeSlot);
     for (const to of await counselorEmails()) {
       await sendEmail(
         to,
-        `New appointment request for ${child.name}`,
-        `${me.name} (Parent) requested an appointment for ${child.name}.\n\nWhen: ${when}\nPurpose: ${checked.appointmentType}\nNotes: ${checked.notes || "-"}\n\nOpen E-Gabay to confirm or reschedule it.`
+        child ? `New appointment request for ${child.name}` : `New appointment request from ${me.name} (parent)`,
+        `${me.name} (Parent) requested an appointment ${child ? `for ${child.name}` : "for themself"}.\n\nWhen: ${when}\nPurpose: ${checked.appointmentType}\nNotes: ${checked.notes || "-"}\n\nOpen E-Gabay to confirm or reschedule it.`
       );
     }
 
@@ -121,6 +126,22 @@ export async function bookAppointment(formData: {
   } catch (error) {
     console.error("[parent] Failed to book appointment:", error);
     return { success: false, error: String(error) };
+  }
+}
+
+// Every appointment this parent asked for, for their children or themself.
+export async function getMyBookings() {
+  try {
+    const me = await requireActionUser("PARENT");
+    return await db.appointment.findMany({
+      where: { bookedByName: me.name, bookedByRole: me.roleLabel },
+      select: { id: true, date: true, time: true, studentName: true, appointmentType: true, status: true },
+      orderBy: [{ date: "desc" }, { time: "asc" }],
+      take: 20,
+    });
+  } catch (error) {
+    console.error("[parent] Failed to fetch bookings:", error);
+    return [];
   }
 }
 
@@ -229,8 +250,10 @@ export async function submitReferral(formData: {
   description: string;
 }) {
   try {
-    const { me, child } = await requireOwnChild(formData.studentName);
-    const checked = await checkReferral({ ...formData, studentName: child.name });
+    // Parents refer any student they're worried about; their own children
+    // they can simply book an appointment for.
+    const me = await requireActionUser("PARENT");
+    const checked = await checkReferral(formData);
     if ("error" in checked) return { success: false, error: checked.error };
     if (!(await allow(`referral:${me.id}`, 5, HOUR)) || !(await allow(`referral-day:${me.id}`, 15, DAY))) {
       return { success: false, error: SLOW_DOWN };
