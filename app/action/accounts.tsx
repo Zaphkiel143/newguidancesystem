@@ -8,12 +8,8 @@ import { notifyUser } from "../../lib/notify";
 import { logActivity } from "../../lib/activityLog";
 import type { UserRole } from "../../lib/generated";
 
-// ==== Accounts & approvals (Guidance Associates only) ====
-//
-// Students who sign in with a school email get in right away. Faculty and
-// guidance staff who sign up themselves, and every parent account, wait here
-// until a Guidance Associate approves them. Parents are linked to a child only
-// after their child's student ID is checked against the Individual Inventory.
+// Accounts & approvals (Guidance Associates only)
+// Students who sign in with a school email get in right away
 
 const counselorOnly = () => requireActionUser("COUNSELOR");
 
@@ -31,8 +27,7 @@ export async function listAccounts() {
   }
 }
 
-// Everything waiting for a decision: new staff accounts and parent link requests,
-// each parent request shown next to the inventory record its student ID matches.
+// Everything waiting for a decision
 export async function listApprovals() {
   try {
     await counselorOnly();
@@ -111,7 +106,7 @@ export async function decideParentLink(linkId: string, approve: boolean, note?: 
           where: { id: link.id },
           data: { status: "APPROVED", studentProfileId: profile.id, childName: profile.name, reviewedAt: new Date(), note: note || null },
         }),
-        // A parent's first approved child also turns on their account.
+        // A parent's first approved child also turns on their account
         db.user.update({ where: { id: link.parentId }, data: { status: "ACTIVE" } }),
       ]);
       await tellUser(
@@ -124,7 +119,7 @@ export async function decideParentLink(linkId: string, approve: boolean, note?: 
         where: { id: link.id },
         data: { status: "REJECTED", reviewedAt: new Date(), note: note || null },
       });
-      // A brand-new parent account with nothing approved is turned down with it.
+      // A brand-new parent account with nothing approved is turned down with it
       const approved = await db.parentChildLink.count({ where: { parentId: link.parentId, status: "APPROVED" } });
       if (approved === 0 && link.parent.status === "PENDING") {
         await db.user.update({ where: { id: link.parentId }, data: { status: "REJECTED" } });
@@ -148,7 +143,7 @@ export async function setAccountRole(userId: string, role: UserRole) {
     if (userId === me.id) return { success: false, error: "You can't change your own role." };
     const user = await db.user.findUnique({ where: { id: userId }, select: { role: true, phone: true, email: true } });
     if (!user) return { success: false, error: "Account not found." };
-    // Parents sign in with a phone number, everyone else with a school email.
+    // Parents sign in with a phone number, everyone else with a school email
     if ((role === "PARENT") !== (user.role === "PARENT")) {
       return { success: false, error: "Parent accounts and school-email accounts sign in differently, so they can't be switched." };
     }
@@ -162,7 +157,7 @@ export async function setAccountRole(userId: string, role: UserRole) {
   }
 }
 
-// Turn an account off (it can't sign in, and its open sessions stop working) or back on.
+// Turn an account off (it can't sign in, and its open sessions stop working) or back
 export async function setAccountActive(userId: string, active: boolean) {
   try {
     const me = await counselorOnly();

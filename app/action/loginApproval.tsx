@@ -9,9 +9,7 @@ import { allow, clientIp, MINUTE } from "../../lib/rateLimit";
 import { notifyUser } from "../../lib/notify";
 import { pushToUser } from "../../lib/push";
 
-// "Approve on my phone" sign-in. The browser asking to sign in shows a number;
-// a device where the same person is already signed in gets a notification and
-// must tap that number (number matching) to let the sign-in through.
+// "Approve on my phone" sign-in
 
 const REQUEST_TTL_MS = 2 * 60 * 1000;
 
@@ -21,7 +19,7 @@ function describeDevice(userAgent: string) {
   return `${browser} on ${os}`;
 }
 
-// Step 1, on the browser that wants to sign in.
+// Step 1, on the browser that wants to sign
 export async function requestLoginApproval(rawEmail: string) {
   try {
     const email = rawEmail.trim().toLowerCase();
@@ -40,7 +38,7 @@ export async function requestLoginApproval(rawEmail: string) {
       };
     }
 
-    // One pending request at a time per account.
+    // One pending request at a time per account
     await db.loginRequest.updateMany({ where: { userId: user.id, status: "PENDING" }, data: { status: "DENIED" } });
 
     const number = randomInt(10, 100);
@@ -76,7 +74,7 @@ export async function requestLoginApproval(rawEmail: string) {
   }
 }
 
-// Step 3, the asking browser polls until the request is approved, denied or expires.
+// Step 3, the asking browser polls until the request is approved, denied or expires
 export async function checkLoginApproval(requestId: string, secret: string) {
   try {
     const request = await db.loginRequest.findUnique({ where: { id: requestId } });
@@ -88,7 +86,7 @@ export async function checkLoginApproval(requestId: string, secret: string) {
 
     const user = await db.user.findUnique({ where: { id: request.userId } });
     if (!user || user.status !== "ACTIVE") return { state: "denied" as const };
-    // Single use: only the first poll after approval gets the session.
+    // Single use: only the first poll after approval gets the session
     const { count } = await db.loginRequest.updateMany({ where: { id: request.id, status: "APPROVED" }, data: { status: "USED" } });
     if (count === 0) return { state: "denied" as const };
     await createSession(user.id);
@@ -99,7 +97,7 @@ export async function checkLoginApproval(requestId: string, secret: string) {
   }
 }
 
-// Step 2, on the signed-in phone: what's waiting for this person.
+// Step 2, on the signed-in phone: what's waiting for this person
 export async function getMyLoginRequests() {
   try {
     const me = await requireActionUser();
@@ -129,7 +127,7 @@ export async function answerLoginRequest(requestId: string, picked: number | "de
   }
 }
 
-// ---- Push notifications for this device ----
+// Push notifications for this device
 
 export async function savePushSubscription(sub: { endpoint: string; keys: { p256dh: string; auth: string } }) {
   try {

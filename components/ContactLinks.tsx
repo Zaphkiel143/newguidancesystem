@@ -3,9 +3,7 @@ import { Mail, MessageCircle, Phone, Smartphone } from "lucide-react";
 import { SCHOOL_EMAIL_DOMAIN } from "../app/config/school";
 import { formatPhone } from "../lib/phone";
 
-// Quick ways for the Guidance Associate to reach someone: Outlook email and a
-// Teams chat for school accounts, a regular email link otherwise, and call or
-// text when there's a mobile number.
+// Quick ways for the Guidance Associate to reach someone
 export default function ContactLinks({
   name,
   email,

@@ -13,11 +13,10 @@ import {
 import type { AiMessage } from "../lib/generated";
 import { CRISIS_HOTLINES } from "../app/config/hotlines";
 
-// Matches the server-side limit in sendAiMessage (app/action/student.tsx).
+// Matches the server-side limit in sendAiMessage (app/action/student.tsx)
 const MAX_MESSAGE_LENGTH = 1000;
 
-// Questions E-Gabay is trained to answer (nlp_service/intents.json), starting
-// with the Guidance Office FAQ.
+// Questions E-Gabay is trained to answer (nlp_service/intents.json)
 const STARTERS = [
   "What are the GCO consultation hours?",
   "Paano mag-book ng appointment?",
@@ -34,9 +33,7 @@ function when(d: Date | null) {
   return new Date(d).toLocaleString("en-PH", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit", timeZone: "Asia/Manila" });
 }
 
-// The E-Gabay conversation (students only). Used full-page on /ai_chat and in
-// the floating chat panel. Each chat is saved: "New chat" (or closing the
-// panel / leaving the page) ends it and moves it to History.
+// The E-Gabay conversation (students only)
 export default function AiChatThread({ compact = false }: { compact?: boolean }) {
   const [conversationId, setConversationId] = useState<string | null>(null);
   const [messages, setMessages] = useState<AiMessage[]>([]);
@@ -47,7 +44,7 @@ export default function AiChatThread({ compact = false }: { compact?: boolean })
   const [view, setView] = useState<"chat" | "history">("chat");
   const [history, setHistory] = useState<HistoryItem[] | null>(null);
   const [viewing, setViewing] = useState<{ title: string; messages: AiMessage[] } | null>(null);
-  // Scroll only the message list, never the whole page.
+  // Scroll only the message list, never the whole page
   const scrollRef = useRef<HTMLDivElement>(null);
   const openId = useRef<string | null>(null);
   const inputId = compact ? "ai-draft-panel" : "ai-draft";
@@ -72,7 +69,7 @@ export default function AiChatThread({ compact = false }: { compact?: boolean })
     });
     return () => {
       cancelled = true;
-      // Closing the panel or leaving the page saves this chat to history.
+      // Closing the panel or leaving the page saves this chat to history
       if (openId.current) void endMyAiConversation(openId.current);
     };
   }, []);
@@ -186,7 +183,6 @@ export default function AiChatThread({ compact = false }: { compact?: boolean })
 
   return (
     <div className="flex flex-col h-full min-h-0">
-      {/* Chat tools */}
       <div className={`flex items-center gap-1 border-b border-rule bg-sheet shrink-0 ${compact ? "px-2 py-1.5" : "px-3 sm:px-6 py-2"}`}>
         {view === "chat" ? (
           <>
@@ -287,7 +283,6 @@ export default function AiChatThread({ compact = false }: { compact?: boolean })
           </div>
 
           <div className={`border-t border-rule bg-paper shrink-0 ${compact ? "px-3 py-3" : "px-5 sm:px-8 py-4"}`}>
-            {/* Suggested questions stay available after the chat has started. */}
             {messages.length > 0 && (
               <div className={compact ? "mb-2" : "max-w-2xl mx-auto mb-3"}>
                 <p className="text-[12px] text-slate-500 mb-1.5">Suggested questions</p>

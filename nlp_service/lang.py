@@ -1,9 +1,4 @@
-"""Lightweight English/Tagalog detector for short chat messages.
-
-Statistical detectors (e.g. langdetect) are unreliable on short, informal
-text like SMS-style Taglish, so this uses a curated list of common Tagalog
-function words instead - simple, transparent, and easy to tune.
-"""
+"""Lightweight English/Tagalog detector for short chat messages"""
 
 import re
 

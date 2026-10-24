@@ -14,14 +14,13 @@ interface BookingPayload {
 }
 
 interface BookAppointmentModalProps {
-  // Kept for older callers; every booking form now uses APPOINTMENT_PURPOSES.
+  // Kept for older callers; every booking form now uses APPOINTMENT_PURPOSES
   purposeOptions?: string[];
   getBookedTimesForDate: (dateString: string) => Promise<string[]>;
   bookAppointment: (data: BookingPayload) => Promise<{ success: boolean; error?: string }>;
   onClose: () => void;
   onBooked: () => void;
-  // Faculty already have a school contact number on file, so their booking
-  // form skips asking for one.
+  // Faculty already have a school contact number on file
   showPhoneField?: boolean;
 }
 

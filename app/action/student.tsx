@@ -15,15 +15,15 @@ import { announceNewReferral, checkReferral } from "../../lib/referrals";
 import { cleanAnswers, validateAnswers, type Answers } from "../config/collegeCareerForm";
 import { logActivity } from "../../lib/activityLog";
 
-// Every action here acts as the signed-in student; names never come from the client.
+// Every action here acts as the signed-in student; names never come from the client
 
-// ---- Appointments ----
+// Appointments
 
 export async function getMyAppointments() {
   try {
     const me = await requireActionUser("STUDENT");
     const rows = await db.appointment.findMany({ where: { studentName: me.name } });
-    // Newest first, by date then clock time (times are text like "8:00 AM").
+    // Newest first, by date then clock time (times are text like "8:00 AM")
     return rows.sort((x, y) => y.date.getTime() - x.date.getTime() || parseTimeToMinutes(y.time) - parseTimeToMinutes(x.time));
   } catch (error) {
     console.error("[student] Failed to fetch appointments:", error);
@@ -103,7 +103,7 @@ export async function bookAppointment(formData: {
   }
 }
 
-// ---- Messages ----
+// Messages
 
 async function ownConversation(conversationId: string) {
   const me = await requireActionUser("STUDENT");
@@ -199,7 +199,7 @@ export async function deleteConversation(conversationId: string) {
   }
 }
 
-// ---- Referrals ----
+// Referrals
 
 export async function submitReferral(formData: {
   aboutMyself: boolean;
@@ -249,10 +249,9 @@ export async function getMyReferrals() {
   }
 }
 
-// ---- Career Planning Program ----
+// Career Planning Program
 
-// Senior high or tertiary, from the student's Individual Inventory record.
-// Features like the Career Planning Program are for senior high only.
+// Senior high or tertiary, from the student's Individual Inventory record
 export async function getMyStudentLevel() {
   try {
     const me = await requireActionUser("STUDENT");
@@ -267,7 +266,7 @@ export async function getMyStudentLevel() {
 export async function getMyCareerPlan() {
   try {
     const me = await requireActionUser("STUDENT");
-    // The Career Planning Program is for senior high students only.
+    // The Career Planning Program is for senior high students only
     const profile = await db.studentProfile.findUnique({ where: { name: me.name }, select: { department: true } });
     if (!isShs(profile?.department)) return null;
     return await db.careerPlan.findFirst({ where: { studentName: me.name } });
@@ -277,7 +276,7 @@ export async function getMyCareerPlan() {
   }
 }
 
-// ---- Individual Inventory: own profile + document submission ----
+// Individual Inventory: own profile + document submission
 
 export async function getMyProfile() {
   try {
@@ -314,7 +313,7 @@ export async function submitStudentDocument(formData: {
     if (!(STUDENT_DOCUMENT_CATEGORIES as readonly string[]).includes(formData.category)) return { success: false, error: "Choose the type of document." };
     const file = checkDocument(formData.dataBase64, formData.fileName);
     if (!file.ok) return { success: false, error: file.error };
-    // Stops someone filling the review queue: at most 10 waiting at a time.
+    // Stops someone filling the review queue: at most 10 waiting at a time
     const waiting = await db.document.count({ where: { uploaderName: me.name, uploaderRole: "Student", reviewStatus: "PENDING" } });
     if (waiting >= 10) return { success: false, error: "You have 10 documents waiting for review. Wait for the guidance office to check them first." };
 
@@ -342,7 +341,7 @@ export async function submitStudentDocument(formData: {
   }
 }
 
-// ---- Group Guidance: needs assessment ----
+// Group Guidance: needs assessment
 
 export async function getMyAssessments() {
   try {
@@ -388,9 +387,9 @@ export async function submitAssessmentResponse(formData: { assessmentId: string;
   }
 }
 
-// ---- AI Assistant (E-Gabay) ----
+// AI Assistant (E-Gabay)
 
-// The student's open chat (the newest one not yet ended), or a new empty one.
+// The student's open chat (the newest one not yet ended), or a new empty one
 export async function getMyAiConversation() {
   try {
     const me = await requireActionUser("STUDENT");
@@ -399,8 +398,7 @@ export async function getMyAiConversation() {
       include: { messages: { orderBy: { createdAt: "asc" } } },
       orderBy: { createdAt: "desc" },
     });
-    // A chat left idle (e.g. the tab was closed) is saved to history and a
-    // fresh one starts, the same as closing the chat panel.
+    // A chat left idle (e.g. the tab was closed) is saved to history and a fresh one starts
     const IDLE_MS = 30 * 60 * 1000;
     const idle = existing && existing.messages.length > 0 && Date.now() - existing.updatedAt.getTime() > IDLE_MS;
     if (existing && !idle) return existing;
@@ -430,16 +428,14 @@ export async function sendAiMessage(formData: { conversationId: string; content:
       data: { conversationId: formData.conversationId, role: "user", content: formData.content },
     });
 
-    // The intent classifier is single-turn (no conversation memory needed) -
-    // it just classifies this message and returns a curated response.
+    // The intent classifier is single-turn (no conversation memory needed)
     const reply = await getNlpReply(formData.content);
 
     const assistantMessage = await db.aiMessage.create({
       data: { conversationId: formData.conversationId, role: "assistant", content: reply.response, intent: reply.intent },
     });
 
-    // A crisis message alerts the Guidance Associate right away, in E-Gabay and by
-    // email, at most once an hour per student so they aren't flooded.
+    // A crisis message alerts the Guidance Associate right away
     if (reply.intent === "crisis" && (await allow(`crisis-alert:${me.id}`, 1, HOUR))) {
       await notifyCounselors({
         title: "URGENT: a student may be in crisis",
@@ -451,7 +447,7 @@ export async function sendAiMessage(formData: { conversationId: string; content:
           to,
           "URGENT: a student may be in crisis (E-Gabay)",
           `${me.name} sent a message to the E-Gabay chatbot that matched the crisis topic at ${new Date().toLocaleString("en-PH", { timeZone: "Asia/Manila" })}.\n\nPlease reach out to the student as soon as possible. Their school email: ${me.email ?? "not on file"}.\n\nOpen E-Gabay to message them.`,
-          // The student's words stay in E-Gabay; the email only says who and when.
+          // The student's words stay in E-Gabay; the email only says who and when
         );
       }
     }
@@ -465,9 +461,7 @@ export async function sendAiMessage(formData: { conversationId: string; content:
   }
 }
 
-// First sign-in before this feature, or a record the office hasn't made yet:
-// the student fills in their own school details once. After that only the
-// guidance office can change them.
+// No school record yet: the student fills in their details once
 export async function completeMyStudentInfo(formData: { studentId: string; department: string; yearLevel: string; program: string; section: string }) {
   try {
     const me = await requireActionUser("STUDENT");
@@ -506,8 +500,7 @@ export async function completeMyStudentInfo(formData: { studentId: string; depar
   }
 }
 
-// Ends the open chat and saves it to history. Empty chats are simply reused,
-// so opening and closing the panel doesn't fill the history with blanks.
+// Ends the open chat and saves it to history
 export async function endMyAiConversation(conversationId: string) {
   try {
     const me = await requireActionUser("STUDENT");
@@ -524,7 +517,7 @@ export async function endMyAiConversation(conversationId: string) {
   }
 }
 
-// Past chats, newest first, each titled by its first question.
+// Past chats, newest first, each titled by its first question
 export async function getMyAiHistory() {
   try {
     const me = await requireActionUser("STUDENT");
@@ -566,9 +559,7 @@ export async function getMyAiHistoryChat(conversationId: string) {
   }
 }
 
-// When E-Gabay doesn't understand a question, the student can send it to the
-// Guidance Associate: it arrives in their Messages thread with the office, and
-// the office gets a notification. Each unanswered question can be sent once.
+// When E-Gabay doesn't understand a question
 export async function forwardAiQuestion(assistantMessageId: string) {
   try {
     const me = await requireActionUser("STUDENT");
@@ -608,9 +599,9 @@ export async function forwardAiQuestion(assistantMessageId: string) {
   }
 }
 
-// ---- Career Planning Form (tertiary students) ----
+// Career Planning Form (tertiary students)
 
-// Tertiary-like students only; senior high students use the Career Planning Program.
+// Tertiary-like students only; senior high students use the Career Planning Program
 async function tertiaryStudent() {
   const me = await requireActionUser("STUDENT");
   const profile = await db.studentProfile.findUnique({ where: { name: me.name }, select: { department: true, studentId: true } });
@@ -638,8 +629,7 @@ export async function getMyCareerForm() {
   }
 }
 
-// Saves a draft, or submits when `submit` is true (every required question
-// answered). The answers are checked here again; the browser is never trusted.
+// Saves a draft, or submits when `submit` is true (every required question answered)
 export async function saveMyCareerForm(input: { answers: unknown; submit: boolean }): Promise<
   { success: true; submittedAt: Date | null } | { success: false; error: string; fieldErrors?: Record<string, string> }
 > {

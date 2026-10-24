@@ -3,7 +3,7 @@
 import db from "../../lib/db";
 import { requireActionUser } from "../../lib/session";
 
-// Shared by every role: the bell in the top bar and the floating message button.
+// Shared by every role: the bell in the top bar and the floating message button
 
 export async function getMyNotices() {
   try {
@@ -33,7 +33,7 @@ export async function markNoticesRead(ids?: string[]) {
   try {
     const me = await requireActionUser();
     await db.notification.updateMany({
-      // Only ever your own notifications.
+      // Only ever your own notifications
       where: { userId: me.id, readAt: null, ...(ids ? { id: { in: ids } } : {}) },
       data: { readAt: new Date() },
     });

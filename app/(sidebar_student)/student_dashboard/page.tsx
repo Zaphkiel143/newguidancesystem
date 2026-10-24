@@ -59,7 +59,7 @@ const DashboardContent: React.FC = () => {
     };
   }, []);
 
-  // Appointment dates are calendar days stored as UTC midnight; compare as YYYY-MM-DD.
+  // Appointment dates are calendar days stored as UTC midnight; compare as YYYY-MM-DD
   const today = manilaToday();
   const isShs = data?.level.isShs ?? false;
   const day = (d: Date) => new Date(d).toISOString().slice(0, 10);
@@ -70,7 +70,7 @@ const DashboardContent: React.FC = () => {
   const stagesDone = data?.careerPlan?.stepDates.filter(Boolean).length ?? 0;
   const nextStage = data?.careerPlan ? CAREER_STEPS[data.careerPlan.stepDates.findIndex((d) => !d)] : undefined;
 
-  // Career stages only apply to senior high students (Career Planning Program).
+  // Career stages only apply to senior high students (Career Planning Program)
   const figures = [
     { id: 'sessions', count: sessionsDone, label: 'Sessions attended' },
     ...(isShs ? [{ id: 'cpp', count: stagesDone, label: `of ${CAREER_STEPS.length} career stages done` }] : []),
@@ -89,7 +89,6 @@ const DashboardContent: React.FC = () => {
         </Link>
       )}
 
-      {/* E-Gabay invitation. Stacks on phones so the text never spills out of the box. */}
       <Link
         href="/ai_chat"
         className="group mt-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-6 border border-butter-200 bg-butter-100 rounded-2xl px-5 sm:px-6 py-5 hover:border-butter-300 hover:bg-butter-50 transition-colors"

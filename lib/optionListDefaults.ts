@@ -1,12 +1,4 @@
-// Default/seed data for every counselor-editable dropdown (see
-// app/action/optionLists.tsx). Protected items use TODAY'S EXACT literal
-// string as their itemKey, permanently - that string is what's already
-// saved on existing records and what behavioral code compares against, so
-// nothing needs to be migrated. Renaming a protected item's label never
-// changes what gets stored or what code checks; it only changes what's
-// displayed. Plain items (no itemKey) store their label directly, same as
-// today's freeform lists - renaming changes what NEW records store, old
-// records keep their original text.
+// Default/seed data for every counselor-editable dropdown (see app/action/optionLists.tsx)
 
 export interface DefaultOptionItem {
   itemKey?: string;
@@ -23,9 +15,7 @@ export interface DefaultOptionList {
 
 const plain = (labels: readonly string[]): DefaultOptionItem[] => labels.map((label) => ({ label }));
 
-// What gets saved to a plain-text DB column when this item is picked:
-// protected items always store their frozen itemKey; plain items store
-// their current label (same as today's freeform lists).
+// What gets saved to a plain-text DB column when this item is picked
 export function optionValue(item: { itemKey: string | null; label: string }) {
   return item.itemKey ?? item.label;
 }

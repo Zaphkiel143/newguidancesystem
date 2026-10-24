@@ -1,5 +1,4 @@
-// Philippine mobile numbers, stored one way (+639XXXXXXXXX) so "0917 123 4567",
-// "+63 917 123 4567" and "639171234567" all match the same account.
+// Philippine mobile numbers, always stored as +639XXXXXXXXX
 export function normalizePhone(raw: string): string | null {
   const digits = raw.replace(/[^\d+]/g, "");
   let d = digits.startsWith("+") ? digits.slice(1) : digits;

@@ -14,7 +14,7 @@ function readAsBase64(file: File): Promise<string> {
   });
 }
 
-// Lets any signed-in user add, change or remove their own profile photo.
+// Lets any signed-in user add, change or remove their own profile photo
 export default function PhotoPicker({ name, hasPhoto }: { name: string; hasPhoto: boolean }) {
   const input = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);

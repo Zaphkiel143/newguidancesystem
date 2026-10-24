@@ -13,9 +13,7 @@ import { counselorEmails, formatAppointmentWhen, sendEmail } from "../../lib/ema
 import { announceNewBooking, checkBooking } from "../../lib/booking";
 import { logActivity } from "../../lib/activityLog";
 
-// Every action here acts as the signed-in parent. A parent's children are the
-// student records the guidance office approved for them (ParentChildLink),
-// never matched by name.
+// Every action here acts as the signed-in parent
 
 async function myChildProfileIds(parentId: string) {
   const links = await db.parentChildLink.findMany({
@@ -47,7 +45,7 @@ export async function getMyChildren() {
   }
 }
 
-// ---- Appointments (booked on behalf of a child) ----
+// Appointments (booked on behalf of a child)
 
 export async function getBookedTimesForDate(dateString: string) {
   try {
@@ -123,7 +121,7 @@ export async function bookAppointment(formData: {
   }
 }
 
-// ---- Messages ----
+// Messages
 
 async function ownConversation(conversationId: string) {
   const me = await requireActionUser("PARENT");
@@ -219,7 +217,7 @@ export async function deleteConversation(conversationId: string) {
   }
 }
 
-// ---- Referrals ----
+// Referrals
 
 export async function submitReferral(formData: {
   studentName: string;
@@ -264,10 +262,9 @@ export async function getMyReferrals() {
   }
 }
 
-// ---- Child profile ----
+// Child profile
 
-// Parents see their child's profile, appointments and career plan progress,
-// never counselor notes or other students' records.
+// Parents see their child's profile, appointments and career plan progress
 export async function getChildProfile(childName: string) {
   try {
     const { me, child } = await requireOwnChild(childName);
@@ -294,7 +291,7 @@ export async function getChildProfile(childName: string) {
   }
 }
 
-// ---- My profile ----
+// My profile
 
 export async function getMyParentProfile() {
   try {
@@ -330,8 +327,7 @@ export async function updateMyParentProfile(formData: { lastName: string; firstN
     if (phoneTaken) return { success: false, error: "That mobile number is already used by another account." };
     if (emailTaken) return { success: false, error: "That email is already used by another account." };
 
-    // Records are linked by name, so a name change also carries over to this
-    // parent's message thread, referrals and bookings.
+    // Records are linked by name, so a name change carries over to this parent's records
     await db.$transaction([
       db.user.update({ where: { id: me.id }, data: { name, phone, email: email || null } }),
       db.conversation.updateMany({ where: { participantName: me.name, participantRole: "Parent" }, data: { participantName: name } }),

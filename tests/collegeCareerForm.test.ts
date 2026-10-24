@@ -9,7 +9,7 @@ import {
   type Answers,
 } from "../app/config/collegeCareerForm.ts";
 
-// A fully answered form, built from the config so it stays in step with it.
+// A fully answered form, built from the config so it stays in step with it
 function complete(): Answers {
   const a: Answers = {};
   for (const s of COLLEGE_CAREER_FORM)

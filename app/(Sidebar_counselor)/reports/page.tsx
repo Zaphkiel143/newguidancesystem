@@ -15,8 +15,7 @@ type Count = { label: string; count: number };
 const ALL = "All";
 const STAFF = "Faculty/Staff";
 
-// One color per chart, echoing the office's spreadsheet dashboard. Every bar
-// carries its value, so the lighter fills (orange, yellow) never stand alone.
+// One color per chart, echoing the office's spreadsheet dashboard
 const COLOR = {
   program: "#c8344f",
   level: "#e08a1e",
@@ -43,7 +42,7 @@ function tally(values: string[]): Count[] {
   return [...map.entries()].map(([label, count]) => ({ label, count })).sort((a, b) => b.count - a.count || a.label.localeCompare(b.label));
 }
 
-// "BS Information Technology" -> "BSIT", as on the office's own sheets.
+// "BS Information Technology" -> "BSIT", as on the office's own sheets
 function shortProgram(p: string) {
   const m = p.match(/^(BS|Bachelor of)\s+(.+)$/i);
   if (!m) return p;
@@ -51,12 +50,12 @@ function shortProgram(p: string) {
   return (m[1].toUpperCase() === "BS" ? "BS" : "B") + initials;
 }
 
-// Configured options first, then anything older records still carry.
+// Configured options first, then anything older records still carry
 function withExtras(base: readonly string[], seen: string[]) {
   return [...base, ...[...new Set(seen)].filter((v) => !base.includes(v)).sort()];
 }
 
-// Horizontal bars: label, bar from a shared baseline, value at the tip.
+// Horizontal bars: label, bar from a shared baseline, value at the tip
 function HBars({ items, color, short = (s: string) => s }: { items: Count[]; color: string; short?: (s: string) => string }) {
   if (items.length === 0) return <Empty />;
   const max = Math.max(...items.map((i) => i.count));
@@ -77,8 +76,7 @@ function HBars({ items, color, short = (s: string) => s }: { items: Count[]; col
   );
 }
 
-// Vertical columns with the value on the cap; switches to horizontal bars when
-// there are too many categories to label legibly underneath.
+// Vertical bars; switches to horizontal bars when there are many categories
 function VBars({ items, color }: { items: Count[]; color: string }) {
   if (items.length === 0) return <Empty />;
   if (items.length > 8) return <HBars items={items} color={color} />;
@@ -143,7 +141,7 @@ function Filter({ id, label, value, options, onChange, format = (s: string) => s
   );
 }
 
-// Older report blocks, kept below the dashboard (screen only).
+// Older report blocks, kept below the dashboard (screen only)
 function Bars({ items, empty = "None this month." }: { items: Count[]; empty?: string }) {
   if (items.length === 0) return <p className="text-sm text-slate-500">{empty}</p>;
   const max = Math.max(...items.map((i) => i.count), 1);
@@ -182,8 +180,7 @@ function Block({ title, children }: { title: string; children: React.ReactNode }
 
 type Charts = { tiles: Count[]; program: Count[]; level: Count[]; nature: Count[]; contact: Count[]; status: Count[] };
 
-// Workbook rows for the Excel download: the dashboard as filtered on screen,
-// then the month's other office activity.
+// Workbook rows for the Excel download
 function toRows(r: Report, filters: [string, string][], charts: Charts): XlsxRow[] {
   const bold = (value: string | number) => ({ value, style: "bold" as const });
   const rows: XlsxRow[] = [[{ value: `GCO Services Daily Log Report — ${monthLabel(r.month)}`, style: "title" }]];
@@ -226,7 +223,7 @@ function toRows(r: Report, filters: [string, string][], charts: Charts): XlsxRow
   return rows;
 }
 
-// Print only the report, on one landscape page.
+// Print only the report, on one landscape page
 const PRINT_CSS = `
 @media print {
   @page { size: landscape; margin: 8mm; }

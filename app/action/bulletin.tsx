@@ -4,12 +4,9 @@ import db from "../../lib/db";
 import { requireActionUser } from "../../lib/session";
 import { manilaTodayAsStoredDate } from "../../lib/time";
 
-// Information Service board + Events, as seen by students, faculty and parents.
-// Opening the board records that this person has seen each announcement shown,
-// which the Guidance Associate sees on the Information Service page.
+// Information Service board + Events, as seen by students, faculty and parents
 
-// Event dates are calendar days stored as UTC midnight, so "today" must be too
-// (and it's today in the Philippines, not on the UTC server).
+// Event dates are stored as UTC midnight, so compare with today's date in Manila
 const startOfToday = () => manilaTodayAsStoredDate();
 
 const AUDIENCE_FOR: Record<string, string> = {
@@ -39,7 +36,7 @@ export async function getBulletin() {
       });
     }
 
-    // Photos load from /api/announcements/[id]/image instead of travelling here.
+    // Photos load from /api/announcements/[id]/image instead of travelling here
     return { announcements: announcements.map(({ imageType, ...a }) => ({ ...a, hasImage: Boolean(imageType) })), events };
   } catch (error) {
     console.error("[bulletin] Failed to load:", error);
@@ -47,7 +44,7 @@ export async function getBulletin() {
   }
 }
 
-// Small preview for dashboards; doesn't mark anything as seen.
+// Small preview for dashboards; doesn't mark anything as seen
 export async function getBulletinPreview() {
   try {
     const me = await requireActionUser("STUDENT", "FACULTY", "PARENT");

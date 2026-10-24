@@ -32,7 +32,7 @@ const DEMO_ROLES: { role: UserRole; label: string }[] = [
 
 const SHOW_DEMO = process.env.NEXT_PUBLIC_DEMO_LOGIN !== "false";
 
-// Which input to focus for each sign-up field that has an error.
+// Which input to focus for each sign-up field that has an error
 const REG_INPUT_IDS: Record<ParentSignupField, string> = {
   lastName: "lastName",
   firstName: "firstName",
@@ -46,15 +46,7 @@ const REG_INPUT_IDS: Record<ParentSignupField, string> = {
   relationship: "r-rel",
 };
 
-// "who"      → pick who you are
-// "email"    → students/faculty/guidance enter their school email
-// "code"     → enter the emailed code
-// "details"  → first sign-in only: name (and school details for students)
-// "parent"   → parents sign in with mobile number + password
-// "register" → parents create an account (approved by the guidance office)
-// "waiting"  → account created/exists but needs approval
-// "totp"     → school email + code from Microsoft Authenticator (if set up)
-// "approve"  → waiting for the person to approve on a signed-in phone
+// Sign-in screens
 type Step = "who" | "email" | "code" | "details" | "parent" | "register" | "waiting" | "totp" | "approve";
 
 const RESEND_SECONDS = 60;
@@ -87,7 +79,7 @@ const LoginPage = () => {
   const codeInput = useRef<HTMLInputElement>(null);
   const [approval, setApproval] = useState<{ requestId: string; secret: string; number: number } | null>(null);
 
-  // While waiting for approval, check every 2 seconds (up to the 2-minute limit).
+  // While waiting for approval, check every 2 seconds (up to the 2-minute limit)
   useEffect(() => {
     if (step !== "approve" || !approval) return;
     let stopped = false;
@@ -338,7 +330,6 @@ const LoginPage = () => {
 
   return (
     <main className="relative isolate min-h-dvh bg-blue-900 flex flex-col">
-      {/* Campus photo behind the sign-in card, tinted so the card stays readable */}
       <div aria-hidden className="fixed inset-0 -z-10 overflow-hidden">
         <Image src="/campus-hq.jpg" alt="" fill priority sizes="100vw" className="object-cover object-[30%_80%]" />
         <div className="absolute inset-0 bg-linear-to-b from-blue-900/55 via-blue-800/35 to-blue-900/70" />
@@ -567,7 +558,6 @@ const LoginPage = () => {
 
             {step === "register" && (
               <form onSubmit={handleRegister} noValidate className="mt-7 space-y-4">
-                {/* Bot trap: hidden from people and screen readers; only bots fill it. */}
                 <div aria-hidden="true" className="absolute -left-[9999px] w-px h-px overflow-hidden">
                   <label htmlFor="r-website">Website</label>
                   <input id="r-website" type="text" tabIndex={-1} autoComplete="off" value={reg.website}

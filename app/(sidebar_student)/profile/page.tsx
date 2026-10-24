@@ -95,7 +95,7 @@ const StudentProfile: React.FC = () => {
     setInfoState({ busy: true, error: null });
     const result = await completeMyStudentInfo(info);
     setInfoState({ busy: false, error: result.success ? null : result.error ?? "Couldn't save." });
-    // Reload so the menu (e.g. My Career Plan for senior high) matches the new record.
+    // Reload so the menu (e.g. My Career Plan for senior high) matches the new record
     if (result.success) window.location.reload();
   };
 

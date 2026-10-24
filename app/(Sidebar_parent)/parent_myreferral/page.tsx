@@ -35,15 +35,12 @@ const MyReferralsPage: React.FC = () => {
   return (
     <div className="px-5 sm:px-8 lg:px-12 pt-8 lg:pt-12 pb-16 max-w-5xl font-sans antialiased text-slate-800 space-y-6">
 
-      {/* Page Title & Context Header Copy */}
       <div>
         <h1 className="page-title">My Referrals</h1>
       </div>
 
-      {/* Main Container Wrapper */}
       <div className="bg-white border border-slate-100 rounded-2xl shadow-sm overflow-hidden">
 
-        {/* Search Input Bar */}
         <div className="p-5 border-b border-slate-100 bg-slate-50/30">
           <div className="relative">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
@@ -58,7 +55,6 @@ const MyReferralsPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Referrals Cards Stack Stream List */}
         <div className="p-6 space-y-6">
           {filteredReferrals.length > 0 ? (
             filteredReferrals.map((item) => (
@@ -66,7 +62,6 @@ const MyReferralsPage: React.FC = () => {
                 key={item.id}
                 className="bg-white border border-slate-100 rounded-xl p-5 space-y-4 hover:shadow-xs transition-shadow"
               >
-                {/* Row Header Segment: Title + Badges */}
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div className="space-y-1">
                     <h3 className="text-lg font-semibold text-slate-900 tracking-tight">{item.concernType}</h3>
@@ -77,9 +72,7 @@ const MyReferralsPage: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* Operational Target State Tags */}
                   <div className="flex items-center gap-2">
-                    {/* Priority Indicator Badge */}
                     <span className={`text-xs font-semibold px-2.5 py-1 rounded-md
                       ${item.priority === 'Medium' ? 'bg-orange-50 text-orange-700' : ''}
                       ${item.priority === 'Low' ? 'bg-blue-50 text-blue-700' : ''}
@@ -88,7 +81,6 @@ const MyReferralsPage: React.FC = () => {
                       {item.priority}
                     </span>
 
-                    {/* Dynamic Status Track Pill */}
                     <span className={`text-xs font-semibold px-3 py-1 rounded flex items-center gap-1.5 font-sans
                       ${item.status === 'IN_PROGRESS' ? 'bg-orange-50 border border-orange-100 text-orange-700' : ''}
                       ${item.status === 'CLOSED' ? 'bg-emerald-50 border border-emerald-200 text-emerald-600' : ''}
@@ -102,7 +94,6 @@ const MyReferralsPage: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Associate Feedback Collateral Block Frame */}
                 {item.notes && (
                   <div className="bg-emerald-50 border border-emerald-50 rounded-xl p-4 space-y-1">
                     <h4 className="text-xs font-semibold text-emerald-600">Associate Feedback:</h4>
@@ -122,12 +113,10 @@ const MyReferralsPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Referral Status Guide Explainer Panel */}
       <div className="bg-white border border-slate-100 rounded-2xl p-6 shadow-sm space-y-4">
         <h3 className="text-base font-semibold text-slate-900 tracking-tight">Referral Status Guide</h3>
 
         <div className="space-y-4 text-sm font-medium leading-relaxed">
-          {/* Row 1: Open */}
           <div className="flex items-start gap-4">
             <span className="w-24 text-center shrink-0 bg-red-50 border border-red-100 text-red-600 font-semibold py-1 rounded text-xs">
               Open
@@ -137,7 +126,6 @@ const MyReferralsPage: React.FC = () => {
             </p>
           </div>
 
-          {/* Row 2: In Progress */}
           <div className="flex items-start gap-4">
             <span className="w-24 text-center shrink-0 bg-orange-50 border border-orange-100 text-orange-700 font-semibold py-1 rounded text-xs leading-tight">
               In Progress
@@ -147,7 +135,6 @@ const MyReferralsPage: React.FC = () => {
             </p>
           </div>
 
-          {/* Row 3: Closed */}
           <div className="flex items-start gap-4">
             <span className="w-24 text-center shrink-0 bg-emerald-50 border border-emerald-200 text-emerald-600 font-semibold py-1 rounded text-xs">
               Closed

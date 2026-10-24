@@ -20,7 +20,7 @@ type Appt = Schedule["appointments"][number];
 type Block = Schedule["blocks"][number];
 
 const BLOCK_REASONS = ["Meeting", "Seminar / Training", "Class or school activity", "On leave", OTHER];
-// End-time choices: the end of every bookable hour (9:00 AM … 4:00 PM).
+// End-time choices: the end of every bookable hour (9:00 AM … 4:00 PM)
 const END_TIMES = STANDARD_DAY_HOURS.map((t) => formatMinutesToTime(parseTimeToMinutes(t) + SLOT_MINUTES));
 
 function shiftDate(date: string, days: number) {
@@ -292,7 +292,6 @@ export default function AppointmentScheduling() {
         </ol>
       )}
 
-      {/* Block time dialog */}
       {blocking && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4" role="dialog" aria-modal="true" aria-labelledby="block-title">
           <div className="bg-sheet w-full max-w-md p-6 rounded-2xl shadow-xl border border-rule max-h-[90dvh] overflow-y-auto">
@@ -356,7 +355,6 @@ export default function AppointmentScheduling() {
         </div>
       )}
 
-      {/* Notes & reschedule dialog */}
       {editing && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4" role="dialog" aria-modal="true" aria-labelledby="edit-title">
           <div className="bg-sheet w-full max-w-lg p-6 rounded-2xl shadow-xl border border-rule max-h-[90dvh] overflow-y-auto">

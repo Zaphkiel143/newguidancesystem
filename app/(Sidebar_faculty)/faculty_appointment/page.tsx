@@ -32,7 +32,6 @@ const MyAppointmentsPage: React.FC = () => {
   return (
     <div className="px-5 sm:px-8 lg:px-12 pt-8 lg:pt-12 pb-16 max-w-5xl font-sans antialiased text-slate-800 space-y-6">
 
-      {/* Upper Main Action Header Bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="page-title">My Appointments</h1>
@@ -48,10 +47,8 @@ const MyAppointmentsPage: React.FC = () => {
         </button>
       </div>
 
-      {/* Appointment History Base Layout Card */}
       <div className="bg-white border border-slate-100 rounded-2xl shadow-sm overflow-hidden">
 
-        {/* Panel Section Sub-header Title */}
         <div className="px-6 py-5 border-b border-slate-100 bg-slate-50/20">
           <h2 className="font-semibold text-slate-900 text-lg tracking-tight">Appointment History</h2>
         </div>
@@ -69,7 +66,6 @@ const MyAppointmentsPage: React.FC = () => {
                 className="bg-white border border-slate-100 rounded-xl p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:shadow-xs transition-shadow"
               >
 
-                {/* Left Column Description Context Info */}
                 <div className="space-y-2">
                   <div className="space-y-0.5">
                     <h3 className="text-lg font-semibold text-slate-900 tracking-tight">
@@ -81,7 +77,6 @@ const MyAppointmentsPage: React.FC = () => {
                     </p>
                   </div>
 
-                  {/* Sub-row Meta Icons Trackers */}
                   <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-slate-500 font-mono font-medium pt-0.5">
                     <div className="flex items-center gap-1.5">
                       <Calendar size={14} className="text-slate-500 shrink-0" />
@@ -94,7 +89,6 @@ const MyAppointmentsPage: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Right Column Badge State Triggers */}
                 <div className="self-start sm:self-auto">
                   <span className={`text-xs font-semibold px-3 py-1 rounded flex items-center gap-1.5 font-sans border
                     ${meeting.status === 'CONFIRMED'

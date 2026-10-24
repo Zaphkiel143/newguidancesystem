@@ -17,8 +17,7 @@ import { ROLE_LABEL } from "../../lib/session";
 
 const DEMO_PASSWORD = "demo1234";
 
-// Demo sign-in is on unless NEXT_PUBLIC_DEMO_LOGIN="false" (set it once real
-// accounts can sign in with school-email codes).
+// Demo sign-in is on unless NEXT_PUBLIC_DEMO_LOGIN="false"
 const DEMO_LOGIN_ENABLED = process.env.NEXT_PUBLIC_DEMO_LOGIN !== "false";
 
 const DEMO_USERS: Record<UserRole, { email: string; name: string }> = {
@@ -28,7 +27,7 @@ const DEMO_USERS: Record<UserRole, { email: string; name: string }> = {
   PARENT: { email: "parent@sti.edu", name: "Mrs. Belarmino" },
 };
 
-// Shown when an account exists but can't be used yet (or anymore).
+// Shown when an account exists but can't be used yet (or anymore)
 function statusMessage(status: string, role: UserRole) {
   if (status === "PENDING") {
     return role === "PARENT"
@@ -40,12 +39,12 @@ function statusMessage(status: string, role: UserRole) {
 
 type LoginResult = { success: true; redirectTo: string } | { success: false; error: string };
 
-// Password sign-in for parents/guardians (mobile number) and demo accounts (email).
+// Password sign-in for parents/guardians (mobile number) and demo accounts (email)
 export async function login(formData: { identifier: string; password: string }): Promise<LoginResult> {
   try {
     const raw = formData.identifier.trim();
     const phone = normalizePhone(raw);
-    // Slows down password guessing: 5 tries per account and 20 per device every 15 minutes.
+    // Slows down password guessing: 5 tries per account and 20 per device every 15 minutes
     const ip = await clientIp();
     if (!(await allow(`login:${phone ?? raw.toLowerCase()}`, 5, 15 * MINUTE)) || !(await allow(`login-ip:${ip}`, 20, 15 * MINUTE))) {
       return { success: false, error: "Too many sign-in attempts. Wait 15 minutes and try again." };
@@ -68,17 +67,8 @@ export async function login(formData: { identifier: string; password: string }):
   }
 }
 
-// ---- Sign in with a school email code ----
-//
-// A student or staff member enters their school email, receives a 6-digit
-// code in their school inbox, and types it back. Owning the mailbox proves
-// they belong to the school, without needing Microsoft sign-in (which STI IT
-// would have to approve).
-//
-// Only addresses ending in @SCHOOL_EMAIL_DOMAIN (app/config/school.ts) may use codes.
-// COUNSELOR_EMAILS      comma-separated school emails that become Guidance
-//                       Associate accounts on first sign-in. Anyone else who
-//                       signs up as faculty or guidance waits for approval.
+// Sign in with a school email code
+// Students and staff sign in with a 6-digit code sent to their school email
 
 const SCHOOL_DOMAIN = SCHOOL_EMAIL_DOMAIN.toLowerCase();
 const CODE_TTL_MS = 10 * 60 * 1000;
@@ -110,13 +100,12 @@ export async function requestLoginCode(rawEmail: string): Promise<CodeRequestRes
       return { success: false, error: `Use your school email (it ends with @${SCHOOL_DOMAIN}).` };
     }
 
-    // In production a code that can never arrive is useless; locally the code is
-    // printed to the dev server console for testing.
+    // Don't send codes in production when email isn't set up
     if (!emailConfigured && process.env.NODE_ENV === "production") {
       return { success: false, error: "Email sign-in isn't set up on this site yet, so codes can't be delivered." };
     }
 
-    // Per-device limit on top of the per-email one below.
+    // Per-device limit on top of the per-email one below
     if (!(await allow(`code-ip:${await clientIp()}`, 15, HOUR))) {
       return { success: false, error: "Too many codes requested from this device. Try again in an hour." };
     }
@@ -134,7 +123,7 @@ export async function requestLoginCode(rawEmail: string): Promise<CodeRequestRes
     }
 
     const code = String(randomInt(0, 1_000_000)).padStart(6, "0");
-    // Older unused codes stop working once a new one is issued.
+    // Older unused codes stop working once a new one is issued
     await db.loginCode.updateMany({ where: { email, usedAt: null }, data: { usedAt: new Date() } });
     await db.loginCode.create({
       data: { email, codeHash: hashPassword(code), expiresAt: new Date(Date.now() + CODE_TTL_MS) },
@@ -157,8 +146,7 @@ export async function requestLoginCode(rawEmail: string): Promise<CodeRequestRes
   }
 }
 
-// Who someone says they are on the login page. Students get in right away;
-// faculty and guidance staff wait for the Guidance Associate to approve them.
+// Who someone says they are on the login page
 export type SignInAs = "STUDENT" | "FACULTY" | "COUNSELOR";
 
 export type StudentDetails = {
@@ -175,8 +163,7 @@ type CodeVerifyResult =
   | { success: false; pending: true; message: string }
   | { success: false; error: string };
 
-// First sign-in creates the account. Records across the system are linked by
-// name, so we ask for it (and, for students, their school details) rather than guess.
+// First sign-in creates the account
 export async function verifyLoginCode(formData: {
   email: string;
   code: string;
@@ -201,8 +188,7 @@ export async function verifyLoginCode(formData: {
     }
 
     if (!verifyPassword(code, entry.codeHash)) {
-      // An older code (expired, or replaced by "Resend code") is no longer valid;
-      // say so instead of calling it wrong, so the user knows to use the new one.
+      // An old or replaced code: say it expired instead of calling it wrong
       const older = await db.loginCode.findMany({
         where: { email, id: { not: entry.id }, createdAt: { gt: new Date(Date.now() - 24 * 60 * 60 * 1000) } },
         orderBy: { createdAt: "desc" },
@@ -226,7 +212,7 @@ export async function verifyLoginCode(formData: {
       isNewAccount = true;
     }
 
-    // The code is used up whether or not the account can sign in yet.
+    // The code is used up whether or not the account can sign in yet
     await db.loginCode.update({ where: { id: entry.id }, data: { usedAt: new Date() } });
 
     const actor = { name: user.name, roleLabel: ROLE_LABEL[user.role], id: user.id };
@@ -249,7 +235,7 @@ async function createSchoolAccount(
   email: string,
   formData: { signInAs: SignInAs; fullName?: string; student?: StudentDetails }
 ) {
-  // A Guidance Associate may already have an inventory record with this email.
+  // A Guidance Associate may already have an inventory record with this email
   const existingProfile = await db.studentProfile.findFirst({ where: { email } });
   const isListedCounselor = counselorEmailList().includes(email);
 
@@ -266,8 +252,7 @@ async function createSchoolAccount(
   if (!name || (needsStudentDetails && !formData.student)) return { needsDetails: true as const };
   if (name.length < 3 || !name.includes(" ")) return { error: "Enter your first and last name." };
 
-  // Approved right away: listed counselors and students. Self-declared faculty
-  // and guidance staff wait for a Guidance Associate to approve them.
+  // Approved right away: listed counselors and students
   const status = role === "STUDENT" || isListedCounselor ? "ACTIVE" : "PENDING";
 
   if (needsStudentDetails) {
@@ -300,7 +285,7 @@ async function createSchoolAccount(
         email,
       };
       if (sameId) {
-        // The office already has this student's record (by ID): link it, keep their name.
+        // The office already has this student's record (by ID): link it, keep their name
         await tx.studentProfile.update({ where: { id: sameId.id }, data: { ...details } });
       } else {
         await tx.studentProfile.create({ data: { studentId, name, ...details } });
@@ -311,7 +296,7 @@ async function createSchoolAccount(
   }
 
   const user = await db.user.create({
-    // Code-only accounts can't use the password form.
+    // Code-only accounts can't use the password form
     data: { email, name, role, status, passwordHash: "code-login-only" },
   });
   if (status === "PENDING") {
@@ -333,11 +318,8 @@ function checkStudentDetails(s: StudentDetails): string | null {
   return null;
 }
 
-// ---- Parent / guardian accounts ----
-//
-// Parents don't have school emails. They register with their mobile number and
-// their child's student ID; the Guidance Associate checks the ID against the
-// Individual Inventory and approves the account before it can be used.
+// Parent / guardian accounts
+// Parents don't have school emails
 
 export async function registerParent(formData: {
   lastName: string;
@@ -349,13 +331,13 @@ export async function registerParent(formData: {
   childStudentId: string;
   childName: string;
   relationship: string;
-  // Hidden field people never see; bots that fill every field get caught.
+  // Hidden field people never see; bots that fill every field get caught
   website?: string;
 }): Promise<{ success: true } | { success: false; error: string; fieldErrors?: ParentSignupErrors }> {
   try {
     if (formData.website) return { success: true }; // quietly ignore bots
 
-    // Same rules the form runs in the browser. Checked before the rate limit so a typo doesn't use up a sign-up.
+    // Same rules the form runs in the browser
     const check = validateParentSignup(formData);
     if (!check.ok) return { success: false, error: FIX_FIELDS_MESSAGE, fieldErrors: check.errors };
 
@@ -402,14 +384,11 @@ export async function registerParent(formData: {
   }
 }
 
-// One-click demo access — lazily creates the demo account for that role the
-// first time it's used, then logs into it.
-// Turn off with NEXT_PUBLIC_DEMO_LOGIN="false" before real use.
+// One-click demo sign-in; creates the demo account on first use
 export async function loginAsDemo(role: UserRole) {
   if (!DEMO_LOGIN_ENABLED) throw new Error("Demo sign-in is turned off.");
   const demo = DEMO_USERS[role];
-  // Student, faculty and parent demo sign-ins show the Data Privacy Act notice
-  // again, as a first-time user would see it. The Guidance Associate demo skips it.
+  // Student, faculty and parent demos show the privacy notice; the Associate demo skips it
   const privacyAcceptedAt = role === "COUNSELOR" ? new Date() : null;
 
   const user = await db.user.upsert({
@@ -431,8 +410,7 @@ export async function loginAsDemo(role: UserRole) {
     },
   });
 
-  // The demo parent is linked to the sample students whose inventory record
-  // names them as parent, so the parent pages have a child to show.
+  // Link the demo parent to the sample students that list them as parent
   if (role === "PARENT") {
     const children = await db.studentProfile.findMany({ where: { parentName: demo.name } });
     for (const child of children) {

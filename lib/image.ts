@@ -1,6 +1,4 @@
-// Validates uploaded announcement photos by their actual bytes (not the
-// browser-reported type), so only real JPEG/PNG/WebP/GIF images are stored and
-// later served with an image content type.
+// Validates uploaded announcement photos by their actual bytes
 
 export const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
 

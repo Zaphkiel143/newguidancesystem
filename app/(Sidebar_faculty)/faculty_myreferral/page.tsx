@@ -50,12 +50,10 @@ const MyReferralsPage: React.FC = () => {
   return (
     <div className="px-5 sm:px-8 lg:px-12 pt-8 lg:pt-12 pb-16 max-w-7xl font-sans antialiased text-slate-800 space-y-6">
 
-      {/* Page Heading Headers Section */}
       <div>
         <h1 className="page-title">My Referrals</h1>
       </div>
 
-      {/* Persistent Search Action Input Field Container */}
       <div className="bg-white p-4 rounded-xl border border-slate-100 shadow-sm">
         <div className="relative">
           <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
@@ -70,7 +68,6 @@ const MyReferralsPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Dynamic Rendered List Stack */}
       <div className="space-y-4">
         {filteredLogs.length > 0 ? (
           filteredLogs.map((log) => (
@@ -78,13 +75,11 @@ const MyReferralsPage: React.FC = () => {
               key={log.id}
               className="bg-white border border-slate-100 rounded-2xl shadow-sm p-6 space-y-4 hover:shadow-md/50 transition-shadow duration-200"
             >
-              {/* Card Title Bar Segment Containing Identification Metadata */}
               <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
                 <div className="space-y-0.5">
                   <h3 className="text-lg font-semibold text-slate-900 tracking-tight">{log.studentName}</h3>
                 </div>
 
-                {/* Priority and Progress Badges Row Section */}
                 <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
                   <span className={`text-xs font-semibold px-2 py-0.5 rounded-md ${getPriorityStyles(log.priority)}`}>
                     {log.priority}
@@ -99,7 +94,6 @@ const MyReferralsPage: React.FC = () => {
                 </div>
               </div>
 
-              {/* Central Core Parameters Content Summary Block */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1 text-xs">
                 <div className="space-y-1">
                   <span className="text-slate-500 font-medium block">Concern Type:</span>
@@ -111,7 +105,6 @@ const MyReferralsPage: React.FC = () => {
                 </div>
               </div>
 
-              {/* Conditional Nested Office Feedback Container */}
               {log.notes && (
                 <div className="bg-blue-50/50 border border-blue-100 rounded-xl p-4 mt-2">
                   <span className="text-xs font-semibold text-blue-900 flex items-center gap-2">

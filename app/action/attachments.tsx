@@ -6,9 +6,7 @@ import { requireActionUser } from "../../lib/session";
 import { checkDocument } from "../../lib/documents";
 import { logActivity } from "../../lib/activityLog";
 
-// Photos the Guidance Associate attaches to records: a photo of a document for a
-// Daily Log session, or an attendance sheet for a group guidance session.
-// Opened through /api/files/attachment/[id] (Guidance Associates only).
+// Photos the Guidance Associate attaches to records
 
 type Kind = "DAILY_LOG" | "GROUP_ATTENDANCE";
 const MAX_PER_RECORD = 10;
@@ -41,7 +39,7 @@ export async function addAttachment(formData: { kind: Kind; refId: string; fileN
     const count = await db.attachment.count({ where: { kind: formData.kind, refId: formData.refId } });
     if (count >= MAX_PER_RECORD) return { success: false, error: `Up to ${MAX_PER_RECORD} photos per record.` };
 
-    // Photos, or a scanned PDF.
+    // Photos, or a scanned PDF
     const file = checkDocument(formData.dataBase64, formData.fileName);
     if (!file.ok) return { success: false, error: file.error };
     if (!file.type.startsWith("image/") && file.type !== "application/pdf") return { success: false, error: "Use a photo (JPG, PNG) or a PDF scan." };

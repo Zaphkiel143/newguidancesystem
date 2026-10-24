@@ -54,7 +54,7 @@ export default function CareerTracker() {
   }, []);
 
   const enrolled = new Set(plans?.map((p) => p.studentName));
-  // Students already in the tracker stay searchable (marked) so adding one again explains why it can't be done.
+  // Students already in the tracker stay searchable, marked as added
   const shsStudents = profiles.filter((s) => isShs(s.department));
 
   const sq = studentQuery.trim().toLowerCase();

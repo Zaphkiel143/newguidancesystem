@@ -28,7 +28,7 @@ type Draft = {
   isPublished: boolean;
   facebookUrl: string;
   showFacebook: boolean;
-  // Photo: a new file, the existing one (by URL), or none.
+  // Photo: a new file, the existing one (by URL), or none
   photoFile: File | null;
   photoPreview: string | null;
   removePhoto: boolean;
@@ -54,8 +54,7 @@ function OfficeAvatar({ size = 40 }: { size?: number }) {
   return <Image src="/sti-logo.jpg" alt="" width={size} height={size} className="rounded-full ring-1 ring-rule shrink-0" />;
 }
 
-// The Facebook-style announcements feed. The composer's "Event" shortcut
-// switches to the Events tab of the same module.
+// The Facebook-style announcements feed
 export default function AnnouncementsPanel({ onAddEvent }: { onAddEvent: () => void }) {
   const [items, setItems] = useState<Announcement[] | null>(null);
   const [draft, setDraft] = useState<Draft | null>(null); // null = composer closed
@@ -79,7 +78,7 @@ export default function AnnouncementsPanel({ onAddEvent }: { onAddEvent: () => v
     };
   }, []);
 
-  // Escape closes the composer; the page behind doesn't scroll while it's open.
+  // Escape closes the composer; the page behind doesn't scroll while it's open
   useEffect(() => {
     if (!draft) return;
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && !isSaving && setDraft(null);
@@ -166,7 +165,6 @@ export default function AnnouncementsPanel({ onAddEvent }: { onAddEvent: () => v
 
   return (
     <div className="max-w-3xl">
-      {/* Composer bar, like Facebook's "What's on your mind?" */}
       <section className="bg-sheet border border-rule rounded-2xl shadow-sm p-4">
         <div className="flex items-center gap-3">
           <OfficeAvatar />
@@ -194,7 +192,6 @@ export default function AnnouncementsPanel({ onAddEvent }: { onAddEvent: () => v
         </div>
       </section>
 
-      {/* Feed */}
       <section className="mt-6 space-y-4" aria-label="Posted announcements">
         {items === null ? (
           <div className="py-16 flex justify-center text-slate-500"><Loader2 className="animate-spin" size={20} /></div>
@@ -251,7 +248,6 @@ export default function AnnouncementsPanel({ onAddEvent }: { onAddEvent: () => v
         )}
       </section>
 
-      {/* Composer pop-up, like Facebook's "Create post" */}
       {draft && (
         <div className="fixed inset-0 z-50 flex items-start sm:items-center justify-center bg-ink/50 p-3 sm:p-6 overflow-y-auto"
           onClick={() => !isSaving && setDraft(null)}>

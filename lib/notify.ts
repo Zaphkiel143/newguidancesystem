@@ -1,8 +1,7 @@
 import db from "./db";
 import type { UserRole } from "./generated";
 
-// In-app notifications (the bell in the top bar). Never throws: a failed
-// notification must not undo the action that triggered it.
+// In-app notifications (the bell in the top bar)
 
 type Notice = { title: string; body?: string; href?: string };
 
@@ -33,8 +32,7 @@ export async function notifyUser(userId: string, notice: Notice) {
   await create([userId], notice);
 }
 
-// Records across the system name people by "name + role label" (Referral.referrerName,
-// Appointment.bookedByName, ...). Notifies every active account that matches.
+// Records across the system name people by "name + role label"
 export async function notifyByName(name: string | null | undefined, roleLabel: string | null | undefined, notice: Notice) {
   if (!name || !roleLabel || !ROLE_BY_LABEL[roleLabel]) return;
   const users = await db.user.findMany({

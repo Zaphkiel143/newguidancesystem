@@ -18,7 +18,7 @@ import type { GroupGuidanceProgram } from '../../../lib/generated';
 
 type Assessment = Awaited<ReturnType<typeof listNeedsAssessments>>[number];
 
-// Local (not UTC) YYYY-MM-DD — avoids comparisons rolling back a day near midnight in timezones behind UTC
+// Local (not UTC) YYYY-MM-DD
 function toDateString(date: Date): string {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
 }
@@ -146,7 +146,6 @@ export default function GroupGuidance() {
         <h1 className="page-title">Group Guidance</h1>
       </header>
 
-      {/* ---- Needs assessment ---- */}
       <section className="mt-10">
         <div className="flex flex-wrap items-baseline justify-between gap-3 mb-3">
           <h2 className="font-serif text-[22px] text-ink">Needs assessment</h2>
@@ -223,7 +222,6 @@ export default function GroupGuidance() {
         )}
       </section>
 
-      {/* ---- Programs ---- */}
       <section className="mt-14">
         <div className="flex flex-wrap items-baseline justify-between gap-3 mb-3">
           <h2 className="font-serif text-[22px] text-ink">Group sessions</h2>
@@ -267,7 +265,6 @@ export default function GroupGuidance() {
         )}
       </section>
 
-      {/* New needs assessment */}
       {isFormOpen && (
         <Dialog title="New needs assessment form" onClose={() => setIsFormOpen(false)}>
           <form onSubmit={saveForm} className="space-y-4">
@@ -292,7 +289,6 @@ export default function GroupGuidance() {
         </Dialog>
       )}
 
-      {/* New program */}
       {isProgramOpen && (
         <Dialog title="Schedule a group session" onClose={() => setIsProgramOpen(false)}>
           <form onSubmit={saveProgram} className="space-y-4">
@@ -322,7 +318,6 @@ export default function GroupGuidance() {
         </Dialog>
       )}
 
-      {/* Attendance + outcomes */}
       {recording && (
         <Dialog title={`Session record: ${recording.title}`} onClose={() => setRecording(null)}>
           <form onSubmit={saveRecord} className="space-y-4">

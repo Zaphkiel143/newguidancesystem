@@ -20,16 +20,16 @@ type Role = "faculty" | "counselor" | "student" | "parent";
 interface AppShellProps {
   role: Role;
   userName: string;
-  // Paths hidden from this user's menu (e.g. My Career Plan for tertiary students).
+  // Paths hidden from this user's menu (e.g. My Career Plan for tertiary students)
   hiddenPaths?: string[];
-  // Profile photo URL, when the user has uploaded one.
+  // Profile photo URL, when the user has uploaded one
   avatarUrl?: string | null;
-  // True until the person agrees to the privacy notice.
+  // True until the person agrees to the privacy notice
   needsPrivacyConsent?: boolean;
   children: React.ReactNode;
 }
 
-// Each role's own account page (photo, details, sign-in settings).
+// Each role's own account page (photo, details, sign-in settings)
 const ACCOUNT_PATH: Record<Role, string> = {
   counselor: "/my_account",
   student: "/profile",
@@ -37,7 +37,7 @@ const ACCOUNT_PATH: Record<Role, string> = {
   parent: "/parent_profile",
 };
 
-// Where the floating message button leads, per role.
+// Where the floating message button leads, per role
 const MESSAGES_PATH: Record<Role, string> = {
   counselor: "/message",
   student: "/my_messages",
@@ -45,7 +45,7 @@ const MESSAGES_PATH: Record<Role, string> = {
   parent: "/parent_message",
 };
 
-// Matches the labels stored on records (lib/session.ts ROLE_LABEL).
+// Matches the labels stored on records (lib/session.ts ROLE_LABEL)
 const RECORD_ROLE: Record<Role, string> = {
   counselor: "Counselor",
   student: "Student",
@@ -124,7 +124,6 @@ export function AppShell({ role, userName, hiddenPaths = [], avatarUrl, needsPri
   return (
     <NoticesProvider>
     <div className="min-h-screen bg-paper">
-      {/* STI top bar: navy with the yellow stripe, as on One STI */}
       <header className="sticky top-0 z-40 h-(--topbar-h) bg-blue-700 text-white border-t-4 border-sti-yellow flex items-center gap-3 px-3 md:px-5 shadow-md">
         <button
           onClick={() => setIsOpen(true)}
@@ -160,7 +159,6 @@ export function AppShell({ role, userName, hiddenPaths = [], avatarUrl, needsPri
           isOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
-        {/* Drawer header, phones only (the top bar carries the brand on wider screens) */}
         <div className="md:hidden px-5 pt-5 pb-4 flex items-center justify-between">
           <span className="inline-flex items-center gap-2.5">
             <LogoMark size={32} />

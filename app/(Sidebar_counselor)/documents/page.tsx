@@ -17,9 +17,7 @@ const TABS: { value: Status; label: string }[] = [
   { value: "REJECTED", label: "Not accepted" },
 ];
 
-// Folder names for files that can't be placed under a level or a strand/course:
-// faculty uploads and students without an inventory record, or a record with
-// no strand/course filled in yet.
+// Folder names for files that can't be placed under a level or a strand/course
 const UNSORTED = "No inventory record";
 const NO_PROGRAM = "No strand or course set";
 const NO_SECTION = "No section set";
@@ -36,14 +34,12 @@ function programOf(d: Doc) {
   return d.program ?? NO_PROGRAM;
 }
 
-// "4th Year - BSIT 4-102": year level and section together, so sections
-// named the same in different years stay apart.
+// "4th Year - BSIT 4-102": year level and section together
 function sectionOf(d: Doc) {
   return d.section ?? NO_SECTION;
 }
 
-// Configured names first (in the counselor's order), then any extra names
-// that only appear on older records, then the catch-all folder last.
+// Configured names first (in the counselor's order)
 function folderNames(configured: string[], fromDocs: string[], catchAll: string) {
   const names = [...configured];
   for (const n of fromDocs) if (n !== catchAll && !names.includes(n)) names.push(n);
@@ -51,11 +47,7 @@ function folderNames(configured: string[], fromDocs: string[], catchAll: string)
   return names;
 }
 
-// Every file students and faculty upload is checked here before it counts:
-// make sure it's the right document and appropriate, then accept it or send it
-// back with a reason. The uploader gets a notification either way. Files are
-// filed like folders: level (Senior High School, Tertiary, ...), then strand
-// or course, then section, with a search across all of them for quick access.
+// Every file students and faculty upload is checked here before it counts
 export default function DocumentReviewPage() {
   const [tab, setTab] = useState<Status>("PENDING");
   const [docs, setDocs] = useState<Doc[] | null>(null);
@@ -138,8 +130,7 @@ export default function DocumentReviewPage() {
 
   const inProgram = useMemo(() => (program ? inLevel.filter((d) => programOf(d) === program) : []), [inLevel, program]);
 
-  // Sections aren't a configured list, so only sections that have files show,
-  // in natural order ("1st Year - 101" before "2nd Year - 101", "102" before "110").
+  // Sections aren't a configured list, so only sections that have files show
   const sectionFolders = useMemo(() => {
     const names = [...new Set(inProgram.map(sectionOf))]
       .filter((n) => n !== NO_SECTION)
@@ -158,8 +149,7 @@ export default function DocumentReviewPage() {
     );
   }, [all, q, searching]);
 
-  // Files sit at the bottom of the tree: inside a section folder, or directly
-  // inside the catch-all level folder.
+  // Files sit at the bottom of the tree
   const files = level === UNSORTED ? inLevel : program && section ? inProgram.filter((d) => sectionOf(d) === section) : null;
 
   const levelLabel = levelFolders.find((f) => f.name === level)?.label ?? level;

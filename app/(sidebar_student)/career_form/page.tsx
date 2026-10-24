@@ -36,7 +36,7 @@ export default function CareerPlanningFormPage() {
       const res = await getMyCareerForm();
       if (cancelled) return;
       if (!res.allowed) return setData(null);
-      // Start with what the school already knows about the student.
+      // Start with what the school already knows about the student
       setAnswers({ email: res.email ?? "", ...res.answers });
       setSubmittedAt(res.submittedAt);
       setData(res);
@@ -61,7 +61,7 @@ export default function CareerPlanningFormPage() {
     topRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
-  // Check only this page before moving on, so students fix things as they go.
+  // Check only this page before moving on, so students fix things as they go
   const next = () => {
     const pageErrors = Object.fromEntries(
       Object.entries(validateAnswers(answers, true)).filter(([id]) => section.fields.some((f) => f.id === id))

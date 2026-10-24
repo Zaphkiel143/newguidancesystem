@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 import { ChevronDown, LogOut, Settings, UserRound } from "lucide-react";
 import { logout } from "../app/action/auth";
 
-// Name and photo in the top bar; opens My account, Settings and Sign out.
+// Name and photo in the top bar; opens My account, Settings and Sign out
 export default function ProfileMenu({
   userName,
   roleLabel,

@@ -3,8 +3,7 @@
 import db from "../../lib/db";
 import { requireActionUser } from "../../lib/session";
 
-// Monthly report for the Guidance and Counseling Office (Guidance Associates only).
-// "month" is YYYY-MM in Philippine time.
+// Monthly report for the Guidance and Counseling Office (Guidance Associates only)
 
 type Count = { label: string; count: number };
 
@@ -44,8 +43,7 @@ export async function getMonthlyReport(month: string) {
   if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(month)) throw new Error("Choose a month.");
   const [y, m] = month.split("-").map(Number);
   const nextMonth = m === 12 ? `${y + 1}-01` : `${y}-${String(m + 1).padStart(2, "0")}`;
-  // Calendar-day fields (appointment and session dates) are stored as UTC midnight;
-  // moments (createdAt) use Philippine time boundaries.
+  // Dates are stored as UTC midnight; createdAt uses Manila day boundaries
   const dayStart = new Date(`${month}-01T00:00:00Z`);
   const dayEnd = new Date(`${nextMonth}-01T00:00:00Z`);
   const start = new Date(`${month}-01T00:00:00+08:00`);
@@ -68,8 +66,7 @@ export async function getMonthlyReport(month: string) {
 
   const held = appointments.filter((a) => a.status !== "CANCELLED");
 
-  // One row per Daily Log entry for the dashboard, with the student's program and
-  // level looked up from their record (sessions are linked to students by name).
+  // One row per Daily Log entry for the dashboard
   const names = [...new Set(held.map((a) => a.studentName).filter((n): n is string => !!n))];
   const profiles = names.length
     ? await db.studentProfile.findMany({ where: { name: { in: names } }, select: { name: true, strandOrProgram: true, yearLevel: true } })

@@ -1,9 +1,6 @@
 import db from "./db";
 
-// System-wide activity log, counselor/associate only (see
-// app/(Sidebar_counselor)/activity/page.tsx). Records every create/update/
-// delete across the app. Never throws; a logging problem must not block
-// the real action.
+// System-wide activity log, counselor/associate only
 export async function logActivity(
   actor: { name: string; roleLabel: string; id?: string },
   action: string,

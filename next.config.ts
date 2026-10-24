@@ -3,25 +3,24 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   experimental: {
     serverActions: {
-      // Documents are stored as bytes directly in Postgres (base64 over the
-      // wire inflates ~33%), so the default 1mb limit is far too small.
+      // Documents are stored in Postgres, so allow larger uploads than the 1 MB default
       bodySizeLimit: "8mb",
     },
   },
   async headers() {
     return [
       {
-        // Basic protections for every page.
+        // Basic protections for every page
         source: "/(.*)",
         headers: [
           { key: "X-Content-Type-Options", value: "nosniff" },
-          // Other sites can't show E-Gabay inside a frame (clickjacking).
+          // Other sites can't show E-Gabay inside a frame (clickjacking)
           { key: "X-Frame-Options", value: "SAMEORIGIN" },
           { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
         ],
       },
       {
-        // The service worker that shows sign-in approval notifications.
+        // The service worker that shows sign-in approval notifications
         source: "/sw.js",
         headers: [
           { key: "Content-Type", value: "application/javascript; charset=utf-8" },

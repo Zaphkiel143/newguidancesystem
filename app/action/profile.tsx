@@ -5,8 +5,7 @@ import { revalidatePath } from "next/cache";
 import { requireActionUser } from "../../lib/session";
 import { checkImage } from "../../lib/image";
 
-// Profile photo for any signed-in user. Photos are checked by their actual
-// bytes and kept small; pass null to remove it.
+// Profile photo for any signed-in user
 const MAX_PHOTO_BYTES = 2 * 1024 * 1024;
 
 export async function setMyPhoto(dataBase64: string | null) {

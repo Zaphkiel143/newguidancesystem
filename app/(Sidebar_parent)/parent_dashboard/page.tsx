@@ -77,16 +77,13 @@ const ParentBookAppointment: React.FC = () => {
   return (
     <div className="px-5 sm:px-8 lg:px-12 pt-8 lg:pt-12 pb-16 max-w-3xl font-sans antialiased text-slate-800 space-y-6">
       
-      {/* Page Context Branding Header */}
       <div>
         <h1 className="page-title">Book Appointment</h1>
       </div>
 
-      {/* Main Container Panel Card */}
       <div className="bg-white border border-slate-100 rounded-2xl shadow-sm overflow-hidden">
         <form onSubmit={handleSubmit} className="p-6 space-y-5">
           
-          {/* 1. Select Child Field Segment (Parent Specific Attribute from image_85ac21.png) */}
           <div className="space-y-2">
             <label className="text-xs font-semibold text-slate-700 flex items-center gap-2">
               <Users size={14} className="text-slate-500" />
@@ -110,10 +107,8 @@ const ParentBookAppointment: React.FC = () => {
             </div>
           </div>
 
-          {/* 2. Date and Time Configuration Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5 pt-1">
             
-            {/* Left: Interactive Date Field */}
             <div className="space-y-2">
               <label className="text-xs font-semibold text-slate-700 flex items-center gap-2">
                 <CalendarIcon size={14} className="text-slate-500" />
@@ -131,7 +126,6 @@ const ParentBookAppointment: React.FC = () => {
               />
             </div>
 
-            {/* Right: Available Slots Tracker */}
             <div className="space-y-2">
               <label className="text-xs font-semibold text-slate-700 flex items-center gap-2">
                 <Clock size={14} className="text-slate-500" />
@@ -177,10 +171,8 @@ const ParentBookAppointment: React.FC = () => {
 
           </div>
 
-          {/* 3. Lower Stack: Purpose & Explanatory Context Field */}
           <div className="space-y-5 pt-3 border-t border-slate-50">
             
-            {/* Meeting Purpose Selection */}
             <div className="space-y-2">
               <label htmlFor="parent-purpose" className="text-xs font-semibold text-slate-700 block">
                 Purpose of Appointment <span className="text-red-500">*</span>
@@ -223,7 +215,6 @@ const ParentBookAppointment: React.FC = () => {
               )}
             </div>
 
-            {/* Optional Context Textarea Description */}
             <div className="space-y-2">
               <label className="text-xs font-semibold text-slate-700 flex items-center gap-2">
                 <AlignLeft size={14} className="text-slate-500" />
@@ -241,7 +232,6 @@ const ParentBookAppointment: React.FC = () => {
 
           </div>
 
-          {/* Feedback Success Notification */}
           {isSubmitted && (
             <div className="bg-emerald-50 border border-emerald-200 text-emerald-600 p-4 rounded-xl flex items-center gap-2.5 text-sm font-medium animate-fade-in">
               <CheckCircle size={16} className="stroke-[2.5]" />
@@ -255,7 +245,6 @@ const ParentBookAppointment: React.FC = () => {
             </div>
           )}
 
-          {/* 4. Action Buttons Footer Controls */}
           <div className="flex flex-col sm:flex-row items-center justify-end gap-3 pt-3 border-t border-slate-100">
             <button
               type="button"

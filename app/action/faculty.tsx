@@ -12,15 +12,15 @@ import { checkDocument } from "../../lib/documents";
 import { notifyCounselors } from "../../lib/notify";
 import { logActivity } from "../../lib/activityLog";
 
-// Every action here acts as the signed-in faculty member; names never come from the client.
+// Every action here acts as the signed-in faculty member; names never come from the client
 
-// ---- Appointments ----
+// Appointments
 
 export async function getMyAppointments() {
   try {
     const me = await requireActionUser("FACULTY");
     const rows = await db.appointment.findMany({ where: { studentName: me.name } });
-    // Newest first, by date then clock time (times are text like "8:00 AM").
+    // Newest first, by date then clock time (times are text like "8:00 AM")
     return rows.sort((x, y) => y.date.getTime() - x.date.getTime() || parseTimeToMinutes(y.time) - parseTimeToMinutes(x.time));
   } catch (error) {
     console.error("[faculty] Failed to fetch appointments:", error);
@@ -100,7 +100,7 @@ export async function bookAppointment(formData: {
   }
 }
 
-// ---- Messages ----
+// Messages
 
 async function ownConversation(conversationId: string) {
   const me = await requireActionUser("FACULTY");
@@ -196,7 +196,7 @@ export async function deleteConversation(conversationId: string) {
   }
 }
 
-// ---- Referrals ----
+// Referrals
 
 export async function submitReferral(formData: {
   studentName: string;
@@ -242,7 +242,7 @@ export async function getMyReferrals() {
   }
 }
 
-// ---- Documents ----
+// Documents
 
 export async function uploadDocument(formData: {
   fileName: string;
@@ -295,7 +295,7 @@ export async function getMyDocuments() {
 export async function deleteDocument(id: string) {
   try {
     const me = await requireActionUser("FACULTY");
-    // Only your own uploads.
+    // Only your own uploads
     const { count } = await db.document.deleteMany({ where: { id, uploaderName: me.name, uploaderRole: "Faculty" } });
     if (count === 0) return { success: false, error: "Document not found" };
     await logActivity(me, "Deleted a document", "Document", id);

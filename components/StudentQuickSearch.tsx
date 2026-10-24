@@ -7,7 +7,7 @@ import { searchStudents } from "../app/action/counselor";
 
 type Result = Awaited<ReturnType<typeof searchStudents>>[number];
 
-// Type a name or student ID to jump straight to that student's record.
+// Type a name or student ID to jump straight to that student's record
 export default function StudentQuickSearch() {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<Result[] | null>(null);
@@ -19,7 +19,7 @@ export default function StudentQuickSearch() {
     const q = query.trim();
     if (q.length < 2) return;
     let cancelled = false;
-    // Wait for typing to pause before searching.
+    // Wait for typing to pause before searching
     const t = setTimeout(async () => {
       setLoading(true);
       const data = await searchStudents(q);

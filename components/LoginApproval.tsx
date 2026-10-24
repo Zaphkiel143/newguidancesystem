@@ -14,9 +14,7 @@ type Request = Awaited<ReturnType<typeof getMyLoginRequests>>[number];
 
 const POLL_MS = 5000;
 
-// Shown on any signed-in page when someone asks to sign in to this account
-// with "Approve on my phone". The person taps the number shown on the other
-// screen, or Deny.
+// Shown when someone asks to sign in to this account with "Approve on my phone"
 export function LoginApprovalPrompt() {
   const [request, setRequest] = useState<Request | null>(null);
   const [busy, setBusy] = useState(false);
@@ -93,7 +91,7 @@ function urlBase64ToUint8Array(base64: string) {
   return Uint8Array.from([...raw].map((c) => c.charCodeAt(0)));
 }
 
-// "Get sign-in approvals on this device": turns on phone notifications.
+// "Get sign-in approvals on this device": turns on phone notifications
 export function PushToggle() {
   const publicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
   const [supported, setSupported] = useState<boolean | null>(null);

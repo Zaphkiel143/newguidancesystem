@@ -55,7 +55,6 @@ const Dashboard = async () => {
         <StudentQuickSearch />
       </div>
 
-      {/* Shortcuts to everyday tasks, with what's waiting */}
       <nav aria-label="Shortcuts" className="mt-6 grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-2">
         {[
           { label: "Appointments", href: "/appointment", count: stats.pendingAppointments, hint: "to confirm" },
@@ -77,7 +76,6 @@ const Dashboard = async () => {
         ))}
       </nav>
 
-      {/* Figures */}
       <div className="mt-10 grid grid-cols-2 lg:grid-cols-4 gap-3">
         <Figure label="Students on record" value={stats.totalStudents} href="/inventory" />
         <Figure label="Appointments today" value={todaysAppointments.length} href="/appointment" />

@@ -1,7 +1,7 @@
 import db from "../../../../lib/db";
 import { getCurrentUser } from "../../../../lib/auth";
 
-// The signed-in user's own profile photo. Never another user's.
+// The signed-in user's own profile photo
 export async function GET() {
   const me = await getCurrentUser();
   if (!me?.avatarType) return new Response(null, { status: 404 });
@@ -11,7 +11,7 @@ export async function GET() {
     headers: {
       "Content-Type": row.avatarType,
       "X-Content-Type-Options": "nosniff",
-      // Revalidate every time so a new photo shows right away.
+      // Revalidate every time so a new photo shows right away
       "Cache-Control": "private, no-cache",
     },
   });

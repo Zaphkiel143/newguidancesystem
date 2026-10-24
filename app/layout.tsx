@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Poppins, IBM_Plex_Mono } from "next/font/google";
 import "./globals.css";
 
-// Poppins matches STI's eLMS; used for both headings and body text.
+// Poppins matches STI's eLMS; used for both headings and body text
 const poppins = Poppins({
   variable: "--font-poppins",
   subsets: ["latin"],

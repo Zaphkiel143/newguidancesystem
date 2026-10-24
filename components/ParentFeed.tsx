@@ -7,8 +7,7 @@ import { FacebookPost } from "./FacebookEmbed";
 import { LogoMark } from "./Logo";
 import { useCurrentUser } from "./CurrentUser";
 
-// Parents' home page: what the guidance office posted, newest first, with
-// upcoming events on top. No search or filters, just a feed.
+// Parents' home page: what the guidance office posted
 export default function ParentFeed() {
   const me = useCurrentUser();
   const [data, setData] = useState<Awaited<ReturnType<typeof getBulletin>> | null>(null);

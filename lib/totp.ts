@@ -1,15 +1,13 @@
 import { createHmac, randomBytes, timingSafeEqual } from "crypto";
 
-// Time-based one-time codes (RFC 6238), the 6-digit codes shown by Microsoft
-// Authenticator, Google Authenticator and similar apps. 30-second steps, SHA-1,
-// which is what those apps expect for codes added by scanning a QR code.
+// Time-based one-time codes (RFC 6238), the 6-digit codes shown by Microsoft Authenticator
 
 const STEP_SECONDS = 30;
 const DIGITS = 6;
 const BASE32 = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
 
 export function newTotpSecret(): string {
-  // 20 random bytes -> 32 base32 characters.
+  // 20 random bytes -> 32 base32 characters
   const bytes = randomBytes(20);
   let bits = "";
   for (const b of bytes) bits += b.toString(2).padStart(8, "0");
@@ -44,8 +42,7 @@ export function currentStep(now = Date.now()) {
   return Math.floor(now / 1000 / STEP_SECONDS);
 }
 
-// Checks a code, allowing one step of clock drift either way. Returns the step
-// that matched (so the caller can refuse it if it was already used), or null.
+// Checks a code, allowing one step of clock drift either way
 export function verifyTotp(secret: string, code: string, now = Date.now()): number | null {
   const digits = code.replace(/\D/g, "");
   if (digits.length !== DIGITS) return null;
@@ -58,7 +55,7 @@ export function verifyTotp(secret: string, code: string, now = Date.now()): numb
   return null;
 }
 
-// What the authenticator app reads from the QR code.
+// What the authenticator app reads from the QR code
 export function totpUri(secret: string, accountName: string, issuer = "E-Gabay STI") {
   const label = encodeURIComponent(`${issuer}:${accountName}`);
   return `otpauth://totp/${label}?secret=${secret}&issuer=${encodeURIComponent(issuer)}&algorithm=SHA1&digits=${DIGITS}&period=${STEP_SECONDS}`;
