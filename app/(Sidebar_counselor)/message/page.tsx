@@ -74,16 +74,23 @@ const MessagesDashboard: React.FC = () => {
   }, []);
 
   // Guards against an in-flight poll resolving after a more recent refresh
-  // (e.g. right after a delete) and overwriting it with stale data.
+  // (e.g. right after a delete) and overwriting it with stale data. Marking
+  // "loaded" happens inside this same guard too - otherwise, under React's
+  // double-invoked effects in development, an earlier (soon-discarded) call
+  // can resolve first and flip conversationsLoaded before the real data
+  // lands, so the deep-link lookup below runs against an empty list.
   const refreshRequestId = useRef(0);
   const refreshConversations = async () => {
     const requestId = ++refreshRequestId.current;
     const data = await listConversations();
-    if (requestId === refreshRequestId.current) setConversations(data);
+    if (requestId === refreshRequestId.current) {
+      setConversations(data);
+      setConversationsLoaded(true);
+    }
   };
 
   useEffect(() => {
-    refreshConversations().then(() => setConversationsLoaded(true));
+    refreshConversations();
     const interval = setInterval(refreshConversations, POLL_INTERVAL_MS);
     return () => clearInterval(interval);
   }, []);
