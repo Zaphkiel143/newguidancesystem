@@ -275,9 +275,9 @@ export function AppShell({ role, userName, displayName = userName, hiddenPaths =
         </div>
       </aside>
 
-      <main className={`${collapsed ? "md:pl-0" : "md:pl-(--sidebar-w)"} min-w-0 pb-20 transition-[padding] duration-300 ease-out`}>
+      <main className={`${collapsed ? "md:pl-0" : "md:pl-(--sidebar-w)"} min-w-0 pb-[calc(var(--footer-h)+5rem)] transition-[padding] duration-300 ease-out`}>
         <CurrentUserProvider user={{ name: userName, displayName, roleLabel: RECORD_ROLE[role] }}>{children}</CurrentUserProvider>
-        <AppFooter />
+        <AppFooter sidebarHidden={collapsed} />
       </main>
 
       <FloatingDock messagesPath={MESSAGES_PATH[role]} withChatbot={role === "student" || role === "faculty"} />

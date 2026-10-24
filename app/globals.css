@@ -122,6 +122,8 @@
 :root {
   --topbar-h: 3.75rem;
   --sidebar-w: 16rem;
+  /* The footer bar fixed to the bottom of signed-in pages (components/AppFooter.tsx). */
+  --footer-h: 2.75rem;
 }
 
 /*

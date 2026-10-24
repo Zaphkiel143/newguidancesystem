@@ -103,7 +103,7 @@ const ReferralManagement = () => {
   };
 
   return (
-    <div className="px-5 sm:px-8 lg:px-12 pt-8 lg:pt-12 pb-16 min-h-[calc(100dvh-var(--topbar-h))] font-sans text-slate-900">
+    <div className="px-5 sm:px-8 lg:px-12 pt-8 lg:pt-12 pb-16 min-h-[calc(100dvh-var(--topbar-h)-var(--footer-h))] font-sans text-slate-900">
       {/* Header */}
       <header className="mb-8">
         <h1 className="page-title">Referral Management</h1>

@@ -55,7 +55,7 @@ export const MyAppointments: React.FC = () => {
   };
 
   return (
-    <div className="px-5 sm:px-8 lg:px-12 pt-8 lg:pt-12 pb-16 min-h-[calc(100dvh-var(--topbar-h))] font-sans antialiased text-slate-800">
+    <div className="px-5 sm:px-8 lg:px-12 pt-8 lg:pt-12 pb-16 min-h-[calc(100dvh-var(--topbar-h)-var(--footer-h))] font-sans antialiased text-slate-800">
 
       {/* Top Header Row with Action Button */}
       <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
