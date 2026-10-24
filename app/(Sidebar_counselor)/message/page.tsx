@@ -1,8 +1,8 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from 'react';
-import { Archive, ArchiveRestore, Search, MessageSquare, X } from 'lucide-react';
-import { listConversations, startConversation, getMessages, markConversationRead, sendMessage, listStudentProfiles, setConversationArchived } from '../../action/counselor';
+import { Archive, ArchiveRestore, Mail, MailOpen, Search, MessageSquare, X } from 'lucide-react';
+import { listConversations, startConversation, getMessages, markConversationRead, markConversationUnread, sendMessage, listStudentProfiles, setConversationArchived } from '../../action/counselor';
 import ConversationPanel from '../../../components/ConversationPanel';
 import { listAccounts } from '../../action/accounts';
 import InlineError from '../../../components/InlineError';
@@ -38,6 +38,9 @@ const MessagesDashboard: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [showArchived, setShowArchived] = useState(false);
   const [archiveError, setArchiveError] = useState<string | null>(null);
+  // Right-click menu on a conversation in the list.
+  const [menu, setMenu] = useState<{ x: number; y: number; id: string } | null>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
 
   // New Message: a blank chat whose "To:" box picks the person.
   const [composing, setComposing] = useState(false);
@@ -80,6 +83,31 @@ const MessagesDashboard: React.FC = () => {
     return () => clearInterval(interval);
   }, []);
 
+  useEffect(() => {
+    if (!menu) return;
+    menuRef.current?.querySelector('button')?.focus();
+    const close = (e: Event) => {
+      if (e.type === 'keydown' && (e as KeyboardEvent).key !== 'Escape') return;
+      if (e.type === 'mousedown' && menuRef.current?.contains(e.target as Node)) return;
+      setMenu(null);
+    };
+    document.addEventListener('mousedown', close);
+    document.addEventListener('keydown', close);
+    window.addEventListener('resize', close);
+    window.addEventListener('scroll', close, true);
+    return () => {
+      document.removeEventListener('mousedown', close);
+      document.removeEventListener('keydown', close);
+      window.removeEventListener('resize', close);
+      window.removeEventListener('scroll', close, true);
+    };
+  }, [menu]);
+
+  // Save the read state as soon as a chat opens, so the next refresh agrees.
+  useEffect(() => {
+    if (selectedId) markConversationRead(selectedId).then(refreshConversations);
+  }, [selectedId]);
+
   const archivedCount = conversations.filter((c) => c.isArchived).length;
   const filteredConversations = conversations.filter((chat) => chat.isArchived === showArchived).filter((chat) =>
     chat.participantName.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -96,23 +124,39 @@ const MessagesDashboard: React.FC = () => {
     ...otherPeople.map((p) => ({ key: `u-${p.id}`, name: p.name, role: p.role, detail: '' })),
   ].filter((r) => !tq || r.name.toLowerCase().includes(tq) || r.detail.toLowerCase().includes(tq) || r.role.toLowerCase().startsWith(tq));
 
-  // Archiving hides it from the inbox (until someone writes again); closes it here.
+  // Archiving hides it from the inbox (until someone writes again); closes it if open.
   const toggleArchived = async (chat: Conversation) => {
+    setMenu(null);
     setArchiveError(null);
     const result = await setConversationArchived(chat.id, !chat.isArchived);
     if (result.success) {
-      setSelectedId(null);
+      if (selectedId === chat.id) setSelectedId(null);
       await refreshConversations();
     } else {
       setArchiveError(result.error || "Couldn't update this conversation.");
     }
   };
 
+  const setRead = async (chat: Conversation, read: boolean) => {
+    setMenu(null);
+    setArchiveError(null);
+    // An open chat keeps marking itself read, so marking it unread closes it.
+    if (!read && selectedId === chat.id) setSelectedId(null);
+    setConversations((prev) => prev.map((c) => (c.id === chat.id ? { ...c, unreadCount: read ? 0 : Math.max(1, c.unreadCount) } : c)));
+    const result = read ? await markConversationRead(chat.id) : await markConversationUnread(chat.id);
+    if (!result.success) setArchiveError((result as { error?: string }).error || "Couldn't update this conversation.");
+    await refreshConversations();
+  };
+
+  // Opening a chat reads it: the highlight goes at once, before the next refresh.
   const openConversation = (id: string) => {
     setComposing(false);
     setDraft(null);
     setSelectedId(id);
+    setConversations((prev) => prev.map((c) => (c.id === id ? { ...c, unreadCount: 0 } : c)));
   };
+
+  const menuChat = menu ? conversations.find((c) => c.id === menu.id) ?? null : null;
 
   const startComposing = () => {
     setSelectedId(null);
@@ -190,12 +234,22 @@ const MessagesDashboard: React.FC = () => {
             {filteredConversations.length > 0 ? (
               filteredConversations.map((chat) => {
                 const isSelected = chat.id === selectedId;
+                const isUnread = chat.unreadCount > 0;
                 return (
                   <button
                     key={chat.id}
                     onClick={() => openConversation(chat.id)}
+                    onContextMenu={(e) => {
+                      e.preventDefault();
+                      // Keyboard (context-menu key) gives no pointer position; use the row's.
+                      const box = e.currentTarget.getBoundingClientRect();
+                      const x = e.clientX || box.left + 24;
+                      const y = e.clientY || box.top + 24;
+                      setMenu({ x: Math.min(x, window.innerWidth - 220), y: Math.min(y, window.innerHeight - 140), id: chat.id });
+                    }}
+                    aria-label={`${chat.participantName}, ${chat.participantRole}${isUnread ? `, ${chat.unreadCount} unread` : ''}. Right-click for options.`}
                     className={`w-full text-left p-4 flex items-start gap-3 transition-colors ${
-                      isSelected ? 'bg-slate-50' : 'hover:bg-slate-50/60'
+                      isSelected ? 'bg-slate-100' : isUnread ? 'bg-blue-100/70 hover:bg-blue-100 shadow-[inset_4px_0_0_var(--color-blue-600)]' : 'hover:bg-slate-50'
                     }`}
                   >
                     {/* Avatar Badge Container */}
@@ -214,7 +268,7 @@ const MessagesDashboard: React.FC = () => {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-start justify-between gap-2">
                         <div>
-                          <h4 className="font-semibold text-slate-900 truncate text-sm leading-tight">
+                          <h4 className={`truncate text-sm leading-tight text-slate-900 ${isUnread ? 'font-bold' : 'font-semibold'}`}>
                             {chat.participantName}
                           </h4>
                           <span className="text-xs text-slate-500 font-medium">
@@ -230,7 +284,7 @@ const MessagesDashboard: React.FC = () => {
                         )}
                       </div>
 
-                      <p className="text-xs text-slate-600 mt-1.5 line-clamp-2 leading-relaxed">
+                      <p className={`text-xs mt-1.5 line-clamp-2 leading-relaxed ${isUnread ? 'text-ink font-semibold' : 'text-slate-600'}`}>
                         {chat.lastMessage || "No messages yet"}
                       </p>
 
@@ -264,16 +318,6 @@ const MessagesDashboard: React.FC = () => {
             getMessages={getMessages}
             markConversationRead={markConversationRead}
             sendMessage={sendMessage}
-            headerActions={
-              <button
-                type="button"
-                onClick={() => toggleArchived(selectedConversation)}
-                className="inline-flex items-center gap-1.5 px-3 min-h-9 rounded-full text-[13px] text-slate-600 hover:text-ink hover:bg-slate-100 transition-colors shrink-0"
-              >
-                {selectedConversation.isArchived ? <ArchiveRestore size={16} /> : <Archive size={16} />}
-                {selectedConversation.isArchived ? 'Move to inbox' : 'Archive'}
-              </button>
-            }
           />
         ) : draft ? (
           <ConversationPanel
@@ -368,6 +412,22 @@ const MessagesDashboard: React.FC = () => {
 
       </div>
 
+      {menu && menuChat && (
+        <div ref={menuRef} role="menu" aria-label={`Options for ${menuChat.participantName}`}
+          style={{ left: menu.x, top: menu.y }}
+          className="fixed z-50 w-52 py-1.5 bg-sheet border border-rule rounded-xl shadow-lg">
+          <button role="menuitem" type="button" onClick={() => setRead(menuChat, menuChat.unreadCount > 0)}
+            className="w-full flex items-center gap-2.5 px-3.5 min-h-10 text-left text-[14px] text-ink hover:bg-slate-100 focus:bg-slate-100 focus:outline-none">
+            {menuChat.unreadCount > 0 ? <MailOpen size={16} className="text-slate-500" /> : <Mail size={16} className="text-slate-500" />}
+            {menuChat.unreadCount > 0 ? 'Mark as read' : 'Mark as unread'}
+          </button>
+          <button role="menuitem" type="button" onClick={() => toggleArchived(menuChat)}
+            className="w-full flex items-center gap-2.5 px-3.5 min-h-10 text-left text-[14px] text-ink hover:bg-slate-100 focus:bg-slate-100 focus:outline-none">
+            {menuChat.isArchived ? <ArchiveRestore size={16} className="text-slate-500" /> : <Archive size={16} className="text-slate-500" />}
+            {menuChat.isArchived ? 'Move to inbox' : 'Archive'}
+          </button>
+        </div>
+      )}
     </div>
   );
 };

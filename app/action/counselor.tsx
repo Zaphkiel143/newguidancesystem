@@ -1181,6 +1181,24 @@ export async function sendMessage(formData: { conversationId: string; content: s
   }
 }
 
+// "Mark as unread": the latest message from the other person counts as new again.
+export async function markConversationUnread(conversationId: string) {
+  try {
+    await counselorOnly();
+    const latest = await db.message.findFirst({
+      where: { conversationId, senderRole: { not: "Counselor" } },
+      orderBy: { createdAt: "desc" },
+      select: { id: true },
+    });
+    if (!latest) return { success: false, error: "There's nothing from them to mark as unread." };
+    await db.message.update({ where: { id: latest.id }, data: { readAt: null } });
+    return { success: true };
+  } catch (error) {
+    console.error("Failed to mark conversation unread:", error);
+    return { success: false, error: "Couldn't update this conversation. Try again." };
+  }
+}
+
 // Archiving only tidies the Guidance Associate's inbox; nothing is deleted
 // and the other person still sees the conversation.
 export async function setConversationArchived(conversationId: string, archived: boolean) {
