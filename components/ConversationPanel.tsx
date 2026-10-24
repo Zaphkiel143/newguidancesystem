@@ -3,6 +3,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { ArrowUp, Loader2, Trash2 } from "lucide-react";
 import type { Message as DbMessage } from "../lib/generated";
+import Link from "next/link";
 import InlineError from "./InlineError";
 
 interface ConversationPanelProps {
@@ -13,6 +14,8 @@ interface ConversationPanelProps {
   subtitle?: string;
   // The other person's profile photo; their initials show without one.
   avatarUrl?: string | null;
+  // Where clicking their name or photo leads (a student's Individual Inventory record).
+  profileHref?: string | null;
   onMessageSent?: () => void;
   getMessages: (conversationId: string) => Promise<DbMessage[]>;
   markConversationRead: (conversationId: string) => Promise<{ success: boolean }>;
@@ -34,6 +37,7 @@ export default function ConversationPanel({
   title,
   subtitle,
   avatarUrl,
+  profileHref,
   onMessageSent,
   getMessages,
   markConversationRead,
@@ -75,8 +79,12 @@ export default function ConversationPanel({
     };
   }, [conversationId, getMessages, markConversationRead]);
 
+  // Opens at the latest message straight away; new messages after that glide in.
+  const hasScrolled = useRef(false);
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    if (messages.length === 0) return;
+    bottomRef.current?.scrollIntoView({ behavior: hasScrolled.current ? "smooth" : "auto", block: "end" });
+    hasScrolled.current = true;
   }, [messages.length]);
 
   const handleSend = async (e: React.FormEvent) => {
@@ -121,18 +129,33 @@ export default function ConversationPanel({
   return (
     <div className="flex-1 flex flex-col bg-paper h-full min-h-0">
       <div className="px-6 py-4 border-b border-rule shrink-0 flex items-center gap-3">
-        {avatarUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element -- private, session-checked photo route
-          <img src={avatarUrl} alt="" className="w-9 h-9 rounded-full object-cover bg-slate-200" />
-        ) : (
-          <span className="w-9 h-9 rounded-md bg-slate-200 text-slate-700 grid place-items-center text-xs font-semibold">
-            {initials}
-          </span>
-        )}
-        <div className="leading-tight flex-1 min-w-0">
-          <h3 className="font-medium text-ink text-[15px]">{title}</h3>
-          {subtitle && <p className="text-[12px] text-slate-500 mt-0.5">{subtitle}</p>}
-        </div>
+        {(() => {
+          const who = (
+            <>
+              {avatarUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element -- private, session-checked photo route
+                <img src={avatarUrl} alt="" className="w-9 h-9 rounded-full object-cover bg-slate-200 shrink-0" />
+              ) : (
+                <span className="w-9 h-9 rounded-full bg-blue-100 text-blue-800 grid place-items-center text-xs font-semibold shrink-0">
+                  {initials}
+                </span>
+              )}
+              <span className="leading-tight min-w-0">
+                <span className={`block font-medium text-ink text-[15px] ${profileHref ? "group-hover:underline underline-offset-2" : ""}`}>{title}</span>
+                {subtitle && <span className="block text-[12px] text-slate-500 mt-0.5">{subtitle}</span>}
+              </span>
+            </>
+          );
+          return profileHref ? (
+            <div className="flex-1 min-w-0">
+              <Link href={profileHref} title={`Open ${title}'s profile in Individual Inventory`} className="group inline-flex items-center gap-3 max-w-full rounded-lg -m-1 p-1 hover:bg-slate-100">
+                {who}
+              </Link>
+            </div>
+          ) : (
+            <div className="flex-1 min-w-0 flex items-center gap-3">{who}</div>
+          );
+        })()}
         {headerActions}
         {deleteConversation && (
           <button
@@ -153,13 +176,15 @@ export default function ConversationPanel({
         </div>
       )}
 
-      <div className="flex-1 overflow-y-auto px-6 py-6 space-y-4 min-h-0">
+      <div className="flex-1 overflow-y-auto px-6 py-6 flex flex-col gap-4 min-h-0">
+        {/* Pushes a short conversation down to the reply box, like a chat app. */}
+        <div aria-hidden className="mt-auto" />
         {isLoading ? (
-          <div className="h-full flex items-center justify-center text-slate-500">
+          <div className="flex-1 flex items-center justify-center text-slate-500">
             <Loader2 className="animate-spin" size={20} />
           </div>
         ) : messages.length === 0 ? (
-          <div className="h-full flex items-center justify-center text-[14px] text-slate-500">
+          <div className="flex-1 flex items-center justify-center text-[14px] text-slate-500">
             No messages yet.
           </div>
         ) : (

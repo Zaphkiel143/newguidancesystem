@@ -1045,6 +1045,12 @@ export async function listConversations() {
     ]);
     const archivedAt = new Map(archives.map((a) => [a.conversationId, a.archivedAt.getTime()]));
     const avatars = await participantAvatars(conversations);
+    // Students' Individual Inventory records, so their name opens their profile.
+    const studentNames = Array.from(new Set(conversations.filter((c) => c.participantRole === "Student").map((c) => c.participantName)));
+    const profiles = studentNames.length
+      ? await db.studentProfile.findMany({ where: { name: { in: studentNames } }, select: { id: true, name: true } })
+      : [];
+    const profileFor = new Map(profiles.map((p) => [p.name, p.id]));
 
     return await Promise.all(
       conversations.map(async (c) => {
@@ -1065,6 +1071,10 @@ export async function listConversations() {
           // A message after archiving brings it back to the inbox.
           isArchived: archived !== undefined && lastMessageAt.getTime() <= archived,
           avatarUrl: avatars.get(`${c.participantRole}|${c.participantName}`) ?? null,
+          profileUrl:
+            c.participantRole === "Student" && profileFor.has(c.participantName)
+              ? `/inventory?student=${encodeURIComponent(profileFor.get(c.participantName)!)}`
+              : null,
         };
       })
     );

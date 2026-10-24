@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from 'react';
-import { Archive, ArchiveRestore, Search, MessageSquare, User, X } from 'lucide-react';
+import { Archive, ArchiveRestore, Search, MessageSquare, X } from 'lucide-react';
 import { listConversations, startConversation, getMessages, markConversationRead, sendMessage, deleteConversation, listStudentProfiles, setConversationArchived } from '../../action/counselor';
 import ConversationPanel from '../../../components/ConversationPanel';
 import InlineError from '../../../components/InlineError';
@@ -18,9 +18,15 @@ interface Conversation {
   unreadCount: number;
   isArchived: boolean;
   avatarUrl: string | null;
+  profileUrl: string | null;
 }
 
 type StudentProfile = Awaited<ReturnType<typeof listStudentProfiles>>[number];
+
+// "Jeron Abanes" -> "JA"; the picture for people without a profile photo.
+function initialsOf(name: string) {
+  return name.split(/\s+/).filter(Boolean).slice(0, 2).map((part) => part[0]?.toUpperCase()).join("") || "?";
+}
 
 const MessagesDashboard: React.FC = () => {
   const me = useCurrentUser();
@@ -184,8 +190,8 @@ const MessagesDashboard: React.FC = () => {
                         // eslint-disable-next-line @next/next/no-img-element -- private, session-checked photo route
                         <img src={chat.avatarUrl} alt="" className="w-10 h-10 rounded-full object-cover border border-slate-200 bg-slate-100" />
                       ) : (
-                        <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 border border-slate-200">
-                          <User className="w-5 h-5" />
+                        <div aria-hidden className="w-10 h-10 rounded-full bg-blue-100 text-blue-800 grid place-items-center text-[13px] font-semibold border border-blue-200">
+                          {initialsOf(chat.participantName)}
                         </div>
                       )}
                     </div>
@@ -239,6 +245,7 @@ const MessagesDashboard: React.FC = () => {
             title={selectedConversation.participantName}
             subtitle={selectedConversation.participantRole}
             avatarUrl={selectedConversation.avatarUrl}
+            profileHref={selectedConversation.profileUrl}
             onMessageSent={refreshConversations}
             getMessages={getMessages}
             markConversationRead={markConversationRead}
