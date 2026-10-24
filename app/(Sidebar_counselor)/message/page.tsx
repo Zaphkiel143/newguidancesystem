@@ -40,8 +40,9 @@ const MessagesDashboard: React.FC = () => {
   const [startError, setStartError] = useState<string | null>(null);
   const [newName, setNewName] = useState('');
   const [newRole, setNewRole] = useState<'Student' | 'Faculty' | 'Parent'>('Student');
-  const [newContent, setNewContent] = useState('');
-  const [isStarting, setIsStarting] = useState(false);
+  // A chat with someone who has no conversation yet; it's created when the first message is sent.
+  const [draft, setDraft] = useState<{ name: string; role: 'Student' | 'Faculty' | 'Parent' } | null>(null);
+  const startedId = useRef<string | null>(null);
   const [studentProfiles, setStudentProfiles] = useState<StudentProfile[]>([]);
   const [studentQuery, setStudentQuery] = useState('');
 
@@ -97,31 +98,33 @@ const MessagesDashboard: React.FC = () => {
     }
   };
 
-  const handleStartConversation = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newName.trim() || !newContent.trim()) return;
-
-    setIsStarting(true);
-    setStartError(null);
-    const result = await startConversation({
-      participantName: newName.trim(),
-      participantRole: newRole,
-      content: newContent.trim(),
-    });
-    setIsStarting(false);
-
-    if (result.success && result.conversation) {
-      setIsNewMessageOpen(false);
-      setNewName('');
-      setStudentQuery('');
-      setNewContent('');
-      setNewRole('Student');
-      await refreshConversations();
-      setSelectedId(result.conversation.id);
-    } else {
-      setStartError(`Couldn't send this message: ${result.error || "unknown error"}.`);
-    }
+  const openConversation = (id: string) => {
+    setDraft(null);
+    setSelectedId(id);
   };
+
+  // Opens the chat with this person: their existing conversation (archived or
+  // not), or an empty one that is saved once the first message is sent.
+  const handleOpenChat = (e: React.FormEvent) => {
+    e.preventDefault();
+    const name = newName.trim();
+    if (!name) return;
+    const existing = conversations.find((c) => c.participantRole === newRole && c.participantName.toLowerCase() === name.toLowerCase());
+    if (existing) {
+      setShowArchived(existing.isArchived);
+      openConversation(existing.id);
+    } else {
+      setSelectedId(null);
+      setShowArchived(false);
+      setDraft({ name, role: newRole });
+    }
+    setIsNewMessageOpen(false);
+    setNewName('');
+    setStudentQuery('');
+    setNewRole('Student');
+  };
+
+  const draftProfile = draft?.role === 'Student' ? studentProfiles.find((s) => s.name === draft.name) : undefined;
 
   return (
     <div className="fill-screen flex flex-col h-[calc(100dvh-var(--topbar-h)-var(--footer-h))] bg-paper font-sans antialiased text-slate-800">
@@ -179,7 +182,7 @@ const MessagesDashboard: React.FC = () => {
                 return (
                   <button
                     key={chat.id}
-                    onClick={() => setSelectedId(chat.id)}
+                    onClick={() => openConversation(chat.id)}
                     className={`w-full text-left p-4 flex items-start gap-3 transition-colors ${
                       isSelected ? 'bg-slate-50' : 'hover:bg-slate-50/60'
                     }`}
@@ -261,6 +264,28 @@ const MessagesDashboard: React.FC = () => {
               </button>
             }
           />
+        ) : draft ? (
+          <ConversationPanel
+            key={`draft-${draft.role}-${draft.name}`}
+            conversationId="new"
+            viewerRole={me.roleLabel}
+            viewerName={me.name}
+            title={draft.name}
+            subtitle={draft.role}
+            profileHref={draftProfile ? `/inventory?student=${encodeURIComponent(draftProfile.id)}` : null}
+            getMessages={async () => []}
+            markConversationRead={async () => ({ success: true })}
+            sendMessage={async ({ content }) => {
+              const result = await startConversation({ participantName: draft.name, participantRole: draft.role, content });
+              if (result.success && result.conversation) startedId.current = result.conversation.id;
+              return result;
+            }}
+            onMessageSent={async () => {
+              await refreshConversations();
+              if (startedId.current) openConversation(startedId.current);
+              startedId.current = null;
+            }}
+          />
         ) : (
           <main className="flex-1 bg-white flex flex-col items-center justify-center p-8 select-none">
             <div className="text-center max-w-sm flex flex-col items-center">
@@ -297,7 +322,7 @@ const MessagesDashboard: React.FC = () => {
             <div className="flex items-start justify-between">
               <div>
                 <h3 className="text-lg font-semibold text-slate-900">New Message</h3>
-                <p className="text-xs text-slate-500">Start a conversation with a student, faculty member, or parent</p>
+                <p className="text-xs text-slate-500">Open a chat with a student, faculty member, or parent</p>
               </div>
               <button
                 onClick={() => setIsNewMessageOpen(false)}
@@ -307,7 +332,7 @@ const MessagesDashboard: React.FC = () => {
               </button>
             </div>
 
-            <form onSubmit={handleStartConversation} className="space-y-4">
+            <form onSubmit={handleOpenChat} className="space-y-4">
               <div className="space-y-1">
                 <label className="text-xs font-semibold text-slate-700">Recipient Role</label>
                 <select
@@ -363,17 +388,6 @@ const MessagesDashboard: React.FC = () => {
                 </div>
               )}
 
-              <div className="space-y-1">
-                <label className="text-xs font-semibold text-slate-700">Message</label>
-                <textarea
-                  required
-                  rows={3}
-                  value={newContent}
-                  onChange={(e) => setNewContent(e.target.value)}
-                  placeholder="Write your first message..."
-                  className="w-full text-sm bg-slate-50 border border-slate-200 rounded-xl p-3 focus:outline-none resize-none"
-                />
-              </div>
 
               <InlineError message={startError} onDismiss={() => setStartError(null)} />
 
@@ -387,10 +401,10 @@ const MessagesDashboard: React.FC = () => {
                 </button>
                 <button
                   type="submit"
-                  disabled={isStarting || !newName.trim()}
+                  disabled={!newName.trim()}
                   className="px-5 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 rounded-full transition"
                 >
-                  {isStarting ? "Sending..." : "Send Message"}
+                  Open chat
                 </button>
               </div>
             </form>

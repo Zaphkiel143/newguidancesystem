@@ -153,8 +153,9 @@ export default function ConversationPanel({
             <Loader2 className="animate-spin" size={20} />
           </div>
         ) : messages.length === 0 ? (
-          <div className="flex-1 flex items-center justify-center text-[14px] text-slate-500">
-            No messages yet.
+          <div className="flex-1 flex flex-col items-center justify-center text-center">
+            <p className="font-semibold text-ink text-[15px]">You&apos;re starting a new conversation</p>
+            <p className="text-[14px] text-slate-500 mt-2">Type your first message below.</p>
           </div>
         ) : (
           messages.map((m) => {

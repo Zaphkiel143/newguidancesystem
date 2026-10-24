@@ -1117,9 +1117,14 @@ async function participantAvatars(conversations: { participantName: string; part
 export async function startConversation(formData: { participantName: string; participantRole: string; content: string }) {
   try {
     const me = await counselorOnly();
-    const conversation = await db.conversation.create({
-      data: { participantName: formData.participantName, participantRole: formData.participantRole },
-    });
+    const conversation =
+      (await db.conversation.findFirst({
+        where: { participantName: formData.participantName, participantRole: formData.participantRole },
+        orderBy: { createdAt: "asc" },
+      })) ??
+      (await db.conversation.create({
+        data: { participantName: formData.participantName, participantRole: formData.participantRole },
+      }));
 
     await db.message.create({
       data: { conversationId: conversation.id, senderRole: "Counselor", senderName: me.name, content: formData.content },
