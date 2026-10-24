@@ -35,6 +35,7 @@ export interface MenuItem {
 export const navigationConfig: Record<string, MenuItem[]> = {
 faculty: [
     { name: 'Dashboard', icon: LayoutDashboard, path: '/faculty_dashboard' },
+    { name: 'E-Gabay Chatbot', icon: Sparkles, path: '/faculty_chat' },
     { name: 'Submit Referral', icon: Send, path: '/submit_referral' },
     { name: 'My Referrals', icon: FileText, path: '/faculty_myreferral'},
     { name: 'My Appointments', icon: Calendar, path: '/faculty_appointment'},

@@ -5,7 +5,7 @@ import { ArrowLeft, ArrowRight, BookOpen, Heart, Loader2, Users } from 'lucide-r
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { login, loginAsDemo, registerParent, requestLoginCode, verifyLoginCode, type SignInAs } from '../action/auth';
-import { SCHOOL_EMAIL_DOMAIN } from '../config/school';
+import { SCHOOL_EMAIL_DOMAIN, roleFromSchoolEmail } from '../config/school';
 import { LogoMark } from '../../components/Logo';
 import { signInWithTotp } from '../action/totp';
 import { checkLoginApproval, requestLoginApproval } from '../action/loginApproval';
@@ -239,6 +239,9 @@ const LoginPage = () => {
     if (result.success) {
       finishLogin(result);
     } else if ("needsDetails" in result) {
+      // The email's format already says student or faculty (guidance staff keep their own door).
+      const fromEmail = roleFromSchoolEmail(email);
+      if (fromEmail && signInAs !== "COUNSELOR") setSignInAs(fromEmail);
       go("details");
     } else if ("pending" in result) {
       setWaitingMessage(result.message);
@@ -408,7 +411,7 @@ const LoginPage = () => {
           <LogoMark size={36} tone="light" className="shrink-0" />
           <span className="font-semibold text-[17px] tracking-tight">E-Gabay</span>
           <span aria-hidden className="hidden sm:block w-px h-5 bg-white/30" />
-          <span className="hidden sm:block text-[13px] text-white/80">Guidance and Counseling Office</span>
+          <span className="hidden sm:block text-[13px] text-white/85">Guidance and Counseling Office · <span className="font-medium text-white">STI College Sta. Maria</span></span>
         </div>
       </header>
 
@@ -531,7 +534,12 @@ const LoginPage = () => {
                 ) : (
                   <div className="space-y-4">
                     {nameFields}
-                    {signInAs !== "COUNSELOR" && (
+                    {signInAs !== "COUNSELOR" && roleFromSchoolEmail(email) && (
+                      <p className="text-[13px] text-slate-600 bg-blue-50 border border-blue-100 rounded-lg px-3 py-2">
+                        From your school email, you&apos;re signing in as {signInAs === "STUDENT" ? "a student" : "faculty or staff"}.
+                      </p>
+                    )}
+                    {signInAs !== "COUNSELOR" && !roleFromSchoolEmail(email) && (
                       <fieldset>
                         <legend className={labelClass}>I am a</legend>
                         <div className="grid grid-cols-2 gap-2">

@@ -12,7 +12,7 @@ import { getOptionList } from "./optionLists";
 import { optionValue } from "../../lib/optionListDefaults";
 import { allow, clientIp, HOUR, MINUTE } from "../../lib/rateLimit";
 import type { UserRole } from "../../lib/generated";
-import { SCHOOL_EMAIL_DOMAIN } from "../config/school";
+import { SCHOOL_EMAIL_DOMAIN, roleFromSchoolEmail } from "../config/school";
 import { gradeSectionLabel, isShs } from "../config/studentLevels";
 import { logActivity } from "../../lib/activityLog";
 import { ROLE_LABEL } from "../../lib/session";
@@ -265,13 +265,19 @@ async function createSchoolAccount(
   const existingProfile = await db.studentProfile.findFirst({ where: { email } });
   const isListedCounselor = counselorEmailList().includes(email);
 
+  // The email's format settles student vs faculty when it can (see
+  // roleFromSchoolEmail); guidance staff use faculty-style emails, so they can
+  // still ask for a guidance account.
+  const fromEmail = roleFromSchoolEmail(email);
   const role: UserRole = isListedCounselor
     ? "COUNSELOR"
-    : existingProfile
+    : existingProfile || fromEmail === "STUDENT"
       ? "STUDENT"
-      : formData.signInAs === "FACULTY" || formData.signInAs === "COUNSELOR"
-        ? formData.signInAs
-        : "STUDENT";
+      : fromEmail === "FACULTY"
+        ? formData.signInAs === "COUNSELOR" ? "COUNSELOR" : "FACULTY"
+        : formData.signInAs === "FACULTY" || formData.signInAs === "COUNSELOR"
+          ? formData.signInAs
+          : "STUDENT";
 
   const name = existingProfile?.name ?? cleanName(formData.fullName);
   const needsStudentDetails = role === "STUDENT" && !existingProfile;

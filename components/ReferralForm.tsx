@@ -15,6 +15,9 @@ import {
   yearSectionsFor,
 } from "../app/config/studentLevels";
 import { lookupStudentForReferral } from "../app/action/referralLookup";
+import { STAFF_DEPARTMENTS } from "../app/config/staff";
+import { capitalizeName } from "../app/config/collegeCareerForm";
+import { nameChars } from "../lib/parentSignup";
 import { optionValue } from "../lib/optionListDefaults";
 import { useOptionList } from "./useOptionList";
 
@@ -43,6 +46,10 @@ interface Props {
 const NEEDS_DATE = "Before this date";
 
 const EMPTY = {
+  // Faculty may refer a student or a co-teacher / staff member.
+  subject: "student" as "student" | "staff",
+  staffDepartment: "",
+  staffPosition: "",
   studentName: "",
   studentId: "",
   department: SHS as string,
@@ -89,6 +96,7 @@ export default function ReferralForm({ mode, onSubmit, myReferralsPath }: Props)
 
   const set = (patch: Partial<typeof EMPTY>) => setF((prev) => ({ ...prev, ...patch }));
   const isShs = f.department === SHS;
+  const isStaff = mode === "faculty" && f.subject === "staff";
   const collegeSection = f.sectionCode && f.yearSection ? `${f.sectionCode} ${f.yearSection}` : "";
 
   // A full student ID that's in the school records fills in the rest.
@@ -119,20 +127,30 @@ export default function ReferralForm({ mode, onSubmit, myReferralsPath }: Props)
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (f.studentId && !isStudentId(f.studentId)) return setError(`A student ID has ${STUDENT_ID_DIGITS} digits.`);
-    if (!isShs && Boolean(f.sectionCode) !== Boolean(f.yearSection)) return setError("Choose both parts of the section, or leave both empty.");
+    if (isStaff && !f.staffDepartment) return setError("Choose their department or office.");
+    if (!isStaff && f.studentId && !isStudentId(f.studentId)) return setError(`A student ID has ${STUDENT_ID_DIGITS} digits.`);
+    if (!isStaff && !isShs && Boolean(f.sectionCode) !== Boolean(f.yearSection)) return setError("Choose both parts of the section, or leave both empty.");
     if (f.concern === OTHER && !f.concernOther.trim()) return setError("Tell us what the concern is.");
     if (mode !== "parent" && f.priority === NEEDS_DATE && !f.priorityDate) return setError("Choose the date it's needed by.");
     setSaving(true);
     setError(null);
     setDone(false);
 
+    const who = isStaff
+      ? [
+          "Referred: a co-teacher / staff member",
+          `Department / office: ${f.staffDepartment}`,
+          f.staffPosition.trim() && `Position: ${f.staffPosition.trim()}`,
+        ]
+      : [
+          f.studentId.trim() && `Student ID: ${f.studentId.trim()}`,
+          `Level: ${f.department}`,
+          f.yearLevel && `${isShs ? "Grade" : "Year level"}: ${f.yearLevel}`,
+          f.program && `${isShs ? "Strand" : "Course"}: ${f.program}`,
+          (isShs ? f.section.trim() : collegeSection) && `Section: ${isShs ? f.section.trim() : collegeSection}`,
+        ];
     const details = [
-      f.studentId.trim() && `Student ID: ${f.studentId.trim()}`,
-      `Level: ${f.department}`,
-      f.yearLevel && `${isShs ? "Grade" : "Year level"}: ${f.yearLevel}`,
-      f.program && `${isShs ? "Strand" : "Course"}: ${f.program}`,
-      (isShs ? f.section.trim() : collegeSection) && `Section: ${isShs ? f.section.trim() : collegeSection}`,
+      ...who,
       f.observed.trim() && `Observed behaviors: ${f.observed.trim()}`,
       mode !== "parent" && f.priority === NEEDS_DATE && f.priorityDate && `Needed by: ${f.priorityDate}`,
       mode === "parent" && f.contactTime.trim() && `Best time to contact me: ${f.contactTime.trim()}`,
@@ -164,76 +182,115 @@ export default function ReferralForm({ mode, onSubmit, myReferralsPath }: Props)
         </p>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <label htmlFor="ref-id" className={label}>Student ID <span className="font-normal text-slate-500">(if you know it)</span></label>
-          <input id="ref-id" className={input} value={f.studentId} inputMode="numeric" placeholder="02000123456"
-            aria-describedby="ref-id-hint" onChange={(e) => changeStudentId(e.target.value)} />
-          <p id="ref-id-hint" className="text-[12px] text-slate-500 mt-1">
-            Numbers only, {STUDENT_ID_DIGITS} digits.{mode !== "parent" && " If the student is in the school records, the rest fills in for you."}
-          </p>
-        </div>
-        <div>
-          <label htmlFor="ref-name" className={label}>Student&apos;s full name{req}</label>
-          <input id="ref-name" className={input} value={f.studentName} maxLength={120} required placeholder="e.g. Juan A. Dela Cruz"
-            onChange={(e) => set({ studentName: e.target.value })} />
-        </div>
-      </div>
-      {foundNote && (
-        <p role="status" className="-mt-2 text-[13px] text-emerald-700">{foundNote}</p>
+      {mode === "faculty" && (
+        <fieldset>
+          <legend className={label}>Who are you referring?{req}</legend>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-w-xl">
+            {([["student", "A student"], ["staff", "A co-teacher or staff member"]] as const).map(([value, text]) => (
+              <label key={value} className={`flex items-center gap-2 rounded-lg border px-3 min-h-11 cursor-pointer text-[14px] ${f.subject === value ? "border-blue-600 bg-blue-50" : "border-slate-300"}`}>
+                <input type="radio" name="ref-subject" className="accent-blue-700" checked={f.subject === value}
+                  onChange={() => { set({ subject: value }); setFoundNote(null); }} />
+                {text}
+              </label>
+            ))}
+          </div>
+        </fieldset>
       )}
 
-      <fieldset>
-        <legend className={label}>Level{req}</legend>
-        <div className="grid grid-cols-2 gap-2 max-w-md">
-          {departments.map((d) => {
-            const value = optionValue(d);
-            return (
-              <label key={d.id} className={`flex items-center gap-2 rounded-lg border px-3 min-h-11 cursor-pointer text-[14px] ${f.department === value ? "border-blue-600 bg-blue-50" : "border-slate-300"}`}>
-                <input type="radio" name="ref-dept" className="accent-blue-700" checked={f.department === value}
-                  onChange={() => set({ department: value, yearLevel: "", program: "", section: "", sectionCode: "", yearSection: "" })} />
-                {d.label}
-              </label>
-            );
-          })}
+      {isStaff ? (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div>
+            <label htmlFor="ref-staff-name" className={label}>Full name{req}</label>
+            <input id="ref-staff-name" className={input} value={f.studentName} maxLength={120} required placeholder="e.g. Maria L. Santos"
+              onChange={(e) => set({ studentName: capitalizeName(nameChars(e.target.value)) })} />
+          </div>
+          <div>
+            <label htmlFor="ref-staff-dept" className={label}>Department / office{req}</label>
+            <select id="ref-staff-dept" className={input} value={f.staffDepartment} required onChange={(e) => set({ staffDepartment: e.target.value })}>
+              <option value="" disabled>Choose…</option>
+              {STAFF_DEPARTMENTS.map((d) => <option key={d} value={d}>{d}</option>)}
+            </select>
+          </div>
+          <div>
+            <label htmlFor="ref-staff-position" className={label}>Position <span className="font-normal text-slate-500">(if known)</span></label>
+            <input id="ref-staff-position" className={input} value={f.staffPosition} maxLength={80} placeholder="e.g. Instructor, Librarian"
+              onChange={(e) => set({ staffPosition: e.target.value })} />
+          </div>
         </div>
-      </fieldset>
-
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div>
-          <label htmlFor="ref-year" className={label}>{isShs ? "Grade" : "Year level"}{req}</label>
-          <select id="ref-year" className={input} value={f.yearLevel} required onChange={(e) => set({ yearLevel: e.target.value, yearSection: "" })}>
-            <option value="" disabled>Choose…</option>
-            {(isShs ? shsGrades : tertiaryYears).map((y) => <option key={y.id} value={optionValue(y)}>{y.label}</option>)}
-          </select>
-        </div>
-        <div>
-          <label htmlFor="ref-program" className={label}>{isShs ? "Strand" : "Course"} <span className="font-normal text-slate-500">(if known)</span></label>
-          <select id="ref-program" className={input} value={f.program}
-            onChange={(e) => set({ program: e.target.value, ...(isShs ? {} : { sectionCode: sectionCodeForCourse(e.target.value) || f.sectionCode }) })}>
-            <option value="">Not sure</option>
-            {(isShs ? shsStrands : tertiaryCourses).map((p) => <option key={p.id} value={optionValue(p)}>{p.label}</option>)}
-          </select>
-        </div>
-        <div>
-          <label htmlFor="ref-section" className={label}>Section <span className="font-normal text-slate-500">(if known)</span></label>
-          {isShs ? (
-            <input id="ref-section" className={input} value={f.section} maxLength={30} placeholder="e.g. STEM-A" onChange={(e) => set({ section: e.target.value })} />
-          ) : (
-            <div className="grid grid-cols-2 gap-2">
-              <select id="ref-section" aria-label="Section program" className={input} value={f.sectionCode} onChange={(e) => set({ sectionCode: e.target.value })}>
-                <option value="">Program</option>
-                {SECTION_PROGRAMS.map((p) => <option key={p} value={p}>{p}</option>)}
-              </select>
-              <select aria-label="Year and section" className={input} value={f.yearSection} disabled={!f.yearLevel}
-                title={f.yearLevel ? undefined : "Choose the year level first."} onChange={(e) => set({ yearSection: e.target.value })}>
-                <option value="">{f.yearLevel ? "Section" : "Year first"}</option>
-                {yearSectionsFor(f.yearLevel).map((s) => <option key={s} value={s}>{s}</option>)}
+      ) : (
+        <>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label htmlFor="ref-id" className={label}>Student ID <span className="font-normal text-slate-500">(if you know it)</span></label>
+              <input id="ref-id" className={input} value={f.studentId} inputMode="numeric" placeholder="02000123456"
+                aria-describedby="ref-id-hint" onChange={(e) => changeStudentId(e.target.value)} />
+              <p id="ref-id-hint" className="text-[12px] text-slate-500 mt-1">
+                Numbers only, {STUDENT_ID_DIGITS} digits.{mode !== "parent" && " If the student is in the school records, the rest fills in for you."}
+              </p>
+            </div>
+            <div>
+              <label htmlFor="ref-name" className={label}>Student&apos;s full name{req}</label>
+              <input id="ref-name" className={input} value={f.studentName} maxLength={120} required placeholder="e.g. Juan A. Dela Cruz"
+                onChange={(e) => set({ studentName: e.target.value })} />
+            </div>
+          </div>
+          {foundNote && (
+            <p role="status" className="-mt-2 text-[13px] text-emerald-700">{foundNote}</p>
+          )}
+    
+          <fieldset>
+            <legend className={label}>Level{req}</legend>
+            <div className="grid grid-cols-2 gap-2 max-w-md">
+              {departments.map((d) => {
+                const value = optionValue(d);
+                return (
+                  <label key={d.id} className={`flex items-center gap-2 rounded-lg border px-3 min-h-11 cursor-pointer text-[14px] ${f.department === value ? "border-blue-600 bg-blue-50" : "border-slate-300"}`}>
+                    <input type="radio" name="ref-dept" className="accent-blue-700" checked={f.department === value}
+                      onChange={() => set({ department: value, yearLevel: "", program: "", section: "", sectionCode: "", yearSection: "" })} />
+                    {d.label}
+                  </label>
+                );
+              })}
+            </div>
+          </fieldset>
+    
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div>
+              <label htmlFor="ref-year" className={label}>{isShs ? "Grade" : "Year level"}{req}</label>
+              <select id="ref-year" className={input} value={f.yearLevel} required onChange={(e) => set({ yearLevel: e.target.value, yearSection: "" })}>
+                <option value="" disabled>Choose…</option>
+                {(isShs ? shsGrades : tertiaryYears).map((y) => <option key={y.id} value={optionValue(y)}>{y.label}</option>)}
               </select>
             </div>
-          )}
-        </div>
-      </div>
+            <div>
+              <label htmlFor="ref-program" className={label}>{isShs ? "Strand" : "Course"} <span className="font-normal text-slate-500">(if known)</span></label>
+              <select id="ref-program" className={input} value={f.program}
+                onChange={(e) => set({ program: e.target.value, ...(isShs ? {} : { sectionCode: sectionCodeForCourse(e.target.value) || f.sectionCode }) })}>
+                <option value="">Not sure</option>
+                {(isShs ? shsStrands : tertiaryCourses).map((p) => <option key={p.id} value={optionValue(p)}>{p.label}</option>)}
+              </select>
+            </div>
+            <div>
+              <label htmlFor="ref-section" className={label}>Section <span className="font-normal text-slate-500">(if known)</span></label>
+              {isShs ? (
+                <input id="ref-section" className={input} value={f.section} maxLength={30} placeholder="e.g. STEM-A" onChange={(e) => set({ section: e.target.value })} />
+              ) : (
+                <div className="grid grid-cols-2 gap-2">
+                  <select id="ref-section" aria-label="Section program" className={input} value={f.sectionCode} onChange={(e) => set({ sectionCode: e.target.value })}>
+                    <option value="">Program</option>
+                    {SECTION_PROGRAMS.map((p) => <option key={p} value={p}>{p}</option>)}
+                  </select>
+                  <select aria-label="Year and section" className={input} value={f.yearSection} disabled={!f.yearLevel}
+                    title={f.yearLevel ? undefined : "Choose the year level first."} onChange={(e) => set({ yearSection: e.target.value })}>
+                    <option value="">{f.yearLevel ? "Section" : "Year first"}</option>
+                    {yearSectionsFor(f.yearLevel).map((s) => <option key={s} value={s}>{s}</option>)}
+                  </select>
+                </div>
+              )}
+            </div>
+          </div>
+        </>
+      )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>

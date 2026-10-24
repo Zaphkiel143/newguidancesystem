@@ -11,6 +11,10 @@ import { announceNewReferral, checkReferral } from "../../lib/referrals";
 import { checkDocument } from "../../lib/documents";
 import { notifyCounselors } from "../../lib/notify";
 import { logActivity } from "../../lib/activityLog";
+import { normalizePhone } from "../../lib/phone";
+import { cleanName, isNameText, isPhMobileInput } from "../../lib/parentSignup";
+import { STAFF_DEPARTMENTS } from "../config/staff";
+import { isDemoUser } from "../../lib/demo";
 
 // Every action here acts as the signed-in faculty member; names never come from the client.
 
@@ -304,5 +308,85 @@ export async function deleteDocument(id: string) {
   } catch (error) {
     console.error("[faculty] Failed to delete document:", error);
     return { success: false, error: String(error) };
+  }
+}
+
+// ---- My account: name, contact number, department ----
+
+// The department lives in StaffProfile. If that table isn't on the database
+// yet, the rest of the account still works and the department just shows
+// as not set.
+async function readDepartment(userId: string) {
+  try {
+    return (await db.staffProfile.findUnique({ where: { userId } }))?.department ?? null;
+  } catch {
+    return null;
+  }
+}
+
+export async function getMyFacultyDetails() {
+  try {
+    const me = await requireActionUser("FACULTY");
+    return { name: me.name, phone: me.phone, department: await readDepartment(me.id), isDemo: isDemoUser(me) };
+  } catch (error) {
+    console.error("[faculty] Failed to load details:", error);
+    return null;
+  }
+}
+
+export async function updateMyFacultyDetails(formData: { name: string; phone: string; department: string }) {
+  try {
+    const me = await requireActionUser("FACULTY");
+    const name = cleanName(formData.name);
+    if (name.length < 3 || !name.includes(" ")) return { success: false, error: "Enter your first and last name." };
+    if (!isNameText(name) || name.length > 120) return { success: false, error: "Your name can only have letters." };
+    if (isDemoUser(me) && name !== me.name) return { success: false, error: "Demo accounts keep their name. You can still change the number and department." };
+
+    const rawPhone = formData.phone.trim();
+    if (rawPhone && !isPhMobileInput(rawPhone)) return { success: false, error: "Your contact number must be 09XXXXXXXXX or +639XXXXXXXXX, numbers only." };
+    const phone = rawPhone ? normalizePhone(rawPhone) : null;
+    if (phone && (await db.user.findFirst({ where: { phone, id: { not: me.id } }, select: { id: true } }))) {
+      return { success: false, error: "That contact number is already used by another account." };
+    }
+
+    const department = formData.department.trim();
+    if (department && !(STAFF_DEPARTMENTS as readonly string[]).includes(department)) return { success: false, error: "Choose your department from the list." };
+
+    // Records are linked by name, so a new name carries over to this faculty
+    // member's referrals, bookings, message thread, documents and chats.
+    const renames =
+      name === me.name
+        ? []
+        : [
+            db.referral.updateMany({ where: { referrerName: me.name, referrerRole: "Faculty" }, data: { referrerName: name } }),
+            db.appointment.updateMany({ where: { studentName: me.name, bookedByRole: "Faculty" }, data: { studentName: name } }),
+            db.appointment.updateMany({ where: { bookedByName: me.name, bookedByRole: "Faculty" }, data: { bookedByName: name } }),
+            db.conversation.updateMany({ where: { participantName: me.name, participantRole: "Faculty" }, data: { participantName: name } }),
+            db.message.updateMany({ where: { senderName: me.name, senderRole: "Faculty" }, data: { senderName: name } }),
+            db.document.updateMany({ where: { uploaderName: me.name, uploaderRole: "Faculty" }, data: { uploaderName: name } }),
+            db.aiConversation.updateMany({ where: { studentName: me.name }, data: { studentName: name } }),
+          ];
+    await db.$transaction([db.user.update({ where: { id: me.id }, data: { name, phone } }), ...renames]);
+
+    let departmentSaved = true;
+    try {
+      await db.staffProfile.upsert({
+        where: { userId: me.id },
+        create: { userId: me.id, department: department || null },
+        update: { department: department || null },
+      });
+    } catch (error) {
+      console.error("[faculty] Department not saved (StaffProfile table missing?):", error);
+      departmentSaved = false;
+    }
+
+    await logActivity({ ...me, name }, "Updated their account details", "User", me.id);
+    revalidatePath("/", "layout");
+    return departmentSaved
+      ? { success: true }
+      : { success: true, warning: "Your name and number were saved, but the department couldn't be saved yet. Please tell the guidance office." };
+  } catch (error) {
+    console.error("[faculty] Failed to update details:", error);
+    return { success: false, error: "Couldn't save your details. Try again." };
   }
 }

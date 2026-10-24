@@ -68,6 +68,7 @@ function Badge({ count }: { count: number }) {
 export function NoticeBell() {
   const { notices, refresh } = useNotices();
   const [open, setOpen] = useState(false);
+  const [viewing, setViewing] = useState<Notification | null>(null);
   const box = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
   const [lastPath, setLastPath] = useState(pathname);
@@ -75,6 +76,13 @@ export function NoticeBell() {
     setLastPath(pathname);
     setOpen(false);
   }
+
+  useEffect(() => {
+    if (!viewing) return;
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setViewing(null);
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [viewing]);
 
   useEffect(() => {
     if (!open) return;
@@ -128,31 +136,70 @@ export function NoticeBell() {
                       {!n.readAt && <span aria-label="Unread" className="mt-1.5 w-2 h-2 rounded-full bg-blue-600 shrink-0" />}
                       <span className="min-w-0">
                         <span className={`block text-[14px] ${n.readAt ? "text-slate-700" : "font-semibold text-ink"}`}>{n.title}</span>
-                        {n.body && <span className="block text-[13px] text-slate-600 mt-0.5 break-words">{n.body}</span>}
+                        {n.body && <span className="block text-[13px] text-slate-600 mt-0.5 break-words line-clamp-2">{n.body}</span>}
                         <span className="block text-[12px] text-slate-500 mt-1">{timeAgo(n.createdAt)}</span>
                       </span>
                     </span>
                   </>
                 );
+                // Opens the notification in a pop-up, where the whole message is easy to read.
                 const onOpen = () => {
                   if (!n.readAt) markNoticesRead([n.id]).then(refresh);
+                  setViewing(n);
+                  setOpen(false);
                 };
                 return (
                   <li key={n.id}>
-                    {n.href ? (
-                      <Link href={n.href} onClick={onOpen} className="block px-4 py-3 hover:bg-blue-50 transition-colors">
-                        {content}
-                      </Link>
-                    ) : (
-                      <button onClick={onOpen} className="w-full text-left px-4 py-3 hover:bg-blue-50 transition-colors">
-                        {content}
-                      </button>
-                    )}
+                    <button onClick={onOpen} className="w-full text-left px-4 py-3 hover:bg-blue-50 transition-colors">
+                      {content}
+                    </button>
                   </li>
                 );
               })}
             </ul>
           )}
+        </div>
+      )}
+
+      {viewing && (
+        <div className="fixed inset-0 z-[60] bg-black/40 grid place-items-center p-4" onClick={() => setViewing(null)}>
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="notice-title"
+            className="w-full max-w-md bg-sheet text-ink rounded-2xl p-6 shadow-xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-start gap-3">
+              <span className="w-10 h-10 rounded-full bg-blue-50 text-blue-700 grid place-items-center shrink-0" aria-hidden>
+                <Bell size={18} />
+              </span>
+              <div className="min-w-0 flex-1">
+                <h2 id="notice-title" className="text-[17px] font-semibold">
+                  {viewing.title}
+                </h2>
+                <p className="text-[12px] text-slate-500 mt-0.5">{timeAgo(viewing.createdAt)}</p>
+              </div>
+              <button type="button" onClick={() => setViewing(null)} aria-label="Close" className="w-10 h-10 -m-2 grid place-items-center rounded-full hover:bg-slate-100">
+                <X size={18} />
+              </button>
+            </div>
+            {viewing.body && <p className="mt-4 text-[14px] text-slate-700 whitespace-pre-line break-words">{viewing.body}</p>}
+            <div className="mt-6 flex flex-col-reverse sm:flex-row sm:justify-end gap-2">
+              <button type="button" autoFocus onClick={() => setViewing(null)} className="min-h-11 px-5 rounded-full border border-slate-300 text-[14px] hover:bg-slate-50">
+                Close
+              </button>
+              {viewing.href && (
+                <Link
+                  href={viewing.href}
+                  onClick={() => setViewing(null)}
+                  className="min-h-11 px-5 rounded-full bg-blue-700 hover:bg-blue-800 text-white text-[14px] font-medium inline-flex items-center justify-center"
+                >
+                  Open
+                </Link>
+              )}
+            </div>
+          </div>
         </div>
       )}
     </div>
@@ -169,7 +216,7 @@ export function FloatingDock({ messagesPath, withChatbot }: { messagesPath: stri
 
   // Not needed on the pages it would open.
   const onMessagesPage = pathname === messagesPath;
-  const onChatPage = pathname === "/ai_chat";
+  const onChatPage = pathname === "/ai_chat" || pathname === "/faculty_chat";
   if (onMessagesPage || onChatPage) return null;
 
   return (
@@ -181,7 +228,7 @@ export function FloatingDock({ messagesPath, withChatbot }: { messagesPath: stri
         >
           <header className="flex items-center justify-between px-4 py-3 bg-blue-700 text-white">
             <p className="font-semibold inline-flex items-center gap-2">
-              <Sparkles size={16} /> E-Gabay
+              <Sparkles size={16} /> E-Gabay Chatbot
             </p>
             <button onClick={() => setChatOpen(false)} aria-label="Close chat" className="w-9 h-9 grid place-items-center rounded-full hover:bg-white/10">
               <X size={17} />

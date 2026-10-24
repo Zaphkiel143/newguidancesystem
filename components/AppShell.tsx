@@ -32,6 +32,9 @@ interface AppShellProps {
   children: React.ReactNode;
 }
 
+// localStorage key for the desktop sidebar's hidden/shown choice.
+const SIDEBAR_KEY = "egabay-sidebar";
+
 // Each role's own account page (photo, details, sign-in settings).
 const ACCOUNT_PATH: Record<Role, string> = {
   counselor: "/my_account",
@@ -74,8 +77,32 @@ function initials(name: string): string {
 
 export function AppShell({ role, userName, displayName = userName, hiddenPaths = [], avatarUrl, needsPrivacyConsent = false, children }: AppShellProps) {
   const pathname = usePathname();
+  // isOpen: the phone drawer. collapsed: the sidebar hidden on wider screens
+  // (the burger button toggles it; remembered on this device).
   const [isOpen, setIsOpen] = useState(false);
+  const [collapsed, setCollapsed] = useState(false);
   const [lastPathname, setLastPathname] = useState(pathname);
+
+  useEffect(() => {
+    try {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- syncing from browser storage once
+      if (localStorage.getItem(SIDEBAR_KEY) === "collapsed") setCollapsed(true);
+    } catch {
+      // Storage blocked: the sidebar just starts open.
+    }
+  }, []);
+
+  const toggleMenu = () => {
+    if (!window.matchMedia("(min-width: 768px)").matches) return setIsOpen(true);
+    setCollapsed((c) => {
+      try {
+        localStorage.setItem(SIDEBAR_KEY, c ? "open" : "collapsed");
+      } catch {
+        // Storage blocked: the choice lasts until the page reloads.
+      }
+      return !c;
+    });
+  };
   const [counselorCounts, setCounselorCounts] = useState<{
     activeAppointments: number;
     pendingReferrals: number;
@@ -130,19 +157,26 @@ export function AppShell({ role, userName, displayName = userName, hiddenPaths =
       {/* STI top bar: navy with the yellow stripe, as on One STI */}
       <header className="sticky top-0 z-40 h-(--topbar-h) bg-blue-700 text-white border-t-4 border-sti-yellow flex items-center gap-3 px-3 md:px-5 shadow-md">
         <button
-          onClick={() => setIsOpen(true)}
-          className="md:hidden w-11 h-11 grid place-items-center rounded-full hover:bg-white/10 transition-colors"
-          aria-label="Open menu"
-          aria-expanded={isOpen}
+          onClick={toggleMenu}
+          className="w-11 h-11 shrink-0 grid place-items-center rounded-full hover:bg-white/10 transition-colors"
+          aria-label={collapsed ? "Show menu" : "Menu"}
+          aria-expanded={isOpen || undefined}
+          aria-controls="main-menu"
         >
           <Menu size={20} />
         </button>
 
         <Link href={menuItems[0]?.path ?? "/"} className="flex items-center gap-3 min-w-0">
           <LogoMark size={36} tone="light" className="shrink-0" />
-          <span className="font-semibold text-[17px] tracking-tight">E-Gabay</span>
+          <span className="min-w-0 leading-tight">
+            <span className="block font-semibold text-[17px] tracking-tight">E-Gabay</span>
+            {/* Phones: the school's name sits under E-Gabay */}
+            <span className="block sm:hidden text-[11px] text-white/80 truncate">STI College Sta. Maria</span>
+          </span>
           <span aria-hidden className="hidden sm:block w-px h-5 bg-white/30" />
-          <span className="hidden sm:block text-[13px] text-white/80 truncate">Guidance and Counseling Office · STI College Sta. Maria</span>
+          <span className="hidden sm:block text-[13px] text-white/85 truncate">
+            Guidance and Counseling Office · <span className="font-medium text-white">STI College Sta. Maria</span>
+          </span>
         </Link>
 
         <div className="ml-auto flex items-center gap-1 sm:gap-3">
@@ -159,9 +193,10 @@ export function AppShell({ role, userName, displayName = userName, hiddenPaths =
       )}
 
       <aside
-        className={`w-(--sidebar-w) bg-blue-50 border-r border-blue-100 flex flex-col fixed left-0 z-50 md:z-30 top-0 h-screen md:top-(--topbar-h) md:h-[calc(100vh-var(--topbar-h))] transition-transform duration-300 ease-out md:translate-x-0 ${
+        id="main-menu"
+        className={`w-(--sidebar-w) bg-blue-50 border-r border-blue-100 flex flex-col fixed left-0 z-50 md:z-30 top-0 h-screen md:top-(--topbar-h) md:h-[calc(100vh-var(--topbar-h))] transition-[translate,visibility] duration-300 ease-out ${
           isOpen ? "translate-x-0" : "-translate-x-full"
-        }`}
+        } ${collapsed ? "md:-translate-x-full md:invisible" : "md:translate-x-0 md:visible"}`}
       >
         {/* Drawer header, phones only (the top bar carries the brand on wider screens) */}
         <div className="md:hidden px-5 pt-5 pb-4 flex items-center justify-between">
@@ -239,11 +274,11 @@ export function AppShell({ role, userName, displayName = userName, hiddenPaths =
         </div>
       </aside>
 
-      <main className="md:pl-(--sidebar-w) min-w-0 pb-20">
+      <main className={`${collapsed ? "md:pl-0" : "md:pl-(--sidebar-w)"} min-w-0 pb-20 transition-[padding] duration-300 ease-out`}>
         <CurrentUserProvider user={{ name: userName, displayName, roleLabel: RECORD_ROLE[role] }}>{children}</CurrentUserProvider>
       </main>
 
-      <FloatingDock messagesPath={MESSAGES_PATH[role]} withChatbot={role === "student"} />
+      <FloatingDock messagesPath={MESSAGES_PATH[role]} withChatbot={role === "student" || role === "faculty"} />
       <LoginApprovalPrompt />
       <ScrollToHash />
       {needsPrivacyConsent && <PrivacyNotice />}

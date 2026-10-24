@@ -403,11 +403,15 @@ export async function submitAssessmentResponse(formData: { assessmentId: string;
 }
 
 // ---- AI Assistant (E-Gabay) ----
+//
+// Students and faculty both have the chatbot; chats are kept per person.
+
+const who = (me: { roleLabel: string }) => (me.roleLabel === "Faculty" ? "a faculty member" : "a student");
 
 // The student's open chat (the newest one not yet ended), or a new empty one.
 export async function getMyAiConversation() {
   try {
-    const me = await requireActionUser("STUDENT");
+    const me = await requireActionUser("STUDENT", "FACULTY");
     const existing = await db.aiConversation.findFirst({
       where: { studentName: me.name, endedAt: null },
       include: { messages: { orderBy: { createdAt: "asc" } } },
@@ -432,7 +436,7 @@ export async function getMyAiConversation() {
 
 export async function sendAiMessage(formData: { conversationId: string; content: string }) {
   try {
-    const me = await requireActionUser("STUDENT");
+    const me = await requireActionUser("STUDENT", "FACULTY");
     const conversation = await db.aiConversation.findFirst({ where: { id: formData.conversationId, studentName: me.name, endedAt: null } });
     if (!conversation) throw new Error("This chat was closed. Start a new one.");
     const content = formData.content.trim().slice(0, 1000);
@@ -456,15 +460,15 @@ export async function sendAiMessage(formData: { conversationId: string; content:
     // email, at most once an hour per student so they aren't flooded.
     if (reply.intent === "crisis" && (await allow(`crisis-alert:${me.id}`, 1, HOUR))) {
       await notifyCounselors({
-        title: "URGENT: a student may be in crisis",
+        title: `URGENT: ${who(me)} may be in crisis`,
         body: `${me.name} sent a message to E-Gabay that may mean they're at risk. Please reach out right away.`,
         href: "/message",
       });
       for (const to of await counselorEmails()) {
         await sendEmail(
           to,
-          "URGENT: a student may be in crisis (E-Gabay)",
-          `${me.name} sent a message to the E-Gabay chatbot that matched the crisis topic at ${new Date().toLocaleString("en-PH", { timeZone: "Asia/Manila" })}.\n\nPlease reach out to the student as soon as possible. Their school email: ${me.email ?? "not on file"}.\n\nOpen E-Gabay to message them.`,
+          `URGENT: ${who(me)} may be in crisis (E-Gabay)`,
+          `${me.name} sent a message to the E-Gabay chatbot that matched the crisis topic at ${new Date().toLocaleString("en-PH", { timeZone: "Asia/Manila" })}.\n\nPlease reach out to them as soon as possible. Their school email: ${me.email ?? "not on file"}.\n\nOpen E-Gabay to message them.`,
           // The student's words stay in E-Gabay; the email only says who and when.
         );
       }
@@ -572,7 +576,7 @@ export async function saveMyStudentInfo(formData: MyStudentInfo) {
 // so opening and closing the panel doesn't fill the history with blanks.
 export async function endMyAiConversation(conversationId: string) {
   try {
-    const me = await requireActionUser("STUDENT");
+    const me = await requireActionUser("STUDENT", "FACULTY");
     const conversation = await db.aiConversation.findFirst({
       where: { id: conversationId, studentName: me.name, endedAt: null },
       select: { id: true, _count: { select: { messages: true } } },
@@ -589,7 +593,7 @@ export async function endMyAiConversation(conversationId: string) {
 // Past chats, newest first, each titled by its first question.
 export async function getMyAiHistory() {
   try {
-    const me = await requireActionUser("STUDENT");
+    const me = await requireActionUser("STUDENT", "FACULTY");
     const chats = await db.aiConversation.findMany({
       where: { studentName: me.name, endedAt: { not: null } },
       select: {
@@ -617,7 +621,7 @@ export async function getMyAiHistory() {
 
 export async function getMyAiHistoryChat(conversationId: string) {
   try {
-    const me = await requireActionUser("STUDENT");
+    const me = await requireActionUser("STUDENT", "FACULTY");
     return await db.aiConversation.findFirst({
       where: { id: conversationId, studentName: me.name },
       include: { messages: { orderBy: { createdAt: "asc" } } },
@@ -633,7 +637,7 @@ export async function getMyAiHistoryChat(conversationId: string) {
 // the office gets a notification. Each unanswered question can be sent once.
 export async function forwardAiQuestion(assistantMessageId: string) {
   try {
-    const me = await requireActionUser("STUDENT");
+    const me = await requireActionUser("STUDENT", "FACULTY");
     const reply = await db.aiMessage.findFirst({
       where: { id: assistantMessageId, role: "assistant", intent: "fallback", conversation: { studentName: me.name } },
     });
@@ -646,22 +650,23 @@ export async function forwardAiQuestion(assistantMessageId: string) {
     if (!question) return { success: false, error: "That question can't be sent." };
     if (!(await allow(`forward:${me.id}`, 5, HOUR))) return { success: false, error: SLOW_DOWN };
 
-    let conversation = await db.conversation.findFirst({ where: { participantName: me.name, participantRole: "Student" } });
-    if (!conversation) conversation = await db.conversation.create({ data: { participantName: me.name, participantRole: "Student" } });
+    let conversation = await db.conversation.findFirst({ where: { participantName: me.name, participantRole: me.roleLabel } });
+    if (!conversation) conversation = await db.conversation.create({ data: { participantName: me.name, participantRole: me.roleLabel } });
     await db.message.create({
       data: {
         conversationId: conversation.id,
-        senderRole: "Student",
+        senderRole: me.roleLabel,
         senderName: me.name,
         content: `[Asked E-Gabay, which couldn't answer] ${question.content}`,
       },
     });
     await db.conversation.update({ where: { id: conversation.id }, data: { updatedAt: new Date() } });
     await db.aiMessage.update({ where: { id: reply.id }, data: { forwardedAt: new Date() } });
-    await notifyCounselors({ title: "A student's question for you (from E-Gabay)", body: `${me.name}: ${question.content.slice(0, 120)}`, href: "/message" });
+    await notifyCounselors({ title: `A question for you from ${who(me)} (from E-Gabay)`, body: `${me.name}: ${question.content.slice(0, 120)}`, href: "/message" });
     await logActivity(me, "Forwarded an unanswered E-Gabay question", "Message", conversation.id);
 
     revalidatePath("/my_messages");
+    revalidatePath("/faculty_message");
     revalidatePath("/message");
     return { success: true };
   } catch (error) {

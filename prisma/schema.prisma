@@ -535,3 +535,14 @@ model ActivityLog {
   @@index([createdAt])
   @@index([actorRole, createdAt])
 }
+
+// Extra details for faculty and staff accounts, kept apart from User so the
+// app still works on a database that doesn't have this table yet (only the
+// department is missing then). One row per user, made on first save.
+model StaffProfile {
+  id         String   @id @default(uuid())
+  userId     String   @unique
+  department String?
+
+  updatedAt  DateTime @updatedAt
+}

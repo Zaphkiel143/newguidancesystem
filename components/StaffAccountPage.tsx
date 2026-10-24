@@ -2,6 +2,7 @@ import PhotoPicker from "./PhotoPicker";
 import AuthenticatorSetup from "./AuthenticatorSetup";
 import { PushToggle } from "./LoginApproval";
 import ThemeSetting from "./ThemeSetting";
+import FacultyDetailsForm from "./FacultyDetailsForm";
 import { getCurrentUser } from "../lib/auth";
 import { shownName } from "../lib/demo";
 
@@ -18,6 +19,7 @@ export default async function StaffAccountPage() {
         <h2 className="font-semibold text-[17px] text-ink mb-4">Profile photo</h2>
         <PhotoPicker name={shownName(me)} hasPhoto={Boolean(me.avatarType)} />
       </section>
+      {me.role === "FACULTY" && <FacultyDetailsForm />}
       <div id="settings" className="scroll-mt-24 space-y-6">
         <ThemeSetting />
         <PushToggle />

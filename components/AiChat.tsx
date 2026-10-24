@@ -34,7 +34,7 @@ function when(d: Date | null) {
   return new Date(d).toLocaleString("en-PH", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit", timeZone: "Asia/Manila" });
 }
 
-// The E-Gabay conversation (students only). Used full-page on /ai_chat and in
+// The E-Gabay conversation (students and faculty). Used full-page on /ai_chat and in
 // the floating chat panel. Each chat is saved: "New chat" (or closing the
 // panel / leaving the page) ends it and moves it to History.
 export default function AiChatThread({ compact = false }: { compact?: boolean }) {
