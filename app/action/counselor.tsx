@@ -1205,10 +1205,15 @@ export async function setConversationArchived(conversationId: string, archived: 
   try {
     const me = await counselorOnly();
     if (archived) {
+      // Everything already in the chat counts as seen, even a message stamped
+      // later than now (sent from a device with its clock set ahead).
+      const latest = await db.message.findFirst({ where: { conversationId }, orderBy: { createdAt: "desc" }, select: { createdAt: true } });
+      const now = new Date();
+      const archivedAt = latest && latest.createdAt > now ? latest.createdAt : now;
       await db.conversationArchive.upsert({
         where: { conversationId },
-        update: { archivedAt: new Date() },
-        create: { conversationId },
+        update: { archivedAt },
+        create: { conversationId, archivedAt },
       });
     } else {
       await db.conversationArchive.deleteMany({ where: { conversationId } });
