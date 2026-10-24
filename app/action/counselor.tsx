@@ -400,9 +400,11 @@ export async function listStudentProfiles() {
     await counselorOnly();
     const [profiles, lastSessions, nonStudentUsers] = await Promise.all([
       db.studentProfile.findMany({ orderBy: { name: "asc" } }),
+      // "Last session" means the most recent one that has actually happened -
+      // an upcoming confirmed appointment shouldn't show here before it occurs.
       db.appointment.groupBy({
         by: ["studentName"],
-        where: { status: { not: "CANCELLED" }, studentName: { not: null } },
+        where: { status: { not: "CANCELLED" }, studentName: { not: null }, date: { lte: manilaTodayAsStoredDate() } },
         _max: { date: true },
       }),
       // StudentProfile has no FK to User (matched by name) - a role change
