@@ -20,7 +20,7 @@ interface Conversation {
 
 type StudentProfile = Awaited<ReturnType<typeof listStudentProfiles>>[number];
 
-export const MessagesDashboard: React.FC = () => {
+const MessagesDashboard: React.FC = () => {
   const me = useCurrentUser();
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);

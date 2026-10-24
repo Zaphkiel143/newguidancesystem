@@ -18,7 +18,7 @@ const STATUS: Record<string, { label: string; dot: string; text: string }> = {
   CLOSED: { label: 'Closed', dot: 'bg-emerald-500', text: 'text-emerald-700' },
 };
 
-export const FacultyDashboard = async () => {
+const FacultyDashboard = async () => {
   const [referrals, appointments, user] = await Promise.all([
     getMyReferrals(),
     getMyAppointments(),

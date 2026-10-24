@@ -11,7 +11,7 @@ import { getMyReferrals } from '../../action/parent';
 import type { Referral } from '../../../lib/generated';
 
 
-export const MyReferralsPage: React.FC = () => {
+const MyReferralsPage: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [referrals, setReferrals] = useState<Referral[]>([]);
 

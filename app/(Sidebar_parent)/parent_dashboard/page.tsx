@@ -8,7 +8,7 @@ import { firstBookableDate, isClosedDay } from '../../config/timeSlots';
 import { DAY_SCHEDULE } from '../../config/timeSlots';
 import { useMyChildren } from '../useMyChildren';
 
-export const ParentBookAppointment: React.FC = () => {
+const ParentBookAppointment: React.FC = () => {
   const minSelectableDate = firstBookableDate();
 
   // State configurations matching parent metrics from image_85ac21.png

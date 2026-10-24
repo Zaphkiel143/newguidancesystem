@@ -7,7 +7,7 @@ import ConversationPanel from '../../../components/ConversationPanel';
 import { useCurrentUser } from '../../../components/CurrentUser';
 
 
-export const ParentMessagesPage: React.FC = () => {
+const ParentMessagesPage: React.FC = () => {
   const me = useCurrentUser();
   const [conversationId, setConversationId] = useState<string | null>(null);
 
