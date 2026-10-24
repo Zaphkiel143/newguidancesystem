@@ -170,7 +170,7 @@ export default function ReferralForm({ mode, onSubmit, myReferralsPath }: Props)
           <input id="ref-id" className={input} value={f.studentId} inputMode="numeric" placeholder="02000123456"
             aria-describedby="ref-id-hint" onChange={(e) => changeStudentId(e.target.value)} />
           <p id="ref-id-hint" className="text-[12px] text-slate-500 mt-1">
-            Numbers only, {STUDENT_ID_DIGITS} digits. If the student is in the school records, the rest fills in for you.
+            Numbers only, {STUDENT_ID_DIGITS} digits.{mode !== "parent" && " If the student is in the school records, the rest fills in for you."}
           </p>
         </div>
         <div>

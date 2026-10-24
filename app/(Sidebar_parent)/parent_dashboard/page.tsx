@@ -317,7 +317,7 @@ const ParentBookAppointment: React.FC = () => {
                 <span className="min-w-0">
                   <span className="block text-ink font-medium">{b.appointmentType || 'General consultation'}</span>
                   <span className="block text-[13px] text-slate-500">
-                    For {b.studentName} ·{' '}
+                    For {b.forSelf ? 'you' : b.studentName} ·{' '}
                     {new Date(b.date).toLocaleDateString('en-PH', { timeZone: 'UTC', weekday: 'short', month: 'short', day: 'numeric' })}, {b.time}
                   </span>
                 </span>

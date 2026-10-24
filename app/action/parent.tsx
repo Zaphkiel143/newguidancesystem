@@ -133,12 +133,13 @@ export async function bookAppointment(formData: {
 export async function getMyBookings() {
   try {
     const me = await requireActionUser("PARENT");
-    return await db.appointment.findMany({
+    const rows = await db.appointment.findMany({
       where: { bookedByName: me.name, bookedByRole: me.roleLabel },
       select: { id: true, date: true, time: true, studentName: true, appointmentType: true, status: true },
       orderBy: [{ date: "desc" }, { time: "asc" }],
       take: 20,
     });
+    return rows.map((r) => ({ ...r, forSelf: r.studentName === me.name }));
   } catch (error) {
     console.error("[parent] Failed to fetch bookings:", error);
     return [];
