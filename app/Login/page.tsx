@@ -16,10 +16,23 @@ import type { UserRole } from '../../lib/generated';
 import {
   FIX_FIELDS_MESSAGE,
   PARENT_SIGNUP_FIELDS,
+  PHONE_HELP,
+  nameChars,
   validateParentSignup,
   type ParentSignupErrors,
   type ParentSignupField,
 } from '../../lib/parentSignup';
+import { capitalizeName, phoneChars } from '../config/collegeCareerForm';
+import PasswordStrength from '../../components/PasswordStrength';
+
+// What's wrong with a typed school email, if anything.
+function schoolEmailProblem(value: string): string | null {
+  const v = value.trim().toLowerCase();
+  if (!v) return "Enter your school email.";
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)) return `That isn't a valid email address. It should look like juan.delacruz@${SCHOOL_EMAIL_DOMAIN}.`;
+  if (!v.endsWith(`@${SCHOOL_EMAIL_DOMAIN}`)) return `Use your STI school email, ending in @${SCHOOL_EMAIL_DOMAIN}.`;
+  return null;
+}
 
 const DEMO_ROLES: { role: UserRole; label: string }[] = [
   { role: "COUNSELOR", label: "Associate" },
@@ -93,6 +106,7 @@ const LoginPage = () => {
   const [roleNotice, setRoleNotice] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [resendIn, setResendIn] = useState(0);
+  const [emailError, setEmailError] = useState<string | null>(null);
   // The email the resend countdown applies to; another email can ask right away.
   const [resendFor, setResendFor] = useState('');
   const [demoLoadingRole, setDemoLoadingRole] = useState<UserRole | null>(null);
@@ -179,6 +193,12 @@ const LoginPage = () => {
 
   const sendCode = async (e?: React.FormEvent) => {
     e?.preventDefault();
+    const emailProblem = schoolEmailProblem(email);
+    if (emailProblem) {
+      setEmailError(emailProblem);
+      document.getElementById("email")?.focus();
+      return;
+    }
     setIsSubmitting(true);
     setError(null);
     // A request the host cuts off (or a dropped connection) throws instead of returning.
@@ -347,8 +367,9 @@ const LoginPage = () => {
       <div>
         <label htmlFor="lastName" className={labelClass}>Last name</label>
         <input id="lastName" type="text" autoComplete="family-name" placeholder="Dela Cruz" className={fieldClass(regErrors.lastName)}
-          aria-invalid={regErrors.lastName ? true : undefined} aria-describedby={regErrors.lastName ? "r-lastName-error" : undefined}
-          value={name.last} onChange={(e) => { setName({ ...name, last: e.target.value }); clearRegError("lastName"); }} required maxLength={60} autoFocus />
+          aria-invalid={regErrors.lastName ? true : undefined} aria-describedby={regErrors.lastName ? "r-lastName-error" : "r-name-help"}
+          value={name.last} onChange={(e) => { setName({ ...name, last: capitalizeName(nameChars(e.target.value)) }); clearRegError("lastName"); }} required maxLength={60} autoFocus />
+        <p id="r-name-help" className="text-xs text-slate-500 mt-1">Letters only.</p>
         <FieldError id="r-lastName-error" message={regErrors.lastName} />
       </div>
       <div className="grid grid-cols-[1fr_7rem] gap-3">
@@ -356,7 +377,7 @@ const LoginPage = () => {
           <label htmlFor="firstName" className={labelClass}>First name</label>
           <input id="firstName" type="text" autoComplete="given-name" placeholder="Juan" className={fieldClass(regErrors.firstName)}
             aria-invalid={regErrors.firstName ? true : undefined} aria-describedby={regErrors.firstName ? "r-firstName-error" : undefined}
-            value={name.first} onChange={(e) => { setName({ ...name, first: e.target.value }); clearRegError("firstName"); }} required maxLength={60} />
+            value={name.first} onChange={(e) => { setName({ ...name, first: capitalizeName(nameChars(e.target.value)) }); clearRegError("firstName"); }} required maxLength={60} />
           <FieldError id="r-firstName-error" message={regErrors.firstName} />
         </div>
         <div>
@@ -424,11 +445,15 @@ const LoginPage = () => {
             )}
 
             {step === "email" && (
-              <form onSubmit={sendCode} className="mt-7 space-y-5">
+              <form onSubmit={sendCode} noValidate className="mt-7 space-y-5">
                 <div>
                   <label htmlFor="email" className={labelClass}>School email</label>
                   <input id="email" type="email" autoComplete="email" inputMode="email" placeholder={`juan.delacruz@${SCHOOL_EMAIL_DOMAIN}`}
-                    className={inputClass} value={email} onChange={(e) => setEmail(e.target.value)} required autoFocus />
+                    className={fieldClass(emailError ?? undefined)} value={email} required autoFocus
+                    aria-invalid={emailError ? true : undefined} aria-describedby={emailError ? "email-error" : undefined}
+                    onChange={(e) => { setEmail(e.target.value); setEmailError(null); }}
+                    onBlur={() => email.trim() && setEmailError(schoolEmailProblem(email))} />
+                  <FieldError id="email-error" message={emailError ?? undefined} />
                 </div>
                 <ErrorLine error={error} />
                 {resendIn > 0 && email.trim().toLowerCase() === resendFor && <ResendTimer seconds={resendIn} />}
@@ -599,8 +624,9 @@ const LoginPage = () => {
               <form onSubmit={handleParentLogin} className="mt-7 space-y-5">
                 <div>
                   <label htmlFor="phone" className={labelClass}>Mobile number</label>
-                  <input id="phone" type="tel" inputMode="tel" autoComplete="tel" placeholder="0917 123 4567" className={inputClass}
-                    value={phone} onChange={(e) => setPhone(e.target.value)} required autoFocus />
+                  <input id="phone" type="tel" inputMode="tel" autoComplete="tel" placeholder="09171234567" className={inputClass}
+                    aria-describedby="phone-help" value={phone} onChange={(e) => setPhone(phoneChars(e.target.value))} required autoFocus />
+                  <p id="phone-help" className="text-xs text-slate-500 mt-1">{PHONE_HELP}</p>
                 </div>
                 <div>
                   <label htmlFor="password" className={labelClass}>Password</label>
@@ -634,12 +660,14 @@ const LoginPage = () => {
                 {nameFields}
                 <div>
                   <label htmlFor="r-phone" className={labelClass}>Mobile number</label>
-                  <input id="r-phone" type="tel" inputMode="tel" autoComplete="tel" placeholder="0917 123 4567" className={fieldClass(regErrors.phone)}
+                  <input id="r-phone" type="tel" inputMode="tel" autoComplete="tel" placeholder="09171234567" className={fieldClass(regErrors.phone)}
                     aria-invalid={regErrors.phone ? true : undefined}
                     aria-describedby={["r-phone-help", regErrors.phone && "r-phone-error"].filter(Boolean).join(" ")}
-                    value={phone} onChange={(e) => { setPhone(e.target.value); clearRegError("phone"); }} required />
+                    value={phone} onChange={(e) => { setPhone(phoneChars(e.target.value)); clearRegError("phone"); }} required />
                   <FieldError id="r-phone-error" message={regErrors.phone} />
-                  <p id="r-phone-help" className="text-xs text-slate-500 mt-1">You&apos;ll use this to sign in. The guidance office may call it to confirm.</p>
+                  <p id="r-phone-help" className="text-xs text-slate-500 mt-1">
+                    {`${PHONE_HELP} You'll use this to sign in. The guidance office may call it to confirm.`}
+                  </p>
                 </div>
                 <div>
                   <label htmlFor="r-email" className={labelClass}>
@@ -659,6 +687,7 @@ const LoginPage = () => {
                       value={reg.password}
                       onChange={(e) => { setReg({ ...reg, password: e.target.value }); clearRegError("password"); clearRegError("confirm"); }} required />
                     <FieldError id="r-password-error" message={regErrors.password} />
+                    <PasswordStrength password={reg.password} id="r-password-help" />
                   </div>
                   <div>
                     <label htmlFor="r-confirm" className={labelClass}>Repeat password</label>
@@ -668,7 +697,6 @@ const LoginPage = () => {
                     <FieldError id="r-confirm-error" message={regErrors.confirm} />
                   </div>
                 </div>
-                <p id="r-password-help" className="text-xs text-slate-500 -mt-2">At least 8 characters.</p>
 
                 <fieldset className="border-t border-rule pt-4 space-y-4">
                   <legend className="text-[14px] font-semibold text-ink pr-2">Your child at STI</legend>
@@ -682,9 +710,9 @@ const LoginPage = () => {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
                       <label htmlFor="r-childId" className={labelClass}>Child&apos;s student ID</label>
-                      <input id="r-childId" type="text" className={fieldClass(regErrors.childStudentId)} value={reg.childStudentId} maxLength={20}
+                      <input id="r-childId" type="text" inputMode="numeric" placeholder="02000123456" className={fieldClass(regErrors.childStudentId)} value={reg.childStudentId}
                         aria-invalid={regErrors.childStudentId ? true : undefined} aria-describedby={regErrors.childStudentId ? "r-childStudentId-error" : undefined}
-                        onChange={(e) => { setReg({ ...reg, childStudentId: e.target.value }); clearRegError("childStudentId"); }} required />
+                        onChange={(e) => { setReg({ ...reg, childStudentId: e.target.value.replace(/\D/g, "").slice(0, 11) }); clearRegError("childStudentId"); }} required />
                       <FieldError id="r-childStudentId-error" message={regErrors.childStudentId} />
                     </div>
                     <div>

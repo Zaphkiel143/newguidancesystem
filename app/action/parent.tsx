@@ -12,6 +12,7 @@ import { logRecordAccess } from "../../lib/accessLog";
 import { counselorEmails, formatAppointmentWhen, sendEmail } from "../../lib/email";
 import { announceNewBooking, checkBooking } from "../../lib/booking";
 import { logActivity } from "../../lib/activityLog";
+import { passwordProblem } from "../../lib/parentSignup";
 
 // Every action here acts as the signed-in parent. A parent's children are the
 // student records the guidance office approved for them (ParentChildLink),
@@ -353,7 +354,8 @@ export async function changeMyPassword(formData: { current: string; next: string
     const me = await requireActionUser("PARENT");
     const row = await db.user.findUnique({ where: { id: me.id }, select: { passwordHash: true } });
     if (!row || !verifyPassword(formData.current, row.passwordHash)) return { success: false, error: "Your current password isn't right." };
-    if (formData.next.length < 8) return { success: false, error: "Use a new password with at least 8 characters." };
+    const weak = passwordProblem(formData.next);
+    if (weak) return { success: false, error: `Choose a stronger password. ${weak}` };
     await db.user.update({ where: { id: me.id }, data: { passwordHash: hashPassword(formData.next) } });
     await logActivity(me, "Changed their password", "User", me.id);
     return { success: true };

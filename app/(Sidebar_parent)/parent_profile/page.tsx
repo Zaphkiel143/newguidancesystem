@@ -6,6 +6,7 @@ import { changeMyPassword, getMyParentProfile, requestChildLink, updateMyParentP
 import PhotoPicker from "../../../components/PhotoPicker";
 import { PushToggle } from "../../../components/LoginApproval";
 import ThemeSetting from "../../../components/ThemeSetting";
+import PasswordStrength from "../../../components/PasswordStrength";
 import InlineError from "../../../components/InlineError";
 import { formatPhone } from "../../../lib/phone";
 import { useOptionList } from "../../../components/useOptionList";
@@ -216,7 +217,9 @@ export default function ParentProfilePage() {
           </div>
           <div>
             <label htmlFor="pw-next" className={label}>New password</label>
-            <input id="pw-next" type="password" autoComplete="new-password" minLength={8} className={input} value={pw.next} required onChange={(e) => setPw({ ...pw, next: e.target.value })} />
+            <input id="pw-next" type="password" autoComplete="new-password" minLength={8} className={input} value={pw.next} required
+              aria-describedby="pw-next-strength" onChange={(e) => setPw({ ...pw, next: e.target.value })} />
+            {pw.next && <PasswordStrength password={pw.next} id="pw-next-strength" />}
           </div>
           <div>
             <label htmlFor="pw-confirm" className={label}>Repeat new password</label>

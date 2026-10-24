@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { ArrowLeft, ArrowUp, History, Loader2, RotateCcw } from "lucide-react";
+import { ArrowLeft, ArrowUp, Bot, History, Loader2, RotateCcw } from "lucide-react";
 import {
   endMyAiConversation,
   forwardAiQuestion,
@@ -152,7 +152,7 @@ export default function AiChatThread({ compact = false }: { compact?: boolean })
         </div>
       ) : (
         <div key={m.id} className="max-w-[92%]">
-          <p className="font-serif italic text-[12px] text-slate-500 mb-0.5">E-Gabay</p>
+          <p className="inline-flex items-center gap-1.5 text-[12px] font-medium text-blue-700 mb-0.5"><Bot size={13} aria-hidden /> E-Gabay Chatbot</p>
           <p className={`${text} leading-relaxed text-ink whitespace-pre-wrap break-words`}>{m.content}</p>
           {m.intent === "crisis" && (
             <div role="alert" className="mt-3 rounded-xl border border-red-200 bg-red-50 p-3 text-[13px] text-red-900 space-y-2">
@@ -314,7 +314,7 @@ export default function AiChatThread({ compact = false }: { compact?: boolean })
               }}
               className={`flex items-center gap-2 ${compact ? "" : "max-w-2xl mx-auto"}`}
             >
-              <label htmlFor={inputId} className="sr-only">Message E-Gabay</label>
+              <label htmlFor={inputId} className="sr-only">Message the E-Gabay Chatbot</label>
               <input
                 id={inputId}
                 type="text"

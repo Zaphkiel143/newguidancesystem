@@ -7,7 +7,7 @@ import { createSession, destroySession, dashboardPathForRole, hashPassword, veri
 import { emailConfigured, sendEmail } from "../../lib/email";
 import { notifyCounselors } from "../../lib/notify";
 import { normalizePhone } from "../../lib/phone";
-import { cleanName, FIX_FIELDS_MESSAGE, validateParentSignup, type ParentSignupErrors } from "../../lib/parentSignup";
+import { cleanName, FIX_FIELDS_MESSAGE, isNameText, validateParentSignup, type ParentSignupErrors } from "../../lib/parentSignup";
 import { getOptionList } from "./optionLists";
 import { optionValue } from "../../lib/optionListDefaults";
 import { allow, clientIp, HOUR, MINUTE } from "../../lib/rateLimit";
@@ -277,6 +277,7 @@ async function createSchoolAccount(
   const needsStudentDetails = role === "STUDENT" && !existingProfile;
   if (!name || (needsStudentDetails && !formData.student)) return { needsDetails: true as const };
   if (name.length < 3 || !name.includes(" ")) return { error: "Enter your first and last name." };
+  if (!existingProfile && !isNameText(name)) return { error: "Use letters only in your name." };
 
   // Approved right away: listed counselors and students. Self-declared faculty
   // and guidance staff wait for a Guidance Associate to approve them.
@@ -389,30 +390,43 @@ export async function registerParent(formData: {
     }
     const { name, phone, email, password, childStudentId, childName, relationship } = check.data;
 
+    // A parent account the guidance office declined doesn't hold on to its
+    // number: signing up again with it replaces that account with a new
+    // request (old child links and sessions go with it).
+    const samePhone = await db.user.findUnique({ where: { phone }, select: { id: true, role: true, status: true } });
+    const declined = samePhone?.role === "PARENT" && samePhone.status === "REJECTED" ? samePhone : null;
+
     const duplicates: ParentSignupErrors = {};
-    if (await db.user.findUnique({ where: { phone } })) {
+    if (samePhone && !declined) {
       duplicates.phone = "That mobile number already has an account. Sign in instead.";
     }
-    if (email && (await db.user.findUnique({ where: { email } }))) {
+    const sameEmail = email ? await db.user.findUnique({ where: { email }, select: { id: true } }) : null;
+    if (sameEmail && sameEmail.id !== declined?.id) {
       duplicates.email = "That email is already used by another account. Leave it blank or use another.";
     }
     if (Object.keys(duplicates).length > 0) {
       return { success: false, error: FIX_FIELDS_MESSAGE, fieldErrors: duplicates };
     }
 
-    const parent = await db.user.create({
-      data: {
-        name,
-        phone,
-        email,
-        role: "PARENT",
-        status: "PENDING",
-        passwordHash: hashPassword(password),
-        childLinks: {
-          create: { studentIdNumber: childStudentId, childName, relationship },
-        },
-      },
-    });
+    const account = {
+      name,
+      phone,
+      email,
+      role: "PARENT" as const,
+      status: "PENDING",
+      passwordHash: hashPassword(password),
+      childLinks: { create: { studentIdNumber: childStudentId, childName, relationship } },
+    };
+    const parent = declined
+      ? await db.$transaction(async (tx) => {
+          await tx.parentChildLink.deleteMany({ where: { parentId: declined.id } });
+          await tx.session.deleteMany({ where: { userId: declined.id } });
+          return tx.user.update({
+            where: { id: declined.id },
+            data: { ...account, avatarData: null, avatarType: null, privacyAcceptedAt: null },
+          });
+        })
+      : await db.user.create({ data: account });
     await logActivity({ name, roleLabel: ROLE_LABEL.PARENT, id: parent.id }, "Registered a parent account", "User", parent.id, childName);
 
     await notifyCounselors({
