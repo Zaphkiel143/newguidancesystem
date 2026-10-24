@@ -287,13 +287,13 @@ const ReferralCard = ({ referral, isUpdating, onAdvanceStatus, onAddNotes, onSen
           <div>
             <p className="text-xs font-semibold text-slate-500 mb-1.5">Contact {referral.referrerName} ({referral.referrerRole.toLowerCase()})</p>
             <ContactLinks name={referral.referrerName} email={referral.referrerEmail} phone={referral.referrerPhone}
-              subject={`About your referral for ${referral.studentName}`} />
+              subject={`About your referral for ${referral.studentName}`} role={referral.referrerRole} />
           </div>
           {referral.studentName !== referral.referrerName && (
             <div>
               <p className="text-xs font-semibold text-slate-500 mb-1.5">Contact {referral.studentName} (student)</p>
               <ContactLinks name={referral.studentName} email={referral.studentEmail} phone={referral.studentPhone}
-                subject="Guidance and Counseling Office" />
+                subject="Guidance and Counseling Office" role="Student" />
             </div>
           )}
         </div>

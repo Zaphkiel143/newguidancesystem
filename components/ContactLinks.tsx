@@ -1,21 +1,25 @@
 import React from "react";
+import Link from "next/link";
 import { Mail, MessageCircle, Phone, Smartphone } from "lucide-react";
 import { SCHOOL_EMAIL_DOMAIN } from "../app/config/school";
 import { formatPhone } from "../lib/phone";
 
-// Quick ways for the Guidance Associate to reach someone: Outlook email and a
-// Teams chat for school accounts, a regular email link otherwise, and call or
-// text when there's a mobile number.
+// Quick ways for the Guidance Associate to reach someone: Outlook email, a
+// regular email link otherwise, E-Gabay Messages, and call or text when
+// there's a mobile number.
 export default function ContactLinks({
   name,
   email,
   phone,
   subject,
+  role,
 }: {
   name: string;
   email: string | null | undefined;
   phone: string | null | undefined;
   subject: string;
+  // Who to open in Messages - Student, Faculty or Parent.
+  role: string;
 }) {
   const isSchool = Boolean(email && email.toLowerCase().endsWith(`@${SCHOOL_EMAIL_DOMAIN}`));
   const link = "inline-flex items-center gap-1.5 px-3 min-h-9 rounded-full border border-slate-200 bg-white hover:bg-blue-50 hover:border-blue-300 text-[12px] font-medium text-slate-700";
@@ -41,11 +45,9 @@ export default function ContactLinks({
           <Mail size={13} /> {isSchool ? "Email (Outlook)" : "Email"}
         </a>
       )}
-      {email && isSchool && (
-        <a className={link} target="_blank" rel="noopener noreferrer" href={`https://teams.microsoft.com/l/chat/0/0?users=${encodeURIComponent(email)}`}>
-          <MessageCircle size={13} /> Teams chat
-        </a>
-      )}
+      <Link className={link} href={`/message?with=${encodeURIComponent(name)}&role=${encodeURIComponent(role)}`}>
+        <MessageCircle size={13} /> Message
+      </Link>
       {phone && (
         <>
           <a className={link} href={`tel:${phone}`} title={formatPhone(phone)}>

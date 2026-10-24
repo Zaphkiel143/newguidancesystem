@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Archive, ArchiveRestore, Mail, MailOpen, Search, MessageSquare, X } from 'lucide-react';
 import { listConversations, startConversation, getMessages, markConversationRead, markConversationUnread, sendMessage, listStudentProfiles, setConversationArchived } from '../../action/counselor';
 import ConversationPanel from '../../../components/ConversationPanel';
@@ -33,7 +34,11 @@ function initialsOf(name: string) {
 
 const MessagesDashboard: React.FC = () => {
   const me = useCurrentUser();
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [conversations, setConversations] = useState<Conversation[]>([]);
+  const [conversationsLoaded, setConversationsLoaded] = useState(false);
+  const [deepLinkDone, setDeepLinkDone] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [showArchived, setShowArchived] = useState(false);
@@ -78,7 +83,7 @@ const MessagesDashboard: React.FC = () => {
   };
 
   useEffect(() => {
-    refreshConversations();
+    refreshConversations().then(() => setConversationsLoaded(true));
     const interval = setInterval(refreshConversations, POLL_INTERVAL_MS);
     return () => clearInterval(interval);
   }, []);
@@ -167,17 +172,39 @@ const MessagesDashboard: React.FC = () => {
 
   // Opens the chat with this person: their existing conversation (archived or
   // not), or an empty one that is saved once the first message is sent.
-  const chooseRecipient = (r: Recipient) => {
-    const existing = conversations.find((c) => c.participantRole === r.role && c.participantName.toLowerCase() === r.name.toLowerCase());
-    if (existing) {
-      setShowArchived(existing.isArchived);
-      openConversation(existing.id);
-    } else {
-      setComposing(false);
-      setShowArchived(false);
-      setDraft({ name: r.name, role: r.role });
+  const chooseRecipient = useCallback(
+    (r: Recipient) => {
+      const existing = conversations.find((c) => c.participantRole === r.role && c.participantName.toLowerCase() === r.name.toLowerCase());
+      if (existing) {
+        setShowArchived(existing.isArchived);
+        openConversation(existing.id);
+      } else {
+        setComposing(false);
+        setShowArchived(false);
+        setDraft({ name: r.name, role: r.role });
+      }
+    },
+    [conversations]
+  );
+
+  // Arriving from "Message" on a referral/appointment contact card
+  // (/message?with=<name>&role=<role>) opens straight to that person's chat.
+  // Adjusts state during render (not in an effect) per the project's rule
+  // against synchronous setState-in-effect; this runs at most once since
+  // deepLinkDone only ever goes false -> true.
+  if (conversationsLoaded && !deepLinkDone) {
+    setDeepLinkDone(true);
+    const withName = searchParams.get('with');
+    const withRole = searchParams.get('role');
+    if (withName && (withRole === 'Student' || withRole === 'Faculty' || withRole === 'Parent')) {
+      chooseRecipient({ key: 'deep-link', name: withName, role: withRole, detail: '' });
     }
-  };
+  }
+
+  // Drop the query string once handled, so refreshing doesn't retrigger it.
+  useEffect(() => {
+    if (deepLinkDone) router.replace('/message');
+  }, [deepLinkDone, router]);
 
   const draftProfile = draft?.role === 'Student' ? studentProfiles.find((s) => s.name === draft.name) : undefined;
 

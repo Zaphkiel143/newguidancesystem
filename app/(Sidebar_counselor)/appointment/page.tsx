@@ -278,6 +278,7 @@ export default function AppointmentScheduling() {
                       email={a.contactEmail}
                       phone={a.contactPhone}
                       subject={`Your guidance appointment on ${dayLabel(date)}, ${a.time}`}
+                      role={a.contactRole}
                     />
                     <div className="flex flex-wrap gap-2">
                       {a.status !== "COMPLETED" && (
