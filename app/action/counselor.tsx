@@ -10,7 +10,8 @@ import { requireActionUser } from "../../lib/session";
 import { formatAppointmentWhen, sendEmail } from "../../lib/email";
 import { checkImage } from "../../lib/image";
 import { checkDocument } from "../../lib/documents";
-import { notifyByName } from "../../lib/notify";
+import { BULLETIN_PATH_FOR, notifyAudience, notifyByName } from "../../lib/notify";
+import { pushToUser } from "../../lib/push";
 import { logRecordAccess } from "../../lib/accessLog";
 import { logActivity } from "../../lib/activityLog";
 import type { Answers } from "../config/collegeCareerForm";
@@ -939,6 +940,11 @@ export async function saveAnnouncement(formData: {
       imageFields = { imageData: new Uint8Array(img.bytes), imageType: img.type };
     }
 
+    // Was this already published before this save? Only a Draft -> Published
+    // transition (or a brand-new published post) should notify everyone -
+    // editing an already-published announcement shouldn't resend it.
+    const previous = formData.id ? await db.announcement.findUnique({ where: { id: formData.id }, select: { isPublished: true } }) : null;
+
     const data = {
       title: formData.title.trim(),
       body: formData.body.trim(),
@@ -953,6 +959,19 @@ export async function saveAnnouncement(formData: {
 
     revalidatePath("/information");
     for (const p of ["/bulletin", "/faculty_bulletin", "/parent_bulletin", "/student_dashboard"]) revalidatePath(p);
+
+    if (formData.isPublished && !previous?.isPublished) {
+      const title = formData.title.trim();
+      const recipients = await notifyAudience(formData.audience, (role) => ({
+        title: "New announcement",
+        body: title,
+        href: BULLETIN_PATH_FOR[role],
+      }));
+      await Promise.all(
+        recipients.map((r) => pushToUser(r.id, { title: "New announcement", body: title, url: BULLETIN_PATH_FOR[r.role] }))
+      );
+    }
+
     return { success: true };
   } catch (error) {
     console.error("Failed to save announcement:", error);
@@ -1005,12 +1024,25 @@ export async function saveEvent(formData: {
       time: formData.time.trim(),
       location: formData.location.trim() || null,
     };
+    const isNew = !formData.id;
     if (formData.id) await db.event.update({ where: { id: formData.id }, data });
     else await db.event.create({ data });
     await logActivity(me, formData.id ? "Edited an event" : "Created an event", "Event", formData.id, formData.title);
 
     revalidatePath("/information");
     for (const p of ["/bulletin", "/faculty_bulletin", "/parent_bulletin", "/student_dashboard"]) revalidatePath(p);
+
+    if (isNew) {
+      const title = formData.title.trim();
+      const recipients = await notifyAudience("All", (role) => ({
+        title: "New event",
+        body: title,
+        href: BULLETIN_PATH_FOR[role],
+      }));
+      await Promise.all(
+        recipients.map((r) => pushToUser(r.id, { title: "New event", body: title, url: BULLETIN_PATH_FOR[r.role] }))
+      );
+    }
     return { success: true };
   } catch (error) {
     console.error("Failed to save event:", error);
