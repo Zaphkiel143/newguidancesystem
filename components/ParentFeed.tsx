@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { CalendarDays, Loader2, MapPin } from "lucide-react";
+import { BookOpen, CalendarDays, Loader2, MapPin } from "lucide-react";
+import ReadingList from "./ReadingList";
 import { getBulletin } from "../app/action/bulletin";
 import { LogoMark } from "./Logo";
 import { useCurrentUser } from "./CurrentUser";
@@ -62,6 +63,15 @@ export default function ParentFeed() {
                   );
                 })}
               </ul>
+            </section>
+          )}
+
+          {data.readings.length > 0 && (
+            <section aria-labelledby="readings-heading" className="mt-8">
+              <h2 id="readings-heading" className="text-[15px] font-semibold text-ink inline-flex items-center gap-2 mb-3">
+                <BookOpen size={16} className="text-blue-700" /> Reading materials
+              </h2>
+              <ReadingList items={data.readings} compact />
             </section>
           )}
 

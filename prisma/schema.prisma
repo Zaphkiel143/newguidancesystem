@@ -67,6 +67,8 @@ model CareerPlan {
 model GroupGuidanceProgram {
   id           String   @id @default(uuid())
   title        String
+  // "Group session" or "Orientation" (an orientation activity for new students, parents...).
+  kind         String   @default("Group session")
   gradeLevel   String
   date         DateTime
   time         String
@@ -313,6 +315,41 @@ model NeedsAssessmentResponse {
   createdAt      DateTime        @default(now())
 
   @@unique([assessmentId, studentName])
+}
+
+// Results of a needs assessment given outside E-Gabay (Google Forms, or paper
+// forms typed into Excel), uploaded by the Guidance Associate. Only the tallies
+// are kept, not the file: lib/needsUpload.ts reads it in the browser.
+model NeedsAssessmentUpload {
+  id           String   @id @default(uuid())
+  title        String
+  stakeholders String[] // who answered: Students, Faculty, Parents...
+  fileName     String
+  respondents  Int
+  tally        Json     // [{ topic, count }], most-picked first
+  groups       Json     // [{ group, respondents, tally }] when split by a "You are a..." question
+  uploadedBy   String
+
+  createdAt    DateTime @default(now())
+}
+
+// ---- Group Guidance: supplementary reading materials ----
+
+// A handout or link for a topic (often one the needs assessment surfaced),
+// shown on the Announcements & Events board to the chosen audience.
+model ReadingMaterial {
+  id          String   @id @default(uuid())
+  title       String
+  description String?  @db.Text
+  topic       String?
+  audience    String   @default("All") // All, Students, Faculty, Parents
+  link        String?
+  fileName    String?
+  fileType    String?
+  fileData    Bytes?
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
 
 // ---- Email notifications ----

@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import { Loader2, MapPin } from "lucide-react";
 import { getBulletin } from "../app/action/bulletin";
 import { LogoMark } from "./Logo";
+import ReadingList from "./ReadingList";
 
 // Information Service board + upcoming events, shared by the student, faculty
 // and parent routes. Announcements can be filtered by category.
@@ -123,6 +124,13 @@ export default function BulletinBoard() {
                   );
                 })}
               </ul>
+            )}
+
+            {data.readings.length > 0 && (
+              <>
+                <h2 className="font-serif text-[22px] text-ink mt-10 mb-3">Reading materials</h2>
+                <ReadingList items={data.readings} />
+              </>
             )}
           </section>
         </div>

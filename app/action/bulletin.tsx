@@ -40,10 +40,25 @@ export async function getBulletin() {
     }
 
     // Photos load from /api/announcements/[id]/image instead of travelling here.
-    return { announcements: announcements.map(({ imageType, ...a }) => ({ ...a, hasImage: Boolean(imageType) })), events };
+    return { announcements: announcements.map(({ imageType, ...a }) => ({ ...a, hasImage: Boolean(imageType) })), events, readings: await readingsFor(me.role) };
   } catch (error) {
     console.error("[bulletin] Failed to load:", error);
-    return { announcements: [], events: [] };
+    return { announcements: [], events: [], readings: [] };
+  }
+}
+
+// Supplementary reading materials for this person; files open from
+// /api/reading/[id]. Kept apart so the board still loads if this fails.
+async function readingsFor(role: string) {
+  try {
+    return await db.readingMaterial.findMany({
+      where: { audience: { in: ["All", AUDIENCE_FOR[role]] } },
+      select: { id: true, title: true, description: true, topic: true, link: true, fileName: true, createdAt: true },
+      orderBy: { createdAt: "desc" },
+    });
+  } catch (error) {
+    console.error("[bulletin] Failed to load reading materials:", error);
+    return [];
   }
 }
 

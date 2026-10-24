@@ -9,6 +9,7 @@ import { Prisma } from "../../lib/generated";
 import { requireActionUser } from "../../lib/session";
 import { formatAppointmentWhen, sendEmail } from "../../lib/email";
 import { checkImage } from "../../lib/image";
+import { checkDocument } from "../../lib/documents";
 import { notifyByName } from "../../lib/notify";
 import { logRecordAccess } from "../../lib/accessLog";
 import { logActivity } from "../../lib/activityLog";
@@ -640,13 +641,24 @@ export async function getGroupGuidancePrograms() {
   }
 }
 
-export async function addGroupGuidanceProgram(formData: { title: string; gradeLevel: string; dateString: string; time: string }) {
+// A group session or an orientation activity. "announce" also lists it under
+// Upcoming events on the Announcements & Events board, to promote it.
+export async function addGroupGuidanceProgram(formData: { title: string; kind?: string; gradeLevel: string; dateString: string; time: string; announce?: boolean }) {
   try {
     const me = await counselorOnly();
+    const kind = formData.kind === "Orientation" ? "Orientation" : "Group session";
+    const title = formData.title.trim();
+    if (!title || !formData.dateString || !formData.time.trim()) return { success: false, error: "Title, date, and time are required." };
+    const date = new Date(formData.dateString);
     const program = await db.groupGuidanceProgram.create({
-      data: { title: formData.title, gradeLevel: formData.gradeLevel, date: new Date(formData.dateString), time: formData.time },
+      data: { title, kind, gradeLevel: formData.gradeLevel, date, time: formData.time.trim() },
     });
-    await logActivity(me, "Scheduled a group guidance session", "GroupGuidanceProgram", program.id, formData.title);
+    await logActivity(me, kind === "Orientation" ? "Scheduled an orientation activity" : "Scheduled a group guidance session", "GroupGuidanceProgram", program.id, title);
+
+    if (formData.announce) {
+      await db.event.create({ data: { title, description: `${kind} for ${formData.gradeLevel}, by the Guidance and Counseling Office.`, date, time: formData.time.trim() } });
+      for (const p of ["/information", "/bulletin", "/faculty_bulletin", "/parent_bulletin", "/student_dashboard"]) revalidatePath(p);
+    }
 
     revalidatePath("/groupguidance");
     return { success: true };
@@ -737,6 +749,151 @@ export async function setNeedsAssessmentOpen(id: string, isOpen: boolean) {
   } catch (error) {
     console.error("Failed to update needs assessment:", error);
     return { success: false, error: String(error) };
+  }
+}
+
+// ---- Needs assessments given outside E-Gabay (uploaded results) ----
+
+type TopicCount = { topic: string; count: number };
+type GroupTally = { group: string; respondents: number; tally: TopicCount[] };
+
+export async function listNeedsUploads() {
+  try {
+    await counselorOnly();
+    const rows = await db.needsAssessmentUpload.findMany({ orderBy: { createdAt: "desc" } });
+    return rows.map((r) => ({ ...r, tally: r.tally as TopicCount[], groups: r.groups as GroupTally[] }));
+  } catch (error) {
+    // Also lands here until the table exists on the database (prisma db push).
+    console.error("Failed to list uploaded needs assessments:", error);
+    return [];
+  }
+}
+
+const STAKEHOLDERS = ["Students", "Faculty", "Staff", "Parents"];
+
+// The browser reads the file and tallies it (lib/needsUpload.ts); this checks
+// the numbers are sane before keeping them.
+export async function saveNeedsUpload(formData: { title: string; stakeholders: string[]; fileName: string; respondents: number; tally: TopicCount[]; groups: GroupTally[] }) {
+  try {
+    const me = await counselorOnly();
+    const title = formData.title.trim().slice(0, 150);
+    if (!title) return { success: false, error: "Give the results a title." };
+    const respondents = Math.floor(Number(formData.respondents));
+    if (!(respondents >= 1 && respondents <= 100000)) return { success: false, error: "The file has no answers to count." };
+    const cleanTally = (t: TopicCount[]) =>
+      (Array.isArray(t) ? t : [])
+        .slice(0, 200)
+        .map((x) => ({ topic: String(x.topic ?? "").trim().slice(0, 200), count: Math.max(0, Math.min(respondents, Math.floor(Number(x.count) || 0))) }))
+        .filter((x) => x.topic)
+        .sort((a, b) => b.count - a.count);
+    const tally = cleanTally(formData.tally);
+    if (tally.length === 0) return { success: false, error: "Pick at least one question whose answers are the topics." };
+    const groups = (Array.isArray(formData.groups) ? formData.groups : []).slice(0, 50).map((g) => ({
+      group: String(g.group ?? "").trim().slice(0, 100) || "Not stated",
+      respondents: Math.max(0, Math.min(respondents, Math.floor(Number(g.respondents) || 0))),
+      tally: cleanTally(g.tally),
+    }));
+
+    const upload = await db.needsAssessmentUpload.create({
+      data: {
+        title,
+        stakeholders: STAKEHOLDERS.filter((x) => formData.stakeholders.includes(x)),
+        fileName: String(formData.fileName).split(/[\\/]/).pop()!.slice(0, 120),
+        respondents,
+        tally,
+        groups,
+        uploadedBy: me.name,
+      },
+    });
+    await logActivity(me, "Uploaded needs assessment results", "NeedsAssessmentUpload", upload.id, title);
+    revalidatePath("/groupguidance");
+    return { success: true };
+  } catch (error) {
+    console.error("Failed to save uploaded needs assessment:", error);
+    return { success: false, error: "Couldn't save the results. Try again." };
+  }
+}
+
+export async function deleteNeedsUpload(id: string) {
+  try {
+    const me = await counselorOnly();
+    await db.needsAssessmentUpload.delete({ where: { id } });
+    await logActivity(me, "Removed uploaded needs assessment results", "NeedsAssessmentUpload", id);
+    revalidatePath("/groupguidance");
+    return { success: true };
+  } catch (error) {
+    console.error("Failed to delete uploaded needs assessment:", error);
+    return { success: false, error: "Couldn't remove these results. Try again." };
+  }
+}
+
+// ---- Supplementary reading materials ----
+
+const READING_AUDIENCES = ["All", "Students", "Faculty", "Parents"];
+
+export async function listReadingMaterials() {
+  try {
+    await counselorOnly();
+    return await db.readingMaterial.findMany({ omit: { fileData: true }, orderBy: { createdAt: "desc" } });
+  } catch (error) {
+    console.error("Failed to list reading materials:", error);
+    return [];
+  }
+}
+
+// A handout (PDF, Word file or image, up to 5 MB), a link, or both.
+export async function saveReadingMaterial(formData: { title: string; description: string; topic: string; audience: string; link: string; fileName?: string; dataBase64?: string }) {
+  try {
+    const me = await counselorOnly();
+    const title = formData.title.trim().slice(0, 150);
+    if (!title) return { success: false, error: "Give the material a title." };
+    let link: string | null = formData.link.trim() || null;
+    if (link) {
+      if (!/^https?:\/\//i.test(link)) link = `https://${link}`;
+      try {
+        new URL(link);
+      } catch {
+        return { success: false, error: "That link doesn't look right. Paste the full web address." };
+      }
+      link = link.slice(0, 500);
+    }
+    let file: { fileName: string; fileType: string; fileData: Uint8Array<ArrayBuffer> } | null = null;
+    if (formData.dataBase64) {
+      const checked = checkDocument(formData.dataBase64, formData.fileName ?? "reading");
+      if (!checked.ok) return { success: false, error: checked.error };
+      file = { fileName: checked.fileName, fileType: checked.type, fileData: new Uint8Array(checked.bytes) };
+    }
+    if (!link && !file) return { success: false, error: "Attach a file or paste a link." };
+
+    const material = await db.readingMaterial.create({
+      data: {
+        title,
+        description: formData.description.trim().slice(0, 2000) || null,
+        topic: formData.topic.trim().slice(0, 200) || null,
+        audience: READING_AUDIENCES.includes(formData.audience) ? formData.audience : "All",
+        link,
+        ...file,
+      },
+    });
+    await logActivity(me, "Shared a reading material", "ReadingMaterial", material.id, title);
+    for (const p of ["/groupguidance", "/bulletin", "/faculty_bulletin", "/parent_bulletin"]) revalidatePath(p);
+    return { success: true };
+  } catch (error) {
+    console.error("Failed to save reading material:", error);
+    return { success: false, error: "Couldn't save the material. Try again." };
+  }
+}
+
+export async function deleteReadingMaterial(id: string) {
+  try {
+    const me = await counselorOnly();
+    await db.readingMaterial.delete({ where: { id } });
+    await logActivity(me, "Removed a reading material", "ReadingMaterial", id);
+    for (const p of ["/groupguidance", "/bulletin", "/faculty_bulletin", "/parent_bulletin"]) revalidatePath(p);
+    return { success: true };
+  } catch (error) {
+    console.error("Failed to delete reading material:", error);
+    return { success: false, error: "Couldn't remove this material. Try again." };
   }
 }
 
