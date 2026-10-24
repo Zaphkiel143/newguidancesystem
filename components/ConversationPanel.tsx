@@ -128,7 +128,9 @@ export default function ConversationPanel({
 
   return (
     <div className="flex-1 flex flex-col bg-paper h-full min-h-0">
-      <div className="px-6 py-4 border-b border-rule shrink-0 flex items-center gap-3">
+      <div className="px-6 py-4 border-b border-rule shrink-0">
+        {/* The chat keeps to a readable column in the middle of wide screens. */}
+        <div className="max-w-3xl mx-auto flex items-center gap-3">
         {(() => {
           const who = (
             <>
@@ -169,14 +171,16 @@ export default function ConversationPanel({
             {isDeleting ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={16} />}
           </button>
         )}
+        </div>
       </div>
       {deleteError && (
-        <div className="px-6 pt-3 shrink-0">
+        <div className="px-6 pt-3 shrink-0 w-full max-w-3xl mx-auto">
           <InlineError message={deleteError} onDismiss={() => setDeleteError(null)} />
         </div>
       )}
 
-      <div className="flex-1 overflow-y-auto px-6 py-6 flex flex-col gap-4 min-h-0">
+      <div className="flex-1 overflow-y-auto px-6 py-6 flex flex-col min-h-0">
+        <div className="flex-1 w-full max-w-3xl mx-auto flex flex-col gap-4">
         {/* Pushes a short conversation down to the reply box, like a chat app. */}
         <div aria-hidden className="mt-auto" />
         {isLoading ? (
@@ -211,11 +215,12 @@ export default function ConversationPanel({
           })
         )}
         <div ref={bottomRef} />
+        </div>
       </div>
 
       <div className="border-t border-rule px-4 py-3 shrink-0">
-        <InlineError message={sendError} onDismiss={() => setSendError(null)} className="mb-2" />
-        <form onSubmit={handleSend} className="flex items-center gap-2">
+        <InlineError message={sendError} onDismiss={() => setSendError(null)} className="mb-2 max-w-3xl mx-auto" />
+        <form onSubmit={handleSend} className="max-w-3xl mx-auto flex items-center gap-2">
           <label htmlFor={`draft-${conversationId}`} className="sr-only">Write a message</label>
           <input
             id={`draft-${conversationId}`}
