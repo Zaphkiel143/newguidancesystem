@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { LogOut, Menu, X } from "lucide-react";
 import { navigationConfig, MenuItem } from "../app/config/navigation";
 import SignOutButton from "./SignOutButton";
+import AppFooter from "./AppFooter";
 import { getDashboardStats } from "../app/action/counselor";
 import { CurrentUserProvider } from "./CurrentUser";
 import { LogoMark } from "./Logo";
@@ -276,6 +277,7 @@ export function AppShell({ role, userName, displayName = userName, hiddenPaths =
 
       <main className={`${collapsed ? "md:pl-0" : "md:pl-(--sidebar-w)"} min-w-0 pb-20 transition-[padding] duration-300 ease-out`}>
         <CurrentUserProvider user={{ name: userName, displayName, roleLabel: RECORD_ROLE[role] }}>{children}</CurrentUserProvider>
+        <AppFooter />
       </main>
 
       <FloatingDock messagesPath={MESSAGES_PATH[role]} withChatbot={role === "student" || role === "faculty"} />

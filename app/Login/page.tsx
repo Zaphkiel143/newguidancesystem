@@ -779,7 +779,13 @@ const LoginPage = () => {
       </div>
 
       <footer className="px-6 sm:px-10 py-6 text-[12px] text-white/85 flex flex-wrap gap-x-6 gap-y-1 [text-shadow:0_1px_2px_rgb(0_0_0/0.4)]">
-        <span>Guidance and Counseling Office</span>
+        <span>E-Gabay · Guidance and Counseling Office · STI College Sta. Maria</span>
+        <span>
+          Need help right now? NCMH Crisis Hotline{" "}
+          <a href="tel:1553" className="font-semibold underline underline-offset-2">1553</a> · Emergency{" "}
+          <a href="tel:911" className="font-semibold underline underline-offset-2">911</a>
+        </span>
+        <span className="sm:ml-auto">© {new Date().getFullYear()} STI College Sta. Maria</span>
       </footer>
     </main>
   );
