@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { Search, AlertTriangle, Clock, CheckCircle, X } from 'lucide-react';
 import { listReferrals, updateReferralStatus, addReferralNotes, sendReferralFeedback } from '../../action/counselor';
 import InlineError from '../../../components/InlineError';
@@ -14,12 +15,28 @@ const ReferralManagement = () => {
   const [filter, setFilter] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
   const [referrals, setReferrals] = useState<Referral[]>([]);
+  const [referralsLoaded, setReferralsLoaded] = useState(false);
   const [modal, setModal] = useState<ModalState>(null);
   const [modalText, setModalText] = useState('');
   const [isSaving, setIsSaving] = useState(false);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [cardError, setCardError] = useState<{ id: string; message: string } | null>(null);
   const [modalError, setModalError] = useState<string | null>(null);
+
+  // A link like /referral?id=... (e.g. from a referral notification) points
+  // out that referral, including when this page is already open.
+  const params = useSearchParams();
+  const linkedId = params.get('id');
+  const [highlight, setHighlight] = useState<string | null>(linkedId);
+  const [lastLinkedId, setLastLinkedId] = useState(linkedId);
+  if (linkedId !== lastLinkedId) {
+    setLastLinkedId(linkedId);
+    setHighlight(linkedId);
+    if (linkedId) {
+      setFilter('All');
+      setSearchQuery('');
+    }
+  }
 
   const refresh = async () => {
     const data = await listReferrals();
@@ -31,13 +48,25 @@ const ReferralManagement = () => {
 
     (async () => {
       const data = await listReferrals();
-      if (!cancelled) setReferrals(data);
+      if (!cancelled) {
+        setReferrals(data);
+        setReferralsLoaded(true);
+      }
     })();
 
     return () => {
       cancelled = true;
     };
   }, []);
+
+  // Once the linked referral is on screen, bring it into view; the
+  // highlight fades after a few seconds.
+  useEffect(() => {
+    if (!highlight || !referralsLoaded) return;
+    document.querySelector(`[data-referral="${highlight}"]`)?.scrollIntoView({ behavior: "smooth", block: "center" });
+    const t = setTimeout(() => setHighlight(null), 4000);
+    return () => clearTimeout(t);
+  }, [highlight, referralsLoaded]);
 
   const statusForFilter: Record<string, string | null> = {
     All: null,
@@ -152,6 +181,7 @@ const ReferralManagement = () => {
               key={referral.id}
               referral={referral}
               isUpdating={updatingId === referral.id}
+              isHighlighted={highlight === referral.id}
               onAdvanceStatus={handleAdvanceStatus}
               onAddNotes={() => openModal('notes', referral)}
               onSendFeedback={() => openModal('feedback', referral)}
@@ -224,6 +254,7 @@ const ReferralManagement = () => {
 interface ReferralCardProps {
   referral: Referral;
   isUpdating: boolean;
+  isHighlighted: boolean;
   onAdvanceStatus: (referral: Referral, status: "IN_PROGRESS" | "CLOSED") => void;
   onAddNotes: () => void;
   onSendFeedback: () => void;
@@ -231,13 +262,18 @@ interface ReferralCardProps {
   onDismissError: () => void;
 }
 
-const ReferralCard = ({ referral, isUpdating, onAdvanceStatus, onAddNotes, onSendFeedback, error, onDismissError }: ReferralCardProps) => {
+const ReferralCard = ({ referral, isUpdating, isHighlighted, onAdvanceStatus, onAddNotes, onSendFeedback, error, onDismissError }: ReferralCardProps) => {
   const isHigh = referral.priority === 'High' || referral.priority === 'Urgent' || referral.priority === 'Emergency';
   const isOpen = referral.status === 'OPEN';
   const isClosed = referral.status === 'CLOSED';
 
   return (
-    <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden transition-hover hover:shadow-md">
+    <div
+      data-referral={referral.id}
+      className={`rounded-xl border shadow-sm overflow-hidden scroll-mt-24 transition-[background-color,border-color,box-shadow] duration-700 ${
+        isHighlighted ? "bg-butter-50 border-butter-400 ring-4 ring-butter-200" : "bg-white border-slate-200 hover:shadow-md"
+      }`}
+    >
       <div className="p-6">
         {/* Card Header Tags */}
         <div className="flex justify-between items-start mb-4">

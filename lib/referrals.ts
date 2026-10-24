@@ -34,10 +34,10 @@ export async function checkReferral(input: { studentName: string; concernType: s
   return { value: { studentName, concernType, priority: input.priority, description } } as const;
 }
 
-export async function announceNewReferral(r: { studentName: string; referrerName: string; referrerRole: string; priority: string }) {
+export async function announceNewReferral(r: { id: string; studentName: string; referrerName: string; referrerRole: string; priority: string }) {
   await notifyCounselors({
     title: `New ${r.priority === "High" || r.priority === "Emergency" ? "high-priority " : ""}referral`,
     body: `${r.referrerRole === "Student" && r.studentName === r.referrerName ? `${r.studentName} asked for help` : `${r.referrerName} (${r.referrerRole}) referred ${r.studentName}`}`,
-    href: "/referral",
+    href: `/referral?id=${r.id}`,
   });
 }

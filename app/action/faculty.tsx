@@ -204,7 +204,7 @@ export async function submitReferral(formData: {
     const referral = await db.referral.create({
       data: { ...checked.value, referrerName: me.name, referrerRole: "Faculty", status: "OPEN" },
     });
-    await announceNewReferral({ ...checked.value, referrerName: me.name, referrerRole: "Faculty" });
+    await announceNewReferral({ ...checked.value, id: referral.id, referrerName: me.name, referrerRole: "Faculty" });
     await logActivity(me, "Submitted a referral", "Referral", referral.id, checked.value.studentName);
 
     revalidatePath("/referral");
