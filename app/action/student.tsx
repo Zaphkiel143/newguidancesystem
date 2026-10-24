@@ -16,6 +16,7 @@ import { notifyCounselors } from "../../lib/notify";
 import { announceNewReferral, checkReferral } from "../../lib/referrals";
 import { cleanAnswers, validateAnswers, type Answers } from "../config/collegeCareerForm";
 import { logActivity } from "../../lib/activityLog";
+import { shownName } from "../../lib/demo";
 
 // Every action here acts as the signed-in student; names never come from the client.
 
@@ -297,7 +298,7 @@ export async function getMyProfile() {
         orderBy: { createdAt: "desc" },
       }),
     ]);
-    return { name: me.name, email: me.email, hasPhoto: Boolean(me.avatarType), profile, appointments, documents };
+    return { name: shownName(me), email: me.email, hasPhoto: Boolean(me.avatarType), profile, appointments, documents };
   } catch (error) {
     console.error("[student] Failed to fetch profile:", error);
     return null;

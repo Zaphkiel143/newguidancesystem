@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
 import { getMyAppointments, getMyCareerPlan, getMyReferrals, getMyStudentLevel } from '../../action/student';
 import { manilaToday } from '../../../lib/time';
+import { greetingName } from '../../../lib/demo';
 import { getBulletinPreview } from '../../action/bulletin';
 import { CAREER_STEPS } from '../../config/careerSteps';
 import { useCurrentUser } from '../../../components/CurrentUser';
@@ -80,7 +81,7 @@ export const DashboardContent: React.FC = () => {
   return (
     <div className="px-5 sm:px-8 lg:px-12 pt-8 lg:pt-12 pb-16 max-w-6xl text-slate-800">
       <header>
-        <h1 className="page-title">Kumusta, {me.name.split(" ")[0]}.</h1>
+        <h1 className="page-title">Kumusta, {greetingName(me.displayName)}.</h1>
       </header>
 
       {data && !data.level.hasProfile && (

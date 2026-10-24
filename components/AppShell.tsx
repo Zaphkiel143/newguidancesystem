@@ -19,7 +19,10 @@ type Role = "faculty" | "counselor" | "student" | "parent";
 
 interface AppShellProps {
   role: Role;
+  // The stored name, used to match records (e.g. "is this message mine").
   userName: string;
+  // The name shown on screen when it differs (demo accounts show "Demo Account").
+  displayName?: string;
   // Paths hidden from this user's menu (e.g. My Career Plan for tertiary students).
   hiddenPaths?: string[];
   // Profile photo URL, when the user has uploaded one.
@@ -69,7 +72,7 @@ function initials(name: string): string {
     .join("");
 }
 
-export function AppShell({ role, userName, hiddenPaths = [], avatarUrl, needsPrivacyConsent = false, children }: AppShellProps) {
+export function AppShell({ role, userName, displayName = userName, hiddenPaths = [], avatarUrl, needsPrivacyConsent = false, children }: AppShellProps) {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
   const [lastPathname, setLastPathname] = useState(pathname);
@@ -116,7 +119,7 @@ export function AppShell({ role, userName, hiddenPaths = [], avatarUrl, needsPri
         // eslint-disable-next-line @next/next/no-img-element -- served by our own authenticated route
         <img src={avatarUrl} alt="" className="w-full h-full object-cover" />
       ) : (
-        initials(userName)
+        initials(displayName)
       )}
     </span>
   );
@@ -144,7 +147,7 @@ export function AppShell({ role, userName, hiddenPaths = [], avatarUrl, needsPri
 
         <div className="ml-auto flex items-center gap-1 sm:gap-3">
           <NoticeBell />
-          <ProfileMenu userName={userName} roleLabel={ROLE_LABEL[role]} avatar={avatar} accountPath={ACCOUNT_PATH[role]} />
+          <ProfileMenu userName={displayName} roleLabel={ROLE_LABEL[role]} avatar={avatar} accountPath={ACCOUNT_PATH[role]} />
         </div>
       </header>
 
@@ -225,7 +228,7 @@ export function AppShell({ role, userName, hiddenPaths = [], avatarUrl, needsPri
           <div className="md:hidden flex items-center gap-3 mb-2">
             {avatar}
             <div className="min-w-0 flex-1 leading-tight">
-              <p className="text-[13px] font-medium text-ink truncate">{userName}</p>
+              <p className="text-[13px] font-medium text-ink truncate">{displayName}</p>
               <p className="text-[12px] text-slate-500 truncate">{ROLE_LABEL[role]}</p>
             </div>
           </div>
@@ -240,7 +243,7 @@ export function AppShell({ role, userName, hiddenPaths = [], avatarUrl, needsPri
       </aside>
 
       <main className="md:pl-(--sidebar-w) min-w-0 pb-20">
-        <CurrentUserProvider user={{ name: userName, roleLabel: RECORD_ROLE[role] }}>{children}</CurrentUserProvider>
+        <CurrentUserProvider user={{ name: userName, displayName, roleLabel: RECORD_ROLE[role] }}>{children}</CurrentUserProvider>
       </main>
 
       <FloatingDock messagesPath={MESSAGES_PATH[role]} withChatbot={role === "student"} />

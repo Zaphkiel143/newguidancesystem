@@ -5,6 +5,7 @@ import { CalendarDays, Loader2, MapPin } from "lucide-react";
 import { getBulletin } from "../app/action/bulletin";
 import { LogoMark } from "./Logo";
 import { useCurrentUser } from "./CurrentUser";
+import { greetingName } from "../lib/demo";
 
 // Parents' home page: what the guidance office posted, newest first, with
 // upcoming events on top. No search or filters, just a feed.
@@ -27,7 +28,7 @@ export default function ParentFeed() {
       <header>
         <h1 className="page-title">Feed</h1>
         <p className="text-sm text-slate-500 mt-1">
-          Hello{me?.name ? `, ${me.name.split(" ")[0]}` : ""}. Here&apos;s the latest from the Guidance and Counseling Office.
+          Hello{me?.displayName ? `, ${greetingName(me.displayName)}` : ""}. Here&apos;s the latest from the Guidance and Counseling Office.
         </p>
       </header>
 

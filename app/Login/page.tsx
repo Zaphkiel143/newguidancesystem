@@ -46,7 +46,7 @@ const REG_INPUT_IDS: Record<ParentSignupField, string> = {
 
 type Step = "who" | "email" | "code" | "details" | "parent" | "register" | "waiting" | "totp" | "approve";
 
-const RESEND_SECONDS = 60;
+const RESEND_SECONDS = 30;
 
 // Labels for the "your account is registered as ___" notice - kept separate
 // from WHO_OPTIONS below now that one door (Student, Faculty or Staff) can
@@ -93,6 +93,8 @@ const LoginPage = () => {
   const [roleNotice, setRoleNotice] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [resendIn, setResendIn] = useState(0);
+  // The email the resend countdown applies to; another email can ask right away.
+  const [resendFor, setResendFor] = useState('');
   const [demoLoadingRole, setDemoLoadingRole] = useState<UserRole | null>(null);
   const codeInput = useRef<HTMLInputElement>(null);
   const [approval, setApproval] = useState<{ requestId: string; secret: string; number: number } | null>(null);
@@ -185,10 +187,15 @@ const LoginPage = () => {
       setEmail(result.email);
       setCode('');
       setResendIn(RESEND_SECONDS);
+      setResendFor(result.email);
       setStep("code");
       setTimeout(() => codeInput.current?.focus(), 0);
     } else {
       setError(result.error);
+      if (result.retryAfter) {
+        setResendIn(result.retryAfter);
+        setResendFor(email.trim().toLowerCase());
+      }
     }
   };
 
@@ -421,7 +428,8 @@ const LoginPage = () => {
                     className={inputClass} value={email} onChange={(e) => setEmail(e.target.value)} required autoFocus />
                 </div>
                 <ErrorLine error={error} />
-                <button type="submit" disabled={isSubmitting} className={primaryButton}>
+                {resendIn > 0 && email.trim().toLowerCase() === resendFor && <ResendTimer seconds={resendIn} />}
+                <button type="submit" disabled={isSubmitting || (resendIn > 0 && email.trim().toLowerCase() === resendFor)} className={primaryButton}>
                   {isSubmitting ? <><Loader2 size={16} className="animate-spin" /> Sending code</> : "Send code"}
                 </button>
                 <div className="flex flex-wrap items-center justify-between gap-2">
@@ -569,6 +577,7 @@ const LoginPage = () => {
                 <button type="submit" disabled={isSubmitting} className={primaryButton}>
                   {isSubmitting ? <><Loader2 size={16} className="animate-spin" /> Checking</> : step === "code" ? "Sign in" : "Continue"}
                 </button>
+                {step === "code" && resendIn > 0 && <ResendTimer seconds={resendIn} />}
                 {step === "code" && (
                   <div className="flex items-center justify-between text-[13px]">
                     <button type="button" onClick={() => go("email")} className={backButton}>
@@ -740,6 +749,22 @@ const LoginPage = () => {
 function FieldError({ id, message }: { id: string; message?: string }) {
   if (!message) return null;
   return <p id={id} className="mt-1 text-[12px] text-red-700">{message}</p>;
+}
+
+// Countdown until another sign-in code can be requested: a draining bar plus the time left.
+function ResendTimer({ seconds }: { seconds: number }) {
+  const pct = Math.min(100, (seconds / RESEND_SECONDS) * 100);
+  return (
+    <div role="timer" aria-label={`You can request a new code in ${seconds} seconds`} className="space-y-1.5">
+      <div className="flex items-center justify-between text-[13px] text-slate-600">
+        <span>You can request a new code in</span>
+        <span className="font-mono font-medium text-blue-700 tabular">0:{String(seconds).padStart(2, "0")}</span>
+      </div>
+      <div className="h-1.5 rounded-full bg-slate-200 overflow-hidden">
+        <div className="h-full bg-blue-600 transition-[width] duration-1000 ease-linear" style={{ width: `${pct}%` }} />
+      </div>
+    </div>
+  );
 }
 
 function ErrorLine({ error }: { error: string | null }) {

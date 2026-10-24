@@ -3,7 +3,10 @@
 import React, { createContext, useContext } from "react";
 
 export interface CurrentUser {
+  // Stored name; records are matched on this.
   name: string;
+  // Shown on screen ("Demo Account" for demo accounts, otherwise the same as name).
+  displayName: string;
   // Label stored on records, e.g. "Student", "Counselor" (see lib/session.ts)
   roleLabel: string;
 }

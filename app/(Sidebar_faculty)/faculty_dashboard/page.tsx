@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
 import { getMyReferrals, getMyAppointments } from '../../action/faculty';
 import { getCurrentUser } from '../../../lib/auth';
+import { greetingName, shownName } from '../../../lib/demo';
 
 
 const SHORTCUTS = [
@@ -38,7 +39,7 @@ export const FacultyDashboard = async () => {
     <div className="px-5 sm:px-8 lg:px-12 pt-8 lg:pt-12 pb-16 max-w-6xl text-slate-800">
       <header className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-5">
         <div>
-          <h1 className="page-title">Welcome back{user ? `, ${user.name.split(" ")[0]}` : ""}.</h1>
+          <h1 className="page-title">Welcome back{user ? `, ${greetingName(shownName(user))}` : ""}.</h1>
         </div>
         <Link
           href="/submit_referral"

@@ -16,6 +16,7 @@ import { SCHOOL_EMAIL_DOMAIN } from "../config/school";
 import { gradeSectionLabel, isShs } from "../config/studentLevels";
 import { logActivity } from "../../lib/activityLog";
 import { ROLE_LABEL } from "../../lib/session";
+import { DEMO_EMAILS } from "../../lib/demo";
 
 const DEMO_PASSWORD = "demo1234";
 
@@ -23,11 +24,13 @@ const DEMO_PASSWORD = "demo1234";
 // accounts can sign in with school-email codes).
 const DEMO_LOGIN_ENABLED = process.env.NEXT_PUBLIC_DEMO_LOGIN !== "false";
 
+// Stored names link the demo accounts to the sample records; on screen they
+// show as "Demo Account" (lib/demo.ts).
 const DEMO_USERS: Record<UserRole, { email: string; name: string }> = {
-  COUNSELOR: { email: "counselor@sti.edu", name: "Ralph Michael" },
-  STUDENT: { email: "student@sti.edu", name: "Nhel Belarmino" },
-  FACULTY: { email: "faculty@sti.edu", name: "Cho Sto Domingo" },
-  PARENT: { email: "parent@sti.edu", name: "Mrs. Belarmino" },
+  COUNSELOR: { email: DEMO_EMAILS.COUNSELOR, name: "Ralph Michael" },
+  STUDENT: { email: DEMO_EMAILS.STUDENT, name: "Nhel Belarmino" },
+  FACULTY: { email: DEMO_EMAILS.FACULTY, name: "Cho Sto Domingo" },
+  PARENT: { email: DEMO_EMAILS.PARENT, name: "Mrs. Belarmino" },
 };
 
 // Shown when an account exists but can't be used yet (or anymore).
@@ -84,7 +87,7 @@ export async function login(formData: { identifier: string; password: string }):
 
 const SCHOOL_DOMAIN = SCHOOL_EMAIL_DOMAIN.toLowerCase();
 const CODE_TTL_MS = 10 * 60 * 1000;
-const RESEND_AFTER_MS = 60 * 1000;
+const RESEND_AFTER_MS = 30 * 1000;
 const MAX_CODES_PER_HOUR = 5;
 const MAX_ATTEMPTS = 5;
 
@@ -103,7 +106,9 @@ function counselorEmailList() {
     .filter(Boolean);
 }
 
-type CodeRequestResult = { success: true; email: string } | { success: false; error: string };
+// retryAfter (seconds) lets the page restart its resend countdown when the
+// server refuses because a code was sent too recently.
+type CodeRequestResult = { success: true; email: string } | { success: false; error: string; retryAfter?: number };
 
 export async function requestLoginCode(rawEmail: string): Promise<CodeRequestResult> {
   try {
@@ -128,8 +133,11 @@ export async function requestLoginCode(rawEmail: string): Promise<CodeRequestRes
       where: { email, createdAt: { gte: lastHour } },
       orderBy: { createdAt: "desc" },
     });
-    if (recent[0] && Date.now() - recent[0].createdAt.getTime() < RESEND_AFTER_MS) {
-      return { success: false, error: "A code was just sent. Wait a minute before asking for another one." };
+    const waitMs = recent[0] ? RESEND_AFTER_MS - (Date.now() - recent[0].createdAt.getTime()) : 0;
+    if (waitMs > 0) {
+      // Clamped so a clock difference between server and database can't ask for more than the full wait.
+      const retryAfter = Math.min(Math.ceil(waitMs / 1000), RESEND_AFTER_MS / 1000);
+      return { success: false, error: "A code was just sent. You can ask for another one when the timer runs out.", retryAfter };
     }
     if (recent.length >= MAX_CODES_PER_HOUR) {
       return { success: false, error: "Too many codes requested. Try again in an hour." };
