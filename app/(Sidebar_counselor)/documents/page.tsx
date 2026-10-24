@@ -1,9 +1,10 @@
 "use client";
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Check, ChevronRight, ExternalLink, FileText, Folder, Loader2, Search, X } from "lucide-react";
+import { Check, ChevronRight, Eye, FileText, Folder, Loader2, Search, X } from "lucide-react";
 import { listDocumentsForReview, reviewDocument } from "../../action/counselor";
 import InlineError from "../../../components/InlineError";
+import FilePreview from "../../../components/FilePreview";
 import { useOptionList } from "../../../components/useOptionList";
 import { optionValue } from "../../../lib/optionListDefaults";
 import { isShs } from "../../config/studentLevels";
@@ -68,6 +69,8 @@ export default function DocumentReviewPage() {
   const [section, setSection] = useState<string | null>(null);
   const [query, setQuery] = useState("");
   const [searchOpen, setSearchOpen] = useState(false);
+  // The file shown in the pop-up viewer, if any.
+  const [preview, setPreview] = useState<Doc | null>(null);
   const searchRef = useRef<HTMLInputElement>(null);
 
   const [departments] = useOptionList("departments");
@@ -200,10 +203,10 @@ export default function DocumentReviewPage() {
             {d.reviewNote && <p className="text-[13px] text-slate-700 mt-1">Note: {d.reviewNote}</p>}
           </div>
         </div>
-        <a href={`/api/files/document/${d.id}`} target="_blank" rel="noopener noreferrer"
+        <button type="button" onClick={() => setPreview(d)}
           className="inline-flex items-center gap-1.5 border border-slate-300 hover:bg-slate-100 text-sm px-4 min-h-10 rounded-full">
-          <ExternalLink size={15} /> Open
-        </a>
+          <Eye size={15} /> Open
+        </button>
       </div>
 
       {tab === "PENDING" && (
@@ -335,6 +338,10 @@ export default function DocumentReviewPage() {
             </ul>
           )}
         </section>
+      )}
+
+      {preview && (
+        <FilePreview url={`/api/files/document/${preview.id}`} fileName={preview.fileName} onClose={() => setPreview(null)} />
       )}
     </div>
   );
