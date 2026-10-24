@@ -71,6 +71,38 @@ export function gradeSectionLabel(yearLevel: string, section: string) {
   return [yearLevel.trim(), section.trim()].filter(Boolean).join(" - ");
 }
 
+// Student IDs are 11 digits, e.g. 02000123456.
+export const STUDENT_ID_DIGITS = 11;
+export const isStudentId = (s: string) => new RegExp(`^\\d{${STUDENT_ID_DIGITS}}$`).test(s);
+
+// College sections are a program code plus year-section, e.g. "BSIT 1-101".
+export const SECTION_PROGRAMS = ["BSIT", "BSTM", "BSAIS", "BSCS", "BSCPE"] as const;
+// Sections per year level: year 1 has 1-101 to 1-105, year 2 has 2-201 to 2-205, and so on.
+const SECTIONS_PER_YEAR = 5;
+
+// The program code for a course, when it has one.
+const COURSE_SECTION_CODE: Record<string, (typeof SECTION_PROGRAMS)[number]> = {
+  "BS Information Technology": "BSIT",
+  "BS Tourism Management": "BSTM",
+  "BS Accounting Information Systems": "BSAIS",
+  "BS Computer Science": "BSCS",
+  "BS Computer Engineering": "BSCPE",
+};
+export const sectionCodeForCourse = (course: string) => COURSE_SECTION_CODE[course] ?? "";
+
+// "2nd Year" -> ["2-201", ..., "2-205"]; nothing until a year level is picked.
+export function yearSectionsFor(yearLevel: string): string[] {
+  const year = Number(/^(\d)/.exec(yearLevel)?.[1]);
+  if (!year) return [];
+  return Array.from({ length: SECTIONS_PER_YEAR }, (_, i) => `${year}-${year}${String(i + 1).padStart(2, "0")}`);
+}
+
+// "BSIT 1-101" -> { code: "BSIT", yearSection: "1-101" }; anything else -> null.
+export function splitCollegeSection(section: string | null | undefined) {
+  const m = /^([A-Z]+) (\d-\d{3})$/.exec((section ?? "").trim());
+  return m && (SECTION_PROGRAMS as readonly string[]).includes(m[1]) ? { code: m[1], yearSection: m[2] } : null;
+}
+
 // Shared "pick one, or type your own" options. OTHER reveals a text box and is
 // saved as "Other: <what they typed>".
 export const OTHER = "Other/s";

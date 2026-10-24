@@ -3,7 +3,18 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { Loader2, Send } from "lucide-react";
-import { OTHER, SHS, withOther } from "../app/config/studentLevels";
+import {
+  OTHER,
+  SECTION_PROGRAMS,
+  SHS,
+  STUDENT_ID_DIGITS,
+  isStudentId,
+  sectionCodeForCourse,
+  splitCollegeSection,
+  withOther,
+  yearSectionsFor,
+} from "../app/config/studentLevels";
+import { lookupStudentForReferral } from "../app/action/referralLookup";
 import { optionValue } from "../lib/optionListDefaults";
 import { useOptionList } from "./useOptionList";
 
@@ -40,7 +51,10 @@ const EMPTY = {
   department: SHS as string,
   yearLevel: "",
   program: "",
+  // Senior high: typed section. College: a program code and year-section, e.g. "BSIT" + "1-101".
   section: "",
+  sectionCode: "",
+  yearSection: "",
   concern: "",
   concernOther: "",
   priority: "Medium",
@@ -73,14 +87,45 @@ export default function ReferralForm({ mode, linkedChildren, onSubmit, myReferra
   const [saving, setSaving] = useState(false);
   const [done, setDone] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Set when the student's details were filled in from the school records.
+  const [foundNote, setFoundNote] = useState<string | null>(null);
 
   const set = (patch: Partial<typeof EMPTY>) => setF((prev) => ({ ...prev, ...patch }));
   const aboutSomeoneElse = mode !== "parent";
   const child = mode === "parent" ? linkedChildren?.find((c) => c.name === f.childName) ?? linkedChildren?.[0] : undefined;
   const isShs = f.department === SHS;
+  const collegeSection = f.sectionCode && f.yearSection ? `${f.sectionCode} ${f.yearSection}` : "";
+
+  // A full student ID that's in the school records fills in the rest.
+  const changeStudentId = async (raw: string) => {
+    const studentId = raw.replace(/\D/g, "").slice(0, STUDENT_ID_DIGITS);
+    set({ studentId });
+    setFoundNote(null);
+    if (!isStudentId(studentId)) return;
+    const found = await lookupStudentForReferral(studentId);
+    if (!found) return;
+    const college = splitCollegeSection(found.section);
+    setF((prev) =>
+      prev.studentId !== studentId
+        ? prev
+        : {
+            ...prev,
+            studentName: found.name,
+            department: found.department ?? prev.department,
+            yearLevel: found.yearLevel,
+            program: found.program,
+            section: college ? "" : found.section,
+            sectionCode: college?.code ?? sectionCodeForCourse(found.program),
+            yearSection: college?.yearSection ?? "",
+          }
+    );
+    setFoundNote(`Filled in from the school records for ${found.name}. Check the details before sending.`);
+  };
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (aboutSomeoneElse && f.studentId && !isStudentId(f.studentId)) return setError(`A student ID has ${STUDENT_ID_DIGITS} digits.`);
+    if (aboutSomeoneElse && !isShs && Boolean(f.sectionCode) !== Boolean(f.yearSection)) return setError("Choose both parts of the section, or leave both empty.");
     if (f.concern === OTHER && !f.concernOther.trim()) return setError("Tell us what the concern is.");
     if (mode !== "parent" && f.priority === NEEDS_DATE && !f.priorityDate) return setError("Choose the date it's needed by.");
     if (mode === "parent" && !child) return setError("No student is linked to your account yet.");
@@ -93,7 +138,7 @@ export default function ReferralForm({ mode, linkedChildren, onSubmit, myReferra
       aboutSomeoneElse && `Level: ${f.department}`,
       aboutSomeoneElse && f.yearLevel && `${isShs ? "Grade" : "Year level"}: ${f.yearLevel}`,
       aboutSomeoneElse && f.program && `${isShs ? "Strand" : "Course"}: ${f.program}`,
-      aboutSomeoneElse && f.section.trim() && `Section: ${f.section.trim()}`,
+      aboutSomeoneElse && (isShs ? f.section.trim() : collegeSection) && `Section: ${isShs ? f.section.trim() : collegeSection}`,
       f.observed.trim() && `Observed behaviors: ${f.observed.trim()}`,
       mode !== "parent" && f.priority === NEEDS_DATE && f.priorityDate && `Needed by: ${f.priorityDate}`,
       mode === "parent" && f.contactTime.trim() && `Best time to contact me: ${f.contactTime.trim()}`,
@@ -109,6 +154,7 @@ export default function ReferralForm({ mode, linkedChildren, onSubmit, myReferra
     setSaving(false);
     if (result.success) {
       setDone(true);
+      setFoundNote(null);
       setF({ ...emptyFor(mode), childName: f.childName });
     } else {
       setError(result.error || "Couldn't send the referral. Try again.");
@@ -140,14 +186,22 @@ export default function ReferralForm({ mode, linkedChildren, onSubmit, myReferra
         <>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label htmlFor="ref-name" className={label}>Student&apos;s full name{req}</label>
-              <input id="ref-name" className={input} value={f.studentName} maxLength={120} required onChange={(e) => set({ studentName: e.target.value })} />
+              <label htmlFor="ref-id" className={label}>Student ID <span className="font-normal text-slate-500">(if you know it)</span></label>
+              <input id="ref-id" className={input} value={f.studentId} inputMode="numeric" placeholder="02000123456"
+                aria-describedby="ref-id-hint" onChange={(e) => changeStudentId(e.target.value)} />
+              <p id="ref-id-hint" className="text-[12px] text-slate-500 mt-1">
+                Numbers only, {STUDENT_ID_DIGITS} digits. If the student is in the school records, the rest fills in for you.
+              </p>
             </div>
             <div>
-              <label htmlFor="ref-id" className={label}>Student ID <span className="font-normal text-slate-500">(if you know it)</span></label>
-              <input id="ref-id" className={input} value={f.studentId} maxLength={20} onChange={(e) => set({ studentId: e.target.value })} />
+              <label htmlFor="ref-name" className={label}>Student&apos;s full name{req}</label>
+              <input id="ref-name" className={input} value={f.studentName} maxLength={120} required placeholder="e.g. Juan A. Dela Cruz"
+                onChange={(e) => set({ studentName: e.target.value })} />
             </div>
           </div>
+          {foundNote && (
+            <p role="status" className="-mt-2 text-[13px] text-emerald-700">{foundNote}</p>
+          )}
 
           <fieldset>
             <legend className={label}>Level{req}</legend>
@@ -157,7 +211,7 @@ export default function ReferralForm({ mode, linkedChildren, onSubmit, myReferra
                 return (
                   <label key={d.id} className={`flex items-center gap-2 rounded-lg border px-3 min-h-11 cursor-pointer text-[14px] ${f.department === value ? "border-blue-600 bg-blue-50" : "border-slate-300"}`}>
                     <input type="radio" name="ref-dept" className="accent-blue-700" checked={f.department === value}
-                      onChange={() => set({ department: value, yearLevel: "", program: "" })} />
+                      onChange={() => set({ department: value, yearLevel: "", program: "", section: "", sectionCode: "", yearSection: "" })} />
                     {d.label}
                   </label>
                 );
@@ -168,21 +222,36 @@ export default function ReferralForm({ mode, linkedChildren, onSubmit, myReferra
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div>
               <label htmlFor="ref-year" className={label}>{isShs ? "Grade" : "Year level"}{req}</label>
-              <select id="ref-year" className={input} value={f.yearLevel} required onChange={(e) => set({ yearLevel: e.target.value })}>
+              <select id="ref-year" className={input} value={f.yearLevel} required onChange={(e) => set({ yearLevel: e.target.value, yearSection: "" })}>
                 <option value="" disabled>Choose…</option>
                 {(isShs ? shsGrades : tertiaryYears).map((y) => <option key={y.id} value={optionValue(y)}>{y.label}</option>)}
               </select>
             </div>
             <div>
               <label htmlFor="ref-program" className={label}>{isShs ? "Strand" : "Course"} <span className="font-normal text-slate-500">(if known)</span></label>
-              <select id="ref-program" className={input} value={f.program} onChange={(e) => set({ program: e.target.value })}>
+              <select id="ref-program" className={input} value={f.program}
+                onChange={(e) => set({ program: e.target.value, ...(isShs ? {} : { sectionCode: sectionCodeForCourse(e.target.value) || f.sectionCode }) })}>
                 <option value="">Not sure</option>
                 {(isShs ? shsStrands : tertiaryCourses).map((p) => <option key={p.id} value={optionValue(p)}>{p.label}</option>)}
               </select>
             </div>
             <div>
               <label htmlFor="ref-section" className={label}>Section <span className="font-normal text-slate-500">(if known)</span></label>
-              <input id="ref-section" className={input} value={f.section} maxLength={30} onChange={(e) => set({ section: e.target.value })} />
+              {isShs ? (
+                <input id="ref-section" className={input} value={f.section} maxLength={30} placeholder="e.g. STEM-A" onChange={(e) => set({ section: e.target.value })} />
+              ) : (
+                <div className="grid grid-cols-2 gap-2">
+                  <select id="ref-section" aria-label="Section program" className={input} value={f.sectionCode} onChange={(e) => set({ sectionCode: e.target.value })}>
+                    <option value="">Program</option>
+                    {SECTION_PROGRAMS.map((p) => <option key={p} value={p}>{p}</option>)}
+                  </select>
+                  <select aria-label="Year and section" className={input} value={f.yearSection} disabled={!f.yearLevel}
+                    title={f.yearLevel ? undefined : "Choose the year level first."} onChange={(e) => set({ yearSection: e.target.value })}>
+                    <option value="">{f.yearLevel ? "Section" : "Year first"}</option>
+                    {yearSectionsFor(f.yearLevel).map((s) => <option key={s} value={s}>{s}</option>)}
+                  </select>
+                </div>
+              )}
             </div>
           </div>
         </>
@@ -254,7 +323,7 @@ export default function ReferralForm({ mode, linkedChildren, onSubmit, myReferra
       )}
 
       <div className="flex flex-col-reverse sm:flex-row items-center justify-end gap-3 pt-3 border-t border-rule">
-        <button type="button" onClick={() => { setF(emptyFor(mode)); setError(null); setDone(false); }}
+        <button type="button" onClick={() => { setF(emptyFor(mode)); setError(null); setDone(false); setFoundNote(null); }}
           className="w-full sm:w-auto px-8 min-h-11 bg-slate-100 hover:bg-slate-200 text-slate-800 font-medium rounded-full text-sm">
           Clear
         </button>
