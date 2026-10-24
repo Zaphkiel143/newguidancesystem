@@ -37,6 +37,9 @@ interface AppShellProps {
 // localStorage key for the desktop sidebar's hidden/shown choice.
 const SIDEBAR_KEY = "egabay-sidebar";
 
+// How often the counselor's menu badges re-check their counts.
+const COUNTS_REFRESH_MS = 5_000;
+
 // Each role's own account page (photo, details, sign-in settings).
 const ACCOUNT_PATH: Record<Role, string> = {
   counselor: "/my_account",
@@ -118,7 +121,7 @@ export function AppShell({ role, userName, displayName = userName, hiddenPaths =
     }
   };
   const [counselorCounts, setCounselorCounts] = useState<{
-    activeAppointments: number;
+    pendingAppointments: number;
     pendingReferrals: number;
     documentsToReview: number;
     approvalsWaiting: number;
@@ -137,7 +140,7 @@ export function AppShell({ role, userName, displayName = userName, hiddenPaths =
       const stats = await getDashboardStats();
       if (active) {
         setCounselorCounts({
-          activeAppointments: stats.activeAppointments,
+          pendingAppointments: stats.pendingAppointments,
           pendingReferrals: stats.pendingReferrals,
           documentsToReview: stats.documentsToReview,
           approvalsWaiting: stats.approvalsWaiting,
@@ -145,12 +148,22 @@ export function AppShell({ role, userName, displayName = userName, hiddenPaths =
       }
     };
     void refreshCounts();
-    const interval = window.setInterval(() => void refreshCounts(), 30_000);
+    // Every few seconds while the tab is in view, and straight away when the
+    // person comes back to it, so a change shows without reloading.
+    const interval = window.setInterval(() => {
+      if (document.visibilityState === "visible") void refreshCounts();
+    }, COUNTS_REFRESH_MS);
+    const onVisible = () => {
+      if (document.visibilityState === "visible") void refreshCounts();
+    };
+    document.addEventListener("visibilitychange", onVisible);
     return () => {
       active = false;
       window.clearInterval(interval);
+      document.removeEventListener("visibilitychange", onVisible);
     };
-  }, [role]);
+    // Also on every page change, so a badge catches up as soon as you move on.
+  }, [role, pathname]);
 
   // Close the mobile menu automatically whenever the route changes
   if (pathname !== lastPathname) {
@@ -161,7 +174,7 @@ export function AppShell({ role, userName, displayName = userName, hiddenPaths =
   const badgeFor = (item: MenuItem) => {
     const counselorCount =
       item.path === "/appointment"
-        ? counselorCounts?.activeAppointments
+        ? counselorCounts?.pendingAppointments
         : item.path === "/referral"
           ? counselorCounts?.pendingReferrals
           : item.path === "/documents"
