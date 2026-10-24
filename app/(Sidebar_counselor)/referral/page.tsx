@@ -72,7 +72,7 @@ const ReferralManagement = () => {
     All: null,
     Open: 'OPEN',
     'In Progress': 'IN_PROGRESS',
-    Closed: 'CLOSED',
+    Terminated: 'CLOSED',
   };
 
   const filteredReferrals = referrals.filter((r) => {
@@ -153,7 +153,7 @@ const ReferralManagement = () => {
         </div>
 
         <div className="flex bg-slate-100 p-1 rounded-lg border border-slate-200">
-          {['All', 'Open', 'In Progress', 'Closed'].map((tab) => (
+          {['All', 'Open', 'In Progress', 'Terminated'].map((tab) => (
             <button
               key={tab}
               onClick={() => setFilter(tab)}
@@ -294,7 +294,7 @@ const ReferralCard = ({ referral, isUpdating, isHighlighted, onAdvanceStatus, on
               isOpen ? 'bg-red-50 text-red-600 border-red-100' : isClosed ? 'bg-green-50 text-green-600 border-green-100' : 'bg-orange-50 text-orange-600 border-orange-100'
             }`}>
               {isOpen ? <AlertTriangle size={12}/> : isClosed ? <CheckCircle size={12} /> : <Clock size={12}/>}
-              {referral.status.replace('_', ' ')}
+              {isClosed ? 'TERMINATED' : referral.status.replace('_', ' ')}
             </span>
           </div>
         </div>

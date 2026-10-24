@@ -16,7 +16,7 @@ const SHORTCUTS = [
 const STATUS: Record<string, { label: string; dot: string; text: string }> = {
   OPEN: { label: 'Open', dot: 'bg-red-500', text: 'text-red-700' },
   IN_PROGRESS: { label: 'In progress', dot: 'bg-orange-500', text: 'text-orange-700' },
-  CLOSED: { label: 'Closed', dot: 'bg-emerald-500', text: 'text-emerald-700' },
+  CLOSED: { label: 'Terminated', dot: 'bg-emerald-500', text: 'text-emerald-700' },
 };
 
 const FacultyDashboard = async () => {

@@ -106,7 +106,7 @@ export async function getMonthlyReport(month: string) {
     referrals: {
       total: referrals.length,
       byConcern: tally(referrals.map((r) => r.concernType)),
-      byStatus: tally(referrals.map((r) => (r.status === "IN_PROGRESS" ? "In progress" : r.status === "CLOSED" ? "Closed" : "Open"))),
+      byStatus: tally(referrals.map((r) => (r.status === "IN_PROGRESS" ? "In progress" : r.status === "CLOSED" ? "Terminated" : "Open"))),
       bySource: tally(referrals.map((r) => r.referrerRole)),
       highPriority: referrals.filter((r) => r.priority === "High" || r.priority === "Emergency").length,
     },

@@ -97,7 +97,7 @@ const MyReferralsPage: React.FC = () => {
                       {item.status === 'IN_PROGRESS' && <Clock size={13} className="stroke-[2.5]" />}
                       {item.status === 'CLOSED' && <CheckCircle2 size={13} className="stroke-[2.5]" />}
                       {item.status === 'OPEN' && <AlertCircle size={13} className="stroke-[2.5]" />}
-                      {item.status.replace('_', ' ')}
+                      {item.status === 'CLOSED' ? 'TERMINATED' : item.status.replace('_', ' ')}
                     </span>
                   </div>
                 </div>

@@ -1302,7 +1302,7 @@ export async function updateReferralStatus(id: string, status: "OPEN" | "IN_PROG
     await logActivity(me, `Marked a referral as ${status.toLowerCase().replace("_", " ")}`, "Referral", id, referral.studentName);
     const myReferrals: Record<string, string> = { Student: "/my_referrals", Faculty: "/faculty_myreferral", Parent: "/parent_myreferral" };
     await notifyByName(referral.referrerName, referral.referrerRole, {
-      title: status === "CLOSED" ? "Your referral was closed" : status === "IN_PROGRESS" ? "The guidance office is working on your referral" : "Your referral was reopened",
+      title: status === "CLOSED" ? "Your referral was terminated" : status === "IN_PROGRESS" ? "The guidance office is working on your referral" : "Your referral was reopened",
       body: referral.studentName === referral.referrerName ? "Your request for help" : `Referral about ${referral.studentName}`,
       href: myReferrals[referral.referrerRole],
     });
