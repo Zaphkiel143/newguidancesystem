@@ -131,7 +131,12 @@
         "I would ask for advice on how to manage my studies, handle academic stress.",
         "I’ve been feeling overwhelmed, stressed, or burnt out lately and need someone to talk to.",
         "Really stressed about my studies and if theres anyway to solve it",
-        "Motivation or not to get burned out"
+        "Motivation or not to get burned out",
+        "i'm scared i'll fail",
+        "my grades are dropping",
+        "i studied but i still don't understand",
+        "i'm not ready for the exam",
+        "exam week is killing me"
       ],
       "patterns_tl": [
         "kinakabahan ako sa exam",
@@ -141,12 +146,28 @@
         "malapit na ang finals at kinakabahan ako",
         "ang bigat ng pressure sa exam",
         "kinakabahan ako sa test bukas",
-        "takot akong mag-exam"
+        "takot akong mag-exam",
+        "takot akong bumagsak",
+        "bumababa grades ko",
+        "hindi pa ako handa sa exam",
+        "kinakabahan ako sa quiz"
       ],
       "responses_en": [
-        "It’s normal to feel stressed when exams and deadlines pile up. Let’s start with a few manageable steps:\n• List your upcoming exams, projects, and deadlines.\n• Prioritize tasks according to urgency and importance.\n• Break large tasks into smaller, achievable steps.\n• Study in focused intervals and take short breaks.\n• Get enough sleep, eat regularly, and allow time to rest.\n\nIf your stress feels overwhelming or is affecting your daily functioning, you may reach out to the Guidance and Counseling office for additional support."
+        "It’s normal to feel stressed when exams and deadlines pile up. Let’s start with a few manageable steps:\n• List your upcoming exams, projects, and deadlines.\n• Prioritize tasks according to urgency and importance.\n• Break large tasks into smaller, achievable steps.\n• Study in focused intervals and take short breaks.\n• Get enough sleep, eat regularly, and allow time to rest.\n\nIf your stress feels overwhelming or is affecting your daily functioning, you may reach out to the Guidance and Counseling office for additional support.",
+        "Exams can feel like a lot. Try one small step today: pick one subject, study it for 25 minutes, then take a 5-minute break. Sleep and meals matter too. Would you like to book a session with the Guidance Associate?"
       ],
-      "responses_tl": []
+      "responses_tl": [
+        "Normal lang na ma-stress kapag sabay-sabay ang exams at deadlines. Subukan natin ito:\n• Ilista ang mga paparating na exam, project, at deadline.\n• Unahin ang pinaka-urgent at pinaka-importante.\n• Hatiin ang malalaking gawain sa maliliit na hakbang.\n• Mag-aral nang naka-focus, tapos magpahinga sandali.\n• Matulog nang sapat, kumain nang maayos, at magpahinga.\n\nKung sobra na ang stress at naaapektuhan na ang araw-araw mo, pwede kang lumapit sa Guidance and Counseling Office para sa dagdag na suporta.",
+        "Nakaka-pressure talaga ang exams. Subukan mong isang subject muna: mag-aral nang 25 minuto, tapos 5 minutong pahinga. Mahalaga rin ang tulog at pagkain. Gusto mo bang mag-book ng session sa Guidance Associate?"
+      ],
+      "followups": {
+        "affirm": "book_appointment",
+        "deny": "support_continue"
+      },
+      "label_en": "Exam stress",
+      "label_tl": "Exam stress",
+      "example_en": "I'm stressed about my exams",
+      "example_tl": "Stressed ako sa exams"
     },
     {
       "tag": "time_management",
@@ -211,9 +232,21 @@
         "bumababa ang grades ko, ano po pwede kong gawin"
       ],
       "responses_en": [
-        "It’s normal to feel stressed when exams and deadlines pile up. Let’s start with a few manageable steps:\n• List your upcoming exams, projects, and deadlines.\n• Prioritize tasks according to urgency and importance.\n• Break large tasks into smaller, achievable steps.\n• Study in focused intervals and take short breaks.\n• Get enough sleep, eat regularly, and allow time to rest.\n\nIf your stress feels overwhelming or is affecting your daily functioning, you may reach out to the Guidance and Counseling office for additional support."
+        "Juggling many tasks is hard. A few things that help:\n• Write every task and deadline in one list or planner.\n• Do the most urgent and important task first.\n• Break big projects into small steps with their own mini-deadlines.\n• Work in focused blocks (for example 25 minutes) with short breaks.\n• Say no to extra commitments when your week is already full.\n\nIf you'd like help making a study plan, the Guidance and Counseling Office can work on it with you.",
+        "Procrastinating is very common. Try the 2-minute rule: if a task takes less than 2 minutes, do it now. For bigger ones, just start for 10 minutes; starting is usually the hardest part. Would you like to book a session with the Guidance Associate?"
       ],
-      "responses_tl": []
+      "responses_tl": [
+        "Mahirap talagang pagsabayin ang maraming gawain. Ilang tips:\n• Isulat lahat ng gawain at deadline sa isang listahan o planner.\n• Unahin ang pinaka-urgent at pinaka-importante.\n• Hatiin ang malalaking project sa maliliit na hakbang na may sariling deadline.\n• Magtrabaho nang naka-focus (halimbawa 25 minuto) at magpahinga sandali.\n\nKung gusto mo ng tulong sa paggawa ng study plan, matutulungan ka ng Guidance and Counseling Office.",
+        "Normal ang mag-procrastinate. Subukan mong simulan kahit 10 minuto lang; kadalasan, ang pagsisimula ang pinakamahirap. Gusto mo bang mag-book ng session sa Guidance Associate?"
+      ],
+      "followups": {
+        "affirm": "book_appointment",
+        "deny": "support_continue"
+      },
+      "label_en": "Managing my time",
+      "label_tl": "Pag-manage ng oras",
+      "example_en": "I can't manage my time",
+      "example_tl": "Hindi ko ma-manage ang oras ko"
     },
     {
       "tag": "bullying",
@@ -226,7 +259,13 @@
         "i'm getting bullied online",
         "my classmates keep making fun of me",
         "i'm scared to go to school because of bullies",
-        "Can I directly report a student here that causes disturbances in class, bullies, and doing suspicious activity?"
+        "Can I directly report a student here that causes disturbances in class, bullies, and doing suspicious activity?",
+        "they keep teasing me",
+        "someone posted embarrassing photos of me",
+        "i'm being harassed in the group chat",
+        "my classmates exclude me on purpose",
+        "they call me names every day",
+        "someone threatened me"
       ],
       "patterns_tl": [
         "may nambubully sa akin",
@@ -235,12 +274,29 @@
         "may naninira sa akin sa school",
         "takot akong pumasok dahil may bully",
         "sinisiraan ako ng mga kaklase ko",
-        "binubully ako"
+        "binubully ako",
+        "inaasar ako palagi",
+        "pinagtatawanan ako ng kaklase ko",
+        "may nag-post ng pangit kong picture",
+        "pinagkakaisahan ako sa section",
+        "may nagbanta sa akin"
       ],
       "responses_en": [
-        "If you feel comfortable, please share what happened with the Guidance and Counseling office or a trusted school staff member. If the bullying involves threats, physical harm, or immediate danger, seek help from a school authority or emergency services right away.\n\nYou don’t have to handle this alone. The GCO can help you identify the appropriate next steps and available school support."
+        "If you feel comfortable, please share what happened with the Guidance and Counseling office or a trusted school staff member. If the bullying involves threats, physical harm, or immediate danger, seek help from a school authority or emergency services right away.\n\nYou don’t have to handle this alone. The GCO can help you identify the appropriate next steps and available school support.",
+        "I'm sorry this is happening to you. Nobody deserves to be bullied. If you can, keep screenshots or notes of what happened and when. Would you like to book a session with the Guidance Associate?"
       ],
-      "responses_tl": []
+      "responses_tl": [
+        "Kung komportable ka, ikwento mo ang nangyari sa Guidance and Counseling Office o sa isang staff na pinagkakatiwalaan mo. Kung may banta, pananakit, o agarang panganib, humingi agad ng tulong sa school authority o emergency services.\n\nHindi mo kailangang harapin ito nang mag-isa. Matutulungan ka ng GCO na alamin ang tamang susunod na hakbang.",
+        "Pasensya na at nangyayari ito sa iyo. Walang sinuman ang dapat i-bully. Kung kaya mo, mag-save ng screenshots o isulat kung ano at kailan nangyari. Gusto mo bang mag-book ng session sa Guidance Associate?"
+      ],
+      "followups": {
+        "affirm": "book_appointment",
+        "deny": "support_continue"
+      },
+      "label_en": "Being bullied",
+      "label_tl": "Pambubully",
+      "example_en": "I'm being bullied",
+      "example_tl": "Binubully ako"
     },
     {
       "tag": "family_problems",
@@ -252,7 +308,17 @@
         "there's a lot of stress at home",
         "my parents are getting a divorce",
         "i don't get along with my family",
-        "home doesn't feel safe"
+        "home doesn't feel safe",
+        "my parents always fight",
+        "my dad drinks and gets angry",
+        "i feel like nobody at home cares",
+        "my family is falling apart",
+        "my parents are separating",
+        "there's always shouting at home",
+        "i miss my parents who work abroad",
+        "my parents compare me to my siblings",
+        "home is so stressful",
+        "i don't want to go home"
       ],
       "patterns_tl": [
         "lagi nag-aaway magulang ko",
@@ -260,12 +326,30 @@
         "hindi ako naiintindihan ng pamilya ko",
         "may problema ako sa magulang ko",
         "sobrang stress sa bahay",
-        "hindi ako sang-ayon sa magulang ko"
+        "hindi ako sang-ayon sa magulang ko",
+        "lagi nag-aaway sila mama at papa",
+        "hiwalay na parents ko",
+        "wala akong kausap sa bahay",
+        "magulo sa bahay namin",
+        "ayokong umuwi sa bahay",
+        "lagi akong pinapagalitan sa bahay"
       ],
       "responses_en": [
-        "Thank you for sharing what you’re going through. Family problems and feelings of low self-esteem can be difficult to manage, and your feelings deserve to be heard.\n\nYou don’t have to solve everything at once. It may help to talk with someone you trust or schedule a consultation with the Guidance and Counseling office. The GCO can provide a supportive space to discuss your concerns and explore possible ways to cope.\n\nIf you feel unsafe at home or are thinking about hurting yourself, please tell a trusted person and seek immediate help."
+        "Thank you for sharing what you're going through. Problems at home can be really heavy, and your feelings deserve to be heard.\n\nYou don't have to solve everything at once. It may help to talk with someone you trust or schedule a consultation with the Guidance and Counseling office. The GCO can provide a supportive space to discuss your concerns and explore ways to cope.\n\nIf you feel unsafe at home or are thinking about hurting yourself, please tell a trusted person and seek immediate help.",
+        "That sounds really hard. When things at home are tense, it's okay to take a break, breathe, and talk to someone you trust. Would you like to book a session with the Guidance Associate?"
       ],
-      "responses_tl": []
+      "responses_tl": [
+        "Salamat sa pagbabahagi. Mabigat talaga ang problema sa bahay, at mahalaga ang nararamdaman mo.\n\nHindi mo kailangang ayusin lahat nang sabay-sabay. Makakatulong ang makipag-usap sa taong pinagkakatiwalaan mo o mag-schedule ng consultation sa Guidance and Counseling Office.\n\nKung hindi ka ligtas sa bahay o naiisip mong saktan ang sarili mo, sabihin agad sa taong pinagkakatiwalaan mo at humingi ng agarang tulong.",
+        "Mukhang mabigat iyan. Kapag magulo sa bahay, okay lang magpahinga, huminga nang malalim, at makipag-usap sa taong pinagkakatiwalaan mo. Gusto mo bang mag-book ng session sa Guidance Associate?"
+      ],
+      "followups": {
+        "affirm": "book_appointment",
+        "deny": "support_continue"
+      },
+      "label_en": "Problems at home",
+      "label_tl": "Problema sa bahay",
+      "example_en": "I have problems at home",
+      "example_tl": "May problema ako sa bahay"
     },
     {
       "tag": "friendship_issues",
@@ -329,12 +413,22 @@
       ],
       "responses_en": [
         "Friendship troubles can really hurt. Do you want to talk about what happened?",
-        "Feeling lonely at school is hard. Sometimes joining a club or activity can help you meet new people who share your interests."
+        "Feeling lonely at school is hard. Sometimes joining a club or activity can help you meet new people who share your interests.",
+        "That sounds lonely. It's okay to feel this way. Would you like to book a session with the Guidance Associate?"
       ],
       "responses_tl": [
         "Mahirap talaga ang problema sa friendship. Gusto mo bang ikwento kung ano ang nangyari?",
-        "Mahirap ang mapag-isa sa school. Minsan makakatulong ang pagsali sa isang club o activity para makakilala ka ng bagong kaibigan na may parehong interes."
-      ]
+        "Mahirap ang mapag-isa sa school. Minsan makakatulong ang pagsali sa isang club o activity para makakilala ka ng bagong kaibigan na may parehong interes.",
+        "Mukhang nakakalungkot iyan. Okay lang na maramdaman mo iyan. Gusto mo bang mag-book ng session sa Guidance Associate?"
+      ],
+      "followups": {
+        "affirm": "book_appointment",
+        "deny": "support_continue"
+      },
+      "label_en": "Friends or feeling alone",
+      "label_tl": "Kaibigan o pag-iisa",
+      "example_en": "I'm having trouble with friends",
+      "example_tl": "May problema ako sa mga kaibigan ko"
     },
     {
       "tag": "career_question",
@@ -348,7 +442,12 @@
         "how do i choose the right college course",
         "I would ask for help regarding career choices. (\"How can I make sure that my choice of career is the right one for me?\")",
         "Ask for help for career choices",
-        "it may perhaps have something to do about career choices"
+        "it may perhaps have something to do about career choices",
+        "what strand should i take",
+        "is it okay to shift courses",
+        "i don't like my course anymore",
+        "what jobs can i get with my course",
+        "how do i choose a college program"
       ],
       "patterns_tl": [
         "hindi ko alam kung anong course kukunin",
@@ -356,7 +455,10 @@
         "nalilito ako sa future ko",
         "anong strand ang dapat kong kunin",
         "kailangan ko ng tulong sa pagpaplano ng career ko",
-        "di ko alam gagawin ko pagtapos"
+        "di ko alam gagawin ko pagtapos",
+        "gusto kong mag-shift ng course",
+        "hindi ko na gusto ang course ko",
+        "naguguluhan ako sa future ko"
       ],
       "responses_en": [
         "That's a big decision! Our Career Guidance program can help you explore your interests and strengths. Would you like to talk to your guidance associate about a career assessment?",
@@ -365,7 +467,15 @@
       "responses_tl": [
         "Malaking desisyon iyan! Matutulungan ka ng Career Guidance program namin na alamin ang interes at lakas mo. Gusto mo bang kausapin ang guidance associate mo para sa career assessment?",
         "Normal lang na hindi sigurado sa future. Isipin mo kung anong subjects ang pinaka-gusto mong pag-aralan, at pag-isipan mong mag-book ng appointment sa guidance associate mo para matulungan kang alamin ang mga options mo."
-      ]
+      ],
+      "followups": {
+        "affirm": "book_appointment",
+        "deny": "no_problem"
+      },
+      "label_en": "Course or career",
+      "label_tl": "Course o career",
+      "example_en": "I need help choosing a course",
+      "example_tl": "Kailangan ko ng tulong sa pagpili ng course"
     },
     {
       "tag": "self_esteem",
@@ -376,7 +486,15 @@
         "i'm not smart enough",
         "i feel worthless",
         "i feel like i'm not good at anything",
-        "i always feel like i disappoint everyone"
+        "i always feel like i disappoint everyone",
+        "i'm ugly",
+        "i'm a disappointment",
+        "i feel useless",
+        "i don't like myself",
+        "i'm always the worst in class",
+        "nobody would miss me if i was gone at school",
+        "i'm not pretty enough",
+        "i'm so dumb"
       ],
       "patterns_tl": [
         "parang wala akong kwenta",
@@ -384,12 +502,30 @@
         "ayoko na sa sarili ko",
         "parang hindi ako sapat",
         "wala akong halaga",
-        "pakiramdam ko lagi akong nakakadismaya"
+        "pakiramdam ko lagi akong nakakadismaya",
+        "ang pangit ko",
+        "wala akong kwenta",
+        "mas magaling silang lahat sa akin",
+        "bobo ako",
+        "ayaw ko sa sarili ko",
+        "pakiramdam ko wala akong silbi"
       ],
       "responses_en": [
-        "Thank you for sharing what you’re going through. Family problems and feelings of low self-esteem can be difficult to manage, and your feelings deserve to be heard.\n\nYou don’t have to solve everything at once. It may help to talk with someone you trust or schedule a consultation with the Guidance and Counseling office. The GCO can provide a supportive space to discuss your concerns and explore possible ways to cope.\n\nIf you feel unsafe at home or are thinking about hurting yourself, please tell a trusted person and seek immediate help."
+        "I'm sorry you're feeling this way about yourself. Those thoughts can be really loud, but they don't tell the whole story about who you are.\n\nTry noticing one small thing you did well today, even something simple. Talking it through with someone can also help, and the Guidance and Counseling office is a safe place to do that. Would you like to book a session with the Guidance Associate?",
+        "Comparing yourself to others is really common, and it can make anyone feel small. You're allowed to grow at your own pace. Would you like to book a session with the Guidance Associate?"
       ],
-      "responses_tl": []
+      "responses_tl": [
+        "Pasensya na at ganyan ang nararamdaman mo sa sarili mo. Malakas minsan ang mga isiping iyan, pero hindi iyan ang buong kwento kung sino ka.\n\nSubukan mong pansinin ang isang maliit na bagay na nagawa mo nang maayos ngayon. Makakatulong din ang makipag-usap, at ligtas na lugar para dito ang Guidance and Counseling Office. Gusto mo bang mag-book ng session sa Guidance Associate?",
+        "Karaniwan ang ikumpara ang sarili sa iba, at nakakapanghina iyon. Okay lang na mag-grow ka sa sarili mong bilis. Gusto mo bang mag-book ng session sa Guidance Associate?"
+      ],
+      "followups": {
+        "affirm": "book_appointment",
+        "deny": "support_continue"
+      },
+      "label_en": "How I feel about myself",
+      "label_tl": "Tingin ko sa sarili ko",
+      "example_en": "I don't feel good about myself",
+      "example_tl": "Hindi maganda ang tingin ko sa sarili ko"
     },
     {
       "tag": "crisis",
@@ -423,7 +559,9 @@
       "responses_en": [
         "I’m sorry that you’re going through such a difficult time. Thank you for telling me. You don’t have to face this alone, and your safety matters.\n\nIf you feel that you might hurt yourself or are in immediate danger, please go to the nearest emergency department or contact emergency services. If possible, stay with someone you trust and move away from anything you could use to hurt yourself.\n\nYou may also reach out to the Guidance and Counseling Office during office hours for support. If you are in immediate danger, please do not wait for an appointment or an online reply.\n\n• 911 – Philippine emergency hotline\n• NCMH Crisis Hotline: 1553 – National Center for Mental Health crisis support"
       ],
-      "responses_tl": []
+      "responses_tl": [
+        "Pasensya na at napakahirap ng pinagdadaanan mo. Salamat at sinabi mo sa akin. Hindi mo kailangang harapin ito nang mag-isa, at mahalaga ang kaligtasan mo.\n\nKung pakiramdam mo ay maaari mong saktan ang sarili mo o nasa agarang panganib ka, pumunta sa pinakamalapit na emergency room o tumawag sa emergency services. Kung kaya, manatili sa tabi ng taong pinagkakatiwalaan mo at lumayo sa anumang bagay na pwedeng makasakit sa iyo.\n\nPwede ka ring lumapit sa Guidance and Counseling Office sa oras ng opisina. Kung nasa agarang panganib ka, huwag nang hintayin ang appointment o online reply.\n\n• 911 – Philippine emergency hotline\n• NCMH Crisis Hotline: 1553 – National Center for Mental Health"
+      ]
     },
     {
       "tag": "book_appointment",
@@ -468,7 +606,11 @@
       ],
       "responses_tl": [
         "Pwede kang mag-set ng appointment sa pagpunta mismo sa Guidance Office o sa pag-contact sa GCO gamit ang ibinigay na contact details. Pwede ka ring mag-book dito sa E-Gabay: buksan ang My Appointments at pindutin ang Book Appointment."
-      ]
+      ],
+      "label_en": "Booking an appointment",
+      "label_tl": "Pag-book ng appointment",
+      "example_en": "How do I book an appointment?",
+      "example_tl": "Paano mag-book ng appointment?"
     },
     {
       "tag": "walk_in",
@@ -496,7 +638,11 @@
       ],
       "responses_tl": [
         "Oo, pwede kang pumunta sa office kahit walang appointment. Hintayin mo lang na sabihan ka ng GCO kung kailan ka pwedeng pumasok."
-      ]
+      ],
+      "label_en": "Walk-in visits",
+      "label_tl": "Walk-in",
+      "example_en": "Can I walk in without an appointment?",
+      "example_tl": "Pwede ba ang walk-in?"
     },
     {
       "tag": "office_hours",
@@ -510,7 +656,10 @@
         "what days is the guidance office open",
         "until what time is the guidance office open",
         "what time can i go to the guidance office",
-        "office hours"
+        "office hours",
+        "is the guidance office open today",
+        "what are your hours",
+        "are you open on weekends"
       ],
       "patterns_tl": [
         "anong oras bukas ang guidance office",
@@ -519,12 +668,21 @@
         "bukas ba ang guidance tuwing sabado",
         "hanggang anong oras ang guidance office",
         "anong araw bukas ang guidance office",
-        "ano po ang oras ng guidance"
+        "ano po ang oras ng guidance",
+        "bukas ba ang guidance ngayon",
+        "kailan bukas ang guidance office",
+        "anong oras sarado ang guidance"
       ],
       "responses_en": [
         "The Guidance and Counseling Office is open Monday to Friday, from 8:00 AM to 5:00 PM, except during the lunch break from 12:00 PM to 1:00 PM. Consultations are accepted from 8:00 AM to 3:00 PM. Please note that office availability may change during school events, meetings, or other scheduled activities."
       ],
-      "responses_tl": []
+      "responses_tl": [
+        "Bukas ang Guidance and Counseling Office mula Lunes hanggang Biyernes, 8:00 AM hanggang 5:00 PM, maliban sa lunch break mula 12:00 PM hanggang 1:00 PM. Tumatanggap ng consultation mula 8:00 AM hanggang 3:00 PM. Pwedeng magbago ang oras kapag may school events, meetings, o ibang naka-schedule na activity."
+      ],
+      "label_en": "Office hours",
+      "label_tl": "Oras ng opisina",
+      "example_en": "What are the GCO office hours?",
+      "example_tl": "Anong oras bukas ang GCO?"
     },
     {
       "tag": "no_record",
@@ -550,7 +708,13 @@
       "responses_en": [
         "Seeking support from the Guidance and Counseling Office does not automatically mean you will receive a disciplinary record. Information shared during a consultation is handled according to the school’s confidentiality policies. However, certain situations may require appropriate disclosure, such as serious safety concerns or other circumstances required by school policy or law.\n\nIf you have concerns about privacy or documentation, you may ask the GCO about its procedure before your consultation."
       ],
-      "responses_tl": []
+      "responses_tl": [
+        "Ang paghingi ng tulong sa Guidance and Counseling Office ay hindi nangangahulugang magkakaroon ka ng disciplinary record. Ang mga sinabi mo sa consultation ay pinangangalagaan ayon sa confidentiality policies ng school. Pero may mga sitwasyong kailangang ipaalam, gaya ng seryosong panganib sa kaligtasan o kapag hinihingi ng school policy o batas.\n\nKung may tanong ka tungkol sa privacy o documentation, pwede mong tanungin ang GCO bago ang consultation."
+      ],
+      "label_en": "Will it go on my record?",
+      "label_tl": "Magkaka-record ba ako?",
+      "example_en": "Will visiting the GCO go on my record?",
+      "example_tl": "Magkaka-record ba ako kapag pumunta sa GCO?"
     },
     {
       "tag": "worried_about_someone",
@@ -580,7 +744,11 @@
       ],
       "responses_tl": [
         "Pwede kang lumapit sa GCO at ibahagi ang iyong concern. Ang GCO ay makapagbibigay ng tamang gabay at suporta sa iyong kaklase o schoolmate. Pwede mo ring gamitin ang Refer a Student dito sa E-Gabay; confidential ang mga referral."
-      ]
+      ],
+      "label_en": "Worried about a friend",
+      "label_tl": "Nag-aalala sa kaibigan",
+      "example_en": "I'm worried about a friend",
+      "example_tl": "Nag-aalala ako sa kaibigan ko"
     },
     {
       "tag": "office_location_contact",
@@ -610,7 +778,13 @@
       "responses_en": [
         "The Guidance and Counseling Office (GCO) is located on the 2nd floor of STI College Sta. Maria, beside the School Administration Office and the Human Resources (HR) Office. Students may visit the office during regular office hours, Monday to Friday, from 8:00 AM to 5:00 PM, except during the lunch break from 12:00 PM to 1:00 PM. Please note that office availability may change during school events, meetings, or other scheduled activities.\n\nYou may contact the Guidance and Counseling Office (GCO) through Microsoft Teams: eslie.clemente@stamaria.sti.edu.ph\n\nIf you plan to visit, we recommend contacting the GCO beforehand to confirm availability."
       ],
-      "responses_tl": []
+      "responses_tl": [
+        "Ang Guidance and Counseling Office (GCO) ay nasa 2nd floor ng STI College Sta. Maria, katabi ng School Administration Office at Human Resources (HR) Office. Bukas ito Lunes hanggang Biyernes, 8:00 AM hanggang 5:00 PM, maliban sa lunch break mula 12:00 PM hanggang 1:00 PM.\n\nPwede mong i-contact ang GCO sa Microsoft Teams: eslie.clemente@stamaria.sti.edu.ph\n\nKung pupunta ka, mas mabuting mag-message muna para masigurong available ang GCO."
+      ],
+      "label_en": "Office location and contact",
+      "label_tl": "Lokasyon at contact",
+      "example_en": "Where is the guidance office?",
+      "example_tl": "Saan ang guidance office?"
     },
     {
       "tag": "consultation_length",
@@ -645,7 +819,13 @@
       "responses_en": [
         "Consultation duration and appointment availability may vary depending on your concern and the GCO’s schedule. Please contact the Guidance and Counseling Office through Microsoft Teams or email to ask about available appointment times.\n\nIf your concern is urgent or involves your immediate safety, please do not wait for a scheduled appointment. Seek immediate assistance from a trusted adult, school authority, emergency service, or crisis hotline as appropriate."
       ],
-      "responses_tl": []
+      "responses_tl": [
+        "Nag-iiba ang haba ng consultation depende sa concern mo at sa schedule ng GCO. Mag-message sa Guidance and Counseling Office sa Microsoft Teams o email para malaman ang available na oras.\n\nKung urgent o tungkol sa kaligtasan mo, huwag nang hintayin ang appointment. Humingi agad ng tulong sa pinagkakatiwalaang adult, school authority, emergency service, o crisis hotline."
+      ],
+      "label_en": "How long a session takes",
+      "label_tl": "Haba ng session",
+      "example_en": "How long is a consultation?",
+      "example_tl": "Gaano katagal ang consultation?"
     },
     {
       "tag": "cancel_reschedule",
@@ -673,7 +853,13 @@
       "responses_en": [
         "Yes. If you cannot attend your scheduled consultation, please inform the GCO as soon as possible through Microsoft Teams or email.\n\nInclude your name, appointment date and time, and whether you would like to cancel or request a new schedule. The GCO will confirm the next available appointment."
       ],
-      "responses_tl": []
+      "responses_tl": [
+        "Oo. Kung hindi ka makakapunta sa consultation mo, ipaalam agad sa GCO sa Microsoft Teams o email.\n\nIsama ang pangalan mo, petsa at oras ng appointment, at kung gusto mong i-cancel o magpa-reschedule. Kukumpirmahin ng GCO ang susunod na available na schedule."
+      ],
+      "label_en": "Cancel or reschedule",
+      "label_tl": "Cancel o reschedule",
+      "example_en": "How do I reschedule my appointment?",
+      "example_tl": "Paano magpa-reschedule ng appointment?"
     },
     {
       "tag": "confidentiality",
@@ -764,7 +950,13 @@
       "responses_en": [
         "Your privacy is important to the Guidance and Counseling Office. Information shared during a consultation is handled with care and according to applicable privacy requirements and school policies.\n\nHowever, confidentiality may have limits. Information may need to be shared with appropriate people when there is a serious risk of harm to you or someone else, a safeguarding concern, or another applicable legal or institutional requirement.\n\nWhen appropriate and safe, the GCO will explain the reason for sharing information and involve you in the process."
       ],
-      "responses_tl": []
+      "responses_tl": [
+        "Mahalaga sa Guidance and Counseling Office ang privacy mo. Ang mga sinasabi mo sa consultation ay maingat na pinangangalagaan ayon sa privacy requirements at school policies.\n\nPero may limitasyon ang confidentiality. Maaaring ibahagi ang impormasyon sa tamang tao kapag may seryosong panganib sa iyo o sa iba, safeguarding concern, o legal o institutional na requirement.\n\nKung angkop at ligtas, ipapaliwanag ng GCO kung bakit kailangang ibahagi at isasama ka sa proseso."
+      ],
+      "label_en": "Privacy and confidentiality",
+      "label_tl": "Privacy at confidentiality",
+      "example_en": "Is what I share kept confidential?",
+      "example_tl": "Confidential ba ang sasabihin ko?"
     },
     {
       "tag": "referral_process",
@@ -792,7 +984,13 @@
       "responses_en": [
         "A student may be referred to the GCO by a faculty member, school staff member, parent or guardian, or another appropriate person. Students may also seek help directly.\n\nAfter a referral, the GCO may:\n• Review the concern and the information provided.\n• Determine the urgency of the situation and the appropriate next steps.\n• Contact the student and arrange an initial conversation or consultation.\n• Discuss appropriate support, possible follow-up, or referral to another qualified professional or service if needed.\n\nReferrals are handled with care and according to applicable privacy, safeguarding, and school policies. Urgent safety concerns should be addressed immediately rather than waiting for routine referral processing."
       ],
-      "responses_tl": []
+      "responses_tl": [
+        "Pwedeng i-refer ang estudyante sa GCO ng faculty, staff, magulang o guardian, o ibang angkop na tao. Pwede ring dumirekta ang estudyante.\n\nPagkatapos ng referral, ang GCO ay maaaring:\n• Suriin ang concern at impormasyon.\n• Alamin kung gaano ka-urgent at ang tamang susunod na hakbang.\n• Kontakin ang estudyante para sa unang usapan o consultation.\n• Pag-usapan ang angkop na suporta o referral sa ibang propesyonal kung kailangan.\n\nPwede ka ring mag-refer dito sa E-Gabay gamit ang Submit Referral. Ang urgent na safety concern ay dapat agad aksyunan."
+      ],
+      "label_en": "Referring someone",
+      "label_tl": "Pag-refer ng estudyante",
+      "example_en": "How do I refer a student?",
+      "example_tl": "Paano mag-refer ng estudyante?"
     },
     {
       "tag": "document_requirements",
@@ -823,7 +1021,13 @@
       "responses_en": [
         "Medical certificate: the student’s identifying details, consultation or illness dates, relevant medical information required, and the issuing healthcare professional’s details.\n\nGender-affirming clothing form: the official form, required student information, requested clothing or uniform accommodation, and any required signatures or supporting information specified in the approved procedure.\n\nThe GCO may handle different documents, depending on your concern or request. Before submitting a document, please contact the GCO to confirm the latest form, required attachments, signatures, submission method, and deadline.\n\nFor medical documents and other sensitive information, please use the school’s approved submission channel and provide only the information required."
       ],
-      "responses_tl": []
+      "responses_tl": [
+        "Medical certificate: detalye ng estudyante, petsa ng consultation o sakit, kinakailangang medical information, at detalye ng doktor na nag-issue.\n\nGender-affirming clothing form: ang official form, impormasyon ng estudyante, hinihiling na accommodation sa damit o uniform, at mga kailangang pirma.\n\nBago mag-submit, kumpirmahin muna sa GCO ang pinakabagong form, attachments, pirma, paraan ng pag-submit, at deadline."
+      ],
+      "label_en": "Documents to submit",
+      "label_tl": "Mga dokumento",
+      "example_en": "What documents do I need to submit?",
+      "example_tl": "Anong dokumento ang kailangan?"
     },
     {
       "tag": "clearance_inventory",
@@ -851,7 +1055,13 @@
       "responses_en": [
         "Clearance signing and the individual inventory form are subject to the GCO's current procedures and the school’s requirements.\n\nIf your clearance requires GCO verification, please ask the office about the required steps, submission schedule, and any forms you need to complete."
       ],
-      "responses_tl": []
+      "responses_tl": [
+        "Ang pag-pirma ng clearance at ang individual inventory form ay sumusunod sa kasalukuyang proseso ng GCO at requirements ng school.\n\nKung kailangan ng GCO verification sa clearance mo, tanungin ang office tungkol sa mga hakbang, schedule ng pag-submit, at mga form na kailangan mong sagutan."
+      ],
+      "label_en": "Clearance and inventory form",
+      "label_tl": "Clearance at inventory form",
+      "example_en": "How do I get my clearance signed?",
+      "example_tl": "Paano mapapirmahan ang clearance ko?"
     },
     {
       "tag": "exit_interview",
@@ -879,7 +1089,13 @@
       "responses_en": [
         "Exit interviews may be conducted for students who are graduating, withdrawing from the school, or filing a Leave of Absence (LOA), depending on the applicable school procedures.\n\nThe purpose is to understand the student's circumstances, concerns, and reasons for their decision.\n\nStudents who are required to undergo an exit interview should coordinate with the Guidance and Counseling Office (GCO) for the process, schedule, and any requirements."
       ],
-      "responses_tl": []
+      "responses_tl": [
+        "Maaaring magkaroon ng exit interview para sa mga estudyanteng ga-graduate, aalis sa school, o mag-file ng Leave of Absence (LOA), depende sa proseso ng school.\n\nLayunin nitong maintindihan ang sitwasyon, concerns, at dahilan ng estudyante.\n\nMakipag-coordinate sa Guidance and Counseling Office (GCO) para sa proseso, schedule, at requirements."
+      ],
+      "label_en": "Exit interview",
+      "label_tl": "Exit interview",
+      "example_en": "Do I need an exit interview?",
+      "example_tl": "Kailangan ko ba ng exit interview?"
     },
     {
       "tag": "parent_contact",
@@ -915,7 +1131,9 @@
       "responses_en": [
         "Yes. Parents or guardians may contact the Guidance and Counseling Office to raise concerns about a student’s well-being, adjustment, academic difficulties, or other matters related to student support."
       ],
-      "responses_tl": []
+      "responses_tl": [
+        "Oo. Pwedeng makipag-ugnayan ang mga magulang o guardian sa Guidance and Counseling Office tungkol sa well-being, adjustment, academic difficulties, o iba pang concern ng estudyante."
+      ]
     },
     {
       "tag": "faculty_concern",
@@ -943,7 +1161,9 @@
       "responses_en": [
         "If you are concerned about a student's behavior, emotional well-being, attendance, academic performance, or safety, please refer the concern to the GCO through the school's approved procedure.\n\nWhen raising the concern, provide factual observations, relevant dates, and any immediate safety issues. Avoid making diagnoses or sharing sensitive information with people who do not need to know.\n\nIf the student appears to be in immediate danger or may harm themselves or someone else, do not wait for a routine referral. Follow the school's emergency procedures and seek immediate assistance."
       ],
-      "responses_tl": []
+      "responses_tl": [
+        "Kung may concern ka sa ugali, emotional well-being, attendance, academic performance, o kaligtasan ng isang estudyante, i-refer ito sa GCO ayon sa approved na proseso ng school.\n\nMagbigay ng factual na obserbasyon, petsa, at anumang agarang safety issue. Iwasang mag-diagnose o magbahagi ng sensitibong impormasyon sa hindi kailangang makaalam.\n\nKung nasa agarang panganib ang estudyante, sundin agad ang emergency procedures ng school."
+      ]
     },
     {
       "tag": "urgent_after_hours",
@@ -980,7 +1200,13 @@
       "responses_en": [
         "The GCO is generally available Monday to Friday, 8:00 AM–5:00 PM, with a lunch break from 12:00 PM–1:00 PM. If you need urgent help outside these hours, please do not wait for the office to reopen.\n\nIf you or someone else is in immediate danger, call 911 or go to the nearest emergency department.\n\nFor mental health crisis support in the Philippines, contact the National Center for Mental Health Crisis Hotline at 1553. Other published contact numbers include 0917-899-8727 and 0919-057-1553.\n\nIf possible, reach out to a trusted adult, family member, or another person who can stay with you and help you access support.\n\nYou may also email the GCO at eslie.clemente@stamaria.sti.edu.ph. Messages sent outside office hours may not receive an immediate response."
       ],
-      "responses_tl": []
+      "responses_tl": [
+        "Karaniwang bukas ang GCO Lunes hanggang Biyernes, 8:00 AM–5:00 PM, may lunch break 12:00 PM–1:00 PM. Kung kailangan mo ng urgent na tulong sa labas ng oras na ito, huwag nang hintayin ang pagbukas ng office.\n\nKung ikaw o ibang tao ay nasa agarang panganib, tumawag sa 911 o pumunta sa pinakamalapit na emergency room.\n\nPara sa mental health crisis support, tumawag sa NCMH Crisis Hotline sa 1553. Iba pang numero: 0917-899-8727 at 0919-057-1553.\n\nKung kaya, lumapit sa pinagkakatiwalaang adult o kapamilya na makakasama mo.\n\nPwede ka ring mag-email sa GCO: eslie.clemente@stamaria.sti.edu.ph. Maaaring hindi agad masagot ang mga mensahe sa labas ng oras ng opisina."
+      ],
+      "label_en": "Urgent help after hours",
+      "label_tl": "Urgent na tulong",
+      "example_en": "I need help but the office is closed",
+      "example_tl": "Kailangan ko ng tulong pero sarado ang office"
     },
     {
       "tag": "services_offered",
@@ -1050,7 +1276,11 @@
       ],
       "responses_tl": [
         "Ito ang mga serbisyo ng Guidance and Counseling Office (GCO) para sa mga estudyante:\n• Consultation: one-on-one na usapan tungkol sa personal, academic, social, o emotional na concern.\n• Referral: pagkonekta sa iyo sa tamang tulong kapag kailangan ng mas malalim na suporta.\n• Career Guidance: tulong sa pagpili ng strand, course, o career, kasama ang Career Planning Program para sa Senior High School.\n• Group Guidance: mga session sa mga paksang kailangan ng mga estudyante, batay sa needs assessment.\n• Information Service: mga anunsyo at guidance resources.\n• Individual Inventory: ang iyong guidance record at mga isinumiteng dokumento.\n• Testing Service.\nPuwede kang magsabi ng personal na concern, hindi lang tungkol sa school. Para magsimula, mag-book ng session sa My Appointments, o magtanong sa akin."
-      ]
+      ],
+      "label_en": "GCO services",
+      "label_tl": "Serbisyo ng GCO",
+      "example_en": "What services does the GCO offer?",
+      "example_tl": "Ano ang mga serbisyo ng GCO?"
     },
     {
       "tag": "seek_help",
@@ -1091,7 +1321,10 @@
         "Problems about life",
         "maam, can i ask for a help?",
         "I need advice about my personal problems and studies.",
-        "Good morning. I would like to ask for some advice regarding a concern I have."
+        "Good morning. I would like to ask for some advice regarding a concern I have.",
+        "i want to talk to someone",
+        "can someone listen to me",
+        "i don't know who to talk to"
       ],
       "patterns_tl": [
         "kailangan ko ng tulong",
@@ -1104,13 +1337,460 @@
         "Good morning po meron po akong concern",
         "May tanong lang po ako\" \"kailangan ko po ng tulong about dito po",
         "Pwede po ba patulong",
-        "Hihingi po ako ng advice"
+        "Hihingi po ako ng advice",
+        "gusto ko ng makakausap",
+        "may makikinig ba sa akin"
       ],
       "responses_en": [
         "I'm here to listen. Tell me what's on your mind, and I'll do my best to help or point you to the right support. If you'd like to talk to the Guidance Associate, you can book a session under My Appointments or visit the Guidance and Counseling Office during office hours."
       ],
       "responses_tl": [
         "Nandito ako para makinig. Sabihin mo lang kung ano ang nasa isip mo, at tutulungan kita o ituturo sa tamang suporta. Kung gusto mong makausap ang Guidance Associate, mag-book ng session sa My Appointments o pumunta sa Guidance and Counseling Office sa oras ng opisina."
+      ],
+      "followups": {
+        "affirm": "book_appointment",
+        "deny": "support_continue"
+      },
+      "label_en": "Talking to someone",
+      "label_tl": "Makipag-usap",
+      "example_en": "I need someone to talk to",
+      "example_tl": "Kailangan ko ng kausap"
+    },
+    {
+      "tag": "feeling_happy",
+      "patterns_en": [
+        "i'm happy",
+        "i'm so happy today",
+        "i feel great",
+        "i'm in a good mood",
+        "today was a good day",
+        "i'm feeling good",
+        "i feel amazing",
+        "i'm excited",
+        "i got good news today",
+        "i passed my exam and i'm happy",
+        "i finally finished my project, i feel great",
+        "life is good right now",
+        "i'm proud of myself today",
+        "i had a great day at school",
+        "i'm feeling positive",
+        "i'm doing great",
+        "things are going well",
+        "i feel blessed",
+        "i'm so glad today"
+      ],
+      "patterns_tl": [
+        "masaya ako",
+        "ang saya ko ngayon",
+        "masaya ako today",
+        "ang ganda ng araw ko",
+        "excited ako",
+        "nakapasa ako, ang saya",
+        "proud ako sa sarili ko",
+        "maganda ang mood ko",
+        "ang saya saya ko",
+        "okay na okay ako ngayon",
+        "good vibes lang ako today",
+        "natapos ko na project ko, ang saya"
+      ],
+      "responses_en": [
+        "That's wonderful to hear! What made your day good?",
+        "I'm really glad you're feeling happy! Moments like this are worth remembering. Want to share what happened?",
+        "Love that! Keep that good energy going. Is there anything I can help you with today?"
+      ],
+      "responses_tl": [
+        "Ang sarap pakinggan niyan! Ano ang nagpasaya sa araw mo?",
+        "Natutuwa akong masaya ka! Sulit alalahanin ang mga ganitong sandali. Gusto mo bang ikwento?",
+        "Ang galing! Ituloy mo lang ang good vibes. May maitutulong ba ako sa iyo ngayon?"
+      ],
+      "label_en": "Feeling good",
+      "label_tl": "Masaya",
+      "example_en": "I'm feeling happy",
+      "example_tl": "Masaya ako"
+    },
+    {
+      "tag": "feeling_sad",
+      "patterns_en": [
+        "i feel sad",
+        "i'm so sad today",
+        "i feel down",
+        "i've been feeling low",
+        "i cried today",
+        "i can't stop crying",
+        "i feel heartbroken",
+        "i'm not okay",
+        "everything feels heavy",
+        "i feel like crying",
+        "i'm feeling blue",
+        "nothing makes me happy anymore",
+        "i feel hopeless about everything",
+        "i've been really down this week",
+        "i'm unhappy",
+        "i feel lost",
+        "i'm hurting",
+        "today was a bad day"
+      ],
+      "patterns_tl": [
+        "nalulungkot ako",
+        "sobrang lungkot ko",
+        "umiiyak ako",
+        "gusto kong umiyak",
+        "hindi ako okay",
+        "ang bigat ng pakiramdam ko",
+        "parang walang saysay lahat",
+        "ang lungkot ng araw ko",
+        "nasasaktan ako",
+        "down ako ngayon",
+        "malungkot ako ngayong linggo"
+      ],
+      "responses_en": [
+        "I'm sorry you're feeling this way. It's okay to feel sad, and you don't have to go through it alone. Do you want to tell me what happened? Would you like to book a session with the Guidance Associate?",
+        "That sounds really hard. Thank you for telling me. Sometimes it helps to talk it out with someone. Would you like to book a session with the Guidance Associate?"
+      ],
+      "responses_tl": [
+        "Pasensya na at ganyan ang nararamdaman mo. Okay lang malungkot, at hindi mo kailangang harapin ito nang mag-isa. Gusto mo bang ikwento kung ano ang nangyari? Gusto mo bang mag-book ng session sa Guidance Associate?",
+        "Mukhang mabigat iyan. Salamat at sinabi mo sa akin. Minsan nakakatulong ang makipag-usap. Gusto mo bang mag-book ng session sa Guidance Associate?"
+      ],
+      "followups": {
+        "affirm": "book_appointment",
+        "deny": "support_continue"
+      },
+      "label_en": "Feeling sad",
+      "label_tl": "Malungkot",
+      "example_en": "I'm feeling sad",
+      "example_tl": "Malungkot ako"
+    },
+    {
+      "tag": "feeling_anxious",
+      "patterns_en": [
+        "i feel anxious",
+        "i'm anxious all the time",
+        "i'm so nervous",
+        "i feel worried and i don't know why",
+        "i can't calm down",
+        "my heart is pounding",
+        "i'm overthinking everything",
+        "i feel panicky",
+        "i keep worrying about everything",
+        "i can't breathe properly when i'm stressed",
+        "i'm scared and i don't know why",
+        "i feel restless",
+        "my mind won't stop racing",
+        "i have anxiety",
+        "i get nervous around people"
+      ],
+      "patterns_tl": [
+        "kinakabahan ako palagi",
+        "hindi ako mapakali",
+        "overthinking ako",
+        "natatakot ako pero hindi ko alam bakit",
+        "hindi ako makahinga nang maayos sa kaba",
+        "ang bilis ng tibok ng puso ko",
+        "puro ako worry"
+      ],
+      "responses_en": [
+        "That sounds stressful. Let's slow down for a moment: breathe in for 4 seconds, hold for 4, breathe out for 6. Try it a few times. Would you like to book a session with the Guidance Associate?",
+        "Feeling anxious is really uncomfortable, and you're not alone in it. Grounding can help: name 5 things you can see, 4 you can touch, and 3 you can hear. Would you like to book a session with the Guidance Associate?"
+      ],
+      "responses_tl": [
+        "Mukhang nakaka-stress iyan. Dahan-dahan muna tayo: huminga nang 4 na segundo, pigilan nang 4, at ilabas nang 6. Ulitin nang ilang beses. Gusto mo bang mag-book ng session sa Guidance Associate?",
+        "Hindi komportable ang mabalisa, at hindi ka nag-iisa diyan. Subukan ito: pangalanan ang 5 bagay na nakikita mo, 4 na nahahawakan mo, at 3 na naririnig mo. Gusto mo bang mag-book ng session sa Guidance Associate?"
+      ],
+      "followups": {
+        "affirm": "book_appointment",
+        "deny": "support_continue"
+      },
+      "label_en": "Feeling anxious",
+      "label_tl": "Nababalisa",
+      "example_en": "I'm feeling anxious",
+      "example_tl": "Nababalisa ako"
+    },
+    {
+      "tag": "feeling_angry",
+      "patterns_en": [
+        "i'm so angry",
+        "i'm really mad",
+        "i'm frustrated",
+        "i'm so annoyed",
+        "everything is making me angry",
+        "i want to scream",
+        "i'm so irritated today",
+        "i'm angry at my classmates",
+        "i'm mad at my parents",
+        "i'm fed up",
+        "i can't control my anger",
+        "i'm frustrated with school"
+      ],
+      "patterns_tl": [
+        "galit ako",
+        "naiinis ako",
+        "inis na inis ako",
+        "badtrip ako",
+        "gusto kong sumigaw",
+        "nakakainis sila",
+        "sawang-sawa na ako"
+      ],
+      "responses_en": [
+        "It's okay to feel angry. Strong feelings are valid. Try stepping away for a few minutes, taking deep breaths, or writing down what's bothering you before you act on it. Would you like to book a session with the Guidance Associate?",
+        "That sounds really frustrating. Want to tell me what happened? Talking about it can help you figure out what to do next."
+      ],
+      "responses_tl": [
+        "Okay lang magalit. Valid ang malalakas na emosyon. Subukang lumayo muna nang ilang minuto, huminga nang malalim, o isulat ang bumabagabag sa iyo bago kumilos. Gusto mo bang mag-book ng session sa Guidance Associate?",
+        "Mukhang nakakainis talaga iyan. Gusto mo bang ikwento ang nangyari? Makakatulong ang pag-usapan ito."
+      ],
+      "followups": {
+        "affirm": "book_appointment",
+        "deny": "support_continue"
+      },
+      "label_en": "Feeling angry or frustrated",
+      "label_tl": "Galit o inis",
+      "example_en": "I'm feeling angry",
+      "example_tl": "Galit ako"
+    },
+    {
+      "tag": "feeling_okay",
+      "patterns_en": [
+        "i'm fine",
+        "i'm alright",
+        "i'm doing okay",
+        "not bad",
+        "i'm good",
+        "just tired",
+        "same as usual",
+        "nothing much",
+        "i'm okay naman",
+        "so-so"
+      ],
+      "patterns_tl": [
+        "okay lang ako",
+        "ayos lang ako",
+        "okay naman",
+        "medyo pagod lang",
+        "wala naman",
+        "ganun pa rin",
+        "keri lang"
+      ],
+      "responses_en": [
+        "Glad you're doing okay. Is there anything on your mind today, or something I can help you with?",
+        "Alright! If anything comes up, I'm here. You can ask me about appointments, office hours, or just talk."
+      ],
+      "responses_tl": [
+        "Mabuti at okay ka. May iniisip ka ba ngayon, o may maitutulong ba ako?",
+        "Sige! Kung may gusto kang pag-usapan, nandito lang ako. Pwede mo akong tanungin tungkol sa appointments, oras ng opisina, o makipagkwentuhan lang."
+      ],
+      "followups": {
+        "deny": "no_problem"
+      }
+    },
+    {
+      "tag": "how_are_you",
+      "patterns_en": [
+        "how are you doing",
+        "how's your day",
+        "how have you been",
+        "are you okay",
+        "how's it going"
+      ],
+      "patterns_tl": [
+        "kumusta ka",
+        "kamusta ka",
+        "musta ka",
+        "kumusta ang araw mo",
+        "okay ka lang ba"
+      ],
+      "responses_en": [
+        "I'm doing well, thanks for asking! I'm always here and ready to help. How about you, how are you feeling today?"
+      ],
+      "responses_tl": [
+        "Okay lang ako, salamat sa pagtanong! Lagi akong nandito para tumulong. Ikaw, kumusta ang pakiramdam mo ngayon?"
+      ]
+    },
+    {
+      "tag": "bot_identity",
+      "patterns_en": [
+        "what are you",
+        "are you human",
+        "are you a bot",
+        "what is e-gabay",
+        "is this a real counselor",
+        "am i talking to a person",
+        "who made you"
+      ],
+      "patterns_tl": [
+        "ano ka",
+        "tao ka ba",
+        "robot ka ba",
+        "bot ka ba",
+        "ano ang e-gabay",
+        "tao ba kausap ko"
+      ],
+      "responses_en": [
+        "I'm E-Gabay, the chatbot of STI College Sta. Maria's Guidance and Counseling Office. I'm not a person or a counselor, but I can answer common questions and help you reach the Guidance Associate when you need to."
+      ],
+      "responses_tl": [
+        "Ako si E-Gabay, ang chatbot ng Guidance and Counseling Office ng STI College Sta. Maria. Hindi ako tao o counselor, pero kaya kong sagutin ang mga karaniwang tanong at tulungan kang makausap ang Guidance Associate kapag kailangan mo."
+      ]
+    },
+    {
+      "tag": "bot_capabilities",
+      "patterns_en": [
+        "how can you help me",
+        "what do you know",
+        "what are you for",
+        "help",
+        "what topics can you answer",
+        "can you help me"
+      ],
+      "patterns_tl": [
+        "ano pwede kong itanong",
+        "paano mo ako matutulungan",
+        "ano alam mo",
+        "tulong",
+        "pwede mo ba akong tulungan"
+      ],
+      "responses_en": [
+        "I can help with:\n• Appointments, walk-ins, office hours, and how to reach the GCO\n• Referrals, documents, clearance, and exit interviews\n• Privacy and what the GCO offers\n• Talking about how you feel: stress, school, friends, family\nIf I can't answer something, I can send your question to the Guidance Associate."
+      ],
+      "responses_tl": [
+        "Matutulungan kita sa:\n• Appointments, walk-in, oras ng opisina, at kung paano kontakin ang GCO\n• Referral, documents, clearance, at exit interview\n• Privacy at mga serbisyo ng GCO\n• Pag-usapan ang nararamdaman mo: stress, school, kaibigan, pamilya\nKung hindi ko masagot, pwede kong ipadala ang tanong mo sa Guidance Associate."
+      ],
+      "label_en": "What E-Gabay can do",
+      "label_tl": "Kaya ni E-Gabay",
+      "example_en": "What can you do?",
+      "example_tl": "Ano ang kaya mong gawin?"
+    },
+    {
+      "tag": "affirm",
+      "patterns_en": [
+        "yes",
+        "yeah",
+        "yep",
+        "okay sure",
+        "ok",
+        "alright",
+        "of course",
+        "go ahead",
+        "i'd like that",
+        "please do"
+      ],
+      "patterns_tl": [
+        "oo",
+        "opo",
+        "sige",
+        "sige po",
+        "oo naman",
+        "gusto ko",
+        "game",
+        "tara"
+      ],
+      "responses_en": [
+        "Okay! What would you like to talk about? You can ask me about appointments or the GCO's services, or tell me how you're feeling."
+      ],
+      "responses_tl": [
+        "Sige! Ano ang gusto mong pag-usapan? Pwede mo akong tanungin tungkol sa appointments o serbisyo ng GCO, o sabihin kung ano ang nararamdaman mo."
+      ]
+    },
+    {
+      "tag": "deny",
+      "patterns_en": [
+        "no",
+        "maybe later",
+        "i'm good",
+        "no need",
+        "not really",
+        "nah"
+      ],
+      "patterns_tl": [
+        "hindi",
+        "hindi po",
+        "ayoko",
+        "huwag na",
+        "saka na lang",
+        "wag na"
+      ],
+      "responses_en": [
+        "Alright. I'm here whenever you need me."
+      ],
+      "responses_tl": [
+        "Sige. Nandito lang ako kapag kailangan mo ako."
+      ]
+    },
+    {
+      "tag": "support_continue",
+      "patterns_en": [],
+      "patterns_tl": [],
+      "responses_en": [
+        "That's okay. I'm here to listen. Tell me more whenever you're ready, and if you change your mind, you can book a session anytime under My Appointments."
+      ],
+      "responses_tl": [
+        "Okay lang iyon. Nandito ako para makinig. Ikwento mo lang kapag handa ka na, at kung magbago ang isip mo, pwede kang mag-book anumang oras sa My Appointments."
+      ]
+    },
+    {
+      "tag": "no_problem",
+      "patterns_en": [],
+      "patterns_tl": [],
+      "responses_en": [
+        "No problem. I'm here anytime you want to talk."
+      ],
+      "responses_tl": [
+        "Walang problema. Nandito lang ako anumang oras na gusto mong makipag-usap."
+      ]
+    },
+    {
+      "tag": "out_of_scope",
+      "patterns_en": [
+        "what's the weather today",
+        "will it rain tomorrow",
+        "who won the basketball game",
+        "what's the score of the game",
+        "how do i cook rice",
+        "give me a recipe",
+        "what is 5 plus 7",
+        "solve this math problem",
+        "translate this to spanish",
+        "recommend a movie",
+        "what song should i listen to",
+        "what's the capital of france",
+        "who is the richest person",
+        "how much is a new phone",
+        "what's the best laptop",
+        "do my homework",
+        "write my essay",
+        "what's the meaning of life",
+        "play a game with me",
+        "what is bitcoin",
+        "where can i buy shoes",
+        "what time is it",
+        "what's the wifi password",
+        "who is your favorite singer",
+        "how tall is mount everest",
+        "sing me a song",
+        "what are the lotto results",
+        "what's trending on tiktok",
+        "how do i fix my computer"
+      ],
+      "patterns_tl": [
+        "anong panahon ngayon",
+        "uulan ba bukas",
+        "sino nanalo sa laro",
+        "paano magluto ng adobo",
+        "magbigay ka ng recipe",
+        "ano ang 5 plus 7",
+        "gawin mo assignment ko",
+        "ano magandang panoorin",
+        "kantahan mo ako",
+        "magkano ang bagong cellphone",
+        "anong oras na",
+        "saan masarap kumain",
+        "sino ang presidente",
+        "ano ang lotto result"
+      ],
+      "responses_en": [
+        "I'm E-Gabay, the guidance office's assistant, so I can't help with that one. I can answer questions about appointments, office hours, referrals, and the GCO's services, or you can tell me how you're feeling."
+      ],
+      "responses_tl": [
+        "Ako si E-Gabay, ang assistant ng guidance office, kaya hindi ko matutulungan iyan. Pwede mo akong tanungin tungkol sa appointments, oras ng opisina, referral, at serbisyo ng GCO, o sabihin kung ano ang nararamdaman mo."
       ]
     },
     {
