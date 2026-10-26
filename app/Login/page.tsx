@@ -2,10 +2,10 @@
 
 import LevelPicker from "../../components/LevelPicker";
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { ArrowLeft, ArrowRight, BookOpen, Heart, Loader2, Users } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { login, loginAsDemo, registerParent, requestLoginCode, verifyLoginCode, type SignInAs } from '../action/auth';
+import { finishParentReset, login, loginAsDemo, registerParent, requestLoginCode, requestParentReset, verifyLoginCode, type SignInAs } from '../action/auth';
 import { SCHOOL_EMAIL_DOMAIN, roleFromSchoolEmail } from '../config/school';
 import { LogoMark } from '../../components/Logo';
 import { signInWithTotp } from '../action/totp';
@@ -36,6 +36,7 @@ function schoolEmailProblem(value: string): string | null {
 }
 
 const DEMO_ROLES: { role: UserRole; label: string }[] = [
+  { role: "ADMIN", label: "Super Admin" },
   { role: "COUNSELOR", label: "Associate" },
   { role: "STUDENT", label: "Student" },
   { role: "FACULTY", label: "Faculty" },
@@ -58,30 +59,13 @@ const REG_INPUT_IDS: Record<ParentSignupField, string> = {
   relationship: "r-rel",
 };
 
-type Step = "who" | "email" | "code" | "details" | "parent" | "register" | "waiting" | "totp" | "approve";
+// One sign-in page for everyone: the account itself decides the role.
+type Step = "start" | "code" | "details" | "register" | "waiting" | "totp" | "approve" | "forgot" | "reset";
 
 const RESEND_SECONDS = 30;
 
-// Labels for the "your account is registered as ___" notice - kept separate
-// from WHO_OPTIONS below now that one door (Student, Faculty or Staff) can
-// resolve to either of two roles.
-const ROLE_DOOR_LABEL: Record<UserRole, string> = {
-  STUDENT: "Student",
-  FACULTY: "Faculty or staff",
-  PARENT: "Parent or guardian",
-  COUNSELOR: "Guidance office",
-};
-const roleLabel = (role: UserRole) => ROLE_DOOR_LABEL[role] ?? role;
-
-// Students and faculty/staff sign in the same way (school email + code) and,
-// since a role change already forces a fresh sign-in, which door they click
-// never decides an existing account's role - so they share one door. A
-// brand-new account picks between the two at the details step below.
-const WHO_OPTIONS: { value: SignInAs | "PARENT"; label: string; hint: string; icon: typeof Users }[] = [
-  { value: "STUDENT", label: "Student, Faculty or Staff", hint: "Senior high, tertiary, teachers and advisers", icon: BookOpen },
-  { value: "PARENT", label: "Parent or guardian", hint: "Sign in with your mobile number", icon: Heart },
-  { value: "COUNSELOR", label: "Guidance office", hint: "Guidance Associates", icon: Users },
-];
+// Parents sign in with a mobile number; everyone else with a school email.
+const looksLikePhone = (s: string) => /^[+\d][\d\s()-]*$/.test(s.trim()) && s.replace(/\D/g, "").length >= 4;
 
 const LoginPage = () => {
   const router = useRouter();
@@ -92,7 +76,7 @@ const LoginPage = () => {
   const [tertiaryYears] = useOptionList("tertiaryYears");
   const [shsStrands] = useOptionList("shsStrands");
   const [tertiaryCourses] = useOptionList("tertiaryCourses");
-  const [step, setStep] = useState<Step>("who");
+  const [step, setStep] = useState<Step>("start");
   const [signInAs, setSignInAs] = useState<SignInAs>("STUDENT");
   const [email, setEmail] = useState('');
   const [code, setCode] = useState('');
@@ -100,6 +84,8 @@ const LoginPage = () => {
   const [student, setStudent] = useState({ studentId: '', department: SHS as string, yearLevel: '', program: '', section: '' });
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
+  const [newPassword, setNewPassword] = useState({ password: '', confirm: '' });
+  const [resetEmailed, setResetEmailed] = useState(false);
   const [reg, setReg] = useState({ email: '', password: '', confirm: '', childStudentId: '', childName: '', relationship: '', website: '' });
   const [regErrors, setRegErrors] = useState<ParentSignupErrors>({});
   const [waitingMessage, setWaitingMessage] = useState('');
@@ -114,21 +100,8 @@ const LoginPage = () => {
   const codeInput = useRef<HTMLInputElement>(null);
   const [approval, setApproval] = useState<{ requestId: string; secret: string; number: number } | null>(null);
 
-  // The picked "who" door only matters for a brand-new account (see
-  // createSchoolAccount); for an existing one the server returns whatever
-  // role is on file. If that differs from what was picked - most often
-  // because the guidance office changed it - say so before moving on.
-  const finishLogin = useCallback(
-    (result: { redirectTo: string; role: UserRole }) => {
-      if (signInAs !== result.role) {
-        setRoleNotice(`Your account is registered as ${roleLabel(result.role)}. Signing you in there.`);
-        setTimeout(() => router.push(result.redirectTo), 1800);
-      } else {
-        router.push(result.redirectTo);
-      }
-    },
-    [signInAs, router]
-  );
+  // The account on file decides where each person lands.
+  const finishLogin = useCallback((result: { redirectTo: string }) => router.push(result.redirectTo), [router]);
 
   useEffect(() => {
     if (step !== "approve" || !approval) return;
@@ -142,12 +115,12 @@ const LoginPage = () => {
       } else if (r.state === "denied") {
         stopped = true;
         setApproval(null);
-        setStep("email");
+        setStep("start");
         setError("The sign-in was denied on your other device.");
       } else if (r.state === "expired") {
         stopped = true;
         setApproval(null);
-        setStep("email");
+        setStep("start");
         setError("The request expired. Try again, or use an email code.");
       }
     };
@@ -184,10 +157,18 @@ const LoginPage = () => {
     setStep(next);
   };
 
-  const pickWho = (value: SignInAs | "PARENT") => {
-    if (value === "PARENT") return go("parent");
-    setSignInAs(value);
-    go("email");
+  const isPhone = looksLikePhone(email);
+
+  // The one sign-in form: a mobile number signs in with a password, a school email gets a code.
+  const startSignIn = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email.trim()) {
+      setEmailError("Enter your school email or mobile number.");
+      document.getElementById("email")?.focus();
+      return;
+    }
+    if (isPhone) return void handleParentLogin();
+    void sendCode();
   };
 
   const fullName = () => [name.first, name.last, name.ext].map((s) => s.trim()).filter(Boolean).join(" ");
@@ -240,9 +221,9 @@ const LoginPage = () => {
     if (result.success) {
       finishLogin(result);
     } else if ("needsDetails" in result) {
-      // The email's format already says student or faculty (guidance staff keep their own door).
+      // The email's format already says student or faculty.
       const fromEmail = roleFromSchoolEmail(email);
-      if (fromEmail && signInAs !== "COUNSELOR") setSignInAs(fromEmail);
+      if (fromEmail) setSignInAs(fromEmail);
       go("details");
     } else if ("pending" in result) {
       setWaitingMessage(result.message);
@@ -262,11 +243,11 @@ const LoginPage = () => {
     else setError(result.error);
   };
 
-  const handleParentLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleParentLogin = async () => {
+    if (!password) return setError("Enter your password.");
     setIsSubmitting(true);
     setError(null);
-    const result = await login({ identifier: phone, password });
+    const result = await login({ identifier: email, password });
     setIsSubmitting(false);
     if (result.success) {
       router.push(result.redirectTo);
@@ -343,6 +324,32 @@ const LoginPage = () => {
     }
   };
 
+  const askReset = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    setError(null);
+    const result = await requestParentReset(phone);
+    setIsSubmitting(false);
+    if (!result.success) return setError(result.error);
+    setResetEmailed(result.emailed);
+    setCode('');
+    setNewPassword({ password: '', confirm: '' });
+    go("reset");
+  };
+
+  const finishReset = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (code.length !== 6) return setError("Enter the 6-digit code from your email.");
+    if (newPassword.password.length < 8) return setError("Use a new password with at least 8 characters.");
+    if (newPassword.password !== newPassword.confirm) return setError("The two passwords don't match.");
+    setIsSubmitting(true);
+    setError(null);
+    const result = await finishParentReset({ phone, code, password: newPassword.password });
+    setIsSubmitting(false);
+    if (result.success) router.push(result.redirectTo);
+    else setError(result.error);
+  };
+
   const handleDemoAccess = async (role: UserRole) => {
     setDemoLoadingRole(role);
     await loginAsDemo(role);
@@ -355,11 +362,11 @@ const LoginPage = () => {
   const backButton = "inline-flex items-center gap-1 px-2 min-h-9 -ml-2 rounded-full text-[13px] text-slate-600 hover:text-ink hover:bg-slate-100";
 
   const heading: Record<Step, [string, string]> = {
-    who: ["Sign in", "Who's signing in?"],
-    email: ["Sign in", "Use your STI school email. We'll send you a code."],
+    start: ["Sign in", "Students and staff: your STI school email. Parents and guardians: your mobile number."],
     code: ["Check your email", `We sent a 6-digit code to ${email}. Check Junk too.`],
     details: ["Welcome to E-Gabay", signInAs === "STUDENT" ? "First time here? Tell us who you are." : "First time here? Tell us your name."],
-    parent: ["Parent or guardian", "Sign in with your mobile number."],
+    forgot: ["Forgot your password?", "Enter the mobile number you sign in with."],
+    reset: ["Set a new password", resetEmailed ? "We sent a 6-digit code to the email on your account. Check Junk too." : "If this number has an account with an email on file, a code was sent to it. Otherwise the guidance office has been told and will contact you."],
     register: ["Create a parent account", "The guidance office confirms every parent account before it can be used."],
     waiting: ["Almost there", waitingMessage],
     approve: ["Check your phone", "Open E-Gabay on a phone or computer where you're already signed in, and tap this number."],
@@ -425,58 +432,57 @@ const LoginPage = () => {
               <p className="text-sm text-slate-500 mt-1 break-words">{heading[step][1]}</p>
             </div>
 
-            {step === "who" && (
-              <ul className="mt-6 space-y-2">
-                {WHO_OPTIONS.map(({ value, label, hint, icon: Icon }) => (
-                  <li key={value}>
-                    <button
-                      type="button"
-                      onClick={() => pickWho(value)}
-                      className="group w-full flex items-center gap-3 rounded-xl border border-slate-200 hover:border-blue-400 hover:bg-blue-50 px-4 py-3 text-left transition-colors"
-                    >
-                      <span className="w-10 h-10 rounded-full bg-blue-50 group-hover:bg-white text-blue-700 grid place-items-center shrink-0">
-                        <Icon size={18} />
-                      </span>
-                      <span className="flex-1 min-w-0">
-                        <span className="block text-[15px] font-medium text-ink">{label}</span>
-                        <span className="block text-[13px] text-slate-500">{hint}</span>
-                      </span>
-                      <ArrowRight size={16} className="text-slate-300 group-hover:text-blue-700" />
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            )}
-
-            {step === "email" && (
-              <form onSubmit={sendCode} noValidate className="mt-7 space-y-5">
+            {step === "start" && (
+              <form onSubmit={startSignIn} noValidate className="mt-7 space-y-5">
                 <div>
-                  <label htmlFor="email" className={labelClass}>School email</label>
-                  <input id="email" type="email" autoComplete="email" inputMode="email" placeholder={`juan.delacruz@${SCHOOL_EMAIL_DOMAIN}`}
-                    className={fieldClass(emailError ?? undefined)} value={email} required autoFocus
-                    aria-invalid={emailError ? true : undefined} aria-describedby={emailError ? "email-error" : undefined}
-                    onChange={(e) => { setEmail(e.target.value); setEmailError(null); }}
-                    onBlur={() => email.trim() && setEmailError(schoolEmailProblem(email))} />
+                  <label htmlFor="email" className={labelClass}>School email or mobile number</label>
+                  <input id="email" type="text" autoComplete="username" inputMode={isPhone ? "tel" : "email"}
+                    placeholder={`juan.delacruz@${SCHOOL_EMAIL_DOMAIN}`} className={fieldClass(emailError ?? undefined)} value={email} autoFocus
+                    aria-invalid={emailError ? true : undefined} aria-describedby={emailError ? "email-error" : "email-help"}
+                    onChange={(e) => { setEmail(e.target.value); setEmailError(null); setError(null); }}
+                    onBlur={() => email.trim() && !looksLikePhone(email) && setEmailError(schoolEmailProblem(email))} />
+                  <p id="email-help" className="text-xs text-slate-500 mt-1">
+                    {isPhone ? PHONE_HELP : "We'll send a 6-digit code to your school email."}
+                  </p>
                   <FieldError id="email-error" message={emailError ?? undefined} />
                 </div>
+                {isPhone && (
+                  <div>
+                    <div className="flex items-baseline justify-between gap-2">
+                      <label htmlFor="password" className={labelClass}>Password</label>
+                      <button type="button" onClick={() => { setPhone(phoneChars(email)); go("forgot"); }}
+                        className="text-[13px] text-blue-700 font-medium hover:underline underline-offset-4">
+                        Forgot password?
+                      </button>
+                    </div>
+                    <input id="password" type="password" autoComplete="current-password" className={inputClass} value={password}
+                      onChange={(e) => setPassword(e.target.value)} />
+                  </div>
+                )}
                 <ErrorLine error={error} />
-                {resendIn > 0 && email.trim().toLowerCase() === resendFor && <ResendTimer seconds={resendIn} />}
-                <button type="submit" disabled={isSubmitting || (resendIn > 0 && email.trim().toLowerCase() === resendFor)} className={primaryButton}>
-                  {isSubmitting ? <><Loader2 size={16} className="animate-spin" /> Sending code</> : "Send code"}
+                {!isPhone && resendIn > 0 && email.trim().toLowerCase() === resendFor && <ResendTimer seconds={resendIn} />}
+                <button type="submit" disabled={isSubmitting || (!isPhone && resendIn > 0 && email.trim().toLowerCase() === resendFor)} className={primaryButton}>
+                  {isSubmitting ? <><Loader2 size={16} className="animate-spin" /> {isPhone ? "Signing in" : "Sending code"}</> : isPhone ? "Sign in" : "Continue"}
                 </button>
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <button type="button" onClick={() => go("who")} className={backButton}>
-                    <ArrowLeft size={14} /> Back
+                {!isPhone && (
+                  <div className="flex flex-wrap items-center justify-between gap-2 text-[13px]">
+                    <button type="button" onClick={() => { setCode(''); go("totp"); }}
+                      className="px-2 -ml-2 min-h-9 rounded-full text-blue-700 font-medium hover:bg-blue-50">
+                      Use authenticator app
+                    </button>
+                    <button type="button" onClick={askApproval} disabled={isSubmitting || !email.trim()}
+                      className="px-2 -mr-2 min-h-9 rounded-full text-blue-700 font-medium hover:bg-blue-50 disabled:opacity-50">
+                      Approve on my phone
+                    </button>
+                  </div>
+                )}
+                <p className="text-center text-[13px] text-slate-600 border-t border-rule pt-4">
+                  Parent or guardian without an account?{" "}
+                  <button type="button" onClick={() => { if (isPhone) setPhone(phoneChars(email)); go("register"); }}
+                    className="px-1 rounded text-blue-700 font-medium hover:underline underline-offset-4">
+                    Create a parent account
                   </button>
-                  <button type="button" onClick={() => { setCode(''); go("totp"); }}
-                    className="px-2 min-h-9 rounded-full text-[13px] text-blue-700 font-medium hover:bg-blue-50">
-                    Use authenticator app instead
-                  </button>
-                </div>
-                <button type="button" onClick={askApproval} disabled={isSubmitting || !email.trim()}
-                  className="w-full min-h-11 rounded-full border border-blue-300 text-[14px] text-blue-700 font-medium hover:bg-blue-50 disabled:opacity-50">
-                  Approve on my phone instead
-                </button>
+                </p>
               </form>
             )}
 
@@ -490,7 +496,7 @@ const LoginPage = () => {
                 <p className="text-xs text-slate-500">
                   No notification? Open E-Gabay on your phone; the request pops up there. It expires in 2 minutes.
                 </p>
-                <button type="button" onClick={() => { setApproval(null); go("email"); }} className={backButton}>
+                <button type="button" onClick={() => { setApproval(null); go("start"); }} className={backButton}>
                   <ArrowLeft size={14} /> Use an email code instead
                 </button>
               </div>
@@ -517,7 +523,7 @@ const LoginPage = () => {
                 <p className="text-xs text-slate-500">
                   Haven&apos;t set it up? Sign in with an email code first, then turn it on from your Profile or My Account page.
                 </p>
-                <button type="button" onClick={() => go("email")} className={backButton}>
+                <button type="button" onClick={() => go("start")} className={backButton}>
                   <ArrowLeft size={14} /> Use an email code instead
                 </button>
               </form>
@@ -535,20 +541,19 @@ const LoginPage = () => {
                 ) : (
                   <div className="space-y-4">
                     {nameFields}
-                    {signInAs !== "COUNSELOR" && roleFromSchoolEmail(email) && (
+                    {roleFromSchoolEmail(email) === "STUDENT" ? (
                       <p className="text-[13px] text-slate-600 bg-blue-50 border border-blue-100 rounded-lg px-3 py-2">
-                        From your school email, you&apos;re signing in as {signInAs === "STUDENT" ? "a student" : "faculty or staff"}.
+                        From your school email, you&apos;re signing in as a student.
                       </p>
-                    )}
-                    {signInAs !== "COUNSELOR" && !roleFromSchoolEmail(email) && (
+                    ) : (
                       <fieldset>
-                        <legend className={labelClass}>I am a</legend>
-                        <div className="grid grid-cols-2 gap-2">
-                          {(["STUDENT", "FACULTY"] as const).map((r) => (
-                            <label key={r} className={`flex items-center gap-2 rounded-lg border px-3 min-h-11 cursor-pointer text-[14px] ${signInAs === r ? "border-blue-600 bg-blue-50" : "border-slate-300"}`}>
+                        <legend className={labelClass}>I am</legend>
+                        <div className={`grid gap-2 ${roleFromSchoolEmail(email) ? "grid-cols-2" : "grid-cols-3"}`}>
+                          {(roleFromSchoolEmail(email) ? (["FACULTY", "COUNSELOR"] as const) : (["STUDENT", "FACULTY", "COUNSELOR"] as const)).map((r) => (
+                            <label key={r} className={`flex items-center gap-2 rounded-lg border px-3 min-h-11 cursor-pointer text-[13px] ${signInAs === r ? "border-blue-600 bg-blue-50" : "border-slate-300"}`}>
                               <input type="radio" name="signInAsDetails" checked={signInAs === r} className="accent-blue-700"
                                 onChange={() => setSignInAs(r)} />
-                              {r === "STUDENT" ? "Student" : "Faculty or staff"}
+                              {r === "STUDENT" ? "A student" : r === "FACULTY" ? "Faculty or staff" : "Guidance office"}
                             </label>
                           ))}
                         </div>
@@ -607,7 +612,7 @@ const LoginPage = () => {
                 {step === "code" && resendIn > 0 && <ResendTimer seconds={resendIn} />}
                 {step === "code" && (
                   <div className="flex items-center justify-between text-[13px]">
-                    <button type="button" onClick={() => go("email")} className={backButton}>
+                    <button type="button" onClick={() => go("start")} className={backButton}>
                       <ArrowLeft size={14} /> Different email
                     </button>
                     <button type="button" onClick={() => sendCode()} disabled={resendIn > 0 || isSubmitting}
@@ -619,31 +624,56 @@ const LoginPage = () => {
               </form>
             )}
 
-            {step === "parent" && (
-              <form onSubmit={handleParentLogin} className="mt-7 space-y-5">
+            {step === "forgot" && (
+              <form onSubmit={askReset} className="mt-7 space-y-5">
                 <div>
-                  <label htmlFor="phone" className={labelClass}>Mobile number</label>
-                  <input id="phone" type="tel" inputMode="tel" autoComplete="tel" placeholder="09171234567" className={inputClass}
-                    aria-describedby="phone-help" value={phone} onChange={(e) => setPhone(phoneChars(e.target.value))} required autoFocus />
-                  <p id="phone-help" className="text-xs text-slate-500 mt-1">{PHONE_HELP}</p>
-                </div>
-                <div>
-                  <label htmlFor="password" className={labelClass}>Password</label>
-                  <input id="password" type="password" autoComplete="current-password" className={inputClass} value={password}
-                    onChange={(e) => setPassword(e.target.value)} required />
+                  <label htmlFor="f-phone" className={labelClass}>Mobile number</label>
+                  <input id="f-phone" type="tel" inputMode="tel" autoComplete="tel" placeholder="09171234567" className={inputClass}
+                    value={phone} onChange={(e) => setPhone(phoneChars(e.target.value))} required autoFocus />
                 </div>
                 <ErrorLine error={error} />
                 <button type="submit" disabled={isSubmitting} className={primaryButton}>
-                  {isSubmitting ? <><Loader2 size={16} className="animate-spin" /> Signing in</> : "Sign in"}
+                  {isSubmitting ? <><Loader2 size={16} className="animate-spin" /> Sending</> : "Reset my password"}
                 </button>
-                <p className="text-center text-[13px] text-slate-600">
-                  No account yet?{" "}
-                  <button type="button" onClick={() => go("register")} className="px-1 rounded text-blue-700 font-medium hover:underline underline-offset-4">
-                    Create a parent account
-                  </button>
+                <p className="text-xs text-slate-500">
+                  Students, faculty and staff don&apos;t have a password. They sign in with a code sent to their school email.
                 </p>
-                <button type="button" onClick={() => go("who")} className={backButton}>
-                  <ArrowLeft size={14} /> Back
+                <button type="button" onClick={() => go("start")} className={backButton}>
+                  <ArrowLeft size={14} /> Back to sign in
+                </button>
+              </form>
+            )}
+
+            {step === "reset" && (
+              <form onSubmit={finishReset} noValidate className="mt-7 space-y-5">
+                <div>
+                  <label htmlFor="r-code" className={labelClass}>6-digit code</label>
+                  <input id="r-code" type="text" inputMode="numeric" autoComplete="one-time-code" maxLength={6} placeholder="000000"
+                    className={`${inputClass} font-mono text-center text-xl tracking-[0.5em]`} value={code}
+                    onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 6))} autoFocus />
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label htmlFor="n-password" className={labelClass}>New password</label>
+                    <input id="n-password" type="password" autoComplete="new-password" className={inputClass} value={newPassword.password}
+                      onChange={(e) => setNewPassword({ ...newPassword, password: e.target.value })} />
+                  </div>
+                  <div>
+                    <label htmlFor="n-confirm" className={labelClass}>Repeat password</label>
+                    <input id="n-confirm" type="password" autoComplete="new-password" className={inputClass} value={newPassword.confirm}
+                      onChange={(e) => setNewPassword({ ...newPassword, confirm: e.target.value })} />
+                  </div>
+                </div>
+                <PasswordStrength password={newPassword.password} />
+                <ErrorLine error={error} />
+                <button type="submit" disabled={isSubmitting} className={primaryButton}>
+                  {isSubmitting ? <><Loader2 size={16} className="animate-spin" /> Saving</> : "Save and sign in"}
+                </button>
+                <p className="text-xs text-slate-500">
+                  No email on your account? The guidance office can give you a temporary password.
+                </p>
+                <button type="button" onClick={() => go("start")} className={backButton}>
+                  <ArrowLeft size={14} /> Back to sign in
                 </button>
               </form>
             )}
@@ -731,7 +761,7 @@ const LoginPage = () => {
                 <button type="submit" disabled={isSubmitting} className={primaryButton}>
                   {isSubmitting ? <><Loader2 size={16} className="animate-spin" /> Sending</> : "Create account"}
                 </button>
-                <button type="button" onClick={() => go("parent")} className={backButton}>
+                <button type="button" onClick={() => go("start")} className={backButton}>
                   <ArrowLeft size={14} /> I already have an account
                 </button>
               </form>
@@ -739,13 +769,13 @@ const LoginPage = () => {
 
             {step === "waiting" && (
               <div className="mt-6">
-                <button type="button" onClick={() => go("who")} className={primaryButton}>
+                <button type="button" onClick={() => go("start")} className={primaryButton}>
                   Back to sign in
                 </button>
               </div>
             )}
 
-            {SHOW_DEMO && (step === "who" || step === "email") && (
+            {SHOW_DEMO && step === "start" && (
               <div className="mt-8 pt-6 border-t border-rule">
                 <p className="text-[13px] text-slate-500">Demo accounts</p>
                 <ul className="mt-2 divide-y divide-rule">

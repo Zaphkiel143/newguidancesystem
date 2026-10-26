@@ -5,8 +5,7 @@ import db from "./db";
 import type { UserRole } from "./generated";
 
 const SESSION_COOKIE = "session";
-// Signed-in sessions last 30 days and renew while the person keeps using the
-// site (proxy.ts renews the cookie; getCurrentUser renews the database row).
+// Signed-in sessions last 30 days and renew while the person keeps using the site
 const SESSION_TTL_MS = 30 * 24 * 60 * 60 * 1000;
 const RENEW_WHEN_LEFT_MS = 29 * 24 * 60 * 60 * 1000;
 
@@ -54,39 +53,68 @@ export async function getCurrentUser() {
   const token = cookieStore.get(SESSION_COOKIE)?.value;
   if (!token) return null;
 
-  // The photo bytes are left out here; /api/me/avatar loads them on their own.
-  const session = await db.session.findUnique({ where: { token }, include: { user: { omit: { avatarData: true, totpSecret: true, totpPending: true } } } });
+  // The photo bytes are left out here; /api/me/avatar loads them on their own
+  const session = await db.session.findUnique({ where: { token }, include: { user: { omit: USER_OMIT } } });
   if (!session || session.expiresAt < new Date()) return null;
-  // An account the guidance office hasn't approved (or has turned off) can't
-  // use an old session either.
+  // Unapproved or turned-off accounts can't use an old session
   if (session.user.status !== "ACTIVE") return null;
 
-  // Sliding expiry, at most about once a day per session.
+  // Sliding expiry, at most about once a day per session
   if (session.expiresAt.getTime() - Date.now() < RENEW_WHEN_LEFT_MS) {
     await db.session
       .update({ where: { token }, data: { expiresAt: new Date(Date.now() + SESSION_TTL_MS) } })
       .catch(() => {});
   }
 
+  // Super Admin "View as": pages see the chosen user (read-only, see lib/db.ts)
+  if (session.viewAsUserId && session.user.role === "ADMIN") {
+    const target = await db.user.findUnique({ where: { id: session.viewAsUserId }, omit: USER_OMIT });
+    if (target) return target;
+  }
+
   return session.user;
+}
+
+const USER_OMIT = { avatarData: true, totpSecret: true, totpPending: true } as const;
+
+// The signed-in Super Admin and who they're viewing as, or null
+export async function getViewAs() {
+  const cookieStore = await cookies();
+  const token = cookieStore.get(SESSION_COOKIE)?.value;
+  if (!token) return null;
+  const session = await db.session.findUnique({ where: { token }, select: { viewAsUserId: true, user: { select: { name: true, role: true } } } });
+  if (!session?.viewAsUserId || session.user.role !== "ADMIN") return null;
+  const target = await db.user.findUnique({ where: { id: session.viewAsUserId }, select: { name: true, role: true } });
+  return target ? { adminName: session.user.name, name: target.name, role: target.role } : null;
+}
+
+// The real signed-in user, ignoring View as
+export async function getSignedInUser() {
+  const cookieStore = await cookies();
+  const token = cookieStore.get(SESSION_COOKIE)?.value;
+  if (!token) return null;
+  const session = await db.session.findUnique({ where: { token }, include: { user: { omit: USER_OMIT } } });
+  if (!session || session.expiresAt < new Date() || session.user.status !== "ACTIVE") return null;
+  return { ...session.user, sessionToken: token };
 }
 
 export function dashboardPathForRole(role: UserRole): string {
   switch (role) {
+    case "ADMIN":
+      return "/admin_accounts";
     case "COUNSELOR":
       return "/dashboard";
     case "FACULTY":
       return "/faculty_dashboard";
     case "PARENT":
-      // Parents land on the announcements and events feed.
+      // Parents land on the announcements and events feed
       return "/parent_bulletin";
     case "STUDENT":
       return "/student_dashboard";
   }
 }
 
-// Call at the top of a role-scoped layout to enforce that only a signed-in
-// user with that exact role can view anything under it.
+// Use in a role's layout so only that role can open its pages
 export async function requireRole(role: UserRole) {
   const user = await getCurrentUser();
   if (!user) redirect("/Login");

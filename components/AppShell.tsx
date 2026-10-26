@@ -9,6 +9,7 @@ import SignOutButton from "./SignOutButton";
 import SidebarMenu from "./SidebarMenu";
 import AppFooter from "./AppFooter";
 import { getDashboardStats } from "../app/action/counselor";
+import { listStaffApprovals } from "../app/action/accounts";
 import { CurrentUserProvider } from "./CurrentUser";
 import { LogoMark } from "./Logo";
 import { FloatingDock, NoticeBell, NoticesProvider, useUnreadMessages } from "./Notices";
@@ -17,7 +18,7 @@ import PrivacyNotice from "./PrivacyNotice";
 import ProfileMenu from "./ProfileMenu";
 import ScrollToHash from "./ScrollToHash";
 
-type Role = "faculty" | "counselor" | "student" | "parent";
+type Role = "faculty" | "counselor" | "student" | "parent" | "admin";
 
 interface AppShellProps {
   role: Role;
@@ -42,6 +43,7 @@ const COUNTS_REFRESH_MS = 5_000;
 
 // Each role's own account page (photo, details, sign-in settings).
 const ACCOUNT_PATH: Record<Role, string> = {
+  admin: "/admin_account",
   counselor: "/my_account",
   student: "/profile",
   faculty: "/faculty_account",
@@ -50,14 +52,15 @@ const ACCOUNT_PATH: Record<Role, string> = {
 
 // Each role's page listing all notifications (the bell's "See all").
 const NOTIFICATIONS_PATH: Record<Role, string> = {
+  admin: "/admin_notifications",
   counselor: "/notifications",
   student: "/my_notifications",
   faculty: "/faculty_notifications",
   parent: "/parent_notifications",
 };
 
-// Where the floating message button leads, per role.
-const MESSAGES_PATH: Record<Role, string> = {
+// Where the floating message button leads, per role (the Super Admin has no messages).
+const MESSAGES_PATH: Partial<Record<Role, string>> = {
   counselor: "/message",
   student: "/my_messages",
   faculty: "/faculty_message",
@@ -66,6 +69,7 @@ const MESSAGES_PATH: Record<Role, string> = {
 
 // Matches the labels stored on records (lib/session.ts ROLE_LABEL).
 const RECORD_ROLE: Record<Role, string> = {
+  admin: "Admin",
   counselor: "Counselor",
   student: "Student",
   faculty: "Faculty",
@@ -73,6 +77,7 @@ const RECORD_ROLE: Record<Role, string> = {
 };
 
 const ROLE_LABEL: Record<Role, string> = {
+  admin: "Super Admin",
   counselor: "Guidance associate",
   student: "Student",
   faculty: "Faculty",
@@ -165,6 +170,25 @@ export function AppShell({ role, userName, displayName = userName, hiddenPaths =
     // Also on every page change, so a badge catches up as soon as you move on.
   }, [role, pathname]);
 
+  // Staff accounts waiting for the Super Admin
+  const [adminWaiting, setAdminWaiting] = useState<number | null>(null);
+  useEffect(() => {
+    if (role !== "admin") return;
+    let active = true;
+    const refresh = async () => {
+      const waiting = await listStaffApprovals();
+      if (active) setAdminWaiting(waiting.length);
+    };
+    void refresh();
+    const interval = window.setInterval(() => {
+      if (document.visibilityState === "visible") void refresh();
+    }, COUNTS_REFRESH_MS);
+    return () => {
+      active = false;
+      window.clearInterval(interval);
+    };
+  }, [role, pathname]);
+
   // Close the mobile menu automatically whenever the route changes
   if (pathname !== lastPathname) {
     setLastPathname(pathname);
@@ -181,7 +205,9 @@ export function AppShell({ role, userName, displayName = userName, hiddenPaths =
             ? counselorCounts?.documentsToReview
             : item.path === "/accounts"
               ? counselorCounts?.approvalsWaiting
-              : undefined;
+              : item.path === "/admin_accounts"
+                ? adminWaiting || undefined
+                : undefined;
     return counselorCount ?? item.unreadCount;
   };
 
@@ -282,10 +308,10 @@ export function AppShell({ role, userName, displayName = userName, hiddenPaths =
         <div className="page-area">
           <CurrentUserProvider user={{ name: userName, displayName, roleLabel: RECORD_ROLE[role] }}>{children}</CurrentUserProvider>
         </div>
-        <AppFooter showHotlines={role !== "counselor"} />
+        <AppFooter showHotlines={role !== "counselor" && role !== "admin"} />
       </main>
 
-      <FloatingDock messagesPath={MESSAGES_PATH[role]} withChatbot={role === "student" || role === "faculty"} />
+      {MESSAGES_PATH[role] && <FloatingDock messagesPath={MESSAGES_PATH[role]} withChatbot={role === "student" || role === "faculty"} />}
       <LoginApprovalPrompt />
       <ScrollToHash />
       {needsPrivacyConsent && <PrivacyNotice />}

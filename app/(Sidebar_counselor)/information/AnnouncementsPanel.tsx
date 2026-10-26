@@ -159,7 +159,7 @@ export default function AnnouncementsPanel({ onAddEvent }: { onAddEvent: () => v
   const canPost = Boolean(draft && draft.title.trim() && draft.body.trim());
 
   return (
-    <div className="max-w-3xl">
+    <div className="min-w-0">
       {/* Composer bar */}
       <section className="bg-sheet border border-rule rounded-2xl shadow-sm p-4">
         <div className="flex items-center gap-3">

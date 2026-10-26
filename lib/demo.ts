@@ -5,6 +5,7 @@ import type { UserRole } from "./generated";
 // name (student profile, appointments, the demo parent's child). Screens that
 // show the signed-in person their own name show DEMO_DISPLAY_NAME instead.
 export const DEMO_EMAILS: Record<UserRole, string> = {
+  ADMIN: "admin@sti.edu",
   COUNSELOR: "counselor@sti.edu",
   STUDENT: "student@sti.edu",
   FACULTY: "faculty@sti.edu",

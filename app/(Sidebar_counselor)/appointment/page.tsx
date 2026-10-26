@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { Ban, Check, ChevronLeft, ChevronRight, Loader2, Lock, X } from "lucide-react";
+import { Ban, CalendarDays, Check, ChevronLeft, ChevronRight, List, Loader2, Lock, X } from "lucide-react";
 import {
   blockTime,
   getDaySchedule,
@@ -18,6 +18,7 @@ import ContactLinks from "../../../components/ContactLinks";
 import { manilaToday } from "../../../lib/time";
 import { useOptionList } from "../../../components/useOptionList";
 import { optionValue } from "../../../lib/optionListDefaults";
+import MonthCalendar from "./MonthCalendar";
 
 type Schedule = Awaited<ReturnType<typeof getDaySchedule>>;
 type Appt = Schedule["appointments"][number];
@@ -52,12 +53,17 @@ export default function AppointmentScheduling() {
   const linkedTime = linkedDate && rawTime && STANDARD_DAY_HOURS.includes(rawTime) ? rawTime : null;
   const linkKey = linkedDate ? `${linkedDate}|${linkedTime ?? ""}` : null;
   const [date, setDate] = useState(linkedDate ?? today);
+  // The month calendar first, like Teams; a linked appointment opens straight on its day.
+  const [view, setView] = useState<"month" | "day">(linkedDate ? "day" : "month");
   // The slot to scroll to and highlight once that day has loaded.
   const [highlight, setHighlight] = useState<string | null>(linkedTime);
   const [lastLink, setLastLink] = useState(linkKey);
   if (linkKey !== lastLink) {
     setLastLink(linkKey);
-    if (linkedDate) setDate(linkedDate);
+    if (linkedDate) {
+      setDate(linkedDate);
+      setView("day");
+    }
     setHighlight(linkedTime);
   }
   const [schedule, setSchedule] = useState<Schedule | null>(null);
@@ -198,10 +204,19 @@ export default function AppointmentScheduling() {
   };
 
   return (
-    <div className="px-5 sm:px-8 lg:px-12 pt-8 lg:pt-12 pb-16 max-w-6xl text-slate-900">
+    <div className="px-5 sm:px-8 lg:px-10 pt-8 lg:pt-10 pb-16 text-slate-900">
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <h1 className="page-title">Appointments</h1>
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+        <div role="tablist" aria-label="Calendar view" className="inline-flex rounded-full bg-slate-100 p-1">
+          {([["month", "Month", CalendarDays], ["day", "Day", List]] as const).map(([v, label, Icon]) => (
+            <button key={v} role="tab" aria-selected={view === v} onClick={() => setView(v)}
+              className={`inline-flex items-center gap-1.5 px-4 min-h-9 rounded-full text-[13px] font-medium ${view === v ? "bg-sheet text-ink shadow-sm" : "text-slate-600 hover:text-ink"}`}>
+              <Icon size={15} /> {label}
+            </button>
+          ))}
         </div>
         <button
           onClick={() => {
@@ -213,7 +228,13 @@ export default function AppointmentScheduling() {
         >
           <Lock size={16} /> Block time
         </button>
+        </div>
       </header>
+
+      {view === "month" ? (
+        <MonthCalendar today={today} selected={date} onPickDay={(d) => { setDate(d); setView("day"); }} />
+      ) : (
+      <>
 
       <div className="mt-6 flex flex-wrap items-center gap-2">
         <button onClick={() => setDate(shiftDate(date, -1))} aria-label="Previous day" className="w-11 h-11 grid place-items-center rounded-full border border-slate-300 hover:bg-slate-100">
@@ -329,6 +350,9 @@ export default function AppointmentScheduling() {
             );
           })}
         </ol>
+      )}
+
+      </>
       )}
 
       {/* Block time dialog */}

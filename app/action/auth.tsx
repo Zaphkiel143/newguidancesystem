@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import db from "../../lib/db";
 import { createSession, destroySession, dashboardPathForRole, hashPassword, verifyPassword } from "../../lib/auth";
 import { emailConfigured, sendEmail } from "../../lib/email";
-import { notifyCounselors } from "../../lib/notify";
+import { notifyAdmins, notifyCounselors } from "../../lib/notify";
 import { normalizePhone } from "../../lib/phone";
 import { cleanName, FIX_FIELDS_MESSAGE, isNameText, validateParentSignup, type ParentSignupErrors } from "../../lib/parentSignup";
 import { getOptionList } from "./optionLists";
@@ -27,6 +27,7 @@ const DEMO_LOGIN_ENABLED = process.env.NEXT_PUBLIC_DEMO_LOGIN !== "false";
 // Stored names link the demo accounts to the sample records; on screen they
 // show as "Demo Account" (lib/demo.ts).
 const DEMO_USERS: Record<UserRole, { email: string; name: string }> = {
+  ADMIN: { email: DEMO_EMAILS.ADMIN, name: "System Administrator" },
   COUNSELOR: { email: DEMO_EMAILS.COUNSELOR, name: "Ralph Michael" },
   STUDENT: { email: DEMO_EMAILS.STUDENT, name: "Nhel Belarmino" },
   FACULTY: { email: DEMO_EMAILS.FACULTY, name: "Cho Sto Domingo" },
@@ -40,6 +41,7 @@ function statusMessage(status: string, role: UserRole) {
       ? "Your parent account is waiting for the guidance office to confirm it. You'll be able to sign in once it's approved."
       : "Your account is waiting for the guidance office to approve it. Try again once it's approved.";
   }
+  if (status === "ARCHIVED") return "This account was archived. Please contact the Guidance and Counseling Office to restore it.";
   return "This account can't be used. Please contact the Guidance and Counseling Office.";
 }
 
@@ -99,8 +101,8 @@ function isSchoolEmail(email: string) {
   return /^[^\s@]+@[^\s@]+$/.test(email) && email.endsWith(`@${SCHOOL_DOMAIN}`);
 }
 
-function counselorEmailList() {
-  return (process.env.COUNSELOR_EMAILS ?? "")
+function emailList(value: string | undefined) {
+  return (value ?? "")
     .split(",")
     .map((e) => normalizeEmail(e))
     .filter(Boolean);
@@ -263,13 +265,17 @@ async function createSchoolAccount(
 ) {
   // A Guidance Associate may already have an inventory record with this email.
   const existingProfile = await db.studentProfile.findFirst({ where: { email } });
-  const isListedCounselor = counselorEmailList().includes(email);
+  // SUPER_ADMIN_EMAILS and COUNSELOR_EMAILS (comma-separated) get those roles on first sign-in.
+  const isListedAdmin = emailList(process.env.SUPER_ADMIN_EMAILS).includes(email);
+  const isListedCounselor = emailList(process.env.COUNSELOR_EMAILS).includes(email);
 
   // The email's format settles student vs faculty when it can (see
   // roleFromSchoolEmail); guidance staff use faculty-style emails, so they can
   // still ask for a guidance account.
   const fromEmail = roleFromSchoolEmail(email);
-  const role: UserRole = isListedCounselor
+  const role: UserRole = isListedAdmin
+    ? "ADMIN"
+    : isListedCounselor
     ? "COUNSELOR"
     : existingProfile || fromEmail === "STUDENT"
       ? "STUDENT"
@@ -285,9 +291,9 @@ async function createSchoolAccount(
   if (name.length < 3 || !name.includes(" ")) return { error: "Enter your first and last name." };
   if (!existingProfile && !isNameText(name)) return { error: "Use letters only in your name." };
 
-  // Approved right away: listed counselors and students. Self-declared faculty
-  // and guidance staff wait for a Guidance Associate to approve them.
-  const status = role === "STUDENT" || isListedCounselor ? "ACTIVE" : "PENDING";
+  // Approved right away: listed admins and counselors, and students. Self-declared
+  // faculty and guidance staff wait for the Super Admin to approve them.
+  const status = role === "STUDENT" || isListedAdmin || isListedCounselor ? "ACTIVE" : "PENDING";
 
   if (needsStudentDetails) {
     const problem = await checkStudentDetails(formData.student!);
@@ -334,10 +340,10 @@ async function createSchoolAccount(
     data: { email, name, role, status, passwordHash: "code-login-only" },
   });
   if (status === "PENDING") {
-    await notifyCounselors({
+    await notifyAdmins({
       title: `New ${role === "FACULTY" ? "faculty" : "guidance staff"} account to approve`,
       body: `${name} (${email})`,
-      href: "/accounts",
+      href: "/admin_accounts",
     });
   }
   return { user };
@@ -443,6 +449,85 @@ export async function registerParent(formData: {
     return { success: true };
   } catch (error) {
     console.error("Parent registration failed:", error);
+    return { success: false, error: "Something went wrong. Please try again." };
+  }
+}
+
+// Forgot password (parents only; everyone else signs in with an emailed code).
+// With an email on file the parent gets a reset code; otherwise the Super Admin is asked to help.
+
+const RESET_KEY = (userId: string) => `reset:${userId}`;
+
+type ResetRequestResult = { success: true; emailed: boolean } | { success: false; error: string };
+
+export async function requestParentReset(rawPhone: string): Promise<ResetRequestResult> {
+  try {
+    const phone = normalizePhone(rawPhone);
+    if (!phone) return { success: false, error: "Enter a valid mobile number, like 0917 123 4567." };
+    if (!(await allow(`reset:${phone}`, 3, HOUR)) || !(await allow(`reset-ip:${await clientIp()}`, 10, HOUR))) {
+      return { success: false, error: "Too many reset requests. Try again in an hour." };
+    }
+    const user = await db.user.findUnique({ where: { phone }, select: { id: true, name: true, email: true, role: true, status: true } });
+    // Same answer whether or not the number has an account.
+    if (!user || user.role !== "PARENT" || user.status !== "ACTIVE") return { success: true, emailed: false };
+
+    if (!user.email) {
+      await notifyAdmins({ title: "A parent forgot their password", body: `${user.name} (${rawPhone.trim()}) asked for a password reset.`, href: "/admin_accounts" });
+      return { success: true, emailed: false };
+    }
+    const code = String(randomInt(0, 1_000_000)).padStart(6, "0");
+    await db.loginCode.updateMany({ where: { email: RESET_KEY(user.id), usedAt: null }, data: { usedAt: new Date() } });
+    const issued = await db.loginCode.create({
+      data: { email: RESET_KEY(user.id), codeHash: hashPassword(code), expiresAt: new Date(Date.now() + CODE_TTL_MS) },
+    });
+    const status = await sendEmail(
+      user.email,
+      "Reset your E-Gabay password",
+      `Your E-Gabay password reset code is ${code}.\n\nIt expires in 10 minutes. If you didn't ask to reset your password, you can ignore this email.\n\n— Guidance and Counseling Office, STI College Sta. Maria`,
+      { logBody: "[password reset email; code not stored]" }
+    );
+    if (status === "FAILED") {
+      await db.loginCode.delete({ where: { id: issued.id } }).catch(() => {});
+      return { success: false, error: "We couldn't send the email. Try again in a moment." };
+    }
+    return { success: true, emailed: true };
+  } catch (error) {
+    console.error("Password reset request failed:", error);
+    return { success: false, error: "Something went wrong. Please try again." };
+  }
+}
+
+export async function finishParentReset(formData: { phone: string; code: string; password: string }): Promise<LoginResult> {
+  try {
+    const phone = normalizePhone(formData.phone);
+    const code = formData.code.replace(/\D/g, "");
+    if (!phone || code.length !== 6) return { success: false, error: "Enter the 6-digit code from your email." };
+    if (formData.password.length < 8) return { success: false, error: "Use a new password with at least 8 characters." };
+    const user = await db.user.findUnique({ where: { phone } });
+    if (!user || user.role !== "PARENT" || user.status !== "ACTIVE") return { success: false, error: "That code isn't right." };
+
+    const entry = await db.loginCode.findFirst({
+      where: { email: RESET_KEY(user.id), usedAt: null, expiresAt: { gt: new Date() } },
+      orderBy: { createdAt: "desc" },
+    });
+    if (!entry) return { success: false, error: "That code has expired. Ask for a new one." };
+    if (entry.attempts >= MAX_ATTEMPTS) return { success: false, error: "Too many wrong tries. Ask for a new code." };
+    if (!verifyPassword(code, entry.codeHash)) {
+      await db.loginCode.update({ where: { id: entry.id }, data: { attempts: { increment: 1 } } });
+      return { success: false, error: "That code isn't right." };
+    }
+
+    await db.loginCode.update({ where: { id: entry.id }, data: { usedAt: new Date() } });
+    await db.user.update({ where: { id: user.id }, data: { passwordHash: hashPassword(formData.password) } });
+    // Other devices are signed out.
+    await db.session.deleteMany({ where: { userId: user.id } });
+    const actor = { name: user.name, roleLabel: ROLE_LABEL.PARENT, id: user.id };
+    await logActivity(actor, "Reset their password", "User", user.id);
+    await createSession(user.id);
+    await logActivity(actor, "Signed in", "User", user.id);
+    return { success: true, redirectTo: dashboardPathForRole(user.role) };
+  } catch (error) {
+    console.error("Password reset failed:", error);
     return { success: false, error: "Something went wrong. Please try again." };
   }
 }

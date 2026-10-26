@@ -14,7 +14,7 @@ import { logActivity } from "../../lib/activityLog";
 
 export async function getMyTotpStatus() {
   try {
-    const me = await requireActionUser("STUDENT", "FACULTY", "COUNSELOR");
+    const me = await requireActionUser("STUDENT", "FACULTY", "COUNSELOR", "ADMIN");
     const row = await db.user.findUnique({ where: { id: me.id }, select: { totpEnabledAt: true } });
     return { enabled: Boolean(row?.totpEnabledAt), since: row?.totpEnabledAt ?? null };
   } catch {
@@ -25,7 +25,7 @@ export async function getMyTotpStatus() {
 // Step 1: make a new secret and show it as a QR code.
 export async function startTotpSetup() {
   try {
-    const me = await requireActionUser("STUDENT", "FACULTY", "COUNSELOR");
+    const me = await requireActionUser("STUDENT", "FACULTY", "COUNSELOR", "ADMIN");
     if (!me.email) return { success: false as const, error: "Your account needs a school email first." };
     const secret = newTotpSecret();
     await db.user.update({ where: { id: me.id }, data: { totpPending: secret } });
@@ -41,7 +41,7 @@ export async function startTotpSetup() {
 // Step 2: the person types the code the app shows, proving it's set up right.
 export async function confirmTotpSetup(code: string) {
   try {
-    const me = await requireActionUser("STUDENT", "FACULTY", "COUNSELOR");
+    const me = await requireActionUser("STUDENT", "FACULTY", "COUNSELOR", "ADMIN");
     if (!(await allow(`totp-setup:${me.id}`, 10, 15 * MINUTE))) return { success: false, error: "Too many tries. Wait 15 minutes." };
     const row = await db.user.findUnique({ where: { id: me.id }, select: { totpPending: true } });
     if (!row?.totpPending) return { success: false, error: "Start the setup again." };
@@ -60,7 +60,7 @@ export async function confirmTotpSetup(code: string) {
 
 export async function disableTotp(code: string) {
   try {
-    const me = await requireActionUser("STUDENT", "FACULTY", "COUNSELOR");
+    const me = await requireActionUser("STUDENT", "FACULTY", "COUNSELOR", "ADMIN");
     if (!(await allow(`totp-setup:${me.id}`, 10, 15 * MINUTE))) return { success: false, error: "Too many tries. Wait 15 minutes." };
     const row = await db.user.findUnique({ where: { id: me.id }, select: { totpSecret: true } });
     if (!row?.totpSecret) return { success: true };

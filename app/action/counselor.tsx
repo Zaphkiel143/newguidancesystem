@@ -100,6 +100,34 @@ export async function updateAppointmentStatus(id: string, status: "PENDING" | "C
 
 // Everything the Appointments page shows for one day: bookings with a way to
 // reach whoever made them, and blocked time.
+// Month view of the calendar: every appointment and blocked hour in one month ("YYYY-MM").
+export async function getMonthSchedule(month: string) {
+  try {
+    await counselorOnly();
+    if (!/^\d{4}-\d{2}$/.test(month)) return { appointments: [], blocks: [] };
+    const start = new Date(`${month}-01T00:00:00Z`);
+    const end = new Date(start);
+    end.setUTCMonth(end.getUTCMonth() + 1);
+    const [appointments, blocks] = await Promise.all([
+      db.appointment.findMany({
+        where: { date: { gte: start, lt: end }, status: { not: "CANCELLED" } },
+        select: { id: true, date: true, time: true, studentName: true, status: true, appointmentType: true },
+      }),
+      db.blockedSlot.findMany({ where: { date: { gte: start, lt: end } }, select: { date: true, time: true, reason: true } }),
+    ]);
+    const byTime = (a: { time: string }, b: { time: string }) => parseTimeToMinutes(a.time) - parseTimeToMinutes(b.time);
+    return {
+      appointments: appointments
+        .map((a) => ({ ...a, day: a.date.toISOString().slice(0, 10) }))
+        .sort(byTime),
+      blocks: blocks.map((b) => ({ ...b, day: b.date.toISOString().slice(0, 10) })).sort(byTime),
+    };
+  } catch (error) {
+    console.error("Failed to load month schedule:", error);
+    return { appointments: [], blocks: [] };
+  }
+}
+
 export async function getDaySchedule(dateString: string) {
   try {
     await counselorOnly();
@@ -1369,12 +1397,11 @@ export async function getDashboardStats() {
   try {
     await counselorOnly();
     const today = manilaTodayAsStoredDate();
-    const [totalStudents, pendingReferrals, activeCareerPlans, documentsToReview, pendingAccounts, pendingParentLinks, pendingRequests, activeAppointments] = await Promise.all([
+    const [totalStudents, pendingReferrals, activeCareerPlans, documentsToReview, pendingParentLinks, pendingRequests, activeAppointments] = await Promise.all([
       db.studentProfile.count(),
       db.referral.count({ where: { status: { not: "CLOSED" } } }),
       db.careerPlan.count(),
       db.document.count({ where: { reviewStatus: "PENDING" } }),
-      db.user.count({ where: { status: "PENDING", role: { not: "PARENT" } } }),
       db.parentChildLink.count({ where: { status: "PENDING", parent: { status: { not: "REJECTED" } } } }),
       // Requests still waiting to be confirmed, from today on (earlier days are past).
       db.appointment.findMany({ where: { status: "PENDING", date: { gte: today } }, select: { date: true, time: true } }),
@@ -1391,7 +1418,8 @@ export async function getDashboardStats() {
       pendingReferrals,
       activeCareerPlans,
       documentsToReview,
-      approvalsWaiting: pendingAccounts + pendingParentLinks,
+      // Staff accounts are approved by the Super Admin; parents are confirmed here
+      approvalsWaiting: pendingParentLinks,
       pendingAppointments,
       activeAppointments,
     };
@@ -1486,7 +1514,7 @@ export async function listActivity(
   filters: { role?: string; model?: string; search?: string; from?: string; to?: string; page?: number; pageSize?: number } = {}
 ) {
   try {
-    await counselorOnly();
+    await requireActionUser("COUNSELOR", "ADMIN");
     const where: Prisma.ActivityLogWhereInput = {};
     if (filters.role) where.actorRole = filters.role;
     if (filters.model) where.model = filters.model;
@@ -1521,7 +1549,7 @@ export async function listActivity(
 // choices that will return results.
 export async function getActivityFilterOptions() {
   try {
-    await counselorOnly();
+    await requireActionUser("COUNSELOR", "ADMIN");
     const [roles, models] = await Promise.all([
       db.activityLog.findMany({ distinct: ["actorRole"], select: { actorRole: true }, orderBy: { actorRole: "asc" } }),
       db.activityLog.findMany({ distinct: ["model"], select: { model: true }, orderBy: { model: "asc" } }),

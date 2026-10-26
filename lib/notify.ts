@@ -29,6 +29,11 @@ export async function notifyCounselors(notice: Notice) {
   await create(counselors.map((c) => c.id), notice);
 }
 
+export async function notifyAdmins(notice: Notice) {
+  const admins = await db.user.findMany({ where: { role: "ADMIN", status: "ACTIVE" }, select: { id: true } });
+  await create(admins.map((a) => a.id), notice);
+}
+
 export async function notifyUser(userId: string, notice: Notice) {
   await create([userId], notice);
 }
