@@ -81,6 +81,7 @@ model GroupGuidanceProgram {
 }
 
 enum UserRole {
+  ADMIN
   COUNSELOR
   FACULTY
   PARENT
@@ -110,6 +111,8 @@ model User {
   totpEnabledAt DateTime?
   // When this person agreed to the privacy notice (Data Privacy Act, RA 10173).
   privacyAcceptedAt DateTime?
+  // Archived accounts can't sign in; the Super Admin can restore them
+  archivedAt   DateTime?
 
   sessions      Session[]
   notifications Notification[]
@@ -123,6 +126,8 @@ model Session {
   userId    String
   user      User     @relation(fields: [userId], references: [id])
   expiresAt DateTime
+  // Super Admin "View as": this session shows another user's pages, read-only
+  viewAsUserId String?
 
   createdAt DateTime @default(now())
 }

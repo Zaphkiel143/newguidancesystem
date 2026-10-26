@@ -3,6 +3,7 @@ import type { UserRole } from "./generated";
 
 // Labels stored on records (Referral.referrerRole, Message.senderRole, ...).
 export const ROLE_LABEL: Record<UserRole, string> = {
+  ADMIN: "Admin",
   COUNSELOR: "Counselor",
   STUDENT: "Student",
   FACULTY: "Faculty",

@@ -36,6 +36,11 @@ export interface MenuItem {
 
 // Maps your route groups/roles to their respective menus
 export const navigationConfig: Record<string, MenuItem[]> = {
+admin: [
+    { name: 'Accounts', icon: UserCog, path: '/admin_accounts' },
+    { name: 'Activity Log', icon: History, path: '/admin_activity' },
+    { name: 'My Account', icon: User, path: '/admin_account' },
+],
 faculty: [
     { name: 'Dashboard', icon: LayoutDashboard, path: '/faculty_dashboard' },
     { name: 'E-Gabay Chatbot', icon: Sparkles, path: '/faculty_chat' },
@@ -61,7 +66,7 @@ counselor: [
     { name: 'Career Guidance', icon: Compass, path: '/careerguidance' },
     { name: 'Group Guidance', icon: Users, path: '/groupguidance' },
     { name: 'Messages', icon: MessageSquare, path: '/message' },
-    { name: 'Accounts & Approvals', icon: UserCog, path: '/accounts' },
+    { name: 'Parent Confirmations', icon: UserCog, path: '/accounts' },
     { name: 'Manage', icon: Settings, children: [
         { name: 'Activity Log', icon: History, path: '/activity' },
         { name: 'Manage Options', icon: SlidersHorizontal, path: '/settings' },
