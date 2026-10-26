@@ -429,13 +429,18 @@ export async function sendAiMessage(formData: { conversationId: string; content:
     if (!(await allow(`ai:${me.id}`, 30, 10 * MINUTE))) throw new Error(SLOW_DOWN);
     formData = { ...formData, content };
 
+    // The previous reply's topic lets a short "yes"/"no" continue the conversation
+    const previous = await db.aiMessage.findFirst({
+      where: { conversationId: formData.conversationId, role: "assistant" },
+      orderBy: { createdAt: "desc" },
+      select: { intent: true },
+    });
+
     await db.aiMessage.create({
       data: { conversationId: formData.conversationId, role: "user", content: formData.content },
     });
 
-    // The intent classifier is single-turn (no conversation memory needed) -
-    // it just classifies this message and returns a curated response.
-    const reply = await getNlpReply(formData.content);
+    const reply = await getNlpReply(formData.content, previous?.intent);
 
     const assistantMessage = await db.aiMessage.create({
       data: { conversationId: formData.conversationId, role: "assistant", content: reply.response, intent: reply.intent },
@@ -461,7 +466,7 @@ export async function sendAiMessage(formData: { conversationId: string; content:
 
     await db.aiConversation.update({ where: { id: formData.conversationId }, data: { updatedAt: new Date() } });
 
-    return { success: true, message: assistantMessage };
+    return { success: true, message: assistantMessage, suggestions: reply.suggestions };
   } catch (error) {
     console.error("[student] Failed to send AI message:", error);
     return { success: false, error: String(error) };

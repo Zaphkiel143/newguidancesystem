@@ -11,6 +11,7 @@ import {
   sendAiMessage,
 } from "../app/action/student";
 import type { AiMessage } from "../lib/generated";
+import type { NlpSuggestion } from "../lib/nlp";
 import { CRISIS_HOTLINES } from "../app/config/hotlines";
 
 // Matches the server-side limit in sendAiMessage (app/action/student.tsx).
@@ -47,6 +48,8 @@ export default function AiChatThread({ compact = false }: { compact?: boolean })
   const [view, setView] = useState<"chat" | "history">("chat");
   const [history, setHistory] = useState<HistoryItem[] | null>(null);
   const [viewing, setViewing] = useState<{ title: string; messages: AiMessage[] } | null>(null);
+  // "Did you mean...?" choices for the latest reply E-Gabay wasn't sure about
+  const [suggestions, setSuggestions] = useState<{ forId: string; items: NlpSuggestion[] } | null>(null);
   // Scroll only the message list, never the whole page.
   const scrollRef = useRef<HTMLDivElement>(null);
   const openId = useRef<string | null>(null);
@@ -98,6 +101,7 @@ export default function AiChatThread({ compact = false }: { compact?: boolean })
     setMessages((prev) => [...prev, optimistic]);
     setDraft("");
     setError(null);
+    setSuggestions(null);
     setIsSending(true);
 
     const result = await sendAiMessage({ conversationId, content });
@@ -105,6 +109,7 @@ export default function AiChatThread({ compact = false }: { compact?: boolean })
 
     if (result.success && result.message) {
       setMessages((prev) => [...prev, result.message!]);
+      if (result.suggestions?.length) setSuggestions({ forId: result.message.id, items: result.suggestions });
     } else {
       setError(result.error || "Unknown error");
     }
@@ -169,6 +174,19 @@ export default function AiChatThread({ compact = false }: { compact?: boolean })
                 </p>
               ))}
               <p>The Guidance Associate has also been alerted and will reach out to you.</p>
+            </div>
+          )}
+          {live && suggestions?.forId === m.id && (
+            <div className="mt-2">
+              <p className="text-[12px] text-slate-500 mb-1.5">Did you mean:</p>
+              <div className="flex flex-wrap gap-2">
+                {suggestions.items.map((s) => (
+                  <button key={s.intent} type="button" onClick={() => send(s.message)} disabled={isSending}
+                    className="inline-flex items-center px-3 min-h-9 rounded-full bg-blue-50 border border-blue-200 text-[13px] text-blue-800 hover:bg-blue-100 disabled:opacity-50">
+                    {s.label}
+                  </button>
+                ))}
+              </div>
             </div>
           )}
           {m.intent === "fallback" &&
