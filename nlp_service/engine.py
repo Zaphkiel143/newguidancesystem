@@ -25,6 +25,14 @@ CRISIS_KEYWORDS_TL = [
 ]
 CRISIS_KEYWORDS = CRISIS_KEYWORDS_EN + CRISIS_KEYWORDS_TL
 
+# Clear signs of abuse or harassment always get the safety reply (911, 1553, tell the GCO)
+ABUSE_KEYWORDS = [
+    "sexually harassed", "harassing me", "molested", "molesting me", "raped", "rape me", "touched me inappropriately",
+    "touched me without", "abusing me", "abused me", "hits me at home", "beats me", "beating me",
+    "hinipuan", "minolestya", "ginahasa", "binastos ako", "binabastos ako", "pinagbubuhatan", "binubugbog ako",
+    "hinarass", "hina-harass", "nangha-harass",
+]
+
 
 class Engine:
     def __init__(self, model, intents):
@@ -41,6 +49,8 @@ class Engine:
         """Returns (tag, confidence, ranked [(tag, prob), ...])."""
         if any(k in message.lower() for k in CRISIS_KEYWORDS):
             return "crisis", 1.0, [("crisis", 1.0)]
+        if "abuse_harassment" in self.intents and any(k in message.lower() for k in ABUSE_KEYWORDS):
+            return "abuse_harassment", 1.0, [("abuse_harassment", 1.0)]
         probs = self.pipeline.predict_proba([message])[0]
         ranked = sorted(zip(self.pipeline.classes_, probs), key=lambda p: -p[1])
         tag, conf = ranked[0]

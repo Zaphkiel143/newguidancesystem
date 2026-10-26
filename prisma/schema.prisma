@@ -297,6 +297,8 @@ model Event {
   title       String
   description String   @db.Text
   date        DateTime
+  // Last day of a multi-day event; null for a one-day event
+  endDate     DateTime?
   time        String
   location    String?
 

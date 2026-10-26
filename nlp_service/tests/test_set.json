@@ -150,6 +150,12 @@
     {"text": "what is the wifi password", "intent": "out_of_scope"},
     {"text": "who is the president of the philippines", "intent": "out_of_scope"},
     {"text": "asdfghjkl", "intent": "out_of_scope"},
-    {"text": "qwerty zxcv", "intent": "out_of_scope"}
+    {"text": "qwerty zxcv", "intent": "out_of_scope"},
+    {"text": "our capstone deadline is next week and nothing works yet", "intent": "thesis_stress"},
+    {"text": "I'm so tired of revising our thesis", "intent": "thesis_stress"},
+    {"text": "my thesis partner doesn't do anything", "intent": "thesis_stress"},
+    {"text": "ang bigat ng thesis ngayong sem", "intent": "thesis_stress"},
+    {"text": "kinakabahan ako sa final defense namin", "intent": "thesis_stress"},
+    {"text": "stress na ako sa research paper", "intent": "thesis_stress"}
   ]
 }

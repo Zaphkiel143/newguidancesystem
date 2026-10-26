@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { Ban, CalendarDays, Check, ChevronLeft, ChevronRight, List, Loader2, Lock, X } from "lucide-react";
+import { Ban, CalendarDays, CalendarRange, Check, ChevronLeft, ChevronRight, List, Loader2, Lock, X } from "lucide-react";
 import {
   blockTime,
   getDaySchedule,
@@ -19,6 +19,7 @@ import { manilaToday } from "../../../lib/time";
 import { useOptionList } from "../../../components/useOptionList";
 import { optionValue } from "../../../lib/optionListDefaults";
 import MonthCalendar from "./MonthCalendar";
+import WeekCalendar from "./WeekCalendar";
 
 type Schedule = Awaited<ReturnType<typeof getDaySchedule>>;
 type Appt = Schedule["appointments"][number];
@@ -54,7 +55,7 @@ export default function AppointmentScheduling() {
   const linkKey = linkedDate ? `${linkedDate}|${linkedTime ?? ""}` : null;
   const [date, setDate] = useState(linkedDate ?? today);
   // The month calendar first, like Teams; a linked appointment opens straight on its day.
-  const [view, setView] = useState<"month" | "day">(linkedDate ? "day" : "month");
+  const [view, setView] = useState<"month" | "week" | "day">(linkedDate ? "day" : "month");
   // The slot to scroll to and highlight once that day has loaded.
   const [highlight, setHighlight] = useState<string | null>(linkedTime);
   const [lastLink, setLastLink] = useState(linkKey);
@@ -211,7 +212,7 @@ export default function AppointmentScheduling() {
         </div>
         <div className="flex flex-wrap items-center gap-2">
         <div role="tablist" aria-label="Calendar view" className="inline-flex rounded-full bg-slate-100 p-1">
-          {([["month", "Month", CalendarDays], ["day", "Day", List]] as const).map(([v, label, Icon]) => (
+          {([["month", "Month", CalendarDays], ["week", "Week", CalendarRange], ["day", "Day", List]] as const).map(([v, label, Icon]) => (
             <button key={v} role="tab" aria-selected={view === v} onClick={() => setView(v)}
               className={`inline-flex items-center gap-1.5 px-4 min-h-9 rounded-full text-[13px] font-medium ${view === v ? "bg-sheet text-ink shadow-sm" : "text-slate-600 hover:text-ink"}`}>
               <Icon size={15} /> {label}
@@ -233,6 +234,8 @@ export default function AppointmentScheduling() {
 
       {view === "month" ? (
         <MonthCalendar today={today} selected={date} onPickDay={(d) => { setDate(d); setView("day"); }} />
+      ) : view === "week" ? (
+        <WeekCalendar today={today} selected={date} onPickDay={(d, time) => { setDate(d); setHighlight(time ?? null); setView("day"); }} />
       ) : (
       <>
 

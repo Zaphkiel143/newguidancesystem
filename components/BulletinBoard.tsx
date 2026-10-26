@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import { eventDateLabel, isMultiDay } from "../lib/eventDates";
 import { Loader2, MapPin } from "lucide-react";
 import { getBulletin } from "../app/action/bulletin";
 import { LogoMark } from "./Logo";
@@ -111,6 +112,7 @@ export default function BulletinBoard() {
                       <div className="min-w-0">
                         <h3 className="font-medium text-ink">{e.title}</h3>
                         <p className="text-[13px] text-slate-500 mt-0.5 flex flex-wrap gap-x-3">
+                          {isMultiDay(e) && <span className="font-medium text-blue-700">{eventDateLabel(e)}</span>}
                           <span className="font-mono">{e.time}</span>
                           {e.location && (
                             <span className="inline-flex items-center gap-1">

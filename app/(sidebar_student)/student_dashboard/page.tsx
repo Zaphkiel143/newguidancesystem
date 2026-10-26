@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from 'react';
+import { eventDateLabel, isMultiDay } from "../../../lib/eventDates";
 import Link from 'next/link';
 import { ArrowRight, CircleCheck, ClipboardList } from 'lucide-react';
 import { getMyAppointments, getMyCareerPlan, getMyReferrals, getMyStudentLevel } from '../../action/student';
@@ -220,7 +221,7 @@ const DashboardContent: React.FC = () => {
                   <p className="text-xs text-slate-500">Upcoming event</p>
                   <p className="font-medium text-ink">{data.event.title}</p>
                   <p className="font-mono text-[13px] text-slate-500 mt-0.5">
-                    {new Date(data.event.date).toLocaleDateString("en-PH", { timeZone: "UTC", month: "long", day: "numeric" })} · {data.event.time}
+                    {isMultiDay(data.event) ? eventDateLabel(data.event) : new Date(data.event.date).toLocaleDateString("en-PH", { timeZone: "UTC", month: "long", day: "numeric" })} · {data.event.time}
                   </p>
                 </div>
               )}

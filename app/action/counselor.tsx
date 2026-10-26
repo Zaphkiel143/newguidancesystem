@@ -100,7 +100,25 @@ export async function updateAppointmentStatus(id: string, status: "PENDING" | "C
 
 // Everything the Appointments page shows for one day: bookings with a way to
 // reach whoever made them, and blocked time.
-// Month view of the calendar: every appointment and blocked hour in one month ("YYYY-MM").
+// Every appointment and blocked hour from start up to (not including) end, for the calendar views.
+async function scheduleBetween(start: Date, end: Date) {
+  const [appointments, blocks] = await Promise.all([
+    db.appointment.findMany({
+      where: { date: { gte: start, lt: end }, status: { not: "CANCELLED" } },
+      select: { id: true, date: true, time: true, studentName: true, status: true, appointmentType: true },
+    }),
+    db.blockedSlot.findMany({ where: { date: { gte: start, lt: end } }, select: { date: true, time: true, reason: true } }),
+  ]);
+  const byTime = (a: { time: string }, b: { time: string }) => parseTimeToMinutes(a.time) - parseTimeToMinutes(b.time);
+  return {
+    appointments: appointments
+      .map((a) => ({ ...a, day: a.date.toISOString().slice(0, 10) }))
+      .sort(byTime),
+    blocks: blocks.map((b) => ({ ...b, day: b.date.toISOString().slice(0, 10) })).sort(byTime),
+  };
+}
+
+// Month view of the calendar ("YYYY-MM").
 export async function getMonthSchedule(month: string) {
   try {
     await counselorOnly();
@@ -108,22 +126,24 @@ export async function getMonthSchedule(month: string) {
     const start = new Date(`${month}-01T00:00:00Z`);
     const end = new Date(start);
     end.setUTCMonth(end.getUTCMonth() + 1);
-    const [appointments, blocks] = await Promise.all([
-      db.appointment.findMany({
-        where: { date: { gte: start, lt: end }, status: { not: "CANCELLED" } },
-        select: { id: true, date: true, time: true, studentName: true, status: true, appointmentType: true },
-      }),
-      db.blockedSlot.findMany({ where: { date: { gte: start, lt: end } }, select: { date: true, time: true, reason: true } }),
-    ]);
-    const byTime = (a: { time: string }, b: { time: string }) => parseTimeToMinutes(a.time) - parseTimeToMinutes(b.time);
-    return {
-      appointments: appointments
-        .map((a) => ({ ...a, day: a.date.toISOString().slice(0, 10) }))
-        .sort(byTime),
-      blocks: blocks.map((b) => ({ ...b, day: b.date.toISOString().slice(0, 10) })).sort(byTime),
-    };
+    return await scheduleBetween(start, end);
   } catch (error) {
     console.error("Failed to load month schedule:", error);
+    return { appointments: [], blocks: [] };
+  }
+}
+
+// Week view of the calendar: the 7 days starting on weekStart ("YYYY-MM-DD").
+export async function getWeekSchedule(weekStart: string) {
+  try {
+    await counselorOnly();
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(weekStart)) return { appointments: [], blocks: [] };
+    const start = new Date(`${weekStart}T00:00:00Z`);
+    const end = new Date(start);
+    end.setUTCDate(end.getUTCDate() + 7);
+    return await scheduleBetween(start, end);
+  } catch (error) {
+    console.error("Failed to load week schedule:", error);
     return { appointments: [], blocks: [] };
   }
 }
@@ -1039,6 +1059,8 @@ export async function saveEvent(formData: {
   title: string;
   description: string;
   dateString: string;
+  // Set for a multi-day event: its last day
+  endDateString?: string;
   time: string;
   location: string;
 }) {
@@ -1047,10 +1069,14 @@ export async function saveEvent(formData: {
     if (!formData.title.trim() || !formData.dateString || !formData.time.trim()) {
       return { success: false, error: "Title, date, and time are required." };
     }
+    if (formData.endDateString && formData.endDateString <= formData.dateString) {
+      return { success: false, error: "The end date must be after the start date." };
+    }
     const data = {
       title: formData.title.trim(),
       description: formData.description.trim(),
       date: new Date(formData.dateString),
+      endDate: formData.endDateString ? new Date(formData.endDateString) : null,
       time: formData.time.trim(),
       location: formData.location.trim() || null,
     };

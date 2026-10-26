@@ -136,7 +136,13 @@
         "my grades are dropping",
         "i studied but i still don't understand",
         "i'm not ready for the exam",
-        "exam week is killing me"
+        "exam week is killing me",
+        "i'm failing my subjects",
+        "my grades are bad",
+        "i got a failing grade",
+        "i might fail this semester",
+        "i have a big test tomorrow and i'm freaking out",
+        "i'm panicking about my quiz"
       ],
       "patterns_tl": [
         "kinakabahan ako sa exam",
@@ -150,7 +156,11 @@
         "takot akong bumagsak",
         "bumababa grades ko",
         "hindi pa ako handa sa exam",
-        "kinakabahan ako sa quiz"
+        "kinakabahan ako sa quiz",
+        "bagsak ako sa isang subject",
+        "mababa ang grades ko",
+        "baka bumagsak ako ngayong sem",
+        "kinakabahan ako sa long test bukas"
       ],
       "responses_en": [
         "It’s normal to feel stressed when exams and deadlines pile up. Let’s start with a few manageable steps:\n• List your upcoming exams, projects, and deadlines.\n• Prioritize tasks according to urgency and importance.\n• Break large tasks into smaller, achievable steps.\n• Study in focused intervals and take short breaks.\n• Get enough sleep, eat regularly, and allow time to rest.\n\nIf your stress feels overwhelming or is affecting your daily functioning, you may reach out to the Guidance and Counseling office for additional support.",
@@ -168,6 +178,74 @@
       "label_tl": "Exam stress",
       "example_en": "I'm stressed about my exams",
       "example_tl": "Stressed ako sa exams"
+    },
+    {
+      "tag": "thesis_stress",
+      "patterns_en": [
+        "i'm stressed about my thesis",
+        "i'm stressed with my thesis",
+        "my thesis is stressing me out",
+        "our capstone is too much",
+        "i'm stressed about our capstone project",
+        "i can't handle our research anymore",
+        "our research paper is overwhelming",
+        "i'm behind on my thesis chapters",
+        "i haven't started my chapter yet and the deadline is near",
+        "our thesis defense is coming and i'm scared",
+        "i'm nervous about our capstone defense",
+        "i'm scared of the panel",
+        "our adviser keeps rejecting our paper",
+        "we have so many revisions from the panel",
+        "my groupmates are not helping with our thesis",
+        "i'm doing all the work in our research group",
+        "our thesis group keeps fighting",
+        "i don't know how to start my research",
+        "i can't think of a thesis title",
+        "our system for capstone is not working and the deadline is close",
+        "i'm burnt out from thesis",
+        "thesis and capstone are draining me",
+        "we might fail our thesis",
+        "i'm worried we won't finish our capstone on time",
+        "how do i deal with thesis stress"
+      ],
+      "patterns_tl": [
+        "stress ako sa thesis",
+        "stress na stress ako sa thesis namin",
+        "di ko na kaya yung capstone",
+        "hindi ko na kaya ang thesis",
+        "hirap sa research namin",
+        "ang hirap ng capstone namin",
+        "nakaka-stress ang thesis",
+        "pagod na ako sa thesis",
+        "kinakabahan ako sa defense namin",
+        "takot ako sa panel sa defense",
+        "ang dami naming revisions sa thesis",
+        "hindi pa tapos ang chapter namin",
+        "hindi tumutulong ang mga kagrupo ko sa thesis",
+        "ako lang gumagawa sa research namin",
+        "nag-aaway kami ng groupmates ko sa capstone",
+        "hindi ko alam paano magsimula ng research",
+        "wala pa kaming title sa thesis",
+        "baka bumagsak kami sa thesis",
+        "sira pa yung system namin sa capstone",
+        "burnout na ako sa thesis"
+      ],
+      "responses_en": [
+        "Thesis and capstone work can feel huge, especially with deadlines, revisions, and a group to coordinate. A few steps that help:\n• Break the paper into small tasks (one section or one feature at a time) and set a date for each.\n• Agree on who does what with your groupmates, write it down, and check in briefly every few days.\n• Bring specific questions to your adviser early instead of waiting until the paper is \"done\".\n• Treat panel revisions as a checklist: list them, then tick them off one by one.\n• Protect your sleep and meals, and take short breaks; a tired mind writes slower.\n\nIf the stress is affecting your sleep, health, or how you get along with your group, the Guidance Associate can help. You can book a session here anytime.",
+        "Thesis stress is very common, and you don't have to carry it alone. Pick one small task you can finish today, like one paragraph or one bug, and start there. If your group is having conflicts or you feel close to burning out, would you like to book a session with the Guidance Associate?"
+      ],
+      "responses_tl": [
+        "Mabigat talaga ang thesis at capstone, lalo na kapag sabay-sabay ang deadline, revisions, at pakikipag-ugnayan sa grupo. Subukan natin ito:\n• Hatiin ang papel sa maliliit na gawain (isang section o isang feature muna) at lagyan ng petsa ang bawat isa.\n• Pag-usapan ng grupo kung sino ang gagawa ng ano, isulat ito, at mag-check in kada ilang araw.\n• Lumapit agad sa adviser na may tiyak na tanong; huwag nang hintaying \"tapos\" na ang papel.\n• Gawing checklist ang mga revision ng panel at isa-isahin ang mga ito.\n• Matulog nang sapat, kumain nang maayos, at magpahinga sandali; mas mabagal magsulat kapag pagod.\n\nKung naaapektuhan na ng stress ang tulog, kalusugan, o samahan ng grupo ninyo, pwede kang tulungan ng Guidance Associate. Pwede kang mag-book ng session dito anumang oras.",
+        "Normal lang ma-stress sa thesis, at hindi mo kailangang pasanin ito nang mag-isa. Pumili ng isang maliit na gawain na kaya mong tapusin ngayon, gaya ng isang talata o isang bug, at doon magsimula. Kung may hindi pagkakaunawaan sa grupo o pakiramdam mo ay malapit ka nang mag-burnout, gusto mo bang mag-book ng session sa Guidance Associate?"
+      ],
+      "label_en": "Thesis or capstone",
+      "label_tl": "Thesis o capstone",
+      "example_en": "I'm stressed about my thesis",
+      "example_tl": "Stress ako sa thesis",
+      "followups": {
+        "affirm": "book_appointment",
+        "deny": "support_continue"
+      }
     },
     {
       "tag": "time_management",
@@ -214,7 +292,13 @@
         "how do I get back on my track?",
         "How can I manage my time and improve my academic performance?",
         "What is the best way to have the motivation to strive harder",
-        "What can I do to improve my academic performance?"
+        "What can I do to improve my academic performance?",
+        "how do i study effectively",
+        "i have so many deadlines this week",
+        "my requirements are piling up",
+        "study tips please",
+        "i can never finish my assignments on time",
+        "i'm always behind on schoolwork"
       ],
       "patterns_tl": [
         "ang dami kong gawain hindi ko kaya",
@@ -229,7 +313,12 @@
         "nahihirapan po ako sa klase",
         "nahihirapan ako sa pag-aaral ko",
         "hindi ko na kaya ang mga gawain sa school",
-        "bumababa ang grades ko, ano po pwede kong gawin"
+        "bumababa ang grades ko, ano po pwede kong gawin",
+        "tips para mag-aral nang maayos",
+        "ang dami kong deadline ngayong linggo",
+        "sabay-sabay ang mga requirements ko",
+        "lagi akong late magpasa",
+        "hindi ko natatapos ang assignments ko"
       ],
       "responses_en": [
         "Juggling many tasks is hard. A few things that help:\n• Write every task and deadline in one list or planner.\n• Do the most urgent and important task first.\n• Break big projects into small steps with their own mini-deadlines.\n• Work in focused blocks (for example 25 minutes) with short breaks.\n• Say no to extra commitments when your week is already full.\n\nIf you'd like help making a study plan, the Guidance and Counseling Office can work on it with you.",
@@ -318,7 +407,9 @@
         "i miss my parents who work abroad",
         "my parents compare me to my siblings",
         "home is so stressful",
-        "i don't want to go home"
+        "i don't want to go home",
+        "my dad always scolds me",
+        "my mom is always mad at me"
       ],
       "patterns_tl": [
         "lagi nag-aaway magulang ko",
@@ -332,7 +423,8 @@
         "wala akong kausap sa bahay",
         "magulo sa bahay namin",
         "ayokong umuwi sa bahay",
-        "lagi akong pinapagalitan sa bahay"
+        "lagi akong pinapagalitan sa bahay",
+        "lagi akong sinisigawan ng magulang ko"
       ],
       "responses_en": [
         "Thank you for sharing what you're going through. Problems at home can be really heavy, and your feelings deserve to be heard.\n\nYou don't have to solve everything at once. It may help to talk with someone you trust or schedule a consultation with the Guidance and Counseling office. The GCO can provide a supportive space to discuss your concerns and explore ways to cope.\n\nIf you feel unsafe at home or are thinking about hurting yourself, please tell a trusted person and seek immediate help.",
@@ -447,7 +539,14 @@
         "is it okay to shift courses",
         "i don't like my course anymore",
         "what jobs can i get with my course",
-        "how do i choose a college program"
+        "how do i choose a college program",
+        "what should i prepare for my internship",
+        "tips for job hunting after graduation",
+        "what jobs fit my course",
+        "how do i write a resume",
+        "i want to change my course",
+        "i'm planning to shift to another program",
+        "i'm not sure my course is right for me"
       ],
       "patterns_tl": [
         "hindi ko alam kung anong course kukunin",
@@ -458,7 +557,10 @@
         "di ko alam gagawin ko pagtapos",
         "gusto kong mag-shift ng course",
         "hindi ko na gusto ang course ko",
-        "naguguluhan ako sa future ko"
+        "naguguluhan ako sa future ko",
+        "paano maghanda sa ojt",
+        "anong trabaho ang pwede sa course ko",
+        "parang hindi para sa akin ang course ko"
       ],
       "responses_en": [
         "That's a big decision! Our Career Guidance program can help you explore your interests and strengths. Would you like to talk to your guidance associate about a career assessment?",
@@ -599,7 +701,11 @@
         "pwede ba mag book ng consultation",
         "gusto ko mag pa schedule ng consultation",
         "paano mag set ng consultation",
-        "pwede po ba magpa appointment sa guidance"
+        "pwede po ba magpa appointment sa guidance",
+        "gusto kong kausapin ang guidance associate",
+        "pwede ba akong magpa-counsel",
+        "gusto ko magpa-counseling",
+        "paano makakausap ang counselor"
       ],
       "responses_en": [
         "You can set an appointment by visiting the Guidance Office or by contacting the GCO through the provided contact details. You can also book right here in E-Gabay: open My Appointments and tap Book Appointment."
@@ -659,7 +765,9 @@
         "office hours",
         "is the guidance office open today",
         "what are your hours",
-        "are you open on weekends"
+        "are you open on weekends",
+        "do you work on saturdays",
+        "are you open on holidays"
       ],
       "patterns_tl": [
         "anong oras bukas ang guidance office",
@@ -671,7 +779,10 @@
         "ano po ang oras ng guidance",
         "bukas ba ang guidance ngayon",
         "kailan bukas ang guidance office",
-        "anong oras sarado ang guidance"
+        "anong oras sarado ang guidance",
+        "bukas ba kayo sa weekend",
+        "bukas ba ang guidance ng sabado",
+        "may pasok ba kayo sa linggo"
       ],
       "responses_en": [
         "The Guidance and Counseling Office is open Monday to Friday, from 8:00 AM to 5:00 PM, except during the lunch break from 12:00 PM to 1:00 PM. Consultations are accepted from 8:00 AM to 3:00 PM. Please note that office availability may change during school events, meetings, or other scheduled activities."
@@ -695,7 +806,10 @@
         "will i be sanctioned if i get called to guidance",
         "is going to the guidance office bad",
         "i got invited to the guidance office am i in trouble",
-        "will my teachers know i went to guidance"
+        "will my teachers know i went to guidance",
+        "am i in trouble if i'm called to guidance",
+        "is guidance only for students with problems",
+        "does going to the counselor mean i did something wrong"
       ],
       "patterns_tl": [
         "magkakaroon ba ako ng record kapag pumunta ako sa guidance",
@@ -703,7 +817,9 @@
         "makakaapekto ba sa grades ko kung pupunta ako sa guidance",
         "mapapagalitan ba ako kapag pumunta ako sa guidance",
         "may sanction ba kapag pinatawag sa guidance",
-        "pinatawag ako sa guidance may kasalanan ba ako"
+        "pinatawag ako sa guidance may kasalanan ba ako",
+        "pag pinatawag ako sa guidance may kasalanan ba ako",
+        "para lang ba sa may problema ang guidance"
       ],
       "responses_en": [
         "Seeking support from the Guidance and Counseling Office does not automatically mean you will receive a disciplinary record. Information shared during a consultation is handled according to the school’s confidentiality policies. However, certain situations may require appropriate disclosure, such as serious safety concerns or other circumstances required by school policy or law.\n\nIf you have concerns about privacy or documentation, you may ask the GCO about its procedure before your consultation."
@@ -728,7 +844,13 @@
         "someone in my class seems depressed",
         "i think my friend is not okay",
         "how do i report a concern about another student",
-        "i want to refer a classmate"
+        "i want to refer a classmate",
+        "my classmate keeps crying in class",
+        "my friend seems really down lately",
+        "my friend stopped talking to everyone",
+        "my friend is acting strange lately",
+        "my classmate seems not okay",
+        "i'm concerned about my friend's behavior"
       ],
       "patterns_tl": [
         "nag-aalala ako sa kaklase ko",
@@ -737,7 +859,10 @@
         "paano mag-refer ng kaibigan sa guidance",
         "parang hindi okay ang kaibigan ko",
         "gusto kong i-refer ang kaklase ko",
-        "may schoolmate ako na parang may problema"
+        "may schoolmate ako na parang may problema",
+        "lagi umiiyak ang kaklase ko",
+        "parang malungkot palagi ang kaibigan ko",
+        "parang may problema ang kaibigan ko"
       ],
       "responses_en": [
         "You can approach the GCO and share your concern. The GCO can provide the appropriate guidance and support to your classmate or schoolmate. You can also use Refer a Student here in E-Gabay; referrals are confidential."
@@ -763,7 +888,9 @@
         "where is the gco located",
         "how can i reach the guidance associate",
         "what is the teams account of the guidance office",
-        "location of guidance and counseling office"
+        "location of guidance and counseling office",
+        "who is the guidance counselor",
+        "who handles the guidance office"
       ],
       "patterns_tl": [
         "saan ang guidance office",
@@ -773,7 +900,9 @@
         "ano email ng guidance",
         "pwede ba i-message ang gco sa teams",
         "saan po ba makikita ang guidance office",
-        "paano ma-contact ang guidance associate"
+        "paano ma-contact ang guidance associate",
+        "sino ang counselor dito",
+        "sino ang nasa guidance office"
       ],
       "responses_en": [
         "The Guidance and Counseling Office (GCO) is located on the 2nd floor of STI College Sta. Maria, beside the School Administration Office and the Human Resources (HR) Office. Students may visit the office during regular office hours, Monday to Friday, from 8:00 AM to 5:00 PM, except during the lunch break from 12:00 PM to 1:00 PM. Please note that office availability may change during school events, meetings, or other scheduled activities.\n\nYou may contact the Guidance and Counseling Office (GCO) through Microsoft Teams: eslie.clemente@stamaria.sti.edu.ph\n\nIf you plan to visit, we recommend contacting the GCO beforehand to confirm availability."
@@ -928,7 +1057,9 @@
         "Tell them that make it privately and don't tell it to others",
         "Will my concern remain confidential if I share it with you?",
         "I would ask if the information I share with the counselor will remain confidential.",
-        "Direct question about their rules, who sees information, and when they are legally or ethically forced to share it."
+        "Direct question about their rules, who sees information, and when they are legally or ethically forced to share it.",
+        "will my mom find out i went to the counselor",
+        "do parents get told about counseling visits"
       ],
       "patterns_tl": [
         "confidential ba ang session",
@@ -945,7 +1076,8 @@
         "safe ba sabihin lahat sa counselor",
         "di po to malalaman ng iba?",
         "Atin-atin lang naman po ang mapag-uusapan natin?",
-        "Private po ba lahat ng pag-uusapan natin dito?"
+        "Private po ba lahat ng pag-uusapan natin dito?",
+        "sasabihin nyo ba sa magulang ko na pumunta ako sa guidance"
       ],
       "responses_en": [
         "Your privacy is important to the Guidance and Counseling Office. Information shared during a consultation is handled with care and according to applicable privacy requirements and school policies.\n\nHowever, confidentiality may have limits. Information may need to be shared with appropriate people when there is a serious risk of harm to you or someone else, a safeguarding concern, or another applicable legal or institutional requirement.\n\nWhen appropriate and safe, the GCO will explain the reason for sharing information and involve you in the process."
@@ -1074,7 +1206,11 @@
         "what is an exit interview",
         "i am withdrawing from school what do i need from guidance",
         "schedule of exit interview",
-        "how to request an exit interview"
+        "how to request an exit interview",
+        "i'm moving to a different school",
+        "i'm planning to stop studying",
+        "i want to drop out",
+        "what do i do if i'm transferring out"
       ],
       "patterns_tl": [
         "paano ang exit interview",
@@ -1084,7 +1220,10 @@
         "exit interview para sa loa",
         "ano ang exit interview",
         "mag wiwithdraw ako ano kailangan sa guidance",
-        "kailan ang exit interview"
+        "kailan ang exit interview",
+        "lilipat ako ng school",
+        "titigil muna ako mag-aral",
+        "magda-drop out na ako"
       ],
       "responses_en": [
         "Exit interviews may be conducted for students who are graduating, withdrawing from the school, or filing a Leave of Absence (LOA), depending on the applicable school procedures.\n\nThe purpose is to understand the student's circumstances, concerns, and reasons for their decision.\n\nStudents who are required to undergo an exit interview should coordinate with the Guidance and Counseling Office (GCO) for the process, schedule, and any requirements."
@@ -1181,7 +1320,10 @@
         "emergency after school hours who do i call",
         "its sunday and i am not okay who can help",
         "help outside office hours please",
-        "i cant wait until monday i need help now"
+        "i cant wait until monday i need help now",
+        "i need someone right now but the office is closed",
+        "it's late at night and i'm not okay",
+        "who can i talk to at night"
       ],
       "patterns_tl": [
         "kailangan ko ng tulong pero sarado ang office",
@@ -1195,7 +1337,9 @@
         "gabi na at kailangan ko ng tulong ngayon",
         "linggo ngayon at hindi ako okay sino tutulong",
         "hindi na ako makakapaghintay ng lunes",
-        "emergency pero after office hours na"
+        "emergency pero after office hours na",
+        "gabi na at hindi ako okay",
+        "sino ang pwede kong kausapin ngayong gabi"
       ],
       "responses_en": [
         "The GCO is generally available Monday to Friday, 8:00 AM–5:00 PM, with a lunch break from 12:00 PM–1:00 PM. If you need urgent help outside these hours, please do not wait for the office to reopen.\n\nIf you or someone else is in immediate danger, call 911 or go to the nearest emergency department.\n\nFor mental health crisis support in the Philippines, contact the National Center for Mental Health Crisis Hotline at 1553. Other published contact numbers include 0917-899-8727 and 0919-057-1553.\n\nIf possible, reach out to a trusted adult, family member, or another person who can stay with you and help you access support.\n\nYou may also email the GCO at eslie.clemente@stamaria.sti.edu.ph. Messages sent outside office hours may not receive an immediate response."
@@ -1259,7 +1403,12 @@
         "Ask what is the services that they can give and seek for help",
         "What services does the Guidance Counseling Office offer to students?",
         "I would ask what services the Guidance Counseling Office provides to students.",
-        "What kind of personal or academic counseling do you offer?"
+        "What kind of personal or academic counseling do you offer?",
+        "how much does counseling cost",
+        "do i need to pay for guidance",
+        "is there a fee for counseling",
+        "is counseling free of charge",
+        "do students pay for counseling"
       ],
       "patterns_tl": [
         "ano po ang mga serbisyo ng guidance office",
@@ -1269,7 +1418,10 @@
         "Ano po ginagawa nyo dito?",
         "May I know what are the services you may offer?",
         "Paano po kayo makakatulong sa mga estudyante?",
-        "Ano po ung mga ino-offer ninyong tulong o counseling dito?"
+        "Ano po ung mga ino-offer ninyong tulong o counseling dito?",
+        "may bayad ba ang counseling",
+        "magkano ang counseling",
+        "libre ba ang guidance"
       ],
       "responses_en": [
         "The Guidance and Counseling Office (GCO) offers these services to students:\n• Consultation: one-on-one sessions for personal, academic, social, or emotional concerns.\n• Referral: connecting you to the right support when a concern needs more help.\n• Career Guidance: help with choosing a strand, course, or career, including the Career Planning Program for Senior High School.\n• Group Guidance: sessions on topics students need, based on needs assessments.\n• Information Service: announcements and guidance resources.\n• Individual Inventory: your guidance record and submitted documents.\n• Testing Service.\nYou can talk about personal concerns, not only school-related ones. To start, book a session under My Appointments, or ask me a question."
@@ -1324,7 +1476,11 @@
         "Good morning. I would like to ask for some advice regarding a concern I have.",
         "i want to talk to someone",
         "can someone listen to me",
-        "i don't know who to talk to"
+        "i don't know who to talk to",
+        "please help me",
+        "help",
+        "i need advice",
+        "can you help me with something"
       ],
       "patterns_tl": [
         "kailangan ko ng tulong",
@@ -1339,7 +1495,10 @@
         "Pwede po ba patulong",
         "Hihingi po ako ng advice",
         "gusto ko ng makakausap",
-        "may makikinig ba sa akin"
+        "may makikinig ba sa akin",
+        "tulungan mo ako",
+        "tulong po",
+        "pahingi ng advice"
       ],
       "responses_en": [
         "I'm here to listen. Tell me what's on your mind, and I'll do my best to help or point you to the right support. If you'd like to talk to the Guidance Associate, you can book a session under My Appointments or visit the Guidance and Counseling Office during office hours."
@@ -1355,6 +1514,598 @@
       "label_tl": "Makipag-usap",
       "example_en": "I need someone to talk to",
       "example_tl": "Kailangan ko ng kausap"
+    },
+    {
+      "tag": "attendance_concern",
+      "patterns_en": [
+        "i'm always absent",
+        "i keep being late to class",
+        "i have too many absences",
+        "i might get dropped for absences",
+        "i missed a lot of classes",
+        "i can't wake up for my morning class",
+        "my teacher said i have too many absences",
+        "i keep skipping class",
+        "what happens if i exceed the allowed absences",
+        "i was absent for a week because i was sick",
+        "i'm scared to go back to class after being absent",
+        "i've missed so many days",
+        "i'm late every day because of traffic",
+        "i live far so i'm always late",
+        "i was absent and missed my exam"
+      ],
+      "patterns_tl": [
+        "lagi akong absent",
+        "lagi akong late sa klase",
+        "ang dami ko nang absent",
+        "baka ma-drop ako dahil sa absences",
+        "hindi ako nakakapasok",
+        "nag-cutting ako",
+        "sobrang dami ng absent ko",
+        "lagpas na ako sa absences",
+        "takot akong pumasok ulit kasi ang tagal kong absent",
+        "late ako palagi kasi malayo kami",
+        "ilang araw na akong hindi pumapasok",
+        "na-miss ko ang exam kasi absent ako"
+      ],
+      "responses_en": [
+        "Missing classes often has a reason behind it, like health, problems at home, money, or feeling unmotivated. It helps to:\n• Talk to your teacher or adviser soon, before absences pile up, and ask how to catch up.\n• Keep any medical certificate or excuse letter for absences.\n• Ask a classmate for notes and missed requirements.\n\nIf something is making it hard to come to school, the Guidance Associate can talk it through with you and help you plan. You can book a session with the Guidance Associate under My Appointments, or visit the Guidance and Counseling Office during office hours."
+      ],
+      "responses_tl": [
+        "Kadalasan may dahilan ang madalas na pag-absent, gaya ng kalusugan, problema sa bahay, pera, o kawalan ng gana. Makakatulong ang:\n• Kausapin agad ang teacher o adviser mo bago pa dumami ang absences, at itanong kung paano makakahabol.\n• Itago ang medical certificate o excuse letter para sa mga absent.\n• Humingi ng notes at mga na-miss na requirements sa kaklase.\n\nKung may dahilan kung bakit nahihirapan kang pumasok, pwede mo itong pag-usapan kasama ang Guidance Associate. Pwede kang mag-book ng session sa Guidance Associate sa My Appointments, o pumunta sa Guidance and Counseling Office sa oras ng opisina."
+      ],
+      "label_en": "Absences or lateness",
+      "label_tl": "Absent o late",
+      "example_en": "I have too many absences",
+      "example_tl": "Lagi akong absent",
+      "followups": {
+        "affirm": "book_appointment",
+        "deny": "support_continue"
+      }
+    },
+    {
+      "tag": "financial_concern",
+      "patterns_en": [
+        "i can't afford my tuition",
+        "we don't have money for school",
+        "are there scholarships available",
+        "how do i apply for a scholarship",
+        "is there financial assistance",
+        "my family can't pay for school anymore",
+        "i might stop because of money",
+        "i'm working while studying and it's hard",
+        "i need a job to pay for school",
+        "do you offer discounts on tuition",
+        "my parents lost their jobs",
+        "we're having money problems and i might stop school",
+        "i can't afford the requirements",
+        "i don't have money for my allowance"
+      ],
+      "patterns_tl": [
+        "wala kaming pambayad",
+        "hindi ko na kaya bayaran ang tuition",
+        "may scholarship ba",
+        "paano mag-apply ng scholarship",
+        "may financial assistance ba",
+        "baka tumigil ako dahil sa pera",
+        "nagtatrabaho ako habang nag-aaral",
+        "kulang ang pera namin pang-aral",
+        "nawalan ng trabaho ang magulang ko",
+        "walang pera pang-baon",
+        "hindi ko kayang bilhin ang mga requirements",
+        "may tulong ba sa walang pera"
+      ],
+      "responses_en": [
+        "Money worries can make school feel much heavier. For scholarships, discounts, payment schedules, or financial assistance, please ask the Registrar or the Accounting/Cashier office; they handle the requirements and deadlines.\n\nIf money problems or working while studying are affecting your studies or how you feel, the Guidance Associate can help you plan and cope. You can book a session with the Guidance Associate under My Appointments, or visit the Guidance and Counseling Office during office hours."
+      ],
+      "responses_tl": [
+        "Nakaka-stress talaga kapag may problema sa pera. Para sa scholarship, discount, payment schedule, o financial assistance, magtanong sa Registrar o sa Accounting/Cashier office; sila ang may hawak ng requirements at deadlines.\n\nKung naaapektuhan na ang pag-aaral o pakiramdam mo dahil sa pera o sa pagtatrabaho habang nag-aaral, matutulungan ka ng Guidance Associate na magplano at makayanan ito. Pwede kang mag-book ng session sa Guidance Associate sa My Appointments, o pumunta sa Guidance and Counseling Office sa oras ng opisina."
+      ],
+      "label_en": "Tuition or scholarships",
+      "label_tl": "Tuition o scholarship",
+      "example_en": "I can't afford my tuition",
+      "example_tl": "Wala kaming pambayad sa tuition",
+      "followups": {
+        "affirm": "book_appointment",
+        "deny": "support_continue"
+      }
+    },
+    {
+      "tag": "other_offices",
+      "patterns_en": [
+        "how do i see my grades",
+        "where can i check my grades",
+        "when is enrollment",
+        "how do i enroll",
+        "i lost my id",
+        "how do i get a new school id",
+        "where do i get my class schedule",
+        "how do i request my transcript",
+        "how do i get a certificate of enrollment",
+        "who do i ask about my subjects",
+        "how do i drop a subject",
+        "where do i pay my tuition",
+        "where is the registrar",
+        "registrar office",
+        "how do i get my report card",
+        "where do i claim my form 138",
+        "how do i get my diploma",
+        "where do i ask about my section",
+        "my name is wrong in the system",
+        "how do i get a good moral certificate"
+      ],
+      "patterns_tl": [
+        "paano makita ang grades ko",
+        "kailan ang enrollment",
+        "paano mag-enroll",
+        "nawala ang id ko",
+        "saan kukuha ng schedule",
+        "paano kumuha ng transcript",
+        "saan magbabayad ng tuition",
+        "paano mag-drop ng subject",
+        "nasaan ang registrar",
+        "saan kukunin ang card",
+        "paano kumuha ng form 137",
+        "mali ang pangalan ko sa system",
+        "saan nagbabayad"
+      ],
+      "responses_en": [
+        "That's handled by another office. For grades, enrollment, subjects, schedules, school IDs, and records like your transcript or certificate of enrollment, please ask the Registrar. For payments, ask the Accounting/Cashier office.\n\nI can help with guidance concerns: appointments, referrals, the GCO's services, or anything you're going through."
+      ],
+      "responses_tl": [
+        "Ibang opisina ang humahawak niyan. Para sa grades, enrollment, subjects, schedule, school ID, at mga record gaya ng transcript o certificate of enrollment, magtanong sa Registrar. Para sa bayarin, sa Accounting/Cashier office.\n\nAko naman ay makakatulong sa mga concern sa guidance: appointment, referral, serbisyo ng GCO, o anumang pinagdadaanan mo."
+      ],
+      "label_en": "Grades, enrollment or ID",
+      "label_tl": "Grades, enrollment o ID",
+      "example_en": "How do I see my grades?",
+      "example_tl": "Paano makita ang grades ko?"
+    },
+    {
+      "tag": "loneliness",
+      "patterns_en": [
+        "i feel lonely",
+        "i have no friends",
+        "i'm always alone",
+        "nobody talks to me",
+        "i feel like i don't belong",
+        "i feel invisible",
+        "no one cares about me",
+        "i eat lunch alone every day",
+        "i feel left out all the time",
+        "i have nobody to talk to",
+        "no one notices me",
+        "i feel ignored by everyone",
+        "i have nobody",
+        "i feel isolated"
+      ],
+      "patterns_tl": [
+        "nag-iisa ako",
+        "wala akong kaibigan dito",
+        "pakiramdam ko walang may pake sa akin",
+        "walang kumakausap sa akin",
+        "lagi akong mag-isa",
+        "pakiramdam ko hindi ako belong",
+        "malungkot ako kasi wala akong kasama",
+        "walang nakakapansin sa akin",
+        "parang hindi ako nakikita ng iba",
+        "wala akong makausap",
+        "mag-isa lang ako palagi"
+      ],
+      "responses_en": [
+        "Feeling alone is painful, and it happens to more students than you might think. Thank you for telling me. Small steps can help: say hi to one classmate, join a club or org that matches your interests, or sit with a group during a break.\n\nYou also don't have to wait until you have friends to talk to someone. The Guidance Associate is there to listen. You can book a session with the Guidance Associate under My Appointments, or visit the Guidance and Counseling Office during office hours."
+      ],
+      "responses_tl": [
+        "Masakit ang pakiramdam na nag-iisa, at mas maraming estudyante ang nakakaranas nito kaysa sa inaakala mo. Salamat sa pagsabi. Makakatulong ang maliliit na hakbang: batiin ang isang kaklase, sumali sa club o org na gusto mo, o sumama sa isang grupo tuwing break.\n\nHindi mo rin kailangang hintaying magkaroon ng kaibigan bago may makausap. Nandiyan ang Guidance Associate para makinig. Pwede kang mag-book ng session sa Guidance Associate sa My Appointments, o pumunta sa Guidance and Counseling Office sa oras ng opisina."
+      ],
+      "label_en": "Feeling lonely",
+      "label_tl": "Nag-iisa",
+      "example_en": "I feel lonely",
+      "example_tl": "Nag-iisa ako",
+      "followups": {
+        "affirm": "book_appointment",
+        "deny": "support_continue"
+      }
+    },
+    {
+      "tag": "sleep_problems",
+      "patterns_en": [
+        "i can't sleep",
+        "i have insomnia",
+        "i stay up all night",
+        "i only sleep a few hours",
+        "i'm always sleepy in class",
+        "i can't fall asleep because i overthink",
+        "my sleep schedule is ruined",
+        "i wake up in the middle of the night",
+        "i only sleep 3 hours",
+        "i'm always tired because i can't sleep",
+        "i have nightmares every night",
+        "i sleep at 4am every night"
+      ],
+      "patterns_tl": [
+        "hindi ako makatulog sa gabi",
+        "puyat ako palagi",
+        "kulang ako sa tulog",
+        "inaantok ako sa klase",
+        "hindi ako makatulog kakaisip",
+        "sira ang tulog ko",
+        "3 oras lang tulog ko",
+        "binabangungot ako",
+        "alas kwatro na ako natutulog",
+        "pagod ako lagi kasi di ako makatulog"
+      ],
+      "responses_en": [
+        "Not getting enough sleep makes everything harder, from focusing in class to handling stress. A few things that help:\n• Sleep and wake up at about the same time every day.\n• Put your phone away 30 minutes before bed.\n• Avoid coffee and energy drinks in the afternoon.\n• If your mind keeps racing, write your worries down so they can wait until tomorrow.\n\nIf you've had trouble sleeping for weeks, or worries are keeping you up, talk to the Guidance Associate, and consider seeing a doctor. You can book a session with the Guidance Associate under My Appointments, or visit the Guidance and Counseling Office during office hours."
+      ],
+      "responses_tl": [
+        "Mas humihirap ang lahat kapag kulang sa tulog, mula sa pag-focus sa klase hanggang sa pagharap sa stress. Makakatulong ang:\n• Matulog at gumising sa halos parehong oras araw-araw.\n• Itabi ang cellphone 30 minuto bago matulog.\n• Iwasan ang kape at energy drinks sa hapon.\n• Kung hindi tumitigil ang isip, isulat ang mga iniisip para bukas na lang harapin.\n\nKung ilang linggo ka nang hirap matulog, o hindi ka makatulog dahil sa mga alalahanin, kausapin ang Guidance Associate at magpatingin din sa doktor. Pwede kang mag-book ng session sa Guidance Associate sa My Appointments, o pumunta sa Guidance and Counseling Office sa oras ng opisina."
+      ],
+      "label_en": "Trouble sleeping",
+      "label_tl": "Hirap matulog",
+      "example_en": "I can't sleep",
+      "example_tl": "Hindi ako makatulog",
+      "followups": {
+        "affirm": "book_appointment",
+        "deny": "support_continue"
+      }
+    },
+    {
+      "tag": "relationship_problems",
+      "patterns_en": [
+        "my girlfriend broke up with me",
+        "we just broke up",
+        "i'm heartbroken",
+        "my boyfriend cheated on me",
+        "i can't move on from my ex",
+        "my partner is too controlling",
+        "my boyfriend gets jealous of everything",
+        "my relationship is toxic",
+        "i like someone but they don't like me back",
+        "my ex keeps texting me",
+        "i still love my ex",
+        "we had a fight with my boyfriend",
+        "my girlfriend ignores me",
+        "i got ghosted",
+        "i'm confused about my feelings for someone",
+        "my crush rejected me"
+      ],
+      "patterns_tl": [
+        "nakipag-break siya sa akin",
+        "broken hearted ako",
+        "niloko ako ng boyfriend ko",
+        "hindi ako maka-move on",
+        "toxic ang relasyon namin",
+        "sobrang selosa ng girlfriend ko",
+        "may gusto ako pero hindi niya ako gusto",
+        "miss ko pa ang ex ko",
+        "nag-away kami ng jowa ko",
+        "na-ghost ako",
+        "binasted ako ng crush ko",
+        "hindi ako pinapansin ng jowa ko"
+      ],
+      "responses_en": [
+        "Breakups and relationship problems can hurt a lot, and it's okay to feel sad, angry, or confused. Lean on people you trust, keep up your routine (sleep, meals, classes), and give yourself time.\n\nA healthy relationship should never make you feel scared, controlled, or hurt. If your partner checks your phone, isolates you from friends, threatens you, or hurts you, please talk to someone you trust right away. The Guidance Associate can help, confidentially. You can book a session with the Guidance Associate under My Appointments, or visit the Guidance and Counseling Office during office hours."
+      ],
+      "responses_tl": [
+        "Masakit talaga ang break-up at problema sa relasyon, at okay lang na malungkot, magalit, o maguluhan. Sumandal sa mga taong pinagkakatiwalaan mo, ituloy ang normal na routine (tulog, kain, klase), at bigyan ng oras ang sarili.\n\nHindi ka dapat matakot, kontrolin, o saktan sa isang maayos na relasyon. Kung chine-check ng partner mo ang phone mo, nilalayo ka sa mga kaibigan, tinatakot, o sinasaktan ka, sabihin agad sa taong pinagkakatiwalaan mo. Makakatulong ang Guidance Associate nang confidential. Pwede kang mag-book ng session sa Guidance Associate sa My Appointments, o pumunta sa Guidance and Counseling Office sa oras ng opisina."
+      ],
+      "label_en": "Relationship or breakup",
+      "label_tl": "Relasyon o break-up",
+      "example_en": "We just broke up",
+      "example_tl": "Nakipag-break siya sa akin",
+      "followups": {
+        "affirm": "book_appointment",
+        "deny": "support_continue"
+      }
+    },
+    {
+      "tag": "grief_loss",
+      "patterns_en": [
+        "my father passed away",
+        "my mom died",
+        "someone in my family died",
+        "i'm grieving",
+        "my best friend died",
+        "i can't accept that they're gone",
+        "my pet died and i'm devastated",
+        "i keep thinking about the person i lost",
+        "my grandfather died",
+        "my grandma passed away last month",
+        "my aunt died and i'm so sad",
+        "we lost my brother",
+        "i can't focus since my dad died",
+        "there was a death in our family",
+        "i miss my mom who passed away",
+        "how do i cope with losing someone"
+      ],
+      "patterns_tl": [
+        "namatay ang tatay ko",
+        "pumanaw ang lola ko",
+        "may namatay sa pamilya namin",
+        "hindi ko matanggap na wala na siya",
+        "nagluluksa ako",
+        "namatay ang kaibigan ko",
+        "namatay ang lolo ko",
+        "patay na ang nanay ko",
+        "kamamatay lang ng tita ko",
+        "namatayan kami",
+        "miss ko na ang tatay kong namatay",
+        "kakalibing lang ng lola ko"
+      ],
+      "responses_en": [
+        "I'm so sorry for your loss. Grief can come in waves: sadness, anger, numbness, even trouble focusing in class. All of that is normal, and there's no right way or timeline to grieve.\n\nBe gentle with yourself, stay close to people who care about you, and let your teachers know if you need time to catch up. The Guidance Associate can be someone to talk to while you go through this. You can book a session with the Guidance Associate under My Appointments, or visit the Guidance and Counseling Office during office hours."
+      ],
+      "responses_tl": [
+        "Nakikiramay ako sa pagkawala mo. Pabalik-balik ang pagluluksa: lungkot, galit, pamamanhid, pati hirap mag-focus sa klase. Normal lahat iyan, at walang tamang paraan o takdang panahon ng pagluluksa.\n\nMaging mabait sa sarili, manatiling malapit sa mga nagmamahal sa iyo, at sabihan ang mga teacher kung kailangan mo ng oras para makahabol. Pwede mong makausap ang Guidance Associate habang pinagdadaanan mo ito. Pwede kang mag-book ng session sa Guidance Associate sa My Appointments, o pumunta sa Guidance and Counseling Office sa oras ng opisina."
+      ],
+      "label_en": "Losing someone",
+      "label_tl": "Pagkawala ng mahal sa buhay",
+      "example_en": "Someone close to me died",
+      "example_tl": "May namatay sa pamilya namin",
+      "followups": {
+        "affirm": "book_appointment",
+        "deny": "support_continue"
+      }
+    },
+    {
+      "tag": "abuse_harassment",
+      "patterns_en": [
+        "someone touched me inappropriately",
+        "i was sexually harassed",
+        "my teacher is harassing me",
+        "someone is sending me sexual messages",
+        "i'm being abused at home",
+        "my parent hits me",
+        "someone forced me to do something i didn't want",
+        "i was assaulted",
+        "a classmate keeps touching me even when i say no",
+        "someone is threatening to post my photos",
+        "someone keeps sending me inappropriate messages",
+        "an older student is harassing me",
+        "my stepfather hurts me",
+        "someone took photos of me without consent",
+        "i'm being stalked"
+      ],
+      "patterns_tl": [
+        "may humawak sa akin nang hindi tama",
+        "hinarass ako",
+        "binabastos ako ng teacher ko",
+        "sinasaktan ako sa bahay",
+        "binubugbog ako ng tatay ko",
+        "pinilit ako sa ayaw ko",
+        "tinatakot akong ipo-post ang mga picture ko",
+        "may nagpapadala sa akin ng bastos na message",
+        "sinasaktan ako ng stepdad ko",
+        "may kumuha ng picture ko nang walang paalam",
+        "may sumusunod sa akin"
+      ],
+      "responses_en": [
+        "Thank you for telling me. What happened is not your fault, and you deserve to be safe.\n\nIf you are in danger right now, call 911 or go to a trusted adult immediately. Please tell the Guidance Associate or another trusted school staff member as soon as you can; the school is required to act on harassment and abuse and will handle it with care. Keep any messages, photos, or other proof if it is safe to do so.\n\n• 911: Philippine emergency hotline\n• NCMH Crisis Hotline: 1553\n\nYou can book a session with the Guidance Associate under My Appointments, or visit the Guidance and Counseling Office during office hours."
+      ],
+      "responses_tl": [
+        "Salamat sa pagsabi. Hindi mo kasalanan ang nangyari, at karapatan mong maging ligtas.\n\nKung nasa panganib ka ngayon, tumawag sa 911 o lumapit agad sa matandang pinagkakatiwalaan mo. Sabihin sa Guidance Associate o sa ibang pinagkakatiwalaang staff ng school sa lalong madaling panahon; obligado ang school na aksyunan ang harassment at pang-aabuso at maingat nila itong hahawakan. Itago ang mga message, picture, o ibang patunay kung ligtas gawin.\n\n• 911: Philippine emergency hotline\n• NCMH Crisis Hotline: 1553\n\nPwede kang mag-book ng session sa Guidance Associate sa My Appointments, o pumunta sa Guidance and Counseling Office sa oras ng opisina."
+      ],
+      "label_en": "Harassment or abuse",
+      "label_tl": "Harassment o pang-aabuso",
+      "example_en": "Someone is harassing me",
+      "example_tl": "May nangha-harass sa akin",
+      "followups": {
+        "affirm": "book_appointment",
+        "deny": "support_continue"
+      }
+    },
+    {
+      "tag": "addiction_concern",
+      "patterns_en": [
+        "i'm addicted to vaping",
+        "i can't stop vaping",
+        "i'm addicted to online games",
+        "i play games all night and skip class",
+        "i drink alcohol too much",
+        "i think i'm addicted to my phone",
+        "i'm using drugs",
+        "i gamble online and lost money",
+        "i play mobile legends all day",
+        "i'm hooked on games",
+        "i spend all my money on games",
+        "i smoke every day",
+        "i can't stop scrolling tiktok",
+        "i'm always on my phone and can't study"
+      ],
+      "patterns_tl": [
+        "adik ako sa vape",
+        "hindi ko mapigilan mag-vape",
+        "adik ako sa online games",
+        "magdamag akong naglalaro",
+        "napaparami ang inom ko",
+        "adik ako sa cellphone",
+        "nagsusugal ako online",
+        "adik ako sa ml",
+        "lagi akong naglalaro ng mobile legends",
+        "hindi ako makatigil sa tiktok",
+        "naninigarilyo ako araw-araw",
+        "puro laro na lang ako"
+      ],
+      "responses_en": [
+        "It takes courage to notice that a habit is getting out of hand. You don't have to quit everything at once: try setting limits (time, money, or places), removing triggers, and replacing the habit with something you enjoy.\n\nThe Guidance Associate won't judge you and can help you make a plan, or connect you with more help if needed. You can book a session with the Guidance Associate under My Appointments, or visit the Guidance and Counseling Office during office hours."
+      ],
+      "responses_tl": [
+        "Kailangan ng lakas ng loob para aminin na lumalala na ang isang bisyo. Hindi kailangang ihinto lahat agad: subukang maglagay ng limitasyon (oras, pera, o lugar), iwasan ang mga trigger, at palitan ito ng ibang gawaing gusto mo.\n\nHindi ka huhusgahan ng Guidance Associate at matutulungan ka niyang magplano, o i-refer sa dagdag na tulong kung kailangan. Pwede kang mag-book ng session sa Guidance Associate sa My Appointments, o pumunta sa Guidance and Counseling Office sa oras ng opisina."
+      ],
+      "label_en": "Vaping, games or other habits",
+      "label_tl": "Vape, laro o ibang bisyo",
+      "example_en": "I can't stop vaping or gaming",
+      "example_tl": "Hindi ko mapigilan ang vape o laro",
+      "followups": {
+        "affirm": "book_appointment",
+        "deny": "support_continue"
+      }
+    },
+    {
+      "tag": "pregnancy_concern",
+      "patterns_en": [
+        "i think i'm pregnant",
+        "i'm pregnant and scared",
+        "my girlfriend is pregnant",
+        "i'm pregnant and i don't know what to do",
+        "can i still study if i'm pregnant",
+        "how do i tell my parents i'm pregnant",
+        "i'm afraid i might be pregnant",
+        "i missed my period and i'm scared",
+        "i'm a student and expecting a baby"
+      ],
+      "patterns_tl": [
+        "buntis ako",
+        "baka buntis ako",
+        "buntis ang girlfriend ko",
+        "hindi ko alam ang gagawin buntis ako",
+        "pwede pa ba akong mag-aral kahit buntis",
+        "paano ko sasabihin sa magulang ko na buntis ako",
+        "natatakot akong baka buntis ako",
+        "delayed ako at kinakabahan ako",
+        "magkakaanak na ako pero estudyante pa ako"
+      ],
+      "responses_en": [
+        "Thank you for trusting me with this. It's okay to feel scared or unsure. You don't have to figure everything out alone, and you can continue your studies.\n\nPlease see a doctor or health center to check on your health, and consider talking to an adult you trust. The Guidance Associate can talk with you confidentially about your options, your studies, and how to tell your family. You can book a session with the Guidance Associate under My Appointments, or visit the Guidance and Counseling Office during office hours."
+      ],
+      "responses_tl": [
+        "Salamat sa pagtitiwala mo. Okay lang na matakot o maguluhan. Hindi mo kailangang harapin ito nang mag-isa, at pwede mong ituloy ang pag-aaral mo.\n\nMagpatingin sa doktor o health center para sa kalusugan mo, at subukang kausapin ang matandang pinagkakatiwalaan mo. Matutulungan ka ng Guidance Associate nang confidential tungkol sa mga opsyon mo, sa pag-aaral, at sa pagsabi sa pamilya mo. Pwede kang mag-book ng session sa Guidance Associate sa My Appointments, o pumunta sa Guidance and Counseling Office sa oras ng opisina."
+      ],
+      "label_en": "Pregnancy",
+      "label_tl": "Pagbubuntis",
+      "example_en": "I think I'm pregnant",
+      "example_tl": "Baka buntis ako",
+      "followups": {
+        "affirm": "book_appointment",
+        "deny": "support_continue"
+      }
+    },
+    {
+      "tag": "gender_identity",
+      "patterns_en": [
+        "i'm confused about my sexuality",
+        "i think i'm gay",
+        "i'm bisexual and scared to come out",
+        "i'm not sure about my gender identity",
+        "how do i come out to my parents",
+        "people make fun of me for being lgbt",
+        "i'm scared my family won't accept me",
+        "i'm transgender",
+        "i'm trans",
+        "i'm questioning my gender",
+        "i'm lesbian",
+        "i'm part of the lgbtq community and i feel judged",
+        "my parents don't accept that i'm gay"
+      ],
+      "patterns_tl": [
+        "nalilito ako sa sexuality ko",
+        "bakla ako at natatakot ako",
+        "tomboy ako at hindi ako tanggap",
+        "paano ako mag-come out sa magulang ko",
+        "pinagtatawanan ako dahil lgbt ako",
+        "natatakot akong hindi ako tanggapin ng pamilya ko",
+        "trans ako",
+        "lesbian ako",
+        "hindi tanggap ng magulang ko na bakla ako",
+        "nahihiya ako sa pagkatao ko bilang lgbt"
+      ],
+      "responses_en": [
+        "Thank you for sharing something so personal. Questions about who you are are valid, and you deserve respect and safety whoever you are. There's no rush to label yourself or to come out before you feel ready and safe.\n\nIf you're being teased or treated unfairly, that is not okay; you can report it. The Guidance Associate is a safe, confidential person to talk to. You can book a session with the Guidance Associate under My Appointments, or visit the Guidance and Counseling Office during office hours."
+      ],
+      "responses_tl": [
+        "Salamat sa pagbabahagi ng isang bagay na napaka-personal. Valid ang mga tanong tungkol sa sarili mo, at karapat-dapat kang igalang at maging ligtas kahit sino ka pa. Hindi mo kailangang magmadali na i-label ang sarili o mag-come out hangga't hindi ka handa at ligtas.\n\nKung tinutukso ka o hindi patas ang trato sa iyo, mali iyon at pwede mo itong i-report. Ligtas at confidential mong makakausap ang Guidance Associate. Pwede kang mag-book ng session sa Guidance Associate sa My Appointments, o pumunta sa Guidance and Counseling Office sa oras ng opisina."
+      ],
+      "label_en": "Gender or sexuality",
+      "label_tl": "Gender o sexuality",
+      "example_en": "I have questions about my gender or sexuality",
+      "example_tl": "May tanong ako tungkol sa gender o sexuality ko",
+      "followups": {
+        "affirm": "book_appointment",
+        "deny": "support_continue"
+      }
+    },
+    {
+      "tag": "school_adjustment",
+      "patterns_en": [
+        "i'm new here and i don't know anyone",
+        "i'm a transferee and it's hard to adjust",
+        "i miss my old school",
+        "i'm homesick",
+        "college is so different from senior high",
+        "i live in a dorm and i miss my family",
+        "i'm having a hard time adjusting to college",
+        "i just moved to this school",
+        "i'm a new student and i feel out of place",
+        "first year college is overwhelming",
+        "i don't know how things work here yet",
+        "i'm the only one from my old school here"
+      ],
+      "patterns_tl": [
+        "bago lang ako dito",
+        "transferee ako at nahihirapan ako",
+        "namimiss ko ang dati kong school",
+        "nami-miss ko ang pamilya ko",
+        "nahihirapan akong mag-adjust",
+        "ibang-iba ang college sa shs",
+        "nag-boboard ako at homesick ako",
+        "bagong lipat ako",
+        "bagong estudyante ako",
+        "first year ako at naninibago ako",
+        "naninibago ako sa school"
+      ],
+      "responses_en": [
+        "Starting somewhere new takes time, and feeling out of place at first is very normal. Give yourself a few weeks; meanwhile, try to learn your way around campus, introduce yourself to a seatmate, join an org, and keep in touch with family and old friends.\n\nIf you still feel lost or homesick after a while, the Guidance Associate can help you settle in. You can book a session with the Guidance Associate under My Appointments, or visit the Guidance and Counseling Office during office hours."
+      ],
+      "responses_tl": [
+        "Kailangan ng panahon para masanay sa bagong lugar, at normal lang na pakiramdam mo ay hindi ka pa belong sa umpisa. Bigyan ang sarili ng ilang linggo; habang hinihintay, kilalanin ang campus, magpakilala sa katabi, sumali sa org, at makipag-ugnayan sa pamilya at dating kaibigan.\n\nKung nahihirapan ka pa rin o homesick pa rin pagkalipas ng ilang panahon, matutulungan kang mag-adjust ng Guidance Associate. Pwede kang mag-book ng session sa Guidance Associate sa My Appointments, o pumunta sa Guidance and Counseling Office sa oras ng opisina."
+      ],
+      "label_en": "Adjusting to a new school",
+      "label_tl": "Pag-adjust sa bagong school",
+      "example_en": "I'm new and still adjusting",
+      "example_tl": "Bago lang ako at nag-a-adjust pa",
+      "followups": {
+        "affirm": "book_appointment",
+        "deny": "support_continue"
+      }
+    },
+    {
+      "tag": "peer_pressure",
+      "patterns_en": [
+        "my friends pressure me to drink",
+        "my barkada wants me to cut class",
+        "i feel pressured to do things i don't want",
+        "my friends dared me to do something dangerous",
+        "they'll leave me if i don't join them",
+        "everyone is vaping and they want me to try",
+        "my friends want me to cut class with them",
+        "my classmates pressure me to cheat",
+        "they want me to drink at the party",
+        "i only do it so they'll like me"
+      ],
+      "patterns_tl": [
+        "pinipilit ako ng barkada kong uminom",
+        "pinapa-cutting ako ng mga kaibigan ko",
+        "napipilitan akong sumama",
+        "iiwan daw nila ako kapag hindi ako sumama",
+        "pinipilit nila akong mag-vape",
+        "inaaya ako ng barkada mag-cutting",
+        "pinipilit akong mangopya",
+        "sumasama lang ako para hindi nila ako iwan"
+      ],
+      "responses_en": [
+        "It's hard to say no when you want to fit in. Real friends will respect your choices. A few things that help: have a simple line ready (\"I'm good, thanks\"), stay close to friends who share your values, and walk away from situations that feel wrong.\n\nIf the pressure is affecting you or you feel unsafe, the Guidance Associate can help. You can book a session with the Guidance Associate under My Appointments, or visit the Guidance and Counseling Office during office hours."
+      ],
+      "responses_tl": [
+        "Mahirap tumanggi kapag gusto mong makibagay. Igagalang ng totoong kaibigan ang desisyon mo. Makakatulong ang: may handang simpleng sagot (\"Okay lang ako, salamat\"), manatiling malapit sa mga kaibigang kapareho mo ng pinahahalagahan, at umalis sa sitwasyong mali sa pakiramdam mo.\n\nKung naaapektuhan ka na ng pressure o hindi ka ligtas, matutulungan ka ng Guidance Associate. Pwede kang mag-book ng session sa Guidance Associate sa My Appointments, o pumunta sa Guidance and Counseling Office sa oras ng opisina."
+      ],
+      "label_en": "Peer pressure",
+      "label_tl": "Pressure ng barkada",
+      "example_en": "My friends pressure me",
+      "example_tl": "Pinipilit ako ng barkada ko",
+      "followups": {
+        "affirm": "book_appointment",
+        "deny": "support_continue"
+      }
     },
     {
       "tag": "feeling_happy",
@@ -1428,7 +2179,12 @@
         "i'm unhappy",
         "i feel lost",
         "i'm hurting",
-        "today was a bad day"
+        "today was a bad day",
+        "i feel depressed",
+        "i think i have depression",
+        "i feel numb",
+        "i feel empty inside",
+        "i'm always tired and nothing feels good"
       ],
       "patterns_tl": [
         "nalulungkot ako",
@@ -1441,7 +2197,10 @@
         "ang lungkot ng araw ko",
         "nasasaktan ako",
         "down ako ngayon",
-        "malungkot ako ngayong linggo"
+        "malungkot ako ngayong linggo",
+        "baka depressed ako",
+        "wala akong gana sa lahat",
+        "parang wala akong nararamdaman"
       ],
       "responses_en": [
         "I'm sorry you're feeling this way. It's okay to feel sad, and you don't have to go through it alone. Do you want to tell me what happened? Would you like to book a session with the Guidance Associate?",
@@ -1477,7 +2236,10 @@
         "i feel restless",
         "my mind won't stop racing",
         "i have anxiety",
-        "i get nervous around people"
+        "i get nervous around people",
+        "i'm having a panic attack right now",
+        "my heart is racing and i can't breathe",
+        "i get panic attacks"
       ],
       "patterns_tl": [
         "kinakabahan ako palagi",
@@ -1486,7 +2248,9 @@
         "natatakot ako pero hindi ko alam bakit",
         "hindi ako makahinga nang maayos sa kaba",
         "ang bilis ng tibok ng puso ko",
-        "puro ako worry"
+        "puro ako worry",
+        "inaatake ako ng panic",
+        "hindi ako makahinga sa kaba"
       ],
       "responses_en": [
         "That sounds stressful. Let's slow down for a moment: breathe in for 4 seconds, hold for 4, breathe out for 6. Try it a few times. Would you like to book a session with the Guidance Associate?",

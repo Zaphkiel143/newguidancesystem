@@ -4,9 +4,10 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { Loader2, MapPin, Plus } from 'lucide-react';
 import { listEvents, saveEvent, deleteEvent } from '../../action/counselor';
 import InlineError from '../../../components/InlineError';
+import { eventDateLabel, isMultiDay } from '../../../lib/eventDates';
 import type { Event as DbEvent } from '../../../lib/generated';
 
-const EMPTY = { title: "", description: "", dateString: "", time: "", location: "" };
+const EMPTY = { title: "", description: "", dateString: "", endDateString: "", multiDay: false, time: "", location: "" };
 
 // Event dates are calendar days stored as UTC midnight.
 function toDateInput(d: Date) {
@@ -44,7 +45,10 @@ export default function EventsPanel({ openForm = 0 }: { openForm?: number }) {
     setShowForm(false);
   };
   const startEdit = (ev: DbEvent) => {
-    setEditing({ id: ev.id, title: ev.title, description: ev.description, dateString: toDateInput(ev.date), time: ev.time, location: ev.location ?? "" });
+    setEditing({
+      id: ev.id, title: ev.title, description: ev.description, dateString: toDateInput(ev.date),
+      endDateString: ev.endDate ? toDateInput(ev.endDate) : "", multiDay: isMultiDay(ev), time: ev.time, location: ev.location ?? "",
+    });
     setFormError(null);
     setShowForm(true);
   };
@@ -67,9 +71,12 @@ export default function EventsPanel({ openForm = 0 }: { openForm?: number }) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (editing.multiDay && !editing.endDateString) return setFormError("Choose the last day of the event.");
+    if (editing.multiDay && editing.endDateString <= editing.dateString) return setFormError("The end date must be after the start date.");
     setIsSaving(true);
     setFormError(null);
-    const result = await saveEvent(editing);
+    const { multiDay, ...fields } = editing;
+    const result = await saveEvent({ ...fields, endDateString: multiDay ? fields.endDateString : "" });
     setIsSaving(false);
     if (result.success) {
       closeForm();
@@ -92,8 +99,10 @@ export default function EventsPanel({ openForm = 0 }: { openForm?: number }) {
   };
 
   const today = localToday();
-  const upcoming = events?.filter((e) => toDateInput(e.date) >= today) ?? [];
-  const past = events?.filter((e) => toDateInput(e.date) < today).reverse() ?? [];
+  // A multi-day event is upcoming until its last day
+  const lastDay = (e: DbEvent) => toDateInput(e.endDate ?? e.date);
+  const upcoming = events?.filter((e) => lastDay(e) >= today) ?? [];
+  const past = events?.filter((e) => lastDay(e) < today).reverse() ?? [];
 
   return (
     <div>
@@ -116,14 +125,34 @@ export default function EventsPanel({ openForm = 0 }: { openForm?: number }) {
               <input id="e-title" value={editing.title} onChange={(e) => setEditing({ ...editing, title: e.target.value })} required
                 className="w-full bg-sheet border border-slate-300 rounded-md px-3 py-2.5 text-sm" />
             </div>
+            <fieldset>
+              <legend className="block text-[13px] font-medium text-slate-700 mb-1.5">How long is the event?</legend>
+              <div className="grid grid-cols-2 gap-2">
+                {([[false, "One day"], [true, "Multiple days"]] as const).map(([multi, label]) => (
+                  <label key={label} className={`flex items-center gap-2 rounded-lg border px-3 min-h-11 cursor-pointer text-sm ${editing.multiDay === multi ? "border-blue-600 bg-blue-50 font-medium" : "border-slate-300"}`}>
+                    <input type="radio" name="e-length" checked={editing.multiDay === multi} className="accent-blue-700"
+                      onChange={() => setEditing({ ...editing, multiDay: multi })} />
+                    {label}
+                  </label>
+                ))}
+              </div>
+            </fieldset>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label htmlFor="e-date" className="block text-[13px] font-medium text-slate-700 mb-1.5">Date</label>
+                <label htmlFor="e-date" className="block text-[13px] font-medium text-slate-700 mb-1.5">{editing.multiDay ? "Start date" : "Date"}</label>
                 <input id="e-date" type="date" value={editing.dateString} onChange={(e) => setEditing({ ...editing, dateString: e.target.value })} required
                   className="w-full bg-sheet border border-slate-300 rounded-md px-3 py-2.5 text-sm" />
               </div>
-              <div>
-                <label htmlFor="e-time" className="block text-[13px] font-medium text-slate-700 mb-1.5">Time</label>
+              {editing.multiDay && (
+                <div>
+                  <label htmlFor="e-end" className="block text-[13px] font-medium text-slate-700 mb-1.5">End date</label>
+                  <input id="e-end" type="date" value={editing.endDateString} min={editing.dateString || undefined}
+                    onChange={(e) => setEditing({ ...editing, endDateString: e.target.value })} required
+                    className="w-full bg-sheet border border-slate-300 rounded-md px-3 py-2.5 text-sm" />
+                </div>
+              )}
+              <div className={editing.multiDay ? "col-span-2" : ""}>
+                <label htmlFor="e-time" className="block text-[13px] font-medium text-slate-700 mb-1.5">{editing.multiDay ? "Time each day" : "Time"}</label>
                 <input id="e-time" placeholder="e.g. 1:00 PM – 3:00 PM" value={editing.time} onChange={(e) => setEditing({ ...editing, time: e.target.value })} required
                   className="w-full bg-sheet border border-slate-300 rounded-md px-3 py-2.5 text-sm" />
               </div>
@@ -185,7 +214,8 @@ function EventList({ items, empty, muted, onEdit, onDelete, rowError, clearRowEr
       {items.map((ev) => (
         <li key={ev.id} className="py-4">
           <p className="font-mono text-[13px] text-slate-500">
-            {new Date(ev.date).toLocaleDateString("en-PH", { timeZone: "UTC", weekday: "short", month: "short", day: "numeric", year: "numeric" })} · {ev.time}
+            {eventDateLabel(ev, true)} · {ev.time}
+            {isMultiDay(ev) && <span className="ml-2 font-sans text-[11px] font-semibold text-blue-700 bg-blue-50 rounded px-1.5 py-0.5">Multi-day</span>}
           </p>
           <p className="font-medium text-ink mt-0.5">{ev.title}</p>
           {ev.location && <p className="text-[13px] text-slate-500 inline-flex items-center gap-1 mt-0.5"><MapPin size={12} /> {ev.location}</p>}

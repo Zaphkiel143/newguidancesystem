@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import { eventDateLabel, isMultiDay } from "../lib/eventDates";
 import { BookOpen, CalendarDays, Loader2, MapPin } from "lucide-react";
 import ReadingList from "./ReadingList";
 import { getBulletin } from "../app/action/bulletin";
@@ -50,7 +51,7 @@ export default function ParentFeed() {
                   return (
                     <li key={e.id} className="snap-start shrink-0 w-64 bg-sheet border border-rule rounded-2xl p-4 shadow-sm">
                       <p className="text-[12px] font-semibold text-blue-700">
-                        {d.toLocaleDateString("en-PH", { weekday: "short", month: "short", day: "numeric", timeZone: "UTC" })} · {e.time}
+                        {isMultiDay(e) ? eventDateLabel(e) : d.toLocaleDateString("en-PH", { weekday: "short", month: "short", day: "numeric", timeZone: "UTC" })} · {e.time}
                       </p>
                       <h3 className="font-semibold text-ink mt-1 break-words">{e.title}</h3>
                       {e.location && (
