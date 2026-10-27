@@ -335,7 +335,7 @@ export default function MonthlyReportPage() {
   const filtered = nature !== ALL || program !== ALL || level !== ALL;
 
   return (
-    <div id="gco-report" className="px-5 sm:px-8 lg:px-12 pt-8 lg:pt-12 pb-16 max-w-7xl text-slate-800">
+    <div id="gco-report" className="px-5 sm:px-8 lg:px-12 pt-8 lg:pt-12 pb-16 text-slate-800">
       <style>{PRINT_CSS}</style>
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div>
@@ -407,7 +407,7 @@ export default function MonthlyReportPage() {
 
           <div className="mt-12 print:hidden">
             <h2 className="font-semibold text-[20px] text-ink mb-4">Other office activity</h2>
-            <div className="grid gap-6 lg:grid-cols-2">
+            <div className="grid gap-6 items-start lg:grid-cols-2 2xl:grid-cols-3">
               <Block title="Referrals">
                 <p className="text-sm text-slate-600 mb-4">{r.referrals.total} received · {r.referrals.highPriority} high priority</p>
                 <h3 className="text-[13px] font-semibold text-slate-500 mb-2">By concern type</h3>
