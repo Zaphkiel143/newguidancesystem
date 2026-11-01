@@ -3,6 +3,7 @@
 import db from "../../lib/db";
 import { revalidatePath } from "next/cache";
 import { getNlpReply } from "../../lib/nlp";
+import { getAiReply, type AiChatTurn } from "../../lib/ai";
 import { requireActionUser } from "../../lib/session";
 import { allow, DAY, HOUR, MINUTE, SLOW_DOWN } from "../../lib/rateLimit";
 import { counselorEmails, formatAppointmentWhen, sendEmail } from "../../lib/email";
@@ -428,7 +429,6 @@ export async function sendAiMessage(formData: { conversationId: string; content:
     if (!content) throw new Error("Write a message first.");
     if (!(await allow(`ai:${me.id}`, 30, 10 * MINUTE))) throw new Error(SLOW_DOWN);
     formData = { ...formData, content };
-
     // The previous reply's topic lets a short "yes"/"no" continue the conversation
     const previous = await db.aiMessage.findFirst({
       where: { conversationId: formData.conversationId, role: "assistant" },
@@ -436,14 +436,46 @@ export async function sendAiMessage(formData: { conversationId: string; content:
       select: { intent: true },
     });
 
+    // Recent turns give the generated reply its memory of the conversation.
+    const recent = await db.aiMessage.findMany({
+      where: { conversationId: formData.conversationId },
+      orderBy: { createdAt: "desc" },
+      take: 12,
+      select: { role: true, content: true },
+    });
+    const history: AiChatTurn[] = recent
+      .reverse()
+      .map((m) => ({ role: m.role === "assistant" ? ("assistant" as const) : ("user" as const), content: m.content.slice(0, 800) }));
+
     await db.aiMessage.create({
       data: { conversationId: formData.conversationId, role: "user", content: formData.content },
     });
 
     const reply = await getNlpReply(formData.content, previous?.intent);
 
+    // Crisis and abuse/harassment always keep the exact canned safety replies -
+    // the model never improvises safety messages. Everything else gets a
+    // natural reply generated from the conversation + the intent's official
+    // answers, falling back to the canned reply if generation fails (free-tier
+    // 429/503, timeouts, missing config).
+    let assistantText = reply.response;
+    if (reply.intent !== "crisis" && reply.intent !== "abuse_harassment") {
+      try {
+        assistantText = await getAiReply({
+          history,
+          message: formData.content,
+          grounding: reply.intent === "fallback"
+            ? { label: null, responses: [] }
+            : { label: reply.label, responses: reply.responses },
+          language: reply.language,
+        });
+      } catch (error) {
+        console.error("[student] AI reply generation failed, using canned reply:", error);
+      }
+    }
+
     const assistantMessage = await db.aiMessage.create({
-      data: { conversationId: formData.conversationId, role: "assistant", content: reply.response, intent: reply.intent },
+      data: { conversationId: formData.conversationId, role: "assistant", content: assistantText, intent: reply.intent },
     });
 
     // A crisis message alerts the Guidance Associate right away, in E-Gabay and by

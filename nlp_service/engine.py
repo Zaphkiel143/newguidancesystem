@@ -59,8 +59,14 @@ class Engine:
         return tag, float(conf), [(t, float(p)) for t, p in ranked]
 
     def _pick(self, intent, language):
-        pool = intent.get(f"responses_{language}") or intent.get("responses_en") or []
+        pool = self._pool(intent, language)
         return random.choice(pool) if pool else ""
+
+    def _pool(self, intent, language):
+        return intent.get(f"responses_{language}") or intent.get("responses_en") or []
+
+    def _label(self, intent, language):
+        return intent.get(f"label_{language}") or intent.get("label_en")
 
     def _suggestions(self, ranked, language):
         out = []
@@ -78,7 +84,12 @@ class Engine:
         return out
 
     def reply(self, message, context=None):
-        """context is the intent of E-Gabay's previous reply, if any."""
+        """context is the intent of E-Gabay's previous reply, if any.
+
+        The reply also carries the matched intent's label and official answer
+        pool so the app can ground AI-generated replies (lib/ai.ts) on the
+        guidance office's real information.
+        """
         message = message.strip()
         language = detect_language(message)
         tag, conf, ranked = self.classify(message)
@@ -87,10 +98,17 @@ class Engine:
         if tag in ("affirm", "deny") and context in self.intents:
             target = self.intents[context].get("followups", {}).get(tag)
             if target in self.intents:
+                target_intent = self.intents[target]
                 return {"intent": target, "confidence": conf, "language": language,
-                        "response": self._pick(self.intents[target], language), "suggestions": []}
+                        "label": self._label(target_intent, language),
+                        "response": self._pick(target_intent, language),
+                        "responses": self._pool(target_intent, language),
+                        "suggestions": []}
 
         intent = self.intents.get(tag) or self.intents["fallback"]
         suggestions = self._suggestions(ranked, language) if tag == "fallback" else []
         return {"intent": tag, "confidence": conf, "language": language,
-                "response": self._pick(intent, language), "suggestions": suggestions}
+                "label": self._label(intent, language),
+                "response": self._pick(intent, language),
+                "responses": self._pool(intent, language),
+                "suggestions": suggestions}
