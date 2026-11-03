@@ -15,6 +15,8 @@ CRISIS_KEYWORDS_EN = [
     "self-harm", "cutting myself", "want to die", "don't want to live",
     "not want to live", "don't want to be alive",
     "dont want to live", "dont want to be alive", "end it all", "giving up on life",
+    "wish i was dead", "wish i were dead", "better off dead", "take my own life",
+    "suicidal", "want to disappear", "no reason to live",
 ]
 CRISIS_KEYWORDS_TL = [
     "magpakamatay", "papatayin ko na lang sarili", "papatayin ko sarili",
@@ -22,6 +24,8 @@ CRISIS_KEYWORDS_TL = [
     "ayoko nang mabuhay", "gusto ko nang mamatay", "gusto kong mamatay",
     "wala nang saysay ang buhay", "gusto ko na mawala", "gusto ko nang mawala",
     "ayoko na sa buhay", "gusto ko na mamatay",
+    "magpapakamatay", "nagpapakamatay", "patay na lang ako", "mamatay na lang ako",
+    "tapusin ang buhay ko", "tatapusin ko na buhay ko", "wawakasan ko na",
 ]
 CRISIS_KEYWORDS = CRISIS_KEYWORDS_EN + CRISIS_KEYWORDS_TL
 

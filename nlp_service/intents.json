@@ -25,7 +25,6 @@
         "kumusta",
         "kamusta",
         "musta",
-        "kumusta ka",
         "hoy",
         "hi po",
         "magandang umaga",
@@ -82,6 +81,10 @@
     {
       "tag": "thanks",
       "patterns_en": [
+        "ty",
+        "tysm",
+        "thank u",
+        "thx",
         "thanks",
         "thank you",
         "that helps",
@@ -91,6 +94,8 @@
         "that was helpful"
       ],
       "patterns_tl": [
+        "salamuch",
+        "maraming salamat po",
         "salamat",
         "maraming salamat",
         "salamat po",
@@ -112,6 +117,8 @@
     {
       "tag": "exam_stress",
       "patterns_en": [
+        "i have a quiz tomorrow and haven't studied",
+        "i'm scared of failing my exams",
         "i'm stressed about exams",
         "i have a test coming up and i'm scared",
         "i'm anxious about my exams",
@@ -145,6 +152,9 @@
         "i'm panicking about my quiz"
       ],
       "patterns_tl": [
+        "quiz bukas wala pa akong review",
+        "di pa ako nakakapag-review",
+        "may long test bukas kinakabahan ako",
         "kinakabahan ako sa exam",
         "stress na stress ako sa exam",
         "takot ako baka bumagsak ako",
@@ -250,6 +260,9 @@
     {
       "tag": "time_management",
       "patterns_en": [
+        "i always procrastinate",
+        "i keep putting off my work",
+        "i'm always cramming",
         "i can't manage my time",
         "i have too much homework",
         "i'm overwhelmed with school work",
@@ -301,6 +314,9 @@
         "i'm always behind on schoolwork"
       ],
       "patterns_tl": [
+        "lagi akong nagcra-cram",
+        "tamad ako gumawa ng assignments",
+        "puro ako procrastinate",
         "ang dami kong gawain hindi ko kaya",
         "hirap ako mag-manage ng oras",
         "sobrang dami kong homework",
@@ -340,6 +356,7 @@
     {
       "tag": "bullying",
       "patterns_en": [
+        "people tease me every day",
         "someone is bullying me",
         "i'm being bullied at school",
         "classmates are picking on me",
@@ -357,6 +374,8 @@
         "someone threatened me"
       ],
       "patterns_tl": [
+        "inaasar ako araw-araw",
+        "lagi akong inaasar ng mga kaklase ko",
         "may nambubully sa akin",
         "binu-bully ako sa school",
         "pinagtatawanan ako ng mga kaklase ko",
@@ -390,6 +409,9 @@
     {
       "tag": "family_problems",
       "patterns_en": [
+        "my parents fight every night",
+        "my parents are always arguing",
+        "there's always yelling at home",
         "my parents are fighting a lot",
         "things are hard at home",
         "my family doesn't understand me",
@@ -412,6 +434,7 @@
         "my mom is always mad at me"
       ],
       "patterns_tl": [
+        "maingay lagi sa bahay kasi nag-aaway sila",
         "lagi nag-aaway magulang ko",
         "hirap sa bahay ngayon",
         "hindi ako naiintindihan ng pamilya ko",
@@ -446,6 +469,11 @@
     {
       "tag": "friendship_issues",
       "patterns_en": [
+        "my best friend stopped talking to me",
+        "i got left out by my group",
+        "my friends left me out",
+        "my friend is mad at me",
+        "my friends ghosted me",
         "i had a fight with my friend",
         "my friends are ignoring me",
         "i feel lonely at school",
@@ -492,6 +520,14 @@
         "If the conflict is already intense, I would ask the guidance for a little help bago pa maging physical ang conflict."
       ],
       "patterns_tl": [
+        "nagtampo yung bestfriend ko",
+        "iniwan ako ng tropa ko",
+        "galit sa akin yung kaibigan ko",
+        "di na ako kinakausap ng bestfriend ko",
+        "inaway ako ng barkada ko",
+        "may problema ako sa mga kaibigan ko",
+        "may problema ako sa kaibigan ko",
+        "nag-away kami ng mga kaibigan ko",
         "nag-away kami ng friend ko",
         "iniiwasan ako ng mga kaibigan ko",
         "nalulungkot ako sa school",
@@ -632,6 +668,11 @@
     {
       "tag": "crisis",
       "patterns_en": [
+        "i wish i could just die",
+        "everyone would be better without me",
+        "i'm done with life",
+        "i want to sleep and never wake up",
+        "i don't see the point of living",
         "i want to hurt myself",
         "i don't want to live anymore",
         "i want to kill myself",
@@ -646,6 +687,10 @@
         "i dont want to be alive anymore"
       ],
       "patterns_tl": [
+        "sana mawala na lang ako",
+        "pagod na akong mabuhay",
+        "wala nang kwenta ang buhay ko",
+        "mas mabuti pa kung wala na ako",
         "gusto kong magpakamatay",
         "ayoko na mabuhay",
         "gusto kong saktan ang sarili ko",
@@ -721,6 +766,8 @@
     {
       "tag": "walk_in",
       "patterns_en": [
+        "do i need to schedule first or can i just drop by",
+        "is walk-in allowed",
         "can i walk in for consultation",
         "can i just go to the guidance office without an appointment",
         "do i need an appointment to visit the guidance office",
@@ -732,6 +779,8 @@
         "Hi, good morning/afternoon po! Is there a counselor available right now?"
       ],
       "patterns_tl": [
+        "pwede ba dumaan na lang sa guidance",
+        "kailangan pa ba ng appointment o pwede na pumunta",
         "pwede ba mag walk in",
         "pwede ba pumunta sa guidance kahit walang appointment",
         "kailangan ba ng appointment bago pumunta sa guidance",
@@ -835,6 +884,10 @@
     {
       "tag": "worried_about_someone",
       "patterns_en": [
+        "my friend wants to die",
+        "my classmate talks about suicide",
+        "my friend is cutting herself",
+        "my friend said he wants to end his life",
         "i'm worried about a classmate's well-being what can i do",
         "i'm worried about my classmate",
         "i'm worried about a schoolmate",
@@ -853,6 +906,9 @@
         "i'm concerned about my friend's behavior"
       ],
       "patterns_tl": [
+        "gusto nang mamatay ng kaibigan ko",
+        "sinasaktan ng kaibigan ko ang sarili niya",
+        "sabi ng kaklase ko ayaw na niyang mabuhay",
         "nag-aalala ako sa kaklase ko",
         "nag-aalala ako sa kaibigan ko ano gagawin ko",
         "paano ko matutulungan ang kaklase ko",
@@ -959,6 +1015,8 @@
     {
       "tag": "cancel_reschedule",
       "patterns_en": [
+        "cancel my appointment",
+        "please cancel my booking",
         "can i cancel my appointment",
         "how do i reschedule my consultation",
         "i cant attend my appointment",
@@ -970,6 +1028,7 @@
         "what if i miss my appointment"
       ],
       "patterns_tl": [
+        "pa-cancel po ng appointment ko",
         "pwede ba i-cancel ang appointment ko",
         "paano mag reschedule",
         "hindi ako makakapunta sa appointment ko",
@@ -1093,6 +1152,12 @@
     {
       "tag": "referral_process",
       "patterns_en": [
+        "how do i refer a classmate to guidance",
+        "can i refer my friend to the counselor",
+        "how to refer a student",
+        "i want to refer my classmate",
+        "can a student refer another student",
+        "refer a friend to guidance",
         "what happens after someone refers a student",
         "what is the referral process",
         "how does a referral work",
@@ -1104,6 +1169,13 @@
         "how are referrals handled"
       ],
       "patterns_tl": [
+        "paano po magrefer ng kaklase",
+        "pano mag-refer ng kaibigan sa guidance",
+        "gusto ko i-refer ang kaklase ko",
+        "pwede ko bang i-refer ang kaibigan ko",
+        "paano mag-refer ng estudyante",
+        "paano ako magre-refer ng estudyante sa guidance",
+        "paano i-refer ang isang estudyante",
         "ano mangyayari pagkatapos ma-refer",
         "paano ang proseso ng referral",
         "na-refer ako sa guidance ano susunod",
@@ -1127,6 +1199,8 @@
     {
       "tag": "document_requirements",
       "patterns_en": [
+        "what papers do i need to bring",
+        "what documents should i prepare",
         "what documents does the gco accept",
         "what do i need for a medical certificate",
         "requirements for the gender affirming clothing form",
@@ -1139,6 +1213,12 @@
         "Asking for request forms"
       ],
       "patterns_tl": [
+        "anong papel ang dadalhin ko",
+        "ano ang dapat kong dalhin na papeles",
+        "anong requirements ang ipapasa",
+        "anong dokumento ang kailangan",
+        "anong mga dokumento ang kailangan ko",
+        "ano ang mga requirements na dokumento",
         "anong documents tinatanggap ng gco",
         "ano kailangan sa medical certificate",
         "requirements ng gender affirming clothing form",
@@ -1239,6 +1319,9 @@
     {
       "tag": "parent_contact",
       "patterns_en": [
+        "can parents set an appointment",
+        "can my parent book a session",
+        "how can a parent talk to the counselor",
         "can parents talk to the guidance office",
         "how can i as a parent contact the gco",
         "i am a parent and worried about my child",
@@ -1255,6 +1338,8 @@
         "how can my guardian talk to the guidance office"
       ],
       "patterns_tl": [
+        "pwede ba mag-appointment ang magulang",
+        "paano makakausap ng magulang ang guidance",
         "pwede ba kausapin ng magulang ang guidance",
         "paano makakausap ng parent ang gco",
         "magulang ako at nag aalala sa anak ko",
@@ -1307,6 +1392,11 @@
     {
       "tag": "urgent_after_hours",
       "patterns_en": [
+        "i need to talk to someone tonight",
+        "i need help tonight",
+        "it's midnight and i need someone to talk to",
+        "i need help but it's the weekend",
+        "who can i call at night",
         "i need help but the office is closed",
         "who can i talk to after office hours",
         "it is the weekend and i need help urgently",
@@ -1326,6 +1416,8 @@
         "who can i talk to at night"
       ],
       "patterns_tl": [
+        "gabi na at kailangan ko ng kausap",
+        "weekend ngayon sino pwede kausapin",
         "kailangan ko ng tulong pero sarado ang office",
         "sino pwede kausapin pag gabi na",
         "weekend ngayon at kailangan ko ng tulong",
@@ -1355,6 +1447,8 @@
     {
       "tag": "services_offered",
       "patterns_en": [
+        "what help can i get from guidance",
+        "what programs does the gco have",
         "what services does the gco offer",
         "what services does the guidance office provide",
         "what can the guidance office do for me",
@@ -1411,6 +1505,9 @@
         "do students pay for counseling"
       ],
       "patterns_tl": [
+        "anong tulong ang meron sa guidance office",
+        "ano ang ginagawa ng guidance",
+        "anong mga serbisyo ang meron",
         "ano po ang mga serbisyo ng guidance office",
         "paano po kayo makakatulong sa mga estudyante",
         "ano po ginagawa nyo dito sa guidance",
@@ -1437,6 +1534,8 @@
     {
       "tag": "seek_help",
       "patterns_en": [
+        "can you give me advice",
+        "i need someone to listen",
         "i need help",
         "can i ask for advice",
         "i need someone to talk to",
@@ -1483,6 +1582,10 @@
         "can you help me with something"
       ],
       "patterns_tl": [
+        "pwede ba humingi ng payo",
+        "kailangan ko ng payo",
+        "patulong naman",
+        "may gusto lang akong ikwento",
         "kailangan ko ng tulong",
         "pwede po ba humingi ng advice",
         "may itatanong lang po ako",
@@ -1518,6 +1621,8 @@
     {
       "tag": "attendance_concern",
       "patterns_en": [
+        "i'm always late for my first class",
+        "i keep missing class",
         "i'm always absent",
         "i keep being late to class",
         "i have too many absences",
@@ -1535,6 +1640,10 @@
         "i was absent and missed my exam"
       ],
       "patterns_tl": [
+        "late ako palagi sa first subject",
+        "lagi akong late",
+        "palagi akong absent",
+        "na-late na naman ako",
         "lagi akong absent",
         "lagi akong late sa klase",
         "ang dami ko nang absent",
@@ -1566,6 +1675,9 @@
     {
       "tag": "financial_concern",
       "patterns_en": [
+        "my family is struggling financially",
+        "we're having money problems",
+        "my parents lost their jobs and can't pay my tuition",
         "i can't afford my tuition",
         "we don't have money for school",
         "are there scholarships available",
@@ -1582,6 +1694,9 @@
         "i don't have money for my allowance"
       ],
       "patterns_tl": [
+        "gipit kami ngayon",
+        "walang trabaho magulang ko pang-tuition",
+        "hirap kami sa pera",
         "wala kaming pambayad",
         "hindi ko na kaya bayaran ang tuition",
         "may scholarship ba",
@@ -1663,6 +1778,9 @@
     {
       "tag": "loneliness",
       "patterns_en": [
+        "nobody wants to be my friend",
+        "no one talks to me at school",
+        "i feel invisible in class",
         "i feel lonely",
         "i have no friends",
         "i'm always alone",
@@ -1679,6 +1797,8 @@
         "i feel isolated"
       ],
       "patterns_tl": [
+        "walang gustong makipagkaibigan sa akin",
+        "walang pumapansin sa akin",
         "nag-iisa ako",
         "wala akong kaibigan dito",
         "pakiramdam ko walang may pake sa akin",
@@ -1709,6 +1829,7 @@
     {
       "tag": "sleep_problems",
       "patterns_en": [
+        "i sleep really late every night",
         "i can't sleep",
         "i have insomnia",
         "i stay up all night",
@@ -1723,6 +1844,10 @@
         "i sleep at 4am every night"
       ],
       "patterns_tl": [
+        "hirap akong matulog",
+        "hirap matulog",
+        "di ako makatulog sa gabi",
+        "puyat lagi",
         "hindi ako makatulog sa gabi",
         "puyat ako palagi",
         "kulang ako sa tulog",
@@ -1801,6 +1926,9 @@
     {
       "tag": "grief_loss",
       "patterns_en": [
+        "i lost my best friend to an accident",
+        "my friend died",
+        "someone close to me passed away",
         "my father passed away",
         "my mom died",
         "someone in my family died",
@@ -1819,6 +1947,7 @@
         "how do i cope with losing someone"
       ],
       "patterns_tl": [
+        "namatay yung kaibigan ko",
         "namatay ang tatay ko",
         "pumanaw ang lola ko",
         "may namatay sa pamilya namin",
@@ -1850,6 +1979,11 @@
     {
       "tag": "abuse_harassment",
       "patterns_en": [
+        "my uncle hurts me at home",
+        "my stepdad hits me",
+        "a family member is hurting me",
+        "someone at home is abusing me",
+        "my relative touches me and i don't like it",
         "someone touched me inappropriately",
         "i was sexually harassed",
         "my teacher is harassing me",
@@ -1867,6 +2001,10 @@
         "i'm being stalked"
       ],
       "patterns_tl": [
+        "sinasaktan ako ng tito ko",
+        "binubugbog ako sa bahay",
+        "hinihipuan ako ng kamag-anak ko",
+        "may nananakit sa akin sa bahay",
         "may humawak sa akin nang hindi tama",
         "hinarass ako",
         "binabastos ako ng teacher ko",
@@ -1983,6 +2121,10 @@
     {
       "tag": "gender_identity",
       "patterns_en": [
+        "i'm attracted to the same sex",
+        "i'm not sure if i'm straight",
+        "i feel like i was born in the wrong body",
+        "i'm gay but my family doesn't know",
         "i'm confused about my sexuality",
         "i think i'm gay",
         "i'm bisexual and scared to come out",
@@ -1998,6 +2140,12 @@
         "my parents don't accept that i'm gay"
       ],
       "patterns_tl": [
+        "bisexual ako",
+        "nagkakagusto ako sa kapwa ko babae",
+        "nagkakagusto ako sa kapwa ko lalaki",
+        "bakla ako pero di alam ng family ko",
+        "hindi ko alam kung bakla ako",
+        "di ko alam kung paano mag-come out",
         "nalilito ako sa sexuality ko",
         "bakla ako at natatakot ako",
         "tomboy ako at hindi ako tanggap",
@@ -2071,6 +2219,9 @@
     {
       "tag": "peer_pressure",
       "patterns_en": [
+        "they said i'm kj if i don't join",
+        "my friends call me kj",
+        "they pressure me to join them",
         "my friends pressure me to drink",
         "my barkada wants me to cut class",
         "i feel pressured to do things i don't want",
@@ -2083,6 +2234,8 @@
         "i only do it so they'll like me"
       ],
       "patterns_tl": [
+        "kj daw ako pag di ako sumama",
+        "pinipilit nila ako sumama",
         "pinipilit ako ng barkada kong uminom",
         "pinapa-cutting ako ng mga kaibigan ko",
         "napipilitan akong sumama",
@@ -2110,6 +2263,9 @@
     {
       "tag": "feeling_happy",
       "patterns_en": [
+        "i passed my exam!",
+        "i got a high grade",
+        "something good happened today",
         "i'm happy",
         "i'm so happy today",
         "i feel great",
@@ -2131,6 +2287,9 @@
         "i'm so glad today"
       ],
       "patterns_tl": [
+        "pumasa ako",
+        "ang taas ng grade ko",
+        "good vibes ako ngayon",
         "masaya ako",
         "ang saya ko ngayon",
         "masaya ako today",
@@ -2222,6 +2381,8 @@
     {
       "tag": "feeling_anxious",
       "patterns_en": [
+        "i'm always scared for no reason",
+        "i feel uneasy all the time",
         "i feel anxious",
         "i'm anxious all the time",
         "i'm so nervous",
@@ -2242,6 +2403,12 @@
         "i get panic attacks"
       ],
       "patterns_tl": [
+        "takot ako palagi kahit walang dahilan",
+        "di ako mapakali",
+        "lagi akong nag-aalala",
+        "nababalisa ako",
+        "sobrang nababalisa ako",
+        "balisa ako ngayon",
         "kinakabahan ako palagi",
         "hindi ako mapakali",
         "overthinking ako",
@@ -2272,6 +2439,9 @@
     {
       "tag": "feeling_angry",
       "patterns_en": [
+        "everything is annoying me",
+        "i'm so irritated",
+        "i want to punch something",
         "i'm so angry",
         "i'm really mad",
         "i'm frustrated",
@@ -2286,6 +2456,8 @@
         "i'm frustrated with school"
       ],
       "patterns_tl": [
+        "naiinis ako sa lahat",
+        "asar na asar ako",
         "galit ako",
         "naiinis ako",
         "inis na inis ako",
@@ -2372,6 +2544,7 @@
     {
       "tag": "bot_identity",
       "patterns_en": [
+        "what's your name",
         "what are you",
         "are you human",
         "are you a bot",
@@ -2381,6 +2554,9 @@
         "who made you"
       ],
       "patterns_tl": [
+        "sino ka",
+        "sino ka ba",
+        "ano pangalan mo",
         "ano ka",
         "tao ka ba",
         "robot ka ba",
@@ -2398,14 +2574,20 @@
     {
       "tag": "bot_capabilities",
       "patterns_en": [
+        "what kind of questions can i ask you",
+        "what can i ask you",
+        "what can you help me with",
         "how can you help me",
         "what do you know",
         "what are you for",
-        "help",
-        "what topics can you answer",
-        "can you help me"
+        "what topics can you answer"
       ],
       "patterns_tl": [
+        "anong pwede kong itanong sayo",
+        "saan mo ako matutulungan",
+        "ano ang kaya mong gawin",
+        "ano ang mga kaya mong gawin",
+        "anong kaya mong itulong",
         "ano pwede kong itanong",
         "paano mo ako matutulungan",
         "ano alam mo",
@@ -2457,14 +2639,18 @@
     {
       "tag": "deny",
       "patterns_en": [
+        "no thanks",
+        "nope",
+        "no thank you",
+        "not now",
         "no",
         "maybe later",
-        "i'm good",
         "no need",
         "not really",
         "nah"
       ],
       "patterns_tl": [
+        "hindi muna",
         "hindi",
         "hindi po",
         "ayoko",
@@ -2504,6 +2690,8 @@
     {
       "tag": "out_of_scope",
       "patterns_en": [
+        "tell me a joke",
+        "what's the capital of japan",
         "what's the weather today",
         "will it rain tomorrow",
         "who won the basketball game",
@@ -2535,6 +2723,9 @@
         "how do i fix my computer"
       ],
       "patterns_tl": [
+        "ano ang capital ng japan",
+        "magbiro ka nga",
+        "sagutan mo assignment ko",
         "anong panahon ngayon",
         "uulan ba bukas",
         "sino nanalo sa laro",
