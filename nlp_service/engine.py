@@ -1,6 +1,7 @@
 """Classifies a message and picks E-Gabay's reply. Shared by app.py and evaluate.py."""
 
 import random
+import re
 
 from lang import detect_language
 
@@ -17,6 +18,12 @@ CRISIS_KEYWORDS_EN = [
     "dont want to live", "dont want to be alive", "end it all", "giving up on life",
     "wish i was dead", "wish i were dead", "better off dead", "take my own life",
     "suicidal", "want to disappear", "no reason to live",
+    "unalive", "jump off the building", "jump off a building", "jump off the roof",
+    "jump off a bridge", "overdose", "took a lot of pills", "take all my pills",
+    "my last message", "goodbye forever", "end things", "never wake up",
+    "better off without me", "miss me if i was gone", "miss me if i'm gone",
+    "slit my wrist", "plan to die", "goodbye letter", "suicide note",
+    "happier if i'm gone", "happier without me", "better without me",
 ]
 CRISIS_KEYWORDS_TL = [
     "magpakamatay", "papatayin ko na lang sarili", "papatayin ko sarili",
@@ -26,8 +33,15 @@ CRISIS_KEYWORDS_TL = [
     "ayoko na sa buhay", "gusto ko na mamatay",
     "magpapakamatay", "nagpapakamatay", "patay na lang ako", "mamatay na lang ako",
     "tapusin ang buhay ko", "tatapusin ko na buhay ko", "wawakasan ko na",
+    "laslas", "tatalon na ako", "tatalon sa building", "tatalon sa tulay",
+    "iinom ako ng maraming gamot", "uminom ako ng maraming gamot",
+    "sana di na ako nagising", "sana hindi na ako nagising", "sana di na ako magising",
+    "sana hindi na ako magising", "pagod na akong mabuhay", "pagod na ako mabuhay",
+    "wala nang silbi buhay ko", "wala nang silbi ang buhay ko", "huling mensahe ko",
 ]
 CRISIS_KEYWORDS = CRISIS_KEYWORDS_EN + CRISIS_KEYWORDS_TL
+# Short slang matched as whole words only, so "kms" doesn't fire inside other words
+CRISIS_WORDS = {"kms", "kys"}
 
 # Clear signs of abuse or harassment always get the safety reply (911, 1553, tell the GCO)
 ABUSE_KEYWORDS = [
@@ -35,6 +49,9 @@ ABUSE_KEYWORDS = [
     "touched me without", "abusing me", "abused me", "hits me at home", "beats me", "beating me",
     "hinipuan", "minolestya", "ginahasa", "binastos ako", "binabastos ako", "pinagbubuhatan", "binubugbog ako",
     "hinarass", "hina-harass", "nangha-harass",
+    "pinapalo ako", "sinasampal ako", "blackmail", "sextortion", "nudes ko",
+    "ginagalaw ako", "hinahawakan ako", "slaps me", "slapping me", "groping me",
+    "groped me", "gropes me",
 ]
 
 
@@ -51,7 +68,8 @@ class Engine:
 
     def classify(self, message):
         """Returns (tag, confidence, ranked [(tag, prob), ...])."""
-        if any(k in message.lower() for k in CRISIS_KEYWORDS):
+        words = set(re.findall(r"[a-z]+", message.lower()))
+        if any(k in message.lower() for k in CRISIS_KEYWORDS) or words & CRISIS_WORDS:
             return "crisis", 1.0, [("crisis", 1.0)]
         if "abuse_harassment" in self.intents and any(k in message.lower() for k in ABUSE_KEYWORDS):
             return "abuse_harassment", 1.0, [("abuse_harassment", 1.0)]

@@ -3,6 +3,12 @@
     {
       "tag": "greeting",
       "patterns_en": [
+        "helo",
+        "hiiii",
+        "hii",
+        "heyy",
+        "test",
+        "testing",
         "hi",
         "hello",
         "hey",
@@ -22,6 +28,7 @@
         "Goodmorning/Goodevening"
       ],
       "patterns_tl": [
+        "testing lang",
         "kumusta",
         "kamusta",
         "musta",
@@ -81,6 +88,9 @@
     {
       "tag": "thanks",
       "patterns_en": [
+        "tnx",
+        "thnx",
+        "thank youuu",
         "ty",
         "tysm",
         "thank u",
@@ -117,6 +127,11 @@
     {
       "tag": "exam_stress",
       "patterns_en": [
+        "stressed about finals",
+        "stressed for my exams",
+        "i'm stressed because of exams",
+        "midterms are stressing me out",
+        "stressed about my quiz",
         "i have a quiz tomorrow and haven't studied",
         "i'm scared of failing my exams",
         "i'm stressed about exams",
@@ -152,6 +167,11 @@
         "i'm panicking about my quiz"
       ],
       "patterns_tl": [
+        "stress ako sa exam",
+        "stress ako sa finals",
+        "nai-stress ako sa exams",
+        "stress sa midterms",
+        "stress ako sa quiz bukas",
         "quiz bukas wala pa akong review",
         "di pa ako nakakapag-review",
         "may long test bukas kinakabahan ako",
@@ -260,6 +280,10 @@
     {
       "tag": "time_management",
       "patterns_en": [
+        "this homework is killing me",
+        "my assignments are killing me",
+        "stressed with too many deadlines",
+        "stressed because of all my requirements",
         "i always procrastinate",
         "i keep putting off my work",
         "i'm always cramming",
@@ -314,6 +338,10 @@
         "i'm always behind on schoolwork"
       ],
       "patterns_tl": [
+        "pinapatay ako ng assignments",
+        "stress ako sa dami ng gawain",
+        "stress sa dami ng requirements",
+        "stress ako sa deadlines",
         "lagi akong nagcra-cram",
         "tamad ako gumawa ng assignments",
         "puro ako procrastinate",
@@ -434,6 +462,9 @@
         "my mom is always mad at me"
       ],
       "patterns_tl": [
+        "patay ako kay mama",
+        "lagot ako kay mama",
+        "papagalitan ako ni papa",
         "maingay lagi sa bahay kasi nag-aaway sila",
         "lagi nag-aaway magulang ko",
         "hirap sa bahay ngayon",
@@ -667,6 +698,7 @@
     },
     {
       "tag": "crisis",
+      "followups": {"affirm": "seek_help", "deny": "support_continue"},
       "patterns_en": [
         "i wish i could just die",
         "everyone would be better without me",
@@ -884,6 +916,16 @@
     {
       "tag": "worried_about_someone",
       "patterns_en": [
+        "my cousin cuts himself",
+        "my brother cuts himself",
+        "my friend keeps saying she wants to disappear",
+        "my friend says he wants to disappear",
+        "my friend is stressed about exams",
+        "my friend is really stressed",
+        "my sister cuts herself",
+        "my friend cuts herself",
+        "my friend posted a goodbye message",
+        "my friend posted something about ending it",
         "my friend wants to die",
         "my classmate talks about suicide",
         "my friend is cutting herself",
@@ -906,6 +948,10 @@
         "i'm concerned about my friend's behavior"
       ],
       "patterns_tl": [
+        "sinasaktan ng pinsan ko ang sarili niya",
+        "stressed yung kaibigan ko",
+        "naglalaslas yung kaibigan ko",
+        "nag-post ng goodbye yung kaibigan ko",
         "gusto nang mamatay ng kaibigan ko",
         "sinasaktan ng kaibigan ko ang sarili niya",
         "sabi ng kaklase ko ayaw na niyang mabuhay",
@@ -1052,6 +1098,8 @@
     {
       "tag": "confidentiality",
       "patterns_en": [
+        "can my parents see my records",
+        "will my parents see my records",
         "is my session confidential",
         "will you tell my parents what i say",
         "is counseling private",
@@ -1121,6 +1169,7 @@
         "do parents get told about counseling visits"
       ],
       "patterns_tl": [
+        "makikita ba ng magulang ko ang record ko",
         "confidential ba ang session",
         "sasabihin nyo ba sa magulang ko",
         "private ba ang counseling",
@@ -1675,6 +1724,8 @@
     {
       "tag": "financial_concern",
       "patterns_en": [
+        "my mom is stressed about money",
+        "my parents are worried about money",
         "my family is struggling financially",
         "we're having money problems",
         "my parents lost their jobs and can't pay my tuition",
@@ -1694,6 +1745,7 @@
         "i don't have money for my allowance"
       ],
       "patterns_tl": [
+        "nag-aalala si mama sa pera",
         "gipit kami ngayon",
         "walang trabaho magulang ko pang-tuition",
         "hirap kami sa pera",
@@ -1728,6 +1780,8 @@
     {
       "tag": "other_offices",
       "patterns_en": [
+        "when is the exam schedule",
+        "where can i see the exam schedule",
         "how do i see my grades",
         "where can i check my grades",
         "when is enrollment",
@@ -1750,6 +1804,8 @@
         "how do i get a good moral certificate"
       ],
       "patterns_tl": [
+        "kailan ang exam",
+        "saan makikita ang exam schedule",
         "paano makita ang grades ko",
         "kailan ang enrollment",
         "paano mag-enroll",
@@ -1979,6 +2035,7 @@
     {
       "tag": "abuse_harassment",
       "patterns_en": [
+        "my boyfriend forces me to do things",
         "my uncle hurts me at home",
         "my stepdad hits me",
         "a family member is hurting me",
@@ -2001,6 +2058,8 @@
         "i'm being stalked"
       ],
       "patterns_tl": [
+        "pinipilit ako ng boyfriend ko sa mga bagay na ayaw ko",
+        "tinatakot akong ikakalat ang pictures ko",
         "sinasaktan ako ng tito ko",
         "binubugbog ako sa bahay",
         "hinihipuan ako ng kamag-anak ko",
@@ -2263,6 +2322,10 @@
     {
       "tag": "feeling_happy",
       "patterns_en": [
+        "i finished my thesis defense",
+        "we passed our defense",
+        "i killed it in my presentation",
+        "i nailed my presentation",
         "i passed my exam!",
         "i got a high grade",
         "something good happened today",
@@ -2287,6 +2350,8 @@
         "i'm so glad today"
       ],
       "patterns_tl": [
+        "tapos na defense namin",
+        "pumasa kami sa defense",
         "pumasa ako",
         "ang taas ng grade ko",
         "good vibes ako ngayon",
@@ -2321,6 +2386,14 @@
     {
       "tag": "feeling_sad",
       "patterns_en": [
+        "tired",
+        "i'm so tired",
+        "i'm exhausted",
+        "burned out",
+        "i'm burnt out",
+        "dead tired",
+        "i can't do this anymore",
+        "thanks but i'm still sad",
         "i feel sad",
         "i'm so sad today",
         "i feel down",
@@ -2346,6 +2419,11 @@
         "i'm always tired and nothing feels good"
       ],
       "patterns_tl": [
+        "pagod na pagod ako",
+        "burnout na ako",
+        "di ko na kaya",
+        "hindi ko na kaya",
+        "salamat pero malungkot pa rin ako",
         "nalulungkot ako",
         "sobrang lungkot ko",
         "umiiyak ako",
@@ -2381,6 +2459,16 @@
     {
       "tag": "feeling_anxious",
       "patterns_en": [
+        "i'm stressed",
+        "i am stressed",
+        "stressed",
+        "so stressed",
+        "i'm so stressed out",
+        "i feel stressed",
+        "i feel overwhelmed",
+        "i'm overwhelmed",
+        "everything is stressing me out",
+        "i'm under a lot of stress",
         "i'm always scared for no reason",
         "i feel uneasy all the time",
         "i feel anxious",
@@ -2403,6 +2491,15 @@
         "i get panic attacks"
       ],
       "patterns_tl": [
+        "stress ako",
+        "stressed ako",
+        "sobrang stress ko",
+        "stress na stress ako",
+        "na-stress ako",
+        "nai-stress ako",
+        "overwhelmed ako",
+        "ang daming stress",
+        "sobrang stressed ko ngayon",
         "takot ako palagi kahit walang dahilan",
         "di ako mapakali",
         "lagi akong nag-aalala",
@@ -2690,6 +2787,10 @@
     {
       "tag": "out_of_scope",
       "patterns_en": [
+        "my phone died",
+        "pretend you're my girlfriend",
+        "be my girlfriend",
+        "be my boyfriend",
         "tell me a joke",
         "what's the capital of japan",
         "what's the weather today",
@@ -2723,6 +2824,9 @@
         "how do i fix my computer"
       ],
       "patterns_tl": [
+        "namatay phone ko",
+        "lowbat na phone ko",
+        "jowain mo ako",
         "ano ang capital ng japan",
         "magbiro ka nga",
         "sagutan mo assignment ko",
