@@ -262,6 +262,7 @@ export async function saveAppointmentDetails(formData: {
 
     if (formData.appointmentId) {
       const before = await db.appointment.findUnique({ where: { id: formData.appointmentId } });
+      const moved = before && (before.date.getTime() !== targetDate.getTime() || before.time !== formData.timeSlot);
       try {
         const after = await db.appointment.update({
           where: { id: formData.appointmentId },
@@ -271,10 +272,12 @@ export async function saveAppointmentDetails(formData: {
             appointmentType: formData.appointmentType || null,
             notes: formData.notes || null,
             requirements: formData.requirements,
+            // Snapshot the first-ever booked slot only, so a second
+            // reschedule doesn't overwrite what "originally" means.
+            ...(moved && !before?.rescheduled ? { rescheduled: true, originalDate: before!.date, originalTime: before!.time } : {}),
           },
         });
 
-        const moved = before && (before.date.getTime() !== after.date.getTime() || before.time !== after.time);
         if (moved) {
           await notifyBooker(
             after,
@@ -1039,6 +1042,7 @@ export async function saveEvent(formData: {
   title: string;
   description: string;
   dateString: string;
+  endDateString?: string;
   time: string;
   location: string;
 }) {
@@ -1047,10 +1051,15 @@ export async function saveEvent(formData: {
     if (!formData.title.trim() || !formData.dateString || !formData.time.trim()) {
       return { success: false, error: "Title, date, and time are required." };
     }
+    const endDateString = formData.endDateString || formData.dateString;
+    if (endDateString < formData.dateString) {
+      return { success: false, error: "The end date can't be before the start date." };
+    }
     const data = {
       title: formData.title.trim(),
       description: formData.description.trim(),
       date: new Date(formData.dateString),
+      endDate: endDateString === formData.dateString ? null : new Date(endDateString),
       time: formData.time.trim(),
       location: formData.location.trim() || null,
     };

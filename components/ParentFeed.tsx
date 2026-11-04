@@ -47,10 +47,15 @@ export default function ParentFeed() {
               <ul className="mt-3 flex gap-3 overflow-x-auto pb-2 -mx-4 px-4 snap-x">
                 {data.events.map((e) => {
                   const d = new Date(e.date);
+                  const end = e.endDate ? new Date(e.endDate) : null;
+                  const isRange = end && end.toISOString().slice(0, 10) !== d.toISOString().slice(0, 10);
                   return (
                     <li key={e.id} className="snap-start shrink-0 w-64 bg-sheet border border-rule rounded-2xl p-4 shadow-sm">
                       <p className="text-[12px] font-semibold text-blue-700">
-                        {d.toLocaleDateString("en-PH", { weekday: "short", month: "short", day: "numeric", timeZone: "UTC" })} · {e.time}
+                        {isRange
+                          ? `${d.toLocaleDateString("en-PH", { month: "short", day: "numeric", timeZone: "UTC" })} – ${end!.toLocaleDateString("en-PH", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" })}`
+                          : d.toLocaleDateString("en-PH", { weekday: "short", month: "short", day: "numeric", timeZone: "UTC" })}{" "}
+                        · {e.time}
                       </p>
                       <h3 className="font-semibold text-ink mt-1 break-words">{e.title}</h3>
                       {e.location && (

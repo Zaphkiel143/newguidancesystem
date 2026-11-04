@@ -92,12 +92,22 @@ const MyAppointments: React.FC = () => {
                 className="bg-white rounded-xl p-5 border border-slate-200/80 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 transition-all hover:border-slate-300"
               >
                 <div className="space-y-1">
-                  <h3 className="font-semibold text-slate-800 text-[16px]">
+                  <h3 className="font-semibold text-slate-800 text-[16px] flex items-center gap-2">
                     {apt.appointmentType || "General Consultation"}
+                    {apt.rescheduled && (
+                      <span className="inline-flex items-center gap-1 bg-blue-50 text-blue-600 border border-blue-200 text-[11px] font-semibold px-2 py-0.5 rounded">
+                        Rescheduled
+                      </span>
+                    )}
                   </h3>
                   <p className="text-sm text-slate-500 font-medium">
                     With: <span className="text-slate-700">Guidance Associate</span>
                   </p>
+                  {apt.rescheduled && apt.originalDate && (
+                    <p className="text-[12px] text-blue-600">
+                      Originally {new Date(apt.originalDate).toLocaleDateString("en-PH", { timeZone: "UTC" })} at {apt.originalTime}
+                    </p>
+                  )}
 
                   {/* Embedded Inline Schedule Stamps */}
                   <div className="flex flex-wrap items-center gap-x-4 gap-y-1 pt-1.5 text-xs text-slate-500 font-medium">

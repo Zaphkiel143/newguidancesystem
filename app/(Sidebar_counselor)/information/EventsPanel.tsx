@@ -6,11 +6,22 @@ import { listEvents, saveEvent, deleteEvent } from '../../action/counselor';
 import InlineError from '../../../components/InlineError';
 import type { Event as DbEvent } from '../../../lib/generated';
 
-const EMPTY = { title: "", description: "", dateString: "", time: "", location: "" };
+const EMPTY = { title: "", description: "", dateString: "", endDateString: "", time: "", location: "" };
 
 // Event dates are calendar days stored as UTC midnight.
 function toDateInput(d: Date) {
   return new Date(d).toISOString().slice(0, 10);
+}
+
+function formatEventDate(ev: DbEvent) {
+  const fmt = (d: Date, opts: Intl.DateTimeFormatOptions) => new Date(d).toLocaleDateString("en-PH", { timeZone: "UTC", ...opts });
+  if (!ev.endDate || toDateInput(ev.endDate) === toDateInput(ev.date)) {
+    return fmt(ev.date, { weekday: "short", month: "short", day: "numeric", year: "numeric" });
+  }
+  const sameYear = new Date(ev.date).getUTCFullYear() === new Date(ev.endDate).getUTCFullYear();
+  const start = fmt(ev.date, { month: "short", day: "numeric", year: sameYear ? undefined : "numeric" });
+  const end = fmt(ev.endDate, { month: "short", day: "numeric", year: "numeric" });
+  return `${start} – ${end}`;
 }
 
 function localToday() {
@@ -44,7 +55,15 @@ export default function EventsPanel({ openForm = 0 }: { openForm?: number }) {
     setShowForm(false);
   };
   const startEdit = (ev: DbEvent) => {
-    setEditing({ id: ev.id, title: ev.title, description: ev.description, dateString: toDateInput(ev.date), time: ev.time, location: ev.location ?? "" });
+    setEditing({
+      id: ev.id,
+      title: ev.title,
+      description: ev.description,
+      dateString: toDateInput(ev.date),
+      endDateString: toDateInput(ev.endDate ?? ev.date),
+      time: ev.time,
+      location: ev.location ?? "",
+    });
     setFormError(null);
     setShowForm(true);
   };
@@ -69,7 +88,7 @@ export default function EventsPanel({ openForm = 0 }: { openForm?: number }) {
     e.preventDefault();
     setIsSaving(true);
     setFormError(null);
-    const result = await saveEvent(editing);
+    const result = await saveEvent({ ...editing, endDateString: editing.endDateString || editing.dateString });
     setIsSaving(false);
     if (result.success) {
       closeForm();
@@ -92,8 +111,9 @@ export default function EventsPanel({ openForm = 0 }: { openForm?: number }) {
   };
 
   const today = localToday();
-  const upcoming = events?.filter((e) => toDateInput(e.date) >= today) ?? [];
-  const past = events?.filter((e) => toDateInput(e.date) < today).reverse() ?? [];
+  const eventEnd = (e: DbEvent) => toDateInput(e.endDate ?? e.date);
+  const upcoming = events?.filter((e) => eventEnd(e) >= today) ?? [];
+  const past = events?.filter((e) => eventEnd(e) < today).reverse() ?? [];
 
   return (
     <div>
@@ -118,15 +138,27 @@ export default function EventsPanel({ openForm = 0 }: { openForm?: number }) {
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label htmlFor="e-date" className="block text-[13px] font-medium text-slate-700 mb-1.5">Date</label>
-                <input id="e-date" type="date" value={editing.dateString} onChange={(e) => setEditing({ ...editing, dateString: e.target.value })} required
+                <label htmlFor="e-date" className="block text-[13px] font-medium text-slate-700 mb-1.5">From</label>
+                <input id="e-date" type="date" value={editing.dateString}
+                  onChange={(e) => {
+                    const dateString = e.target.value;
+                    // Keep "To" from trailing behind the new start date.
+                    const endDateString = editing.endDateString && editing.endDateString >= dateString ? editing.endDateString : dateString;
+                    setEditing({ ...editing, dateString, endDateString });
+                  }} required
                   className="w-full bg-sheet border border-slate-300 rounded-md px-3 py-2.5 text-sm" />
               </div>
               <div>
-                <label htmlFor="e-time" className="block text-[13px] font-medium text-slate-700 mb-1.5">Time</label>
-                <input id="e-time" placeholder="e.g. 1:00 PM – 3:00 PM" value={editing.time} onChange={(e) => setEditing({ ...editing, time: e.target.value })} required
+                <label htmlFor="e-end-date" className="block text-[13px] font-medium text-slate-700 mb-1.5">To</label>
+                <input id="e-end-date" type="date" value={editing.endDateString || editing.dateString} min={editing.dateString || undefined}
+                  onChange={(e) => setEditing({ ...editing, endDateString: e.target.value })} required
                   className="w-full bg-sheet border border-slate-300 rounded-md px-3 py-2.5 text-sm" />
               </div>
+            </div>
+            <div>
+              <label htmlFor="e-time" className="block text-[13px] font-medium text-slate-700 mb-1.5">Time</label>
+              <input id="e-time" placeholder="e.g. 1:00 PM – 3:00 PM" value={editing.time} onChange={(e) => setEditing({ ...editing, time: e.target.value })} required
+                className="w-full bg-sheet border border-slate-300 rounded-md px-3 py-2.5 text-sm" />
             </div>
             <div>
               <label htmlFor="e-loc" className="block text-[13px] font-medium text-slate-700 mb-1.5">Location (optional)</label>
@@ -185,7 +217,7 @@ function EventList({ items, empty, muted, onEdit, onDelete, rowError, clearRowEr
       {items.map((ev) => (
         <li key={ev.id} className="py-4">
           <p className="font-mono text-[13px] text-slate-500">
-            {new Date(ev.date).toLocaleDateString("en-PH", { timeZone: "UTC", weekday: "short", month: "short", day: "numeric", year: "numeric" })} · {ev.time}
+            {formatEventDate(ev)} · {ev.time}
           </p>
           <p className="font-medium text-ink mt-0.5">{ev.title}</p>
           {ev.location && <p className="text-[13px] text-slate-500 inline-flex items-center gap-1 mt-0.5"><MapPin size={12} /> {ev.location}</p>}

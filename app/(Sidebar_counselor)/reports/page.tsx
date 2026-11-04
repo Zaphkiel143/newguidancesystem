@@ -335,7 +335,7 @@ export default function MonthlyReportPage() {
   const filtered = nature !== ALL || program !== ALL || level !== ALL;
 
   return (
-    <div id="gco-report" className="px-5 sm:px-8 lg:px-12 pt-8 lg:pt-12 pb-16 max-w-7xl text-slate-800">
+    <div id="gco-report" className="px-5 sm:px-8 lg:px-12 pt-8 lg:pt-12 pb-16 text-slate-800">
       <style>{PRINT_CSS}</style>
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div>

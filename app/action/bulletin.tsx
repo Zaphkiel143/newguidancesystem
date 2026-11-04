@@ -29,7 +29,10 @@ export async function getBulletin() {
         omit: { imageData: true },
         orderBy: { createdAt: "desc" },
       }),
-      db.event.findMany({ where: { date: { gte: today } }, orderBy: [{ date: "asc" }, { time: "asc" }] }),
+      db.event.findMany({
+        where: { OR: [{ date: { gte: today } }, { endDate: { gte: today } }] },
+        orderBy: [{ date: "asc" }, { time: "asc" }],
+      }),
     ]);
 
     if (announcements.length > 0) {
@@ -73,7 +76,10 @@ export async function getBulletinPreview() {
         omit: { imageData: true },
         orderBy: { createdAt: "desc" },
       }),
-      db.event.findFirst({ where: { date: { gte: today } }, orderBy: [{ date: "asc" }, { time: "asc" }] }),
+      db.event.findFirst({
+        where: { OR: [{ date: { gte: today } }, { endDate: { gte: today } }] },
+        orderBy: [{ date: "asc" }, { time: "asc" }],
+      }),
     ]);
     return { announcement, event };
   } catch (error) {

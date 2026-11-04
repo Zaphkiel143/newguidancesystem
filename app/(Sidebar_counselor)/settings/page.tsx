@@ -24,7 +24,7 @@ export default function SettingsPage() {
   }, []);
 
   return (
-    <div className="px-5 sm:px-8 lg:px-12 pt-8 lg:pt-12 pb-16 max-w-5xl text-slate-800">
+    <div className="px-5 sm:px-8 lg:px-12 pt-8 lg:pt-12 pb-16 text-slate-800">
       <header>
         <h1 className="page-title flex items-center gap-2">
           <SettingsIcon size={24} className="text-slate-400" />
@@ -37,7 +37,7 @@ export default function SettingsPage() {
           <Loader2 className="animate-spin" size={24} />
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4 mt-6">
           {lists.map((list) => (
             <div key={list.listKey} className="bg-white border border-slate-100 rounded-2xl shadow-sm p-5">
               <div className="flex items-start justify-between gap-2 mb-3">

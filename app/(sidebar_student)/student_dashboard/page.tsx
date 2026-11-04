@@ -220,7 +220,10 @@ const DashboardContent: React.FC = () => {
                   <p className="text-xs text-slate-500">Upcoming event</p>
                   <p className="font-medium text-ink">{data.event.title}</p>
                   <p className="font-mono text-[13px] text-slate-500 mt-0.5">
-                    {new Date(data.event.date).toLocaleDateString("en-PH", { timeZone: "UTC", month: "long", day: "numeric" })} · {data.event.time}
+                    {data.event.endDate && new Date(data.event.endDate).toISOString().slice(0, 10) !== new Date(data.event.date).toISOString().slice(0, 10)
+                      ? `${new Date(data.event.date).toLocaleDateString("en-PH", { timeZone: "UTC", month: "long", day: "numeric" })} – ${new Date(data.event.endDate).toLocaleDateString("en-PH", { timeZone: "UTC", month: "long", day: "numeric" })}`
+                      : new Date(data.event.date).toLocaleDateString("en-PH", { timeZone: "UTC", month: "long", day: "numeric" })}{" "}
+                    · {data.event.time}
                   </p>
                 </div>
               )}
