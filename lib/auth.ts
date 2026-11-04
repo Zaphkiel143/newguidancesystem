@@ -23,6 +23,13 @@ export function verifyPassword(password: string, stored: string): boolean {
   return hashBuffer.length === suppliedBuffer.length && timingSafeEqual(hashBuffer, suppliedBuffer);
 }
 
+// Accounts made before passwords were required hold "code-login-only" instead
+// of a hash. verifyPassword never accepts it (no salt), and the person is asked
+// to choose a password the next time they sign in with an email code.
+export function hasPassword(passwordHash: string): boolean {
+  return passwordHash !== "code-login-only" && passwordHash.includes(":");
+}
+
 export async function createSession(userId: string) {
   const expiresAt = new Date(Date.now() + SESSION_TTL_MS);
   const session = await db.session.create({

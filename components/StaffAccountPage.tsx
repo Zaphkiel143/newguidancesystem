@@ -1,5 +1,6 @@
 import PhotoPicker from "./PhotoPicker";
 import AuthenticatorSetup from "./AuthenticatorSetup";
+import ChangePassword from "./ChangePassword";
 import { PushToggle } from "./LoginApproval";
 import ThemeSetting from "./ThemeSetting";
 import FacultyDetailsForm from "./FacultyDetailsForm";
@@ -23,6 +24,7 @@ export default async function StaffAccountPage() {
       <div id="settings" className="scroll-mt-24 space-y-6">
         <ThemeSetting />
         <PushToggle />
+        <ChangePassword />
         <AuthenticatorSetup />
       </div>
     </div>

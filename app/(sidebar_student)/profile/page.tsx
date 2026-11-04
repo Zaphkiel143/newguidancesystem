@@ -7,6 +7,7 @@ import { getMyProfile, saveMyStudentInfo, submitStudentDocument, type MyStudentI
 import InlineError from '../../../components/InlineError';
 import PhotoPicker from '../../../components/PhotoPicker';
 import AuthenticatorSetup from '../../../components/AuthenticatorSetup';
+import ChangePassword from '../../../components/ChangePassword';
 import ThemeSetting from '../../../components/ThemeSetting';
 import { PushToggle } from '../../../components/LoginApproval';
 import { ACCEPTED_FILE_TYPES } from '../../config/documents';
@@ -327,6 +328,7 @@ const StudentProfile: React.FC = () => {
           <div id="settings" className="scroll-mt-24 space-y-8">
             <ThemeSetting />
             <PushToggle />
+            <ChangePassword />
             <AuthenticatorSetup />
           </div>
 

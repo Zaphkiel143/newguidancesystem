@@ -12,3 +12,15 @@ export function roleFromSchoolEmail(email: string): "STUDENT" | "FACULTY" | null
   if (/^[a-z]+(?:-[a-z]+)*(?:\.[a-z]+(?:-[a-z]+)*)+$/.test(local)) return "FACULTY";
   return null;
 }
+
+// Who is signing in, from what they typed on the sign-in page: a mobile number
+// is a parent or guardian; a school email is a student or faculty by its format
+// (roleFromSchoolEmail). Anything else, or a school email whose format doesn't
+// say, is null. This is only a first guess for the page: the account on file
+// (getSignInOptions) has the final say, e.g. for guidance staff and admins.
+export function roleFromSignInId(value: string): "STUDENT" | "FACULTY" | "PARENT" | null {
+  const v = value.trim();
+  if (/^[+\d][\d\s()-]*$/.test(v) && v.replace(/\D/g, "").length >= 4) return "PARENT";
+  if (!v.toLowerCase().endsWith(`@${SCHOOL_EMAIL_DOMAIN}`)) return null;
+  return roleFromSchoolEmail(v);
+}
