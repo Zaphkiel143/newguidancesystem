@@ -73,7 +73,7 @@ const MyAppointments: React.FC = () => {
       </header>
 
       {/* Appointment History Main Card Panel */}
-      <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden max-w-6xl">
+      <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
         <div className="px-6 py-5 border-b border-slate-100">
           <h2 className="font-semibold text-slate-900 text-base">Appointment History</h2>
         </div>

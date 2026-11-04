@@ -134,7 +134,7 @@ export default function CareerPlanningFormPage() {
 
   if (data === null) {
     return (
-      <div className="px-5 sm:px-8 lg:px-12 pt-8 lg:pt-12 pb-16 max-w-4xl mx-auto text-slate-800">
+      <div className="px-5 sm:px-8 lg:px-12 pt-8 lg:pt-12 pb-16 text-slate-800">
         <h1 className="page-title">Career Planning Form</h1>
       </div>
     );
@@ -143,7 +143,7 @@ export default function CareerPlanningFormPage() {
   const fields = section.fields.filter((f) => isShown(f, answers));
 
   return (
-    <div ref={topRef} className="px-5 sm:px-8 lg:px-12 pt-8 lg:pt-12 pb-16 max-w-4xl mx-auto text-slate-800 scroll-mt-24">
+    <div ref={topRef} className="px-5 sm:px-8 lg:px-12 pt-8 lg:pt-12 pb-16 text-slate-800 scroll-mt-24">
       <header>
         <h1 className="page-title">Career Planning Form</h1>
         {submittedAt && (

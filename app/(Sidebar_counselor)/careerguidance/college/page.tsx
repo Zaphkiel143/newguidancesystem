@@ -84,7 +84,7 @@ export default function CareerFormsPage() {
   const shown = (rows ?? []).filter((r) => r.studentName.toLowerCase().includes(query.trim().toLowerCase()));
 
   return (
-    <div className="px-5 sm:px-8 lg:px-12 pt-8 lg:pt-12 pb-16 max-w-5xl text-slate-800">
+    <div className="px-5 sm:px-8 lg:px-12 pt-8 lg:pt-12 pb-16 text-slate-800">
       <Link href="/careerguidance" className="inline-flex items-center gap-1.5 text-[13px] text-slate-500 hover:text-blue-700">
         <ArrowLeft size={14} /> Career Guidance
       </Link>

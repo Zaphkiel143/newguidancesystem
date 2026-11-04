@@ -31,7 +31,7 @@ const Dashboard = async () => {
       : `${todaysAppointments.length} ${todaysAppointments.length === 1 ? "session" : "sessions"} on the calendar today.`;
 
   return (
-    <div className="px-5 sm:px-8 lg:px-12 pt-8 lg:pt-12 pb-16 max-w-6xl">
+    <div className="px-5 sm:px-8 lg:px-12 pt-8 lg:pt-12 pb-16">
       <header>
         <p className="text-sm text-slate-500">{dateLabel}</p>
         <h1 className="page-title mt-2">

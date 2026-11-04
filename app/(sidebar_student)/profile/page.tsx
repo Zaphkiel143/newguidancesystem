@@ -161,7 +161,7 @@ const StudentProfile: React.FC = () => {
   const showForm = !p || editing;
 
   return (
-    <div className="px-5 sm:px-8 lg:px-12 pt-8 lg:pt-12 pb-16 max-w-5xl text-slate-800 space-y-8">
+    <div className="px-5 sm:px-8 lg:px-12 pt-8 lg:pt-12 pb-16 text-slate-800 space-y-8">
       <header>
         <h1 className="page-title">My Profile</h1>
       </header>

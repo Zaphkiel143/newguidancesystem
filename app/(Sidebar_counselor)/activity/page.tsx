@@ -82,7 +82,7 @@ export default function ActivityPage() {
   const pagerButton = "inline-flex items-center gap-1 min-h-10 px-4 rounded-full border border-slate-300 text-[13px] font-medium hover:bg-slate-50 disabled:opacity-40 disabled:hover:bg-transparent";
 
   return (
-    <div className="px-5 sm:px-8 lg:px-12 pt-8 lg:pt-12 pb-6 max-w-5xl text-slate-800">
+    <div className="px-5 sm:px-8 lg:px-12 pt-8 lg:pt-12 pb-6 text-slate-800">
       <header>
         <h1 className="page-title flex items-center gap-2">
           <History size={24} className="text-slate-400" />

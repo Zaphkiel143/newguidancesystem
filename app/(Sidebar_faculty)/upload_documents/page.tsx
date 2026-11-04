@@ -127,7 +127,7 @@ const UploadDocuments: React.FC = () => {
   };
 
   return (
-    <div className="px-5 sm:px-8 lg:px-12 pt-8 lg:pt-12 pb-16 max-w-4xl font-sans antialiased text-slate-800 space-y-6">
+    <div className="px-5 sm:px-8 lg:px-12 pt-8 lg:pt-12 pb-16 font-sans antialiased text-slate-800 space-y-6">
 
       {/* 1. Header Section */}
       <div>

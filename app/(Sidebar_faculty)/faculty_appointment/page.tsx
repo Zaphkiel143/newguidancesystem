@@ -30,7 +30,7 @@ const MyAppointmentsPage: React.FC = () => {
   }, []);
 
   return (
-    <div className="px-5 sm:px-8 lg:px-12 pt-8 lg:pt-12 pb-16 max-w-5xl font-sans antialiased text-slate-800 space-y-6">
+    <div className="px-5 sm:px-8 lg:px-12 pt-8 lg:pt-12 pb-16 font-sans antialiased text-slate-800 space-y-6">
 
       {/* Upper Main Action Header Bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">

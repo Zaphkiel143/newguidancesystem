@@ -24,7 +24,7 @@ export default function SettingsPage() {
   }, []);
 
   return (
-    <div className="px-5 sm:px-8 lg:px-12 pt-8 lg:pt-12 pb-16 max-w-5xl text-slate-800">
+    <div className="px-5 sm:px-8 lg:px-12 pt-8 lg:pt-12 pb-16 text-slate-800">
       <header>
         <h1 className="page-title flex items-center gap-2">
           <SettingsIcon size={24} className="text-slate-400" />

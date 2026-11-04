@@ -26,7 +26,7 @@ export default function ParentFeed() {
   }, []);
 
   return (
-    <div className="px-4 sm:px-8 pt-8 lg:pt-12 pb-16 max-w-2xl mx-auto text-slate-800">
+    <div className="px-4 sm:px-8 pt-8 lg:pt-12 pb-16 text-slate-800">
       <header>
         <h1 className="page-title">Feed</h1>
         <p className="text-sm text-slate-500 mt-1">

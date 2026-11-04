@@ -11,7 +11,7 @@ export default async function StaffAccountPage() {
   const me = await getCurrentUser();
   if (!me) return null;
   return (
-    <div className="px-5 sm:px-8 lg:px-12 pt-8 lg:pt-12 pb-16 max-w-3xl text-slate-800 space-y-6">
+    <div className="px-5 sm:px-8 lg:px-12 pt-8 lg:pt-12 pb-16 text-slate-800 space-y-6">
       <header>
         <h1 className="page-title">My account</h1>
         <p className="text-sm text-slate-500 mt-1 break-all">{shownName(me)} · {me.email}</p>
