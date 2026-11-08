@@ -487,24 +487,24 @@ const LoginPage = () => {
   const backButton = "inline-flex items-center gap-1 px-2 min-h-9 -ml-2 rounded-full text-[13px] text-slate-600 hover:text-ink hover:bg-slate-100";
 
   const heading: Record<Step, [string, string]> = {
-    start: ["Log in", "Choose how you sign in to E-Gabay."],
-    email: ["Sign in", "Students and staff: your STI school email. Parents and guardians: your mobile number."],
+    start: ["Log in", ""],
+    email: ["Sign in", ""],
     verify: options?.exists === false
-      ? ["Create your account", "No E-Gabay account uses this email yet. Verify it's yours to set one up."]
-      : ["Verify your identity", "Choose how you'd like to sign in."],
-    password: ["Enter password", "Type the password for your E-Gabay account."],
-    code: ["Enter code", `We emailed a 6-digit code to ${email}. Check Junk too.`],
+      ? ["Create your account", "No account uses this email yet."]
+      : ["Verify your identity", ""],
+    password: ["Enter password", ""],
+    code: ["Enter code", `Sent to ${email}`],
     setPassword: resetting
       ? ["Choose a new password", "Your old password stops working, and other devices are signed out."]
-      : ["Choose a password", "Every E-Gabay account now has a password. You'll only do this once."],
-    details: ["Welcome to E-Gabay", signInAs === "STUDENT" ? "First time here? Tell us who you are and choose a password." : "First time here? Tell us your name and choose a password."],
-    parent: ["Parent or guardian", "Sign in with your mobile number and password."],
-    forgot: ["Forgot your password?", "Enter the mobile number you sign in with."],
+      : ["Choose a password", ""],
+    details: ["Welcome to E-Gabay", ""],
+    parent: ["Parent or guardian", ""],
+    forgot: ["Forgot your password?", ""],
     reset: ["Set a new password", resetEmailed ? "We sent a 6-digit code to the email on your account. Check Junk too." : "If this number has an account with an email on file, a code was sent to it. Otherwise the guidance office has been told and will contact you."],
-    register: ["Create a parent account", "The guidance office confirms every parent account before it can be used."],
+    register: ["Create a parent account", "Confirmed by the guidance office before use."],
     waiting: ["Almost there", waitingMessage],
-    approve: ["Check your phone", "Open E-Gabay on a phone or computer where you're already signed in, and tap this number."],
-    totp: ["Enter code", "Type the 6-digit code under “E-Gabay STI” in Microsoft Authenticator (not your STI Microsoft account)."],
+    approve: ["Check your phone", "Tap this number where you're signed in."],
+    totp: ["Enter code", "From Microsoft Authenticator (E-Gabay STI)"],
   };
 
   // Steps that belong to one school email show it at the top, like Microsoft does.
@@ -584,7 +584,7 @@ const LoginPage = () => {
             <div className="text-center">
               <LogoMark size={72} className="block mx-auto rounded-[16px] shadow-md" />
               <h1 className="mt-4 text-2xl font-bold tracking-tight text-ink">{heading[step][0]}</h1>
-              <p className="text-sm text-slate-500 mt-1 break-words">{heading[step][1]}</p>
+              {heading[step][1] && <p className="text-sm text-slate-500 mt-1 break-words">{heading[step][1]}</p>}
             </div>
 
             {showsIdentity && (
@@ -601,12 +601,8 @@ const LoginPage = () => {
                   Sign in
                 </button>
                 <ErrorLine error={error} />
-                <p className="text-xs text-slate-500 text-center pt-1">
-                  Students, faculty and staff: your STI school email (@{SCHOOL_EMAIL_DOMAIN}). Parents and guardians: your mobile number.
-                </p>
-                <p className="text-xs text-slate-500 text-center">
-                  New Guidance Associate?{" "}
-                  <Link href="/handover" className="font-medium text-blue-700 underline underline-offset-2">Accept or claim the role</Link>
+                <p className="text-xs text-center pt-1">
+                  <Link href="/handover" className="text-slate-500 underline underline-offset-2 hover:text-blue-700">Guidance Associate handover</Link>
                 </p>
               </div>
             )}
@@ -638,9 +634,6 @@ const LoginPage = () => {
             {step === "verify" && options && (
               <div className="mt-6 space-y-3">
                 <RoleBadge role={options.role} />
-                {!options.exists && options.role === null && (
-                  <p className="text-xs text-slate-500">You&apos;ll tell us if you&apos;re a student, faculty, or guidance office after the code.</p>
-                )}
                 <ul className="divide-y divide-rule border border-rule rounded-xl overflow-hidden">
                   {options.approve && (
                     <MethodRow icon={<Smartphone size={18} />} title="Approve a request" detail="On a phone or computer where you're signed in to E-Gabay"
@@ -664,7 +657,7 @@ const LoginPage = () => {
                 </ul>
                 {options.exists && !options.password && (
                   <p className="text-xs text-slate-600 bg-butter-50 border border-butter-200 rounded-lg px-3 py-2">
-                    Your account doesn&apos;t have a password yet. After the email code, you&apos;ll choose one.
+                    No password set yet. You&apos;ll create one after the email code.
                   </p>
                 )}
                 {isSubmitting && <p className="inline-flex items-center gap-2 text-sm text-slate-600"><Loader2 size={15} className="animate-spin" /> One moment…</p>}
@@ -706,9 +699,6 @@ const LoginPage = () => {
                 <button type="submit" disabled={isSubmitting} className={primaryButton}>
                   {isSubmitting ? <><Loader2 size={16} className="animate-spin" /> Saving</> : "Save and sign in"}
                 </button>
-                <p className="text-xs text-slate-500">
-                  Next time, choose &ldquo;Use your password&rdquo; or any other way to sign in.
-                </p>
               </form>
             )}
 
@@ -756,7 +746,7 @@ const LoginPage = () => {
                 </p>
                 <NoticeLine message={roleNotice} />
                 <p className="text-xs text-slate-500">
-                  No notification? Open E-Gabay on your phone; the request pops up there. It expires in 2 minutes.
+                  Expires in 2 minutes.
                 </p>
                 <button type="button" onClick={() => { setApproval(null); go("verify"); }} className={backButton}>
                   <ArrowLeft size={14} /> Other ways to sign in
@@ -797,7 +787,7 @@ const LoginPage = () => {
                     {nameFields}
                     {roleFromSchoolEmail(email) === "STUDENT" ? (
                       <p className="text-[13px] text-slate-600 bg-blue-50 border border-blue-100 rounded-lg px-3 py-2">
-                        From your school email, you&apos;re signing in as a student.
+                        Signing in as a student.
                       </p>
                     ) : (
                       <fieldset>
@@ -852,10 +842,9 @@ const LoginPage = () => {
                     )}
                     {signInAs !== "STUDENT" && (
                       <p className="text-xs text-slate-600 bg-butter-50 border border-butter-200 rounded-lg px-3 py-2">
-                        New {signInAs === "FACULTY" ? "faculty" : "guidance office"} accounts are approved by the guidance office before they can be used.
+                        Needs approval from the guidance office before first use.
                       </p>
                     )}
-                    <p className="text-xs text-slate-500">Use the name on your school records so the guidance office can find you.</p>
                     <fieldset className="border-t border-rule pt-4 space-y-2">
                       <legend className="text-[14px] font-semibold text-ink pr-2">Your password</legend>
                       {newPasswordFields}

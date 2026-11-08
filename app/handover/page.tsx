@@ -63,9 +63,9 @@ function HandoverForm() {
   };
 
   const heading: Record<Mode, [string, string]> = {
-    accept: ["New Guidance Associate", "Enter your school email and the handover code you received."],
-    claim: ["Claim the role", "For when the previous Guidance Associate left without handing over."],
-    claimSent: ["Check the office mailbox", "If the request can go ahead, a claim code is on its way."],
+    accept: ["New Guidance Associate", ""],
+    claim: ["Claim the role", ""],
+    claimSent: ["Check the office mailbox", ""],
   };
 
   return (
@@ -73,7 +73,7 @@ function HandoverForm() {
       <div className="text-center">
         <LogoMark size={64} className="block mx-auto rounded-[14px] shadow-md" />
         <h1 className="mt-4 text-2xl font-bold tracking-tight text-ink">{heading[mode][0]}</h1>
-        <p className="text-sm text-slate-500 mt-1">{heading[mode][1]}</p>
+        {heading[mode][1] && <p className="text-sm text-slate-500 mt-1">{heading[mode][1]}</p>}
       </div>
 
       {mode === "accept" && (
@@ -115,7 +115,7 @@ function HandoverForm() {
             {busy && <Loader2 size={16} className="animate-spin" />} Become the Guidance Associate
           </button>
           <p className="text-[13px] text-slate-500 text-center">
-            No code because the previous Guidance Associate already left?{" "}
+            No handover code?{" "}
             <button type="button" onClick={() => { setMode("claim"); setError(null); }} className="text-blue-700 font-medium underline underline-offset-2">
               Claim the role
             </button>
@@ -126,8 +126,7 @@ function HandoverForm() {
       {mode === "claim" && (
         <form onSubmit={claim} noValidate className="mt-7 space-y-4">
           <p className="text-sm text-slate-600">
-            We&apos;ll send a claim code to the guidance office&apos;s own mailbox, not to you. STI IT gives that mailbox to the new Guidance Associate.
-            If someone still holds the role, they&apos;re told, and the code only works after 24 hours.
+            The claim code goes to the guidance office mailbox. If someone still holds the role, they&apos;re notified and the code works after 24 hours.
           </p>
           <div>
             <label htmlFor="cl-email" className={label}>Your school email</label>
@@ -147,8 +146,7 @@ function HandoverForm() {
       {mode === "claimSent" && (
         <div className="mt-7 space-y-4">
           <p className="text-sm text-slate-600">
-            Open the guidance office mailbox and look for &ldquo;Request to become the Guidance Associate in E-Gabay&rdquo;. Then enter the code here with
-            your email. The email says when the code starts working.
+            Look for &ldquo;Request to become the Guidance Associate in E-Gabay&rdquo; in the guidance office mailbox.
           </p>
           <button type="button" onClick={() => setMode("accept")} className={primary}>Enter the code</button>
         </div>
