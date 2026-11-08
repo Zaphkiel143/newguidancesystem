@@ -4,6 +4,7 @@ import ChangePassword from "./ChangePassword";
 import { PushToggle } from "./LoginApproval";
 import ThemeSetting from "./ThemeSetting";
 import FacultyDetailsForm from "./FacultyDetailsForm";
+import GaHandover from "./GaHandover";
 import { getCurrentUser } from "../lib/auth";
 import { shownName } from "../lib/demo";
 
@@ -21,6 +22,7 @@ export default async function StaffAccountPage() {
         <PhotoPicker name={shownName(me)} hasPhoto={Boolean(me.avatarType)} />
       </section>
       {me.role === "FACULTY" && <FacultyDetailsForm />}
+      {me.role === "COUNSELOR" && <GaHandover />}
       <div id="settings" className="scroll-mt-24 space-y-6">
         <ThemeSetting />
         <PushToggle />

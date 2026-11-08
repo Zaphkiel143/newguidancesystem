@@ -1,11 +1,10 @@
 "use server";
 
 import { randomInt } from "crypto";
-import { redirect } from "next/navigation";
 import db from "../../lib/db";
 import { revalidatePath } from "next/cache";
 import { requireActionUser } from "../../lib/session";
-import { dashboardPathForRole, getSignedInUser, hashPassword } from "../../lib/auth";
+import { hashPassword } from "../../lib/auth";
 import { sendEmail } from "../../lib/email";
 import { notifyUser } from "../../lib/notify";
 import { logActivity } from "../../lib/activityLog";
@@ -13,27 +12,30 @@ import { ROLE_LABEL } from "../../lib/session";
 import type { UserRole } from "../../lib/generated";
 import { isDemoUser } from "../../lib/demo";
 
-// Accounts: the Super Admin manages every account; the Guidance Associate confirms parents
+// Accounts: the Guidance Associate manages every account and confirms parents.
+// There is no Super Admin. The Guidance Associate role itself only changes
+// hands through a handover (app/action/handover.tsx), never from this page.
 
-const adminOnly = () => requireActionUser("ADMIN");
 const counselorOnly = () => requireActionUser("COUNSELOR");
 
 type Result = { success: true } | { success: false; error: string };
 
-// The demo Super Admin may only change demo accounts, so real ones stay safe on the public demo
+// The demo Guidance Associate may only change demo accounts, so real ones stay
+// safe on the public demo. Retired Super Admin accounts aren't touched.
 async function checkTarget(me: { id: string; email: string | null }, userId: string): Promise<string | null> {
   if (userId === me.id) return "You can't change your own account here.";
-  if (isDemoUser(me)) {
-    const target = await db.user.findUnique({ where: { id: userId }, select: { email: true } });
-    if (!target || !isDemoUser(target)) return "The demo Super Admin can only change demo accounts.";
-  }
+  const target = await db.user.findUnique({ where: { id: userId }, select: { email: true, role: true } });
+  if (!target) return "Account not found.";
+  if (target.role === "ADMIN") return "Super Admin accounts were retired and can't be changed.";
+  if (isDemoUser(me) && !isDemoUser(target)) return "The demo Guidance Associate can only change demo accounts.";
   return null;
 }
 
 export async function listAccounts() {
   try {
-    const me = await adminOnly();
+    const me = await counselorOnly();
     const users = await db.user.findMany({
+      where: { role: { not: "ADMIN" } },
       select: { id: true, name: true, email: true, phone: true, role: true, status: true, archivedAt: true, createdAt: true },
       orderBy: [{ role: "asc" }, { name: "asc" }],
     });
@@ -44,12 +46,12 @@ export async function listAccounts() {
   }
 }
 
-// Staff and student accounts waiting for the Super Admin
+// Faculty and guidance staff accounts waiting for the Guidance Associate
 export async function listStaffApprovals() {
   try {
-    await adminOnly();
+    await counselorOnly();
     return await db.user.findMany({
-      where: { status: "PENDING", role: { not: "PARENT" } },
+      where: { status: "PENDING", role: { notIn: ["PARENT", "ADMIN"] } },
       select: { id: true, name: true, email: true, role: true, createdAt: true },
       orderBy: { createdAt: "asc" },
     });
@@ -89,7 +91,7 @@ async function tellUser(user: { id: string; email: string | null; name: string }
 
 export async function decideStaffAccount(userId: string, approve: boolean): Promise<Result> {
   try {
-    const me = await adminOnly();
+    const me = await counselorOnly();
     const problem = await checkTarget(me, userId);
     if (problem) return { success: false, error: problem };
     const user = await db.user.findUnique({ where: { id: userId } });
@@ -100,7 +102,7 @@ export async function decideStaffAccount(userId: string, approve: boolean): Prom
       await tellUser(user, "Your E-Gabay account is approved", "You can now sign in to E-Gabay with your school email.");
     }
     await logActivity(me, approve ? "Approved an account" : "Rejected an account", "User", userId, user.name);
-    revalidatePath("/admin_accounts");
+    revalidatePath("/accounts");
     return { success: true };
   } catch (error) {
     console.error("Failed to decide account:", error);
@@ -158,24 +160,29 @@ export async function decideParentLink(linkId: string, approve: boolean, note?: 
   }
 }
 
-const SCHOOL_ROLES: UserRole[] = ["STUDENT", "FACULTY", "COUNSELOR", "ADMIN"];
+// Roles the Guidance Associate can switch between here. Making someone a
+// Guidance Associate (or taking the role away) is a handover, not a role change.
+const SWITCHABLE_ROLES: UserRole[] = ["STUDENT", "FACULTY"];
 
 export async function setAccountRole(userId: string, role: UserRole): Promise<Result> {
   try {
-    const me = await adminOnly();
+    const me = await counselorOnly();
     const problem = await checkTarget(me, userId);
     if (problem) return { success: false, error: problem };
     const user = await db.user.findUnique({ where: { id: userId }, select: { name: true, role: true } });
     if (!user) return { success: false, error: "Account not found." };
+    if (user.role === "COUNSELOR" || role === "COUNSELOR") {
+      return { success: false, error: "The Guidance Associate role changes hands with a handover (My Account), not here." };
+    }
     // Parents sign in with a phone number, everyone else with a school email
-    if (user.role === "PARENT" || !SCHOOL_ROLES.includes(role)) {
+    if (user.role === "PARENT" || !SWITCHABLE_ROLES.includes(role)) {
       return { success: false, error: "Parent accounts and school-email accounts sign in differently, so they can't be switched." };
     }
     await db.user.update({ where: { id: userId }, data: { role } });
     // A changed role must be re-established by signing in again, not picked up mid-session
     await db.session.deleteMany({ where: { userId } });
     await logActivity(me, `Changed an account's role to ${ROLE_LABEL[role]}`, "User", userId, user.name);
-    revalidatePath("/admin_accounts");
+    revalidatePath("/accounts");
     return { success: true };
   } catch (error) {
     console.error("Failed to change role:", error);
@@ -186,7 +193,7 @@ export async function setAccountRole(userId: string, role: UserRole): Promise<Re
 // Archived accounts can't sign in and their open sessions end; nothing they made is deleted
 export async function setAccountArchived(userId: string, archive: boolean): Promise<Result> {
   try {
-    const me = await adminOnly();
+    const me = await counselorOnly();
     const problem = await checkTarget(me, userId);
     if (problem) return { success: false, error: problem };
     const user = await db.user.findUnique({ where: { id: userId }, select: { name: true, status: true } });
@@ -198,7 +205,7 @@ export async function setAccountArchived(userId: string, archive: boolean): Prom
       await db.user.update({ where: { id: userId }, data: { status: "ACTIVE", archivedAt: null } });
     }
     await logActivity(me, archive ? "Archived an account" : "Restored an archived account", "User", userId, user.name);
-    revalidatePath("/admin_accounts");
+    revalidatePath("/accounts");
     return { success: true };
   } catch (error) {
     console.error("Failed to archive account:", error);
@@ -209,10 +216,10 @@ export async function setAccountArchived(userId: string, archive: boolean): Prom
 // Easy to read aloud or type: no 0/O or 1/l
 const TEMP_CHARS = "ABCDEFGHJKMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789";
 
-// A new temporary password for a parent, shown once to the Super Admin
+// A new temporary password for a parent, shown once to the Guidance Associate
 export async function resetParentPassword(userId: string): Promise<{ success: true; password: string } | { success: false; error: string }> {
   try {
-    const me = await adminOnly();
+    const me = await counselorOnly();
     const problem = await checkTarget(me, userId);
     if (problem) return { success: false, error: problem };
     const user = await db.user.findUnique({ where: { id: userId }, select: { id: true, name: true, email: true, role: true } });
@@ -228,25 +235,4 @@ export async function resetParentPassword(userId: string): Promise<{ success: tr
     console.error("Failed to reset password:", error);
     return { success: false, error: "Couldn't reset the password." };
   }
-}
-
-// View as: the Super Admin sees the system as another user, read-only (see lib/db.ts)
-export async function startViewAs(userId: string): Promise<Result> {
-  const admin = await getSignedInUser();
-  if (!admin || admin.role !== "ADMIN") return { success: false, error: "Only the Super Admin can do that." };
-  if (userId === admin.id) return { success: false, error: "Choose someone else." };
-  const target = await db.user.findUnique({ where: { id: userId }, select: { name: true, role: true, status: true } });
-  if (!target || target.status !== "ACTIVE") return { success: false, error: "Only active accounts can be viewed." };
-  await logActivity({ name: admin.name, roleLabel: ROLE_LABEL.ADMIN, id: admin.id }, "Started View as", "User", userId, `${target.name} (${ROLE_LABEL[target.role]})`);
-  await db.session.update({ where: { token: admin.sessionToken }, data: { viewAsUserId: userId } });
-  redirect(dashboardPathForRole(target.role));
-}
-
-export async function stopViewAs() {
-  const admin = await getSignedInUser();
-  if (!admin) redirect("/Login");
-  if (admin.role === "ADMIN") {
-    await db.session.update({ where: { token: admin.sessionToken }, data: { viewAsUserId: null } });
-  }
-  redirect(dashboardPathForRole(admin.role));
 }

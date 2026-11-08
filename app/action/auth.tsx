@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import db from "../../lib/db";
 import { createSession, destroySession, dashboardPathForRole, hashPassword, hasPassword, verifyPassword } from "../../lib/auth";
 import { emailConfigured, sendEmail } from "../../lib/email";
-import { notifyAdmins, notifyCounselors } from "../../lib/notify";
+import { notifyCounselors } from "../../lib/notify";
 import { normalizePhone } from "../../lib/phone";
 import { cleanName, FIX_FIELDS_MESSAGE, isNameText, passwordProblem, validateParentSignup, type ParentSignupErrors } from "../../lib/parentSignup";
 import { getOptionList } from "./optionLists";
@@ -27,8 +27,8 @@ const DEMO_LOGIN_ENABLED = process.env.NEXT_PUBLIC_DEMO_LOGIN !== "false";
 
 // Stored names link the demo accounts to the sample records; on screen they
 // show as "Demo Account" (lib/demo.ts).
-const DEMO_USERS: Record<UserRole, { email: string; name: string }> = {
-  ADMIN: { email: DEMO_EMAILS.ADMIN, name: "System Administrator" },
+type DemoRole = Exclude<UserRole, "ADMIN">;
+const DEMO_USERS: Record<DemoRole, { email: string; name: string }> = {
   COUNSELOR: { email: DEMO_EMAILS.COUNSELOR, name: "Ralph Michael" },
   STUDENT: { email: DEMO_EMAILS.STUDENT, name: "Nhel Belarmino" },
   FACULTY: { email: DEMO_EMAILS.FACULTY, name: "Cho Sto Domingo" },
@@ -43,6 +43,7 @@ function statusMessage(status: string, role: UserRole) {
       : "Your account is waiting for the guidance office to approve it. Try again once it's approved.";
   }
   if (status === "ARCHIVED") return "This account was archived. Please contact the Guidance and Counseling Office to restore it.";
+  if (status === "RETIRED") return "Super Admin accounts were retired. The Guidance Associate now manages accounts.";
   return "This account can't be used. Please contact the Guidance and Counseling Office.";
 }
 
@@ -68,7 +69,7 @@ export async function login(formData: { identifier: string; password: string }):
     if (!user || !verifyPassword(formData.password, user.passwordHash)) {
       return { success: false, error: phone ? "That number or password isn't right." : "That email or password isn't right." };
     }
-    if (user.status !== "ACTIVE") return { success: false, error: statusMessage(user.status, user.role) };
+    if (user.status !== "ACTIVE" || user.role === "ADMIN") return { success: false, error: statusMessage(user.role === "ADMIN" ? "RETIRED" : user.status, user.role) };
 
     await createSession(user.id);
     await logActivity({ name: user.name, roleLabel: ROLE_LABEL[user.role], id: user.id }, "Signed in", "User", user.id);
@@ -143,13 +144,9 @@ export async function getSignInOptions(rawEmail: string): Promise<{ success: tru
       select: { id: true, role: true, status: true, passwordHash: true, totpSecret: true },
     });
     if (!user) {
-      // Same order createSchoolAccount uses, so the first Super Admin or Guidance
-      // Associate sign-in already says so (their emails look like faculty's).
-      const role = emailList(process.env.SUPER_ADMIN_EMAILS).includes(email)
-        ? "ADMIN"
-        : emailList(process.env.COUNSELOR_EMAILS).includes(email)
-          ? "COUNSELOR"
-          : roleFromSchoolEmail(email);
+      // Same order createSchoolAccount uses, so a listed Guidance Associate's
+      // first sign-in already says so (their emails look like faculty's).
+      const role = emailList(process.env.COUNSELOR_EMAILS).includes(email) ? "COUNSELOR" : roleFromSchoolEmail(email);
       return { success: true, options: { exists: false, role, password: false, authenticator: false, approve: false, microsoft } };
     }
     const signedInSomewhere =
@@ -325,8 +322,8 @@ export async function verifyLoginCode(formData: {
     if (isNewAccount) await logActivity(actor, "Created their account", "User", user.id);
     else if (choosingPassword) await logActivity(actor, formData.resetPassword ? "Reset their password" : "Set their password", "User", user.id);
 
-    if (user.status !== "ACTIVE") {
-      return { success: false, pending: true, message: statusMessage(user.status, user.role) };
+    if (user.status !== "ACTIVE" || user.role === "ADMIN") {
+      return { success: false, pending: true, message: statusMessage(user.role === "ADMIN" ? "RETIRED" : user.status, user.role) };
     }
 
     await createSession(user.id);
@@ -344,17 +341,16 @@ async function createSchoolAccount(
 ) {
   // A Guidance Associate may already have an inventory record with this email.
   const existingProfile = await db.studentProfile.findFirst({ where: { email } });
-  // SUPER_ADMIN_EMAILS and COUNSELOR_EMAILS (comma-separated) get those roles on first sign-in.
-  const isListedAdmin = emailList(process.env.SUPER_ADMIN_EMAILS).includes(email);
+  // COUNSELOR_EMAILS (comma-separated) become Guidance Associates on first sign-in,
+  // which is how the very first one is set up. Later ones arrive by handover
+  // (app/action/handover.tsx) or are approved by a current Guidance Associate.
   const isListedCounselor = emailList(process.env.COUNSELOR_EMAILS).includes(email);
 
   // The email's format settles student vs faculty when it can (see
   // roleFromSchoolEmail); guidance staff use faculty-style emails, so they can
   // still ask for a guidance account.
   const fromEmail = roleFromSchoolEmail(email);
-  const role: UserRole = isListedAdmin
-    ? "ADMIN"
-    : isListedCounselor
+  const role: UserRole = isListedCounselor
     ? "COUNSELOR"
     : existingProfile || fromEmail === "STUDENT"
       ? "STUDENT"
@@ -373,9 +369,9 @@ async function createSchoolAccount(
   if (!formData.newPassword) return { error: "Choose a password for your account." };
   const passwordHash = hashPassword(formData.newPassword);
 
-  // Approved right away: listed admins and counselors, and students. Self-declared
-  // faculty and guidance staff wait for the Super Admin to approve them.
-  const status = role === "STUDENT" || isListedAdmin || isListedCounselor ? "ACTIVE" : "PENDING";
+  // Approved right away: listed counselors, and students. Self-declared
+  // faculty and guidance staff wait for the Guidance Associate to approve them.
+  const status = role === "STUDENT" || isListedCounselor ? "ACTIVE" : "PENDING";
 
   if (needsStudentDetails) {
     const problem = await checkStudentDetails(formData.student!);
@@ -421,10 +417,10 @@ async function createSchoolAccount(
     data: { email, name, role, status, passwordHash },
   });
   if (status === "PENDING") {
-    await notifyAdmins({
+    await notifyCounselors({
       title: `New ${role === "FACULTY" ? "faculty" : "guidance staff"} account to approve`,
       body: `${name} (${email})`,
-      href: "/admin_accounts",
+      href: "/accounts",
     });
   }
   return { user };
@@ -536,7 +532,7 @@ export async function registerParent(formData: {
 
 // Forgot password for parents. School accounts reset theirs with an emailed
 // code instead (verifyLoginCode with resetPassword).
-// With an email on file the parent gets a reset code; otherwise the Super Admin is asked to help.
+// With an email on file the parent gets a reset code; otherwise the Guidance Associate is asked to help.
 
 const RESET_KEY = (userId: string) => `reset:${userId}`;
 
@@ -554,7 +550,7 @@ export async function requestParentReset(rawPhone: string): Promise<ResetRequest
     if (!user || user.role !== "PARENT" || user.status !== "ACTIVE") return { success: true, emailed: false };
 
     if (!user.email) {
-      await notifyAdmins({ title: "A parent forgot their password", body: `${user.name} (${rawPhone.trim()}) asked for a password reset.`, href: "/admin_accounts" });
+      await notifyCounselors({ title: "A parent forgot their password", body: `${user.name} (${rawPhone.trim()}) asked for a password reset.`, href: "/accounts" });
       return { success: true, emailed: false };
     }
     const code = String(randomInt(0, 1_000_000)).padStart(6, "0");
@@ -619,6 +615,7 @@ export async function finishParentReset(formData: { phone: string; code: string;
 // Turn off with NEXT_PUBLIC_DEMO_LOGIN="false" before real use.
 export async function loginAsDemo(role: UserRole) {
   if (!DEMO_LOGIN_ENABLED) throw new Error("Demo sign-in is turned off.");
+  if (role === "ADMIN") throw new Error("There is no Super Admin.");
   const demo = DEMO_USERS[role];
 
   const user = await db.user.upsert({

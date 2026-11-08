@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useCallback, useEffect, useState } from 'react';
-import { Archive, Check, Copy, Eye, KeyRound, Loader2, RotateCcw, Search, X } from 'lucide-react';
+import { Archive, Check, Copy, KeyRound, Loader2, RotateCcw, Search, X } from 'lucide-react';
 import {
   decideStaffAccount,
   listAccounts,
@@ -9,24 +9,25 @@ import {
   resetParentPassword,
   setAccountArchived,
   setAccountRole,
-  startViewAs,
-} from '../../action/accounts';
-import InlineError from '../../../components/InlineError';
-import ConfirmDialog from '../../../components/ConfirmDialog';
-import { formatPhone } from '../../../lib/phone';
+} from '../app/action/accounts';
+import InlineError from './InlineError';
+import ConfirmDialog from './ConfirmDialog';
+import { formatPhone } from '../lib/phone';
 
 type Account = Awaited<ReturnType<typeof listAccounts>>[number];
 type Pending = Awaited<ReturnType<typeof listStaffApprovals>>[number];
 type Role = Account["role"];
 
 const ROLE_LABEL: Record<Role, string> = {
-  ADMIN: "Super Admin",
+  ADMIN: "Retired account",
   COUNSELOR: "Guidance Associate",
   FACULTY: "Faculty / staff",
   STUDENT: "Student",
   PARENT: "Parent / guardian",
 };
-const SCHOOL_ROLES: Role[] = ["STUDENT", "FACULTY", "COUNSELOR", "ADMIN"];
+// The Guidance Associate role moves by handover (My Account), so it isn't offered here.
+const SWITCHABLE_ROLES: Role[] = ["STUDENT", "FACULTY"];
+const FILTER_ROLES: Role[] = ["COUNSELOR", "FACULTY", "STUDENT", "PARENT"];
 
 const STATUS: Record<string, { label: string; className: string }> = {
   ACTIVE: { label: "Active", className: "text-emerald-700" },
@@ -41,7 +42,10 @@ const fmtDate = (d: Date | string) =>
 const signsInWith = (a: { role: Role; phone: string | null; email: string | null }) =>
   a.role === "PARENT" ? formatPhone(a.phone) || a.email : a.email;
 
-export default function AdminAccountsPage() {
+// Every account, managed by the Guidance Associate (there is no Super Admin):
+// approve faculty and guidance staff sign-ups, switch student/faculty roles,
+// archive or restore accounts, and reset parent passwords.
+export default function AccountsManager() {
   const [accounts, setAccounts] = useState<Account[] | null>(null);
   const [pending, setPending] = useState<Pending[] | null>(null);
   const [tab, setTab] = useState<"current" | "archived">("current");
@@ -106,22 +110,6 @@ export default function AdminAccountsPage() {
       },
     });
 
-  const viewAs = (a: Account) =>
-    setAsking({
-      id: a.id,
-      title: `View E-Gabay as ${a.name}?`,
-      message: `You'll see the system exactly as this ${ROLE_LABEL[a.role].toLowerCase()} does. It's read-only: nothing can be changed. Use "Exit View as" at the top to come back.`,
-      confirmLabel: "View as",
-      go: async () => {
-        setBusyId(a.id);
-        const result = await startViewAs(a.id);
-        // On success the page moves to that user's dashboard
-        setBusyId(null);
-        setAsking(null);
-        if (result && !result.success) setRowError({ id: a.id, message: result.error });
-      },
-    });
-
   const q = query.trim().toLowerCase();
   const digits = q.replace(/\D/g, "");
   const shown = (accounts ?? []).filter((a) => {
@@ -134,21 +122,16 @@ export default function AdminAccountsPage() {
   const pill = "inline-flex items-center gap-1.5 text-[13px] font-medium px-3 min-h-9 rounded-full disabled:opacity-50";
 
   return (
-    <div className="px-5 sm:px-8 lg:px-10 pt-8 lg:pt-10 pb-16 text-slate-800">
-      <header>
-        <h1 className="page-title">Accounts</h1>
-        <p className="text-sm text-slate-500 mt-1">Approve new staff accounts, change roles, archive or restore accounts, reset parent passwords, and view the system as any user.</p>
-      </header>
-
-      <section className="mt-8" aria-labelledby="waiting-heading">
-        <h2 id="waiting-heading" className="font-serif text-[22px] text-ink">
-          Waiting for approval {pending && pending.length > 0 && <span className="ml-1 text-base text-red-700 tabular">({pending.length})</span>}
+    <div>
+      <section className="mt-12" aria-labelledby="staff-waiting-heading">
+        <h2 id="staff-waiting-heading" className="font-serif text-[22px] text-ink">
+          Faculty and staff sign-ups {pending && pending.length > 0 && <span className="ml-1 text-base text-red-700 tabular">({pending.length})</span>}
         </h2>
         {!pending ? (
           <div className="py-8 flex justify-center text-slate-500"><Loader2 className="animate-spin" size={20} /></div>
         ) : pending.length === 0 ? (
           <p className="mt-3 border-t border-rule pt-4 text-sm text-slate-500">
-            Nothing waiting. Parent accounts are confirmed by the Guidance Associate, who checks them against the student&apos;s record.
+            Nothing waiting. Faculty and staff who sign up with their school email show up here.
           </p>
         ) : (
           <ul className="mt-3 grid gap-3 lg:grid-cols-2">
@@ -198,7 +181,7 @@ export default function AdminAccountsPage() {
           <select id="role-filter" value={roleFilter} onChange={(e) => setRoleFilter(e.target.value as Role | "")}
             className="bg-sheet border border-slate-300 rounded-md px-3 py-2 text-sm">
             <option value="">All roles</option>
-            {(Object.keys(ROLE_LABEL) as Role[]).map((r) => <option key={r} value={r}>{ROLE_LABEL[r]}</option>)}
+            {FILTER_ROLES.map((r) => <option key={r} value={r}>{ROLE_LABEL[r]}</option>)}
           </select>
           <div className="relative flex-1 min-w-56 max-w-md">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={17} />
@@ -238,7 +221,7 @@ export default function AdminAccountsPage() {
                         </td>
                         <td className="py-3 pr-4 text-slate-600 break-all hidden md:table-cell">{signsInWith(a)}</td>
                         <td className="py-2 pr-4 min-w-44">
-                          {a.role === "PARENT" || a.isMe || a.status === "ARCHIVED" ? (
+                          {!SWITCHABLE_ROLES.includes(a.role) || a.isMe || a.status === "ARCHIVED" ? (
                             <span className="inline-block py-2 text-slate-700">{ROLE_LABEL[a.role]}</span>
                           ) : (
                             <select aria-label={`Role for ${a.name}`} value={a.role} disabled={busy}
@@ -248,7 +231,7 @@ export default function AdminAccountsPage() {
                                   "Change role", () => setAccountRole(a.id, next));
                               }}
                               className="bg-sheet border border-slate-300 rounded-md px-3 py-2 text-sm disabled:opacity-60">
-                              {SCHOOL_ROLES.map((r) => <option key={r} value={r}>{ROLE_LABEL[r]}</option>)}
+                              {SWITCHABLE_ROLES.map((r) => <option key={r} value={r}>{ROLE_LABEL[r]}</option>)}
                             </select>
                           )}
                         </td>
@@ -259,11 +242,6 @@ export default function AdminAccountsPage() {
                         <td className="py-2">
                           {!a.isMe && (
                             <div className="flex flex-wrap justify-end gap-1">
-                              {a.status === "ACTIVE" && (
-                                <button disabled={busy} onClick={() => viewAs(a)} className={`${pill} text-blue-700 hover:bg-blue-50`} title={`See E-Gabay as ${a.name}`}>
-                                  <Eye size={14} /> View as
-                                </button>
-                              )}
                               {a.role === "PARENT" && a.status !== "ARCHIVED" && (
                                 <button disabled={busy} onClick={() => resetPassword(a)} className={`${pill} text-slate-700 hover:bg-slate-100`}>
                                   <KeyRound size={14} /> Reset password

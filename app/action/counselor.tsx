@@ -1423,7 +1423,7 @@ export async function getDashboardStats() {
   try {
     await counselorOnly();
     const today = manilaTodayAsStoredDate();
-    const [totalStudents, pendingReferrals, activeCareerPlans, documentsToReview, pendingParentLinks, pendingRequests, activeAppointments] = await Promise.all([
+    const [totalStudents, pendingReferrals, activeCareerPlans, documentsToReview, pendingParentLinks, pendingRequests, activeAppointments, pendingStaff] = await Promise.all([
       db.studentProfile.count(),
       db.referral.count({ where: { status: { not: "CLOSED" } } }),
       db.careerPlan.count(),
@@ -1432,6 +1432,7 @@ export async function getDashboardStats() {
       // Requests still waiting to be confirmed, from today on (earlier days are past).
       db.appointment.findMany({ where: { status: "PENDING", date: { gte: today } }, select: { date: true, time: true } }),
       db.appointment.count({ where: { status: { not: "CANCELLED" } } }),
+      db.user.count({ where: { status: "PENDING", role: { in: ["FACULTY", "COUNSELOR"] } } }),
     ]);
     // A request for today drops off once its start time has passed.
     const nowMinutes = manilaMinutes();
@@ -1444,8 +1445,8 @@ export async function getDashboardStats() {
       pendingReferrals,
       activeCareerPlans,
       documentsToReview,
-      // Staff accounts are approved by the Super Admin; parents are confirmed here
-      approvalsWaiting: pendingParentLinks,
+      // Parents to confirm plus faculty and guidance staff sign-ups to approve
+      approvalsWaiting: pendingParentLinks + pendingStaff,
       pendingAppointments,
       activeAppointments,
     };
@@ -1540,7 +1541,7 @@ export async function listActivity(
   filters: { role?: string; model?: string; search?: string; from?: string; to?: string; page?: number; pageSize?: number } = {}
 ) {
   try {
-    await requireActionUser("COUNSELOR", "ADMIN");
+    await requireActionUser("COUNSELOR");
     const where: Prisma.ActivityLogWhereInput = {};
     if (filters.role) where.actorRole = filters.role;
     if (filters.model) where.model = filters.model;
@@ -1575,7 +1576,7 @@ export async function listActivity(
 // choices that will return results.
 export async function getActivityFilterOptions() {
   try {
-    await requireActionUser("COUNSELOR", "ADMIN");
+    await requireActionUser("COUNSELOR");
     const [roles, models] = await Promise.all([
       db.activityLog.findMany({ distinct: ["actorRole"], select: { actorRole: true }, orderBy: { actorRole: "asc" } }),
       db.activityLog.findMany({ distinct: ["model"], select: { model: true }, orderBy: { model: "asc" } }),

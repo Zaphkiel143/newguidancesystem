@@ -15,7 +15,7 @@ const primary = "inline-flex items-center justify-center gap-2 bg-blue-700 hover
 // "Change password" on every account page. The form is checked first, then a
 // confirmation asks before the password is actually changed.
 export default function ChangePassword() {
-  // null while loading, or hidden (signed out, or a Super Admin viewing as someone).
+  // null while loading, or hidden when signed out.
   const [status, setStatus] = useState<{ hasPassword: boolean } | null | undefined>(undefined);
   const [pw, setPw] = useState({ current: "", next: "", confirm: "" });
   const [confirming, setConfirming] = useState(false);

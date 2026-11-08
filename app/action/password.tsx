@@ -1,20 +1,15 @@
 "use server";
 
 import db from "../../lib/db";
-import { getSignedInUser, getViewAs, hashPassword, hasPassword, verifyPassword } from "../../lib/auth";
+import { getSignedInUser, hashPassword, hasPassword, verifyPassword } from "../../lib/auth";
 import { passwordProblem } from "../../lib/parentSignup";
 import { allow, MINUTE } from "../../lib/rateLimit";
 import { logActivity } from "../../lib/activityLog";
 import { ROLE_LABEL } from "../../lib/session";
 
-// Change password, from every account page (students, faculty, guidance,
-// Super Admin, parents). Hidden and refused while a Super Admin uses "View as",
-// so nobody changes someone else's password (or theirs from another's page).
+// Change password, from every account page (students, faculty, guidance, parents).
 
-async function passwordOwner() {
-  if (await getViewAs()) return null;
-  return getSignedInUser();
-}
+const passwordOwner = getSignedInUser;
 
 export async function getMyPasswordStatus(): Promise<{ hasPassword: boolean } | null> {
   try {
@@ -32,7 +27,7 @@ export async function getMyPasswordStatus(): Promise<{ hasPassword: boolean } | 
 export async function changeMyAccountPassword(formData: { current?: string; next: string }) {
   try {
     const me = await passwordOwner();
-    if (!me) return { success: false, error: "Sign in again (or stop viewing as someone else) to change your password." };
+    if (!me) return { success: false, error: "Sign in again to change your password." };
     if (!(await allow(`change-password:${me.id}`, 5, 15 * MINUTE))) {
       return { success: false, error: "Too many tries. Wait 15 minutes and try again." };
     }

@@ -5,6 +5,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { ArrowLeft, ArrowRight, ChevronRight, KeyRound, Loader2, Mail, ShieldCheck, Smartphone } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
+import Link from 'next/link';
 import { finishParentReset, getSignInOptions, login, loginAsDemo, registerParent, requestLoginCode, requestParentReset, verifyLoginCode, type SignInAs, type SignInOptions } from '../action/auth';
 import { SCHOOL_EMAIL_DOMAIN, roleFromSchoolEmail, roleFromSignInId } from '../config/school';
 import { LogoMark } from '../../components/Logo';
@@ -37,7 +38,6 @@ function schoolEmailProblem(value: string): string | null {
 }
 
 const DEMO_ROLES: { role: UserRole; label: string }[] = [
-  { role: "ADMIN", label: "Super Admin" },
   { role: "COUNSELOR", label: "Associate" },
   { role: "STUDENT", label: "Student" },
   { role: "FACULTY", label: "Faculty" },
@@ -87,7 +87,7 @@ const SIGN_IN_ROLE_LABEL: Record<UserRole, string> = {
   STUDENT: "Student",
   FACULTY: "Faculty or staff",
   COUNSELOR: "Guidance office",
-  ADMIN: "Super Admin",
+  ADMIN: "Retired account",
   PARENT: "Parent or guardian",
 };
 
@@ -603,6 +603,10 @@ const LoginPage = () => {
                 <ErrorLine error={error} />
                 <p className="text-xs text-slate-500 text-center pt-1">
                   Students, faculty and staff: your STI school email (@{SCHOOL_EMAIL_DOMAIN}). Parents and guardians: your mobile number.
+                </p>
+                <p className="text-xs text-slate-500 text-center">
+                  New Guidance Associate?{" "}
+                  <Link href="/handover" className="font-medium text-blue-700 underline underline-offset-2">Accept or claim the role</Link>
                 </p>
               </div>
             )}
