@@ -1,6 +1,21 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { unfinishedFeeling, unfinishedOpener } from "../lib/nlp.ts";
+import { stressWithoutCause, unfinishedFeeling, unfinishedOpener } from "../lib/nlp.ts";
+
+test("stressWithoutCause asks for the cause when none is given", () => {
+  for (const m of ["i feeling stressed", "I'm so stressed", "im stressed out", "stressed", "I feel overwhelmed lately", "i am really stressed right now"]) {
+    assert.equal(stressWithoutCause(m), "en", m);
+  }
+  for (const m of ["stressed ako", "sobrang stress ko", "na-stress ako", "nasstress ako ngayon"]) {
+    assert.equal(stressWithoutCause(m), "tl", m);
+  }
+});
+
+test("stressWithoutCause leaves stress with a cause to the classifier", () => {
+  for (const m of ["im stressed about exams", "stressed because of my thesis", "my family stresses me", "stressed sa exam", "i feel sad", "im stressed and i want to die"]) {
+    assert.equal(stressWithoutCause(m), null, m);
+  }
+});
 
 test("unfinishedOpener catches a message cut off before the point", () => {
   for (const m of ["I want", "i want to", "I need", "I have", "i", "I just want...", "I don't", "my", "I am", "want", "need"]) {

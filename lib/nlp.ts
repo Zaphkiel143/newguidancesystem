@@ -47,10 +47,9 @@ const FEELING_QUESTION = {
 
 // "I want", "I need", "gusto ko"... cut off before the point. The classifier
 // matched "I want" to crisis ("I want to die") and alerted the Guidance
-// Associate. Real crisis wording is still caught by the service's keyword list.
-// A short message made only of these words says nothing yet ("I have",
-// "I need", "my", "gusto ko"). Any real word ("help", "die", "sad") sends
-// the message to the classifier as usual.
+// Associate. A short message made only of these words says nothing yet; any
+// real word ("help", "die", "sad") sends it to the classifier as usual, and
+// real crisis wording is still caught by the service's keyword list.
 const FILLER_EN = new Set("i im me my you we they he she it a an the to and but so just really want wanna need have has had got am is are was were be been do dont did cant can will would should think like that this there if because cuz also still".split(" "));
 const FILLER_TL = new Set("ako ko mo ka kasi gusto gustong kong ayoko ayaw kailangan parang sana na nang lang pa ang ng sa si yung ung din rin may".split(" "));
 
@@ -66,6 +65,27 @@ const GO_ON = {
   tl: "Nakikinig ako. Ano ang gusto mong sabihin?",
 };
 
+// "i feeling stressed", "stressed ako": stress with no reason given. The
+// classifier only has cause-specific stress topics (exam_stress,
+// thesis_stress), so it assumed exams. Ask for the cause instead.
+const STRESS_WORDS = new Set("stressed stress stressful pressured overwhelmed burnout burntout burnedout drained nastress nasstress naistress".split(" "));
+const STRESS_EXTRA_EN = new Set("feel feeling feelings so very super really too much out lately today now right always kinda bit little".split(" "));
+const STRESS_EXTRA_TL = new Set("sobrang sobra talaga ngayon lagi palagi medyo nako".split(" "));
+
+export function stressWithoutCause(message: string): "en" | "tl" | null {
+  const words = message.toLowerCase().replace(/['’-]/g, "").replace(/[^a-z\s]/g, " ").split(/\s+/).filter(Boolean);
+  if (words.length === 0 || words.length > 6 || !words.some((w) => STRESS_WORDS.has(w))) return null;
+  const known = (w: string) => STRESS_WORDS.has(w) || FILLER_EN.has(w) || FILLER_TL.has(w) || STRESS_EXTRA_EN.has(w) || STRESS_EXTRA_TL.has(w);
+  if (!words.every(known)) return null;
+  const tl = (w: string) => (FILLER_TL.has(w) || STRESS_EXTRA_TL.has(w) || w.startsWith("na")) && !FILLER_EN.has(w);
+  return words.some(tl) ? "tl" : "en";
+}
+
+const STRESS_QUESTION = {
+  en: "That sounds heavy. What's been stressing you out lately? School, family, friends, or something else?",
+  tl: "Mukhang mabigat 'yan. Ano ang nagpapa-stress sa'yo ngayon? School, pamilya, kaibigan, o iba pa?",
+};
+
 // context: the intent of E-Gabay's previous reply, so "yes"/"no" can continue that topic
 export async function getNlpReply(message: string, context?: string | null): Promise<NlpReply> {
   const unfinished = unfinishedFeeling(message);
@@ -77,6 +97,11 @@ export async function getNlpReply(message: string, context?: string | null): Pro
   if (opener) {
     const prompt = GO_ON[opener];
     return { response: prompt, intent: "unfinished_message", language: opener, label: null, responses: [prompt], suggestions: [] };
+  }
+  const stress = stressWithoutCause(message);
+  if (stress) {
+    const question = STRESS_QUESTION[stress];
+    return { response: question, intent: "stress_unclear", language: stress, label: null, responses: [question], suggestions: [] };
   }
 
   const res = await fetch(`${NLP_SERVICE_URL}/chat`, {

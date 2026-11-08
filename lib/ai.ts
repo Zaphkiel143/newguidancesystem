@@ -55,6 +55,12 @@ function buildSystemPrompt(grounding: AiGrounding, language: string) {
     parts.push(
       `The student's message is about ${topic}. Base the reply ONLY on this official information from the Guidance and Counseling Office - rephrase it warmly and naturally, never contradict it, and never invent school rules, schedules, requirements, or policies:\n- ${grounding.responses.join("\n- ")}`
     );
+    // The topic comes from an automatic classifier and can be a guess: "i feeling
+    // stressed" was matched to exam stress, so replies talked about exams the
+    // student never mentioned.
+    parts.push(
+      "That topic was picked automatically from the student's words and may be a guess. Never assume a cause or situation the student didn't mention (exams, thesis, friends, family, loneliness, and so on). If their message doesn't actually say what's behind it, acknowledge what they did say and ask what's going on, instead of advising on the guessed topic."
+    );
   } else {
     parts.push(
       "The message wasn't matched to a known guidance topic. If official information for the question was already shared earlier in this conversation, you may build on it. Otherwise, answer as a warm guidance companion for everyday school concerns, but for anything the office must decide - records, requirements, formal complaints, exact schedules not already mentioned - say you're not certain and point them to the Guidance and Counseling Office (they can also use the \"Forward to the Guidance Office\" button below your reply)."
