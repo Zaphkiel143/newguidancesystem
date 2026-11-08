@@ -50,7 +50,7 @@ const FEELING_QUESTION = {
 // Associate. A short message made only of these words says nothing yet; any
 // real word ("help", "die", "sad") sends it to the classifier as usual, and
 // real crisis wording is still caught by the service's keyword list.
-const FILLER_EN = new Set("i im me my you we they he she it a an the to and but so just really want wanna need have has had got am is are was were be been do dont did cant can will would should think like that this there if because cuz also still".split(" "));
+const FILLER_EN = new Set("i im me my you we they he she it a an the to and but so just really want wanna need have has had got am is are was were be been do dont did cant can will would should think like that this there if because cuz also still about".split(" "));
 const FILLER_TL = new Set("ako ko mo ka kasi gusto gustong kong ayoko ayaw kailangan parang sana na nang lang pa ang ng sa si yung ung din rin may".split(" "));
 
 export function unfinishedOpener(message: string): "en" | "tl" | null {
@@ -86,8 +86,59 @@ const STRESS_QUESTION = {
   tl: "Mukhang mabigat 'yan. Ano ang nagpapa-stress sa'yo ngayon? School, pamilya, kaibigan, o iba pa?",
 };
 
+// A short message that names only a person or a vague state ("my mom",
+// "someone", "lost", "not good", "may problema ako") made the classifier
+// guess a specific topic: "someone" -> abuse_harassment, "lost" -> grief_loss,
+// "not good" -> feeling_okay, "tulong" -> bot_capabilities. Found by running
+// vague messages through the real model; ask for more detail instead.
+const PEOPLE = new Set("mom mommy mother dad daddy father parent parents family sister brother sibling siblings friend friends bestfriend bff classmate classmates teacher teachers adviser professor prof someone somebody person boyfriend girlfriend bf gf crush school class section nanay tatay mama papa ina ama magulang pamilya kapatid kuya ate kaibigan barkada kaklase guro titser propesor jowa".split(" "));
+const CONNECT = new Set("its about with regarding of our tungkol kay ni mga namin natin po".split(" "));
+const VAGUE_PHRASES = new Set([
+  "confused", "im confused", "i feel confused", "im so confused",
+  "lost", "im lost", "i feel lost", "im so lost",
+  "worried", "i feel worried",
+  "not good", "not great", "not so good", "not really good", "im not good", "im not great",
+  "nahihirapan ako", "nahihirapan na ako", "sobrang nahihirapan ako",
+  "everything is hard", "life is hard", "its hard", "its so hard", "this is hard", "ang hirap", "ang hirap na",
+  "ayoko na talaga",
+  "may problema ako", "i have a problem", "i got a problem", "im in trouble",
+  "may tanong ako", "pwede ba magtanong", "pwede po magtanong", "can i ask", "can i ask something", "can i ask a question", "i have a question",
+  "i dont know what to do", "idk what to do", "hindi ko alam gagawin ko", "hindi ko na alam gagawin ko", "hindi ko alam ang gagawin ko", "di ko alam gagawin ko",
+  "tulong", "tulungan mo ako", "something is wrong", "may nangyari",
+]);
+const TL_WORDS = new Set("ako ko mo ka ang may na po ba pwede hindi di alam gagawin hirap nahihirapan sobrang tulong tulungan problema tanong magtanong nangyari ayoko talaga kay ni tungkol mga namin natin nanay tatay mama papa ina ama magulang pamilya kapatid kuya ate kaibigan barkada kaklase guro titser propesor jowa".split(" "));
+
+function words(message: string) {
+  return message.toLowerCase().replace(/['’-]/g, "").replace(/[^a-z\s]/g, " ").split(/\s+/).filter(Boolean);
+}
+
+export function needsMoreDetail(message: string): "en" | "tl" | null {
+  const w = words(message);
+  if (w.length === 0) return null;
+  const peopleOnly = w.length <= 6 && w.some((x) => PEOPLE.has(x))
+    && w.every((x) => PEOPLE.has(x) || CONNECT.has(x) || FILLER_EN.has(x) || FILLER_TL.has(x));
+  if (!peopleOnly && !VAGUE_PHRASES.has(w.join(" "))) return null;
+  return w.some((x) => TL_WORDS.has(x) && !FILLER_EN.has(x)) ? "tl" : "en";
+}
+
+const MORE_DETAIL = {
+  en: "I'm here. What's on your mind? Tell me a bit more.",
+  tl: "Nandito ako. Ano ang nasa isip mo? Ikuwento mo lang.",
+};
+
+// Any crisis or abuse wording skips every check above, so the message always
+// reaches the service's crisis/abuse keyword lists (and the Guidance
+// Associate alert) unchanged.
+const SAFETY_STEMS = ["die", "dead", "death", "kill", "suicid", "hurt", "harm", "cut", "mamatay", "mamamatay", "magpakamatay", "mabuhay", "patay", "saktan", "sinasaktan", "wakasan", "tapusin", "disappear", "mawala", "rape", "molest", "harass", "abuse", "hit", "beat", "bugbog", "binubugbog", "hinipuan", "ginahasa", "bastos"];
+
+export function hasSafetyWord(message: string): boolean {
+  return words(message).some((x) => SAFETY_STEMS.some((s) => x.startsWith(s)));
+}
+
 // context: the intent of E-Gabay's previous reply, so "yes"/"no" can continue that topic
 export async function getNlpReply(message: string, context?: string | null): Promise<NlpReply> {
+  if (hasSafetyWord(message)) return classify(message, context);
+
   const unfinished = unfinishedFeeling(message);
   if (unfinished) {
     const question = FEELING_QUESTION[unfinished];
@@ -103,7 +154,16 @@ export async function getNlpReply(message: string, context?: string | null): Pro
     const question = STRESS_QUESTION[stress];
     return { response: question, intent: "stress_unclear", language: stress, label: null, responses: [question], suggestions: [] };
   }
+  const vague = needsMoreDetail(message);
+  if (vague) {
+    const prompt = MORE_DETAIL[vague];
+    return { response: prompt, intent: "needs_more_detail", language: vague, label: null, responses: [prompt], suggestions: [] };
+  }
 
+  return classify(message, context);
+}
+
+async function classify(message: string, context?: string | null): Promise<NlpReply> {
   const res = await fetch(`${NLP_SERVICE_URL}/chat`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
