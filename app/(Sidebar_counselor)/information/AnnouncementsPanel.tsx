@@ -189,7 +189,7 @@ export default function AnnouncementsPanel({ onAddEvent }: { onAddEvent: () => v
         {items === null ? (
           <div className="py-16 flex justify-center text-slate-500"><Loader2 className="animate-spin" size={20} /></div>
         ) : items.length === 0 ? (
-          <p className="text-center text-sm text-slate-500 py-10">Nothing posted yet. Your first announcement will show here.</p>
+          <p className="text-center text-sm text-slate-500 py-10">Nothing posted yet.</p>
         ) : (
           items.map((a) => (
             <article key={a.id} className="bg-sheet border border-rule rounded-2xl shadow-sm overflow-hidden">

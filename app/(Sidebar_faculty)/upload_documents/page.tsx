@@ -169,7 +169,7 @@ const UploadDocuments: React.FC = () => {
           </h3>
 
           <p className="text-xs text-slate-500 font-medium mt-2 max-w-sm leading-relaxed">
-            PDF, Word (.docx) or photos, up to 5 MB each. The guidance office checks every upload.
+            PDF, Word (.docx), or photos, up to 5 MB each.
           </p>
         </div>
 

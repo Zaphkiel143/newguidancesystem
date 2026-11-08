@@ -31,7 +31,6 @@ export default function BulletinBoard() {
     <div className="px-5 sm:px-8 lg:px-12 pt-8 lg:pt-12 pb-16 text-slate-800">
       <header>
         <h1 className="page-title">Announcements &amp; events</h1>
-        <p className="text-sm text-slate-500 mt-1">News, reminders, and upcoming activities from the Guidance and Counseling Office</p>
       </header>
 
       {!data ? (

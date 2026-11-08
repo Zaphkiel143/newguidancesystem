@@ -127,9 +127,8 @@ export default function GaHandover() {
           <InlineError message={error} onDismiss={() => setError(null)} className="mt-3" />
 
           <p className="mt-4 text-[13px] text-slate-500">
-            If a Guidance Associate leaves without handing over, the new one can claim the role from the sign-in page. The claim code goes to the
-            guidance office mailbox{state.officeEmail ? <> (<span className="break-all">{state.officeEmail}</span>)</> : " (not set up yet)"}, and you&apos;re
-            told first so you can cancel it.
+            Claim codes go to the guidance office mailbox{state.officeEmail ? <> (<span className="break-all">{state.officeEmail}</span>)</> : " (not set up yet)"}.
+            You&apos;re notified first and can cancel.
           </p>
         </>
       )}

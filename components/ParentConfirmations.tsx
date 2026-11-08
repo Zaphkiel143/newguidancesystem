@@ -56,7 +56,7 @@ export default function ParentConfirmations() {
         {!requests ? (
           <div className="py-10 flex justify-center text-slate-500"><Loader2 className="animate-spin" size={20} /></div>
         ) : requests.length === 0 ? (
-          <p className="mt-3 border-t border-rule pt-4 text-sm text-slate-500">Nothing waiting. Check each parent against the student&apos;s Individual Inventory record before confirming; new requests show up here and in your notifications.</p>
+          <p className="mt-3 border-t border-rule pt-4 text-sm text-slate-500">No pending parent accounts.</p>
         ) : (
           <ul className="mt-3 space-y-3">
             {requests.map((r) => {

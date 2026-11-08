@@ -99,7 +99,7 @@ const DashboardContent: React.FC = () => {
         <span className="min-w-0">
           <span className="block font-serif text-[20px] sm:text-[22px] text-ink leading-snug break-words">Need someone to talk to?</span>
           <span className="block text-[14px] text-slate-600 mt-1 break-words">
-            E-Gabay listens in English or Filipino. Your guidance associate is still a message away.
+            Chat in English or Filipino.
           </span>
         </span>
         <span className="shrink-0 inline-flex items-center gap-2 text-[14px] font-medium text-blue-700">
@@ -141,7 +141,7 @@ const DashboardContent: React.FC = () => {
                 </p>
               </>
             ) : (
-              <p>You&apos;re not enrolled in the Career Planning Program yet. The guidance office adds students to it.</p>
+              <p>Not enrolled in the Career Planning Program yet.</p>
             )}
           </div>
 

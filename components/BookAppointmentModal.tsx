@@ -101,7 +101,6 @@ export default function BookAppointmentModal({
         <div className="flex items-start justify-between p-6 border-b border-slate-100 sticky top-0 bg-white rounded-t-2xl">
           <div>
             <h3 className="text-lg font-semibold text-slate-900">Book Appointment</h3>
-            <p className="text-xs text-slate-500">Schedule a meeting with the guidance associate</p>
           </div>
           <button
             type="button"
@@ -213,7 +212,6 @@ export default function BookAppointmentModal({
                 placeholder="0917 123 4567"
                 className="w-full text-sm bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 focus:outline-none"
               />
-              <p className="text-[11px] text-slate-500">So the guidance office can reach you quickly about this appointment.</p>
             </div>
           )}
 

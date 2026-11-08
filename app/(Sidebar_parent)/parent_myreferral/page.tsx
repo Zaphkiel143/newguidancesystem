@@ -133,7 +133,7 @@ const MyReferralsPage: React.FC = () => {
               Open
             </span>
             <p className="text-slate-600 pt-0.5">
-              Referral has been submitted and is awaiting initial review by the associate.
+              Submitted and waiting for review.
             </p>
           </div>
 
@@ -143,7 +143,7 @@ const MyReferralsPage: React.FC = () => {
               In Progress
             </span>
             <p className="text-slate-600 pt-0.5">
-              The associate is actively working with your child on the concern. You may receive updates as progress is made.
+              The Guidance Associate is working on the concern.
             </p>
           </div>
 
@@ -153,7 +153,7 @@ const MyReferralsPage: React.FC = () => {
               Closed
             </span>
             <p className="text-slate-600 pt-0.5">
-              The concern has been addressed. You can view the final feedback and outcomes.
+              The concern has been addressed.
             </p>
           </div>
         </div>

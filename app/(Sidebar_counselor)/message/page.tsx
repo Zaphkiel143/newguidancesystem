@@ -440,7 +440,7 @@ const MessagesDashboard: React.FC = () => {
                 </svg>
               </div>
               <p className="text-slate-500 font-medium text-[15px]">
-                Select a conversation to start messaging
+                No conversation selected
               </p>
             </div>
           </main>

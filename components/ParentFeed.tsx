@@ -79,7 +79,7 @@ export default function ParentFeed() {
           <section aria-label="Posts" className="mt-6 space-y-4">
             {data.announcements.length === 0 ? (
               <p className="bg-sheet border border-rule rounded-2xl p-8 text-center text-sm text-slate-500">
-                Nothing posted yet. New announcements from the guidance office will show up here.
+                Nothing posted yet.
               </p>
             ) : (
               data.announcements.map((a) => (

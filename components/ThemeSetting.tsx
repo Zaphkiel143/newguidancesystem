@@ -63,7 +63,7 @@ export default function ThemeSetting() {
       <h2 id="theme-heading" className="font-semibold text-[17px] text-ink inline-flex items-center gap-2">
         <Moon size={18} className="text-blue-700" /> Appearance
       </h2>
-      <p className="text-sm text-slate-600 mt-1">Choose light or dark mode. This is saved on this device.</p>
+      <p className="text-sm text-slate-600 mt-1">Saved on this device.</p>
       <div role="radiogroup" aria-labelledby="theme-heading" className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-2 max-w-xl">
         {OPTIONS.map(({ value, label, icon: Icon }) => (
           <label

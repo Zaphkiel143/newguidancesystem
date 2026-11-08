@@ -131,7 +131,7 @@ export default function AccountsManager() {
           <div className="py-8 flex justify-center text-slate-500"><Loader2 className="animate-spin" size={20} /></div>
         ) : pending.length === 0 ? (
           <p className="mt-3 border-t border-rule pt-4 text-sm text-slate-500">
-            Nothing waiting. Faculty and staff who sign up with their school email show up here.
+            No pending sign-ups.
           </p>
         ) : (
           <ul className="mt-3 grid gap-3 lg:grid-cols-2">
@@ -289,7 +289,7 @@ export default function AccountsManager() {
         <div role="dialog" aria-modal="true" aria-labelledby="temp-title" className="fixed inset-0 z-50 bg-ink/40 grid place-items-center p-4">
           <div className="w-full max-w-md bg-sheet rounded-2xl shadow-2xl p-6">
             <h2 id="temp-title" className="text-lg font-semibold text-ink">Temporary password for {tempPassword.name}</h2>
-            <p className="text-sm text-slate-600 mt-1">Give it to the parent in person or by phone. It is shown only once. Ask them to change it in My Profile after signing in.</p>
+            <p className="text-sm text-slate-600 mt-1">Shown only once. Give it to the parent in person or by phone.</p>
             <div className="mt-4 flex items-center gap-2">
               <code className="flex-1 font-mono text-xl tracking-wider bg-slate-50 border border-rule rounded-lg px-4 py-3 select-all">{tempPassword.password}</code>
               <button onClick={() => { void navigator.clipboard?.writeText(tempPassword.password); setCopied(true); }}

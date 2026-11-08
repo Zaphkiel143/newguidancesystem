@@ -143,7 +143,6 @@ export default function MonthCalendar({ today, selected, onPickDay }: { today: s
         <li className="inline-flex items-center gap-1.5"><span className="w-3 h-3 rounded-sm border bg-amber-50 border-amber-200" /> Pending</li>
         <li className="inline-flex items-center gap-1.5"><span className="w-3 h-3 rounded-sm border bg-emerald-50 border-emerald-200" /> Confirmed</li>
         <li className="inline-flex items-center gap-1.5"><span className="w-3 h-3 rounded-sm border bg-teal-50 border-teal-200" /> Terminated</li>
-        <li>Pick a day to manage its appointments or block time.</li>
       </ul>
     </section>
   );

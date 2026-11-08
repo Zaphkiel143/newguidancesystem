@@ -178,7 +178,7 @@ export default function StudentInventory() {
             </thead>
             <tbody className="divide-y divide-rule">
               {filtered.length === 0 ? (
-                <tr><td colSpan={5} className="py-6 text-slate-500">{rows.length === 0 ? "No student records yet. Add one to get started." : "No students match your search."}</td></tr>
+                <tr><td colSpan={5} className="py-6 text-slate-500">{rows.length === 0 ? "No student records yet." : "No students match your search."}</td></tr>
               ) : (
                 filtered.map((r) => (
                   <tr key={r.id}>

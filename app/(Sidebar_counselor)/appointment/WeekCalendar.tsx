@@ -136,7 +136,7 @@ export default function WeekCalendar({ today, selected, onPickDay }: { today: st
           </div>
         </div>
       </div>
-      <p className="mt-3 text-[12px] text-slate-600">Pick a day or an hour to manage it in the day view.</p>
+      
     </section>
   );
 }

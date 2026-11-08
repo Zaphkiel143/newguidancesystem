@@ -8,9 +8,6 @@ export default function AccountsPage() {
     <div className="px-5 sm:px-8 lg:px-10 pt-8 lg:pt-10 pb-16 text-slate-800">
       <header>
         <h1 className="page-title">Accounts</h1>
-        <p className="text-sm text-slate-500 mt-1">
-          Confirm parents, approve faculty and staff sign-ups, archive or restore accounts, and reset parent passwords. To pass the Guidance Associate role to a successor, use My Account.
-        </p>
       </header>
       <ParentConfirmations />
       <AccountsManager />

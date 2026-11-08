@@ -59,7 +59,6 @@ const MyAppointmentsPage: React.FC = () => {
         {appointments.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 text-center">
             <p className="text-sm font-semibold text-slate-500">No appointments yet</p>
-            <p className="text-xs text-slate-500">Book an appointment with the guidance associate to get started</p>
           </div>
         ) : (
           <div className="p-6 space-y-4">

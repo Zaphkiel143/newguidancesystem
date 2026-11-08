@@ -65,8 +65,8 @@ export default function ChangePassword() {
       </h2>
       <p className="text-sm text-slate-600 mt-1 max-w-[65ch]">
         {hasPassword
-          ? "Use your password with “Use your password” on the sign-in page."
-          : "Your account doesn't have a password yet. Choose one so you can sign in without waiting for an email code."}
+          ? ""
+          : "No password set yet."}
       </p>
       {status === undefined ? (
         <div className="py-6 flex text-slate-500"><Loader2 className="animate-spin" size={18} /></div>

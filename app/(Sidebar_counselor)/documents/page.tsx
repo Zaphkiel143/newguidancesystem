@@ -309,7 +309,7 @@ export default function DocumentReviewPage() {
             <>
               {all.length === 0 && (
                 <p className="mt-3 text-sm text-slate-500">
-                  {tab === "PENDING" ? "Nothing to review. New uploads show up here and in your notifications." : "Nothing here yet."}
+                  {tab === "PENDING" ? "Nothing to review." : "Nothing here yet."}
                 </p>
               )}
               <ul className="mt-3 space-y-2">

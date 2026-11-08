@@ -87,7 +87,7 @@ export default function AuthenticatorSetup() {
         <Smartphone size={18} className="text-blue-700" /> Sign in with Microsoft Authenticator
       </h2>
       <p className="text-sm text-slate-600 mt-1 max-w-[65ch]">
-        Instead of waiting for an email code, use the 6-digit code from Microsoft Authenticator (or Google Authenticator) on your phone.
+        Sign in with a code from Microsoft or Google Authenticator.
       </p>
 
       {status === null ? (
