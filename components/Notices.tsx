@@ -7,15 +7,17 @@ import { Bell, MessageSquare, Sparkles, X } from "lucide-react";
 import { getMyNotices, markNoticesRead } from "../app/action/notifications";
 import type { Notification } from "../lib/generated";
 import AiChatThread from "./AiChat";
+import { usePolling } from "../lib/usePolling";
 
 type Notices = { items: Notification[]; unread: number; unreadMessages: number };
 const EMPTY: Notices = { items: [], unread: 0, unreadMessages: 0 };
-const POLL_MS = 30_000;
+const POLL_MS = 60_000;
 
 const NoticesContext = createContext<{ notices: Notices; refresh: () => void }>({ notices: EMPTY, refresh: () => {} });
 
 // Loads the signed-in user's notifications and unread message count, and
-// refreshes them every 30 seconds (and on every page change) while the tab is open.
+// refreshes them every minute while the page is in use (lib/usePolling.ts)
+// and on every page change.
 export function NoticesProvider({ children }: { children: React.ReactNode }) {
   const [notices, setNotices] = useState<Notices>(EMPTY);
   const pathname = usePathname();
@@ -35,17 +37,7 @@ export function NoticesProvider({ children }: { children: React.ReactNode }) {
     if (done.length) markNoticesRead(done).then(refresh);
   }, [notices.items, pathname, refresh]);
 
-  useEffect(() => {
-    const tick = () => {
-      if (document.visibilityState === "visible") refresh();
-    };
-    const id = setInterval(tick, POLL_MS);
-    document.addEventListener("visibilitychange", tick);
-    return () => {
-      clearInterval(id);
-      document.removeEventListener("visibilitychange", tick);
-    };
-  }, [refresh]);
+  usePolling(refresh, POLL_MS);
 
   return <NoticesContext.Provider value={{ notices, refresh }}>{children}</NoticesContext.Provider>;
 }

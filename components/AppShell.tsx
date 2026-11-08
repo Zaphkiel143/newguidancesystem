@@ -16,6 +16,7 @@ import { LoginApprovalPrompt } from "./LoginApproval";
 import PrivacyNotice from "./PrivacyNotice";
 import ProfileMenu from "./ProfileMenu";
 import ScrollToHash from "./ScrollToHash";
+import { usePolling } from "../lib/usePolling";
 
 type Role = "faculty" | "counselor" | "student" | "parent";
 
@@ -37,8 +38,18 @@ interface AppShellProps {
 // localStorage key for the desktop sidebar's hidden/shown choice.
 const SIDEBAR_KEY = "egabay-sidebar";
 
-// How often the counselor's menu badges re-check their counts.
-const COUNTS_REFRESH_MS = 5_000;
+// How often the counselor's menu badges re-check their counts while the page is in use.
+const COUNTS_REFRESH_MS = 60_000;
+
+async function loadCounts() {
+  const stats = await getDashboardStats();
+  return {
+    pendingAppointments: stats.pendingAppointments,
+    pendingReferrals: stats.pendingReferrals,
+    documentsToReview: stats.documentsToReview,
+    approvalsWaiting: stats.approvalsWaiting,
+  };
+}
 
 // Each role's own account page (photo, details, sign-in settings).
 const ACCOUNT_PATH: Record<Role, string> = {
@@ -133,37 +144,17 @@ export function AppShell({ role, userName, displayName = userName, hiddenPaths =
     .filter(visible)
     .map((item) => (item.children ? { ...item, children: item.children.filter(visible) } : item));
 
+  // On every page change, so a badge catches up as soon as you move on...
   useEffect(() => {
     if (role !== "counselor") return;
     let active = true;
-    const refreshCounts = async () => {
-      const stats = await getDashboardStats();
-      if (active) {
-        setCounselorCounts({
-          pendingAppointments: stats.pendingAppointments,
-          pendingReferrals: stats.pendingReferrals,
-          documentsToReview: stats.documentsToReview,
-          approvalsWaiting: stats.approvalsWaiting,
-        });
-      }
-    };
-    void refreshCounts();
-    // Every few seconds while the tab is in view, and straight away when the
-    // person comes back to it, so a change shows without reloading.
-    const interval = window.setInterval(() => {
-      if (document.visibilityState === "visible") void refreshCounts();
-    }, COUNTS_REFRESH_MS);
-    const onVisible = () => {
-      if (document.visibilityState === "visible") void refreshCounts();
-    };
-    document.addEventListener("visibilitychange", onVisible);
+    loadCounts().then((counts) => active && setCounselorCounts(counts));
     return () => {
       active = false;
-      window.clearInterval(interval);
-      document.removeEventListener("visibilitychange", onVisible);
     };
-    // Also on every page change, so a badge catches up as soon as you move on.
   }, [role, pathname]);
+  // ...and every minute while the page is in use (see lib/usePolling.ts).
+  usePolling(async () => setCounselorCounts(await loadCounts()), COUNTS_REFRESH_MS, role === "counselor");
 
   // Close the mobile menu automatically whenever the route changes
   if (pathname !== lastPathname) {
