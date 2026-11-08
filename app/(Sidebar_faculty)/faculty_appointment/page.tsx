@@ -30,7 +30,7 @@ const MyAppointmentsPage: React.FC = () => {
   }, []);
 
   return (
-    <div className="px-5 sm:px-8 lg:px-12 pt-8 lg:pt-12 pb-16 max-w-5xl font-sans antialiased text-slate-800 space-y-6">
+    <div className="px-5 sm:px-8 lg:px-12 pt-8 lg:pt-12 pb-16 font-sans antialiased text-slate-800 space-y-6">
 
       {/* Upper Main Action Header Bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -59,7 +59,6 @@ const MyAppointmentsPage: React.FC = () => {
         {appointments.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 text-center">
             <p className="text-sm font-semibold text-slate-500">No appointments yet</p>
-            <p className="text-xs text-slate-500">Book an appointment with the guidance associate to get started</p>
           </div>
         ) : (
           <div className="p-6 space-y-4">

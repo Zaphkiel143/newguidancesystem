@@ -4,7 +4,6 @@ import db from "../../lib/db";
 import { revalidatePath } from "next/cache";
 import { requireActionUser } from "../../lib/session";
 import { allow, DAY, HOUR, MINUTE, SLOW_DOWN } from "../../lib/rateLimit";
-import { hashPassword, verifyPassword } from "../../lib/auth";
 import { notifyCounselors } from "../../lib/notify";
 import { normalizePhone } from "../../lib/phone";
 import { announceNewReferral, checkReferral } from "../../lib/referrals";
@@ -12,7 +11,6 @@ import { logRecordAccess } from "../../lib/accessLog";
 import { counselorEmails, formatAppointmentWhen, sendEmail } from "../../lib/email";
 import { announceNewBooking, checkBooking } from "../../lib/booking";
 import { logActivity } from "../../lib/activityLog";
-import { passwordProblem } from "../../lib/parentSignup";
 
 // Every action here acts as the signed-in parent. A parent's children are the
 // student records the guidance office approved for them (ParentChildLink),
@@ -358,21 +356,7 @@ export async function updateMyParentProfile(formData: { lastName: string; firstN
   }
 }
 
-export async function changeMyPassword(formData: { current: string; next: string }) {
-  try {
-    const me = await requireActionUser("PARENT");
-    const row = await db.user.findUnique({ where: { id: me.id }, select: { passwordHash: true } });
-    if (!row || !verifyPassword(formData.current, row.passwordHash)) return { success: false, error: "Your current password isn't right." };
-    const weak = passwordProblem(formData.next);
-    if (weak) return { success: false, error: `Choose a stronger password. ${weak}` };
-    await db.user.update({ where: { id: me.id }, data: { passwordHash: hashPassword(formData.next) } });
-    await logActivity(me, "Changed their password", "User", me.id);
-    return { success: true };
-  } catch (error) {
-    console.error("[parent] Failed to change password:", error);
-    return { success: false, error: "Couldn't change your password. Try again." };
-  }
-}
+// Changing the password moved to app/action/password.tsx (every account page uses it).
 
 export async function requestChildLink(formData: { childStudentId: string; childName: string; relationship: string }) {
   try {

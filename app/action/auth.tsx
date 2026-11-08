@@ -3,11 +3,11 @@
 import { randomInt } from "crypto";
 import { redirect } from "next/navigation";
 import db from "../../lib/db";
-import { createSession, destroySession, dashboardPathForRole, hashPassword, verifyPassword } from "../../lib/auth";
+import { createSession, destroySession, dashboardPathForRole, hashPassword, hasPassword, verifyPassword } from "../../lib/auth";
 import { emailConfigured, sendEmail } from "../../lib/email";
-import { notifyAdmins, notifyCounselors } from "../../lib/notify";
+import { notifyCounselors } from "../../lib/notify";
 import { normalizePhone } from "../../lib/phone";
-import { cleanName, FIX_FIELDS_MESSAGE, isNameText, validateParentSignup, type ParentSignupErrors } from "../../lib/parentSignup";
+import { cleanName, FIX_FIELDS_MESSAGE, isNameText, passwordProblem, validateParentSignup, type ParentSignupErrors } from "../../lib/parentSignup";
 import { getOptionList } from "./optionLists";
 import { optionValue } from "../../lib/optionListDefaults";
 import { allow, clientIp, HOUR, MINUTE } from "../../lib/rateLimit";
@@ -17,6 +17,7 @@ import { gradeSectionLabel, isShs } from "../config/studentLevels";
 import { logActivity } from "../../lib/activityLog";
 import { ROLE_LABEL } from "../../lib/session";
 import { DEMO_EMAILS } from "../../lib/demo";
+import { entraConfigured } from "../../lib/entra";
 
 const DEMO_PASSWORD = "demo1234";
 
@@ -26,8 +27,8 @@ const DEMO_LOGIN_ENABLED = process.env.NEXT_PUBLIC_DEMO_LOGIN !== "false";
 
 // Stored names link the demo accounts to the sample records; on screen they
 // show as "Demo Account" (lib/demo.ts).
-const DEMO_USERS: Record<UserRole, { email: string; name: string }> = {
-  ADMIN: { email: DEMO_EMAILS.ADMIN, name: "System Administrator" },
+type DemoRole = Exclude<UserRole, "ADMIN">;
+const DEMO_USERS: Record<DemoRole, { email: string; name: string }> = {
   COUNSELOR: { email: DEMO_EMAILS.COUNSELOR, name: "Ralph Michael" },
   STUDENT: { email: DEMO_EMAILS.STUDENT, name: "Nhel Belarmino" },
   FACULTY: { email: DEMO_EMAILS.FACULTY, name: "Cho Sto Domingo" },
@@ -42,12 +43,13 @@ function statusMessage(status: string, role: UserRole) {
       : "Your account is waiting for the guidance office to approve it. Try again once it's approved.";
   }
   if (status === "ARCHIVED") return "This account was archived. Please contact the Guidance and Counseling Office to restore it.";
+  if (status === "RETIRED") return "Super Admin accounts were retired. The Guidance Associate now manages accounts.";
   return "This account can't be used. Please contact the Guidance and Counseling Office.";
 }
 
 type LoginResult = { success: true; redirectTo: string } | { success: false; error: string };
 
-// Password sign-in for parents/guardians (mobile number) and demo accounts (email).
+// Password sign-in: parents/guardians (mobile number), and school and demo accounts (email).
 export async function login(formData: { identifier: string; password: string }): Promise<LoginResult> {
   try {
     const raw = formData.identifier.trim();
@@ -61,10 +63,13 @@ export async function login(formData: { identifier: string; password: string }):
       ? await db.user.findUnique({ where: { phone } })
       : await db.user.findUnique({ where: { email: raw.toLowerCase() } });
 
-    if (!user || !verifyPassword(formData.password, user.passwordHash)) {
-      return { success: false, error: "That number or password isn't right." };
+    if (user && !phone && !hasPassword(user.passwordHash)) {
+      return { success: false, error: "This account doesn't have a password yet. Use an email code; you'll choose a password right after." };
     }
-    if (user.status !== "ACTIVE") return { success: false, error: statusMessage(user.status, user.role) };
+    if (!user || !verifyPassword(formData.password, user.passwordHash)) {
+      return { success: false, error: phone ? "That number or password isn't right." : "That email or password isn't right." };
+    }
+    if (user.status !== "ACTIVE" || user.role === "ADMIN") return { success: false, error: statusMessage(user.role === "ADMIN" ? "RETIRED" : user.status, user.role) };
 
     await createSession(user.id);
     await logActivity({ name: user.name, roleLabel: ROLE_LABEL[user.role], id: user.id }, "Signed in", "User", user.id);
@@ -106,6 +111,61 @@ function emailList(value: string | undefined) {
     .split(",")
     .map((e) => normalizeEmail(e))
     .filter(Boolean);
+}
+
+// ---- Choosing how to verify (like Microsoft Entra ID's "Verify your identity") ----
+//
+// After someone types their school email, the page lists the ways this account
+// can prove it's them: approve on a signed-in device, an authenticator app
+// code, an emailed code, its password, or Microsoft (when Entra ID is set up).
+// A new email only gets the emailed code, which leads to sign-up.
+
+export type SignInOptions = {
+  exists: boolean;
+  // The account's role on file; for a new email, the role the email's format points to.
+  role: UserRole | null;
+  password: boolean;
+  authenticator: boolean;
+  approve: boolean;
+  microsoft: boolean;
+};
+
+export async function getSignInOptions(rawEmail: string): Promise<{ success: true; options: SignInOptions } | { success: false; error: string }> {
+  try {
+    const email = normalizeEmail(rawEmail);
+    if (!isSchoolEmail(email)) return { success: false, error: `Use your school email (it ends with @${SCHOOL_DOMAIN}).` };
+    // Limits how fast someone can check which emails have accounts.
+    if (!(await allow(`options-ip:${await clientIp()}`, 30, 15 * MINUTE))) {
+      return { success: false, error: "Too many tries from this device. Wait 15 minutes and try again." };
+    }
+    const microsoft = entraConfigured();
+    const user = await db.user.findUnique({
+      where: { email },
+      select: { id: true, role: true, status: true, passwordHash: true, totpSecret: true },
+    });
+    if (!user) {
+      // Same order createSchoolAccount uses, so a listed Guidance Associate's
+      // first sign-in already says so (their emails look like faculty's).
+      const role = emailList(process.env.COUNSELOR_EMAILS).includes(email) ? "COUNSELOR" : roleFromSchoolEmail(email);
+      return { success: true, options: { exists: false, role, password: false, authenticator: false, approve: false, microsoft } };
+    }
+    const signedInSomewhere =
+      user.status === "ACTIVE" ? await db.session.count({ where: { userId: user.id, expiresAt: { gt: new Date() } } }) : 0;
+    return {
+      success: true,
+      options: {
+        exists: true,
+        role: user.role,
+        password: hasPassword(user.passwordHash),
+        authenticator: Boolean(user.totpSecret),
+        approve: signedInSomewhere > 0,
+        microsoft,
+      },
+    };
+  } catch (error) {
+    console.error("Failed to load sign-in options:", error);
+    return { success: false, error: "Something went wrong. Please try again." };
+  }
 }
 
 // retryAfter (seconds) lets the page restart its resend countdown when the
@@ -186,17 +246,23 @@ export type StudentDetails = {
 type CodeVerifyResult =
   | { success: true; redirectTo: string; role: UserRole }
   | { success: false; needsDetails: true }
+  | { success: false; needsPassword: true }
   | { success: false; pending: true; message: string }
   | { success: false; error: string };
 
 // First sign-in creates the account. Records across the system are linked by
 // name, so we ask for it (and, for students, their school details) rather than guess.
+// Every account needs a password: new accounts choose one with their details,
+// and older accounts without one (or someone who forgot theirs, resetPassword)
+// get needsPassword back and send the same code again with newPassword.
 export async function verifyLoginCode(formData: {
   email: string;
   code: string;
   signInAs: SignInAs;
   fullName?: string;
   student?: StudentDetails;
+  newPassword?: string;
+  resetPassword?: boolean;
 }): Promise<CodeVerifyResult> {
   try {
     const email = normalizeEmail(formData.email);
@@ -232,12 +298,21 @@ export async function verifyLoginCode(formData: {
 
     let user = await db.user.findUnique({ where: { email } });
     let isNewAccount = false;
+    // The code stays unused until the password is chosen, so the person isn't asked for a new one.
+    const choosingPassword = Boolean(user && (!hasPassword(user.passwordHash) || formData.resetPassword));
+    if (choosingPassword && !formData.newPassword) return { success: false, needsPassword: true };
+    const weak = formData.newPassword !== undefined ? passwordProblem(formData.newPassword) : null;
+    if (weak) return { success: false, error: `Choose a stronger password. ${weak}` };
 
     if (!user) {
       const created = await createSchoolAccount(email, formData);
       if ("needsDetails" in created || "error" in created) return { success: false, ...created } as CodeVerifyResult;
       user = created.user;
       isNewAccount = true;
+    } else if (choosingPassword) {
+      user = await db.user.update({ where: { id: user.id }, data: { passwordHash: hashPassword(formData.newPassword!) } });
+      // A forgotten password may have let someone else in: other devices are signed out.
+      if (formData.resetPassword) await db.session.deleteMany({ where: { userId: user.id } });
     }
 
     // The code is used up whether or not the account can sign in yet.
@@ -245,9 +320,10 @@ export async function verifyLoginCode(formData: {
 
     const actor = { name: user.name, roleLabel: ROLE_LABEL[user.role], id: user.id };
     if (isNewAccount) await logActivity(actor, "Created their account", "User", user.id);
+    else if (choosingPassword) await logActivity(actor, formData.resetPassword ? "Reset their password" : "Set their password", "User", user.id);
 
-    if (user.status !== "ACTIVE") {
-      return { success: false, pending: true, message: statusMessage(user.status, user.role) };
+    if (user.status !== "ACTIVE" || user.role === "ADMIN") {
+      return { success: false, pending: true, message: statusMessage(user.role === "ADMIN" ? "RETIRED" : user.status, user.role) };
     }
 
     await createSession(user.id);
@@ -261,21 +337,20 @@ export async function verifyLoginCode(formData: {
 
 async function createSchoolAccount(
   email: string,
-  formData: { signInAs: SignInAs; fullName?: string; student?: StudentDetails }
+  formData: { signInAs: SignInAs; fullName?: string; student?: StudentDetails; newPassword?: string }
 ) {
   // A Guidance Associate may already have an inventory record with this email.
   const existingProfile = await db.studentProfile.findFirst({ where: { email } });
-  // SUPER_ADMIN_EMAILS and COUNSELOR_EMAILS (comma-separated) get those roles on first sign-in.
-  const isListedAdmin = emailList(process.env.SUPER_ADMIN_EMAILS).includes(email);
+  // COUNSELOR_EMAILS (comma-separated) become Guidance Associates on first sign-in,
+  // which is how the very first one is set up. Later ones arrive by handover
+  // (app/action/handover.tsx) or are approved by a current Guidance Associate.
   const isListedCounselor = emailList(process.env.COUNSELOR_EMAILS).includes(email);
 
   // The email's format settles student vs faculty when it can (see
   // roleFromSchoolEmail); guidance staff use faculty-style emails, so they can
   // still ask for a guidance account.
   const fromEmail = roleFromSchoolEmail(email);
-  const role: UserRole = isListedAdmin
-    ? "ADMIN"
-    : isListedCounselor
+  const role: UserRole = isListedCounselor
     ? "COUNSELOR"
     : existingProfile || fromEmail === "STUDENT"
       ? "STUDENT"
@@ -290,10 +365,13 @@ async function createSchoolAccount(
   if (!name || (needsStudentDetails && !formData.student)) return { needsDetails: true as const };
   if (name.length < 3 || !name.includes(" ")) return { error: "Enter your first and last name." };
   if (!existingProfile && !isNameText(name)) return { error: "Use letters only in your name." };
+  // Its strength was checked by verifyLoginCode.
+  if (!formData.newPassword) return { error: "Choose a password for your account." };
+  const passwordHash = hashPassword(formData.newPassword);
 
-  // Approved right away: listed admins and counselors, and students. Self-declared
-  // faculty and guidance staff wait for the Super Admin to approve them.
-  const status = role === "STUDENT" || isListedAdmin || isListedCounselor ? "ACTIVE" : "PENDING";
+  // Approved right away: listed counselors, and students. Self-declared
+  // faculty and guidance staff wait for the Guidance Associate to approve them.
+  const status = role === "STUDENT" || isListedCounselor ? "ACTIVE" : "PENDING";
 
   if (needsStudentDetails) {
     const problem = await checkStudentDetails(formData.student!);
@@ -314,7 +392,7 @@ async function createSchoolAccount(
 
     const user = await db.$transaction(async (tx) => {
       const created = await tx.user.create({
-        data: { email, name, role, status, passwordHash: "code-login-only" },
+        data: { email, name, role, status, passwordHash },
       });
       const details = {
         department: s.department,
@@ -336,14 +414,13 @@ async function createSchoolAccount(
   }
 
   const user = await db.user.create({
-    // Code-only accounts can't use the password form.
-    data: { email, name, role, status, passwordHash: "code-login-only" },
+    data: { email, name, role, status, passwordHash },
   });
   if (status === "PENDING") {
-    await notifyAdmins({
+    await notifyCounselors({
       title: `New ${role === "FACULTY" ? "faculty" : "guidance staff"} account to approve`,
       body: `${name} (${email})`,
-      href: "/admin_accounts",
+      href: "/accounts",
     });
   }
   return { user };
@@ -453,8 +530,9 @@ export async function registerParent(formData: {
   }
 }
 
-// Forgot password (parents only; everyone else signs in with an emailed code).
-// With an email on file the parent gets a reset code; otherwise the Super Admin is asked to help.
+// Forgot password for parents. School accounts reset theirs with an emailed
+// code instead (verifyLoginCode with resetPassword).
+// With an email on file the parent gets a reset code; otherwise the Guidance Associate is asked to help.
 
 const RESET_KEY = (userId: string) => `reset:${userId}`;
 
@@ -472,7 +550,7 @@ export async function requestParentReset(rawPhone: string): Promise<ResetRequest
     if (!user || user.role !== "PARENT" || user.status !== "ACTIVE") return { success: true, emailed: false };
 
     if (!user.email) {
-      await notifyAdmins({ title: "A parent forgot their password", body: `${user.name} (${rawPhone.trim()}) asked for a password reset.`, href: "/admin_accounts" });
+      await notifyCounselors({ title: "A parent forgot their password", body: `${user.name} (${rawPhone.trim()}) asked for a password reset.`, href: "/accounts" });
       return { success: true, emailed: false };
     }
     const code = String(randomInt(0, 1_000_000)).padStart(6, "0");
@@ -537,6 +615,7 @@ export async function finishParentReset(formData: { phone: string; code: string;
 // Turn off with NEXT_PUBLIC_DEMO_LOGIN="false" before real use.
 export async function loginAsDemo(role: UserRole) {
   if (!DEMO_LOGIN_ENABLED) throw new Error("Demo sign-in is turned off.");
+  if (role === "ADMIN") throw new Error("There is no Super Admin.");
   const demo = DEMO_USERS[role];
 
   const user = await db.user.upsert({

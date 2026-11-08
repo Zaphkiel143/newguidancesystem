@@ -88,6 +88,8 @@ model GroupGuidanceProgram {
 }
 
 enum UserRole {
+  // Retired: the Super Admin was removed. Kept only so existing rows still
+  // load; nothing grants this role and these accounts can't sign in.
   ADMIN
   COUNSELOR
   FACULTY
@@ -118,7 +120,7 @@ model User {
   totpEnabledAt DateTime?
   // When this person agreed to the privacy notice (Data Privacy Act, RA 10173).
   privacyAcceptedAt DateTime?
-  // Archived accounts can't sign in; the Super Admin can restore them
+  // Archived accounts can't sign in; the Guidance Associate can restore them
   archivedAt   DateTime?
 
   sessions      Session[]
@@ -133,10 +135,37 @@ model Session {
   userId    String
   user      User     @relation(fields: [userId], references: [id])
   expiresAt DateTime
-  // Super Admin "View as": this session shows another user's pages, read-only
-  viewAsUserId String?
 
   createdAt DateTime @default(now())
+}
+
+// ---- Handing over the Guidance Associate role ----
+//
+// There is no Super Admin: the Guidance Associate role passes from person to
+// person with a one-time code sent to a school email (app/action/handover.tsx).
+// TRANSFER: the current Guidance Associate invites their successor; the code
+//           goes to the successor's school email.
+// CLAIM:    nobody can act for the office (the Guidance Associate left). The
+//           code goes to the office's own mailbox (GCO_OFFICE_EMAIL), and while
+//           an active Guidance Associate exists it only works after a 24-hour
+//           hold, during which they're told and can cancel it.
+// Only a hash of the code is stored; it works once, with at most 5 wrong tries.
+model RoleHandover {
+  id          String    @id @default(uuid())
+  kind        String    // TRANSFER or CLAIM
+  toEmail     String    // the school email that becomes the Guidance Associate
+  codeHash    String
+  // TRANSFER: who invited (archived once the successor accepts)
+  fromUserId  String?
+  usableAfter DateTime  @default(now())
+  expiresAt   DateTime
+  attempts    Int       @default(0)
+  usedAt      DateTime?
+  cancelledAt DateTime?
+
+  createdAt   DateTime  @default(now())
+
+  @@index([toEmail, createdAt])
 }
 
 model Referral {
@@ -304,6 +333,7 @@ model Event {
   title       String
   description String    @db.Text
   date        DateTime
+  // Last day of a multi-day event; null for a one-day event
   endDate     DateTime?
   time        String
   location    String?

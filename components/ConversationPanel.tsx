@@ -5,6 +5,7 @@ import { ArrowUp, Loader2 } from "lucide-react";
 import type { Message as DbMessage } from "../lib/generated";
 import Link from "next/link";
 import InlineError from "./InlineError";
+import { usePolling } from "../lib/usePolling";
 
 interface ConversationPanelProps {
   conversationId: string;
@@ -25,7 +26,7 @@ interface ConversationPanelProps {
   headerActions?: React.ReactNode;
 }
 
-const POLL_INTERVAL_MS = 4000;
+const POLL_INTERVAL_MS = 10_000;
 
 export default function ConversationPanel({
   conversationId,
@@ -61,16 +62,17 @@ export default function ConversationPanel({
       if (!cancelled) setIsLoading(false);
     })();
 
-    const interval = setInterval(() => {
-      refresh();
-      markConversationRead(conversationId);
-    }, POLL_INTERVAL_MS);
-
     return () => {
       cancelled = true;
-      clearInterval(interval);
     };
   }, [conversationId, getMessages, markConversationRead]);
+
+  // New messages while the chat is open and in use (lib/usePolling.ts).
+  usePolling(async () => {
+    const data = await getMessages(conversationId);
+    setMessages(data);
+    await markConversationRead(conversationId);
+  }, POLL_INTERVAL_MS);
 
   // Opens at the latest message straight away; new messages after that glide in.
   const hasScrolled = useRef(false);

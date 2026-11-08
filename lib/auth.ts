@@ -23,6 +23,13 @@ export function verifyPassword(password: string, stored: string): boolean {
   return hashBuffer.length === suppliedBuffer.length && timingSafeEqual(hashBuffer, suppliedBuffer);
 }
 
+// Accounts made before passwords were required hold "code-login-only" instead
+// of a hash. verifyPassword never accepts it (no salt), and the person is asked
+// to choose a password the next time they sign in with an email code.
+export function hasPassword(passwordHash: string): boolean {
+  return passwordHash !== "code-login-only" && passwordHash.includes(":");
+}
+
 export async function createSession(userId: string) {
   const expiresAt = new Date(Date.now() + SESSION_TTL_MS);
   const session = await db.session.create({
@@ -56,8 +63,8 @@ export async function getCurrentUser() {
   // The photo bytes are left out here; /api/me/avatar loads them on their own
   const session = await db.session.findUnique({ where: { token }, include: { user: { omit: USER_OMIT } } });
   if (!session || session.expiresAt < new Date()) return null;
-  // Unapproved or turned-off accounts can't use an old session
-  if (session.user.status !== "ACTIVE") return null;
+  // Unapproved or turned-off accounts, and the retired Super Admin role, can't use an old session
+  if (session.user.status !== "ACTIVE" || session.user.role === "ADMIN") return null;
 
   // Sliding expiry, at most about once a day per session
   if (session.expiresAt.getTime() - Date.now() < RENEW_WHEN_LEFT_MS) {
@@ -66,42 +73,27 @@ export async function getCurrentUser() {
       .catch(() => {});
   }
 
-  // Super Admin "View as": pages see the chosen user (read-only, see lib/db.ts)
-  if (session.viewAsUserId && session.user.role === "ADMIN") {
-    const target = await db.user.findUnique({ where: { id: session.viewAsUserId }, omit: USER_OMIT });
-    if (target) return target;
-  }
-
   return session.user;
 }
 
 const USER_OMIT = { avatarData: true, totpSecret: true, totpPending: true } as const;
 
-// The signed-in Super Admin and who they're viewing as, or null
-export async function getViewAs() {
-  const cookieStore = await cookies();
-  const token = cookieStore.get(SESSION_COOKIE)?.value;
-  if (!token) return null;
-  const session = await db.session.findUnique({ where: { token }, select: { viewAsUserId: true, user: { select: { name: true, role: true } } } });
-  if (!session?.viewAsUserId || session.user.role !== "ADMIN") return null;
-  const target = await db.user.findUnique({ where: { id: session.viewAsUserId }, select: { name: true, role: true } });
-  return target ? { adminName: session.user.name, name: target.name, role: target.role } : null;
-}
-
-// The real signed-in user, ignoring View as
+// The signed-in user plus their session token (to keep this device signed in
+// while signing out the others).
 export async function getSignedInUser() {
   const cookieStore = await cookies();
   const token = cookieStore.get(SESSION_COOKIE)?.value;
   if (!token) return null;
   const session = await db.session.findUnique({ where: { token }, include: { user: { omit: USER_OMIT } } });
-  if (!session || session.expiresAt < new Date() || session.user.status !== "ACTIVE") return null;
+  if (!session || session.expiresAt < new Date() || session.user.status !== "ACTIVE" || session.user.role === "ADMIN") return null;
   return { ...session.user, sessionToken: token };
 }
 
 export function dashboardPathForRole(role: UserRole): string {
   switch (role) {
     case "ADMIN":
-      return "/admin_accounts";
+      // Retired role: nothing to open
+      return "/Login";
     case "COUNSELOR":
       return "/dashboard";
     case "FACULTY":

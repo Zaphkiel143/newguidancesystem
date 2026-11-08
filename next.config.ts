@@ -1,6 +1,12 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // Render's free plan has 512 MB of memory, and next build's TypeScript step
+  // runs out of it. On Render only (it sets RENDER=true) that step is skipped;
+  // types are still checked locally (npx tsc --noEmit) and on other hosts.
+  typescript: {
+    ignoreBuildErrors: process.env.RENDER === "true",
+  },
   experimental: {
     serverActions: {
       // Documents are stored as bytes directly in Postgres (base64 over the

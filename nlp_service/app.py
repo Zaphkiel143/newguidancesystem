@@ -58,6 +58,10 @@ class ChatResponse(BaseModel):
     confidence: float
     language: str
     response: str
+    # Topic label + the matched intent's official answers, used by the app to
+    # ground AI-generated replies (lib/ai.ts); label is None when no intent matched.
+    label: Optional[str] = None
+    responses: list[str] = []
     suggestions: list[Suggestion] = []
 
 

@@ -2,11 +2,12 @@
 
 import LevelPicker from "../../components/LevelPicker";
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { ArrowLeft, ArrowRight, Loader2 } from 'lucide-react';
+import { ArrowLeft, ArrowRight, ChevronRight, KeyRound, Loader2, Mail, ShieldCheck, Smartphone } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { finishParentReset, login, loginAsDemo, registerParent, requestLoginCode, requestParentReset, verifyLoginCode, type SignInAs } from '../action/auth';
-import { SCHOOL_EMAIL_DOMAIN, roleFromSchoolEmail } from '../config/school';
+import Link from 'next/link';
+import { finishParentReset, getSignInOptions, login, loginAsDemo, registerParent, requestLoginCode, requestParentReset, verifyLoginCode, type SignInAs, type SignInOptions } from '../action/auth';
+import { SCHOOL_EMAIL_DOMAIN, roleFromSchoolEmail, roleFromSignInId } from '../config/school';
 import { LogoMark } from '../../components/Logo';
 import { signInWithTotp } from '../action/totp';
 import { checkLoginApproval, requestLoginApproval } from '../action/loginApproval';
@@ -19,6 +20,7 @@ import {
   PARENT_SIGNUP_FIELDS,
   PHONE_HELP,
   nameChars,
+  passwordProblem,
   validateParentSignup,
   type ParentSignupErrors,
   type ParentSignupField,
@@ -36,7 +38,6 @@ function schoolEmailProblem(value: string): string | null {
 }
 
 const DEMO_ROLES: { role: UserRole; label: string }[] = [
-  { role: "ADMIN", label: "Super Admin" },
   { role: "COUNSELOR", label: "Associate" },
   { role: "STUDENT", label: "Student" },
   { role: "FACULTY", label: "Faculty" },
@@ -60,12 +61,35 @@ const REG_INPUT_IDS: Record<ParentSignupField, string> = {
 };
 
 // One sign-in page for everyone: the account itself decides the role.
-type Step = "start" | "code" | "details" | "register" | "waiting" | "totp" | "approve" | "forgot" | "reset";
+// Students and staff follow the STI eLMS / Microsoft Entra ID pattern:
+// start → email → verify (choose a method) → password, code, authenticator or approval.
+// Parents and guardians use their own mobile number + password form.
+type Step =
+  | "start" | "email" | "verify" | "password" | "code" | "setPassword" | "details"
+  | "parent" | "register" | "waiting" | "totp" | "approve" | "forgot" | "reset";
+
+// Shown when Microsoft sends someone back without signing them in.
+const ENTRA_ERRORS: Record<string, string> = {
+  off: "Microsoft sign-in isn't set up on this site yet. Choose another way to verify.",
+  denied: "Microsoft sign-in was cancelled or isn't allowed for this app yet. Choose another way to verify.",
+  expired: "That Microsoft sign-in took too long. Try again.",
+  failed: "We couldn't finish the Microsoft sign-in. Try again, or choose another way to verify.",
+  domain: `Use your STI school account (ending in @${SCHOOL_EMAIL_DOMAIN}) when Microsoft asks.`,
+};
 
 const RESEND_SECONDS = 30;
 
 // Parents sign in with a mobile number; everyone else with a school email.
-const looksLikePhone = (s: string) => /^[+\d][\d\s()-]*$/.test(s.trim()) && s.replace(/\D/g, "").length >= 4;
+const looksLikePhone = (s: string) => roleFromSignInId(s) === "PARENT";
+
+// How each role is named on the sign-in page ("Signing in as …").
+const SIGN_IN_ROLE_LABEL: Record<UserRole, string> = {
+  STUDENT: "Student",
+  FACULTY: "Faculty or staff",
+  COUNSELOR: "Guidance office",
+  ADMIN: "Retired account",
+  PARENT: "Parent or guardian",
+};
 
 const LoginPage = () => {
   const router = useRouter();
@@ -99,6 +123,10 @@ const LoginPage = () => {
   const [demoLoadingRole, setDemoLoadingRole] = useState<UserRole | null>(null);
   const codeInput = useRef<HTMLInputElement>(null);
   const [approval, setApproval] = useState<{ requestId: string; secret: string; number: number } | null>(null);
+  // How this email's account can verify, from the server.
+  const [options, setOptions] = useState<SignInOptions | null>(null);
+  // True after "Forgot password?": the emailed code leads to choosing a new password.
+  const [resetting, setResetting] = useState(false);
 
   // The account on file decides where each person lands.
   const finishLogin = useCallback((result: { redirectTo: string }) => router.push(result.redirectTo), [router]);
@@ -115,13 +143,13 @@ const LoginPage = () => {
       } else if (r.state === "denied") {
         stopped = true;
         setApproval(null);
-        setStep("start");
+        setStep("verify");
         setError("The sign-in was denied on your other device.");
       } else if (r.state === "expired") {
         stopped = true;
         setApproval(null);
-        setStep("start");
-        setError("The request expired. Try again, or use an email code.");
+        setStep("verify");
+        setError("The request expired. Try again, or choose another way to verify.");
       }
     };
     const id = setInterval(tick, 2000);
@@ -157,17 +185,53 @@ const LoginPage = () => {
     setStep(next);
   };
 
-  const isPhone = looksLikePhone(email);
-
-  // The one sign-in form: a mobile number signs in with a password, a school email gets a code.
-  const startSignIn = (e: React.FormEvent) => {
+  // Step 2 (like Microsoft's "Sign in" box): the school email, then the ways this account can verify.
+  const continueWithEmail = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email.trim()) {
-      setEmailError("Enter your school email or mobile number.");
+    // A mobile number belongs to a parent or guardian account: on to its password.
+    if (looksLikePhone(email)) {
+      setPhone(phoneChars(email));
+      setPassword('');
+      go("parent");
+      setTimeout(() => document.getElementById("password")?.focus(), 0);
+      return;
+    }
+    const emailProblem = schoolEmailProblem(email);
+    if (emailProblem) {
+      setEmailError(emailProblem);
       document.getElementById("email")?.focus();
       return;
     }
-    if (isPhone) return void handleParentLogin();
+    setIsSubmitting(true);
+    setError(null);
+    const result = await getSignInOptions(email).catch(() => ({ success: false as const, error: "Something went wrong. Please try again." }));
+    setIsSubmitting(false);
+    if (!result.success) return setError(result.error);
+    setEmail(email.trim().toLowerCase());
+    setOptions(result.options);
+    setResetting(false);
+    setPassword('');
+    go("verify");
+  };
+
+  const continueWithMicrosoft = () => {
+    window.location.href = `/api/auth/entra/start?email=${encodeURIComponent(email.trim().toLowerCase())}`;
+  };
+
+  const handlePasswordLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!password) return setError("Enter your password.");
+    setIsSubmitting(true);
+    setError(null);
+    const result = await login({ identifier: email, password });
+    setIsSubmitting(false);
+    if (result.success) finishLogin(result);
+    else setError(result.error);
+  };
+
+  // School accounts reset a forgotten password with an emailed code.
+  const forgotSchoolPassword = () => {
+    setResetting(true);
     void sendCode();
   };
 
@@ -204,33 +268,92 @@ const LoginPage = () => {
     }
   };
 
-  const checkCode = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (step === "code" && code.length !== 6) return setError("Enter the 6-digit code from your email.");
+  // Sends the emailed (or Microsoft) code, plus details and a password when the
+  // server has asked for them; the reply says which step comes next.
+  const verify = async (over: { email?: string; code?: string; details?: boolean; newPassword?: string } = {}) => {
+    const forEmail = over.email ?? email;
     setIsSubmitting(true);
     setError(null);
-    const withDetails = step === "details";
     const result = await verifyLoginCode({
-      email,
-      code,
+      email: forEmail,
+      code: over.code ?? code,
       signInAs,
-      fullName: withDetails ? fullName() : undefined,
-      student: withDetails && signInAs === "STUDENT" ? student : undefined,
+      fullName: over.details ? fullName() : undefined,
+      student: over.details && signInAs === "STUDENT" ? student : undefined,
+      newPassword: over.newPassword,
+      resetPassword: resetting,
     });
     setIsSubmitting(false);
     if (result.success) {
       finishLogin(result);
     } else if ("needsDetails" in result) {
       // The email's format already says student or faculty.
-      const fromEmail = roleFromSchoolEmail(email);
+      const fromEmail = roleFromSchoolEmail(forEmail);
       if (fromEmail) setSignInAs(fromEmail);
+      setNewPassword({ password: '', confirm: '' });
       go("details");
+    } else if ("needsPassword" in result) {
+      setNewPassword({ password: '', confirm: '' });
+      go("setPassword");
     } else if ("pending" in result) {
       setWaitingMessage(result.message);
       go("waiting");
     } else {
       setError(result.error);
     }
+  };
+
+  // Coming back from Microsoft: either an error to show, or a one-time code that
+  // finishes a new account (details and password) or an account with no password yet.
+  useEffect(() => {
+    const q = new URLSearchParams(window.location.search);
+    const entraError = q.get("entra_error");
+    const entraEmail = q.get("entra_email");
+    const ticket = q.get("entra_ticket");
+    if (!entraError && !ticket) return;
+    // The code mustn't stay in the address bar or history.
+    window.history.replaceState(null, "", "/Login");
+    const t = setTimeout(() => {
+      if (entraEmail && ticket) {
+        setEmail(entraEmail);
+        setCode(ticket);
+        void verify({ email: entraEmail, code: ticket });
+      } else if (entraError) {
+        setStep("email");
+        setError(ENTRA_ERRORS[entraError] ?? ENTRA_ERRORS.failed);
+      }
+    });
+    return () => clearTimeout(t);
+    // Runs once, on arrival.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const checkCode = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (code.length !== 6) return setError("Enter the 6-digit code from your email.");
+    void verify();
+  };
+
+  // New accounts choose their password together with their details.
+  const newPasswordProblem = () => {
+    const weak = passwordProblem(newPassword.password);
+    if (weak) return `Choose a stronger password. ${weak}`;
+    if (newPassword.password !== newPassword.confirm) return "The two passwords don't match.";
+    return null;
+  };
+
+  const submitDetails = (e: React.FormEvent) => {
+    e.preventDefault();
+    const problem = newPasswordProblem();
+    if (problem) return setError(problem);
+    void verify({ details: true, newPassword: newPassword.password });
+  };
+
+  const submitNewPassword = (e: React.FormEvent) => {
+    e.preventDefault();
+    const problem = newPasswordProblem();
+    if (problem) return setError(problem);
+    void verify({ newPassword: newPassword.password });
   };
 
   const handleTotpLogin = async (e: React.FormEvent) => {
@@ -243,11 +366,13 @@ const LoginPage = () => {
     else setError(result.error);
   };
 
-  const handleParentLogin = async () => {
+  const handleParentLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!looksLikePhone(phone)) return setError("Enter the mobile number you signed up with.");
     if (!password) return setError("Enter your password.");
     setIsSubmitting(true);
     setError(null);
-    const result = await login({ identifier: email, password });
+    const result = await login({ identifier: phone, password });
     setIsSubmitting(false);
     if (result.success) {
       router.push(result.redirectTo);
@@ -362,16 +487,46 @@ const LoginPage = () => {
   const backButton = "inline-flex items-center gap-1 px-2 min-h-9 -ml-2 rounded-full text-[13px] text-slate-600 hover:text-ink hover:bg-slate-100";
 
   const heading: Record<Step, [string, string]> = {
-    start: ["Sign in", "Students and staff: your STI school email. Parents and guardians: your mobile number."],
-    code: ["Check your email", `We sent a 6-digit code to ${email}. Check Junk too.`],
-    details: ["Welcome to E-Gabay", signInAs === "STUDENT" ? "First time here? Tell us who you are." : "First time here? Tell us your name."],
-    forgot: ["Forgot your password?", "Enter the mobile number you sign in with."],
+    start: ["Log in", ""],
+    email: ["Sign in", ""],
+    verify: options?.exists === false
+      ? ["Create your account", "No account uses this email yet."]
+      : ["Verify your identity", ""],
+    password: ["Enter password", ""],
+    code: ["Enter code", `Sent to ${email}`],
+    setPassword: resetting
+      ? ["Choose a new password", "Your old password stops working, and other devices are signed out."]
+      : ["Choose a password", ""],
+    details: ["Welcome to E-Gabay", ""],
+    parent: ["Parent or guardian", ""],
+    forgot: ["Forgot your password?", ""],
     reset: ["Set a new password", resetEmailed ? "We sent a 6-digit code to the email on your account. Check Junk too." : "If this number has an account with an email on file, a code was sent to it. Otherwise the guidance office has been told and will contact you."],
-    register: ["Create a parent account", "The guidance office confirms every parent account before it can be used."],
+    register: ["Create a parent account", "Confirmed by the guidance office before use."],
     waiting: ["Almost there", waitingMessage],
-    approve: ["Check your phone", "Open E-Gabay on a phone or computer where you're already signed in, and tap this number."],
-    totp: ["Use your authenticator app", "Enter your school email and the 6-digit code under “E-Gabay STI” in Microsoft Authenticator (not your STI Microsoft account)."],
+    approve: ["Check your phone", "Tap this number where you're signed in."],
+    totp: ["Enter code", "From Microsoft Authenticator (E-Gabay STI)"],
   };
+
+  // Steps that belong to one school email show it at the top, like Microsoft does.
+  const showsIdentity = ["verify", "password", "code", "setPassword", "totp", "approve"].includes(step);
+
+  const newPasswordFields = (
+    <>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div>
+          <label htmlFor="n-password" className={labelClass}>{step === "details" ? "Password" : "New password"}</label>
+          <input id="n-password" type="password" autoComplete="new-password" className={inputClass} value={newPassword.password}
+            aria-describedby="n-password-help" onChange={(e) => setNewPassword({ ...newPassword, password: e.target.value })} />
+        </div>
+        <div>
+          <label htmlFor="n-confirm" className={labelClass}>Repeat password</label>
+          <input id="n-confirm" type="password" autoComplete="new-password" className={inputClass} value={newPassword.confirm}
+            onChange={(e) => setNewPassword({ ...newPassword, confirm: e.target.value })} />
+        </div>
+      </div>
+      <PasswordStrength password={newPassword.password} id="n-password-help" />
+    </>
+  );
 
   const nameFields = (
     <>
@@ -429,60 +584,157 @@ const LoginPage = () => {
             <div className="text-center">
               <LogoMark size={72} className="block mx-auto rounded-[16px] shadow-md" />
               <h1 className="mt-4 text-2xl font-bold tracking-tight text-ink">{heading[step][0]}</h1>
-              <p className="text-sm text-slate-500 mt-1 break-words">{heading[step][1]}</p>
+              {heading[step][1] && <p className="text-sm text-slate-500 mt-1 break-words">{heading[step][1]}</p>}
             </div>
 
+            {showsIdentity && (
+              <button type="button" onClick={() => { setApproval(null); go(step === "verify" ? "email" : "verify"); }}
+                className="mt-5 mx-auto flex max-w-full items-center gap-1.5 px-3 min-h-9 rounded-full border border-rule text-[13px] text-slate-700 hover:bg-slate-50"
+                aria-label={step === "verify" ? "Use a different email" : "Choose another way to verify"}>
+                <ArrowLeft size={14} className="shrink-0" /> <span className="truncate">{email}</span>
+              </button>
+            )}
+
             {step === "start" && (
-              <form onSubmit={startSignIn} noValidate className="mt-7 space-y-5">
+              <div className="mt-7 space-y-3">
+                <button type="button" onClick={() => go("email")} className={primaryButton}>
+                  Sign in
+                </button>
+                <ErrorLine error={error} />
+                <p className="text-xs text-center pt-1">
+                  <Link href="/handover" className="text-slate-500 underline underline-offset-2 hover:text-blue-700">Guidance Associate handover</Link>
+                </p>
+              </div>
+            )}
+
+            {step === "email" && (
+              <form onSubmit={continueWithEmail} noValidate className="mt-7 space-y-5">
                 <div>
                   <label htmlFor="email" className={labelClass}>School email or mobile number</label>
-                  <input id="email" type="text" autoComplete="username" inputMode={isPhone ? "tel" : "email"}
+                  <input id="email" type="text" autoComplete="username" inputMode={looksLikePhone(email) ? "tel" : "email"}
                     placeholder={`juan.delacruz@${SCHOOL_EMAIL_DOMAIN}`} className={fieldClass(emailError ?? undefined)} value={email} autoFocus
-                    aria-invalid={emailError ? true : undefined} aria-describedby={emailError ? "email-error" : "email-help"}
+                    aria-invalid={emailError ? true : undefined} aria-describedby={emailError ? "email-error" : undefined}
                     onChange={(e) => { setEmail(e.target.value); setEmailError(null); setError(null); }}
                     onBlur={() => email.trim() && !looksLikePhone(email) && setEmailError(schoolEmailProblem(email))} />
-                  <p id="email-help" className="text-xs text-slate-500 mt-1">
-                    {isPhone ? PHONE_HELP : "We'll send a 6-digit code to your school email."}
-                  </p>
                   <FieldError id="email-error" message={emailError ?? undefined} />
+                  {!emailError && <RoleBadge role={roleFromSignInId(email)} guess />}
                 </div>
-                {isPhone && (
-                  <div>
-                    <div className="flex items-baseline justify-between gap-2">
-                      <label htmlFor="password" className={labelClass}>Password</label>
-                      <button type="button" onClick={() => { setPhone(phoneChars(email)); go("forgot"); }}
-                        className="text-[13px] text-blue-700 font-medium hover:underline underline-offset-4">
-                        Forgot password?
-                      </button>
-                    </div>
-                    <input id="password" type="password" autoComplete="current-password" className={inputClass} value={password}
-                      onChange={(e) => setPassword(e.target.value)} />
-                  </div>
-                )}
                 <ErrorLine error={error} />
-                {!isPhone && resendIn > 0 && email.trim().toLowerCase() === resendFor && <ResendTimer seconds={resendIn} />}
-                <button type="submit" disabled={isSubmitting || (!isPhone && resendIn > 0 && email.trim().toLowerCase() === resendFor)} className={primaryButton}>
-                  {isSubmitting ? <><Loader2 size={16} className="animate-spin" /> {isPhone ? "Signing in" : "Sending code"}</> : isPhone ? "Sign in" : "Continue"}
-                </button>
-                {!isPhone && (
-                  <div className="flex flex-wrap items-center justify-between gap-2 text-[13px]">
-                    <button type="button" onClick={() => { setCode(''); go("totp"); }}
-                      className="px-2 -ml-2 min-h-9 rounded-full text-blue-700 font-medium hover:bg-blue-50">
-                      Use authenticator app
-                    </button>
-                    <button type="button" onClick={askApproval} disabled={isSubmitting || !email.trim()}
-                      className="px-2 -mr-2 min-h-9 rounded-full text-blue-700 font-medium hover:bg-blue-50 disabled:opacity-50">
-                      Approve on my phone
+                <div className="flex items-center justify-between gap-3">
+                  <button type="button" onClick={() => go("start")} className={backButton}>
+                    <ArrowLeft size={14} /> Back
+                  </button>
+                  <button type="submit" disabled={isSubmitting} className={`${primaryButton} w-auto! px-8`}>
+                    {isSubmitting ? <><Loader2 size={16} className="animate-spin" /> Checking</> : "Next"}
+                  </button>
+                </div>
+              </form>
+            )}
+
+            {step === "verify" && options && (
+              <div className="mt-6 space-y-3">
+                <RoleBadge role={options.role} />
+                <ul className="divide-y divide-rule border border-rule rounded-xl overflow-hidden">
+                  {options.approve && (
+                    <MethodRow icon={<Smartphone size={18} />} title="Approve a request" detail="On a phone or computer where you're signed in to E-Gabay"
+                      onClick={askApproval} disabled={isSubmitting} />
+                  )}
+                  {options.authenticator && (
+                    <MethodRow icon={<ShieldCheck size={18} />} title="Use a verification code" detail="From Microsoft Authenticator (E-Gabay STI)"
+                      onClick={() => { setCode(''); go("totp"); }} disabled={isSubmitting} />
+                  )}
+                  <MethodRow icon={<Mail size={18} />} title={`Email code to ${email}`}
+                    detail={options.exists ? "A 6-digit code to your school inbox" : "A 6-digit code to set up your account"}
+                    onClick={() => { setResetting(false); void sendCode(); }} disabled={isSubmitting || (resendIn > 0 && email === resendFor)} />
+                  {options.password && (
+                    <MethodRow icon={<KeyRound size={18} />} title="Use your password" detail="The password for your E-Gabay account"
+                      onClick={() => { setPassword(''); go("password"); }} disabled={isSubmitting} />
+                  )}
+                  {options.microsoft && (
+                    <MethodRow icon={<MicrosoftMark />} title="Continue with Microsoft" detail="Your STI Microsoft 365 account"
+                      onClick={continueWithMicrosoft} disabled={isSubmitting} />
+                  )}
+                </ul>
+                {options.exists && !options.password && (
+                  <p className="text-xs text-slate-600 bg-butter-50 border border-butter-200 rounded-lg px-3 py-2">
+                    No password set yet. You&apos;ll create one after the email code.
+                  </p>
+                )}
+                {isSubmitting && <p className="inline-flex items-center gap-2 text-sm text-slate-600"><Loader2 size={15} className="animate-spin" /> One moment…</p>}
+                <ErrorLine error={error} />
+                {resendIn > 0 && email === resendFor && <ResendTimer seconds={resendIn} />}
+              </div>
+            )}
+
+            {step === "password" && (
+              <form onSubmit={handlePasswordLogin} className="mt-6 space-y-5">
+                {/* Lets password managers save the email with the password. */}
+                <input type="email" autoComplete="username" value={email} readOnly hidden />
+                <div>
+                  <div className="flex items-baseline justify-between gap-2">
+                    <label htmlFor="s-password" className={labelClass}>Password</label>
+                    <button type="button" onClick={forgotSchoolPassword} disabled={isSubmitting}
+                      className="text-[13px] text-blue-700 font-medium hover:underline underline-offset-4">
+                      Forgot password?
                     </button>
                   </div>
-                )}
+                  <input id="s-password" type="password" autoComplete="current-password" className={inputClass} value={password}
+                    onChange={(e) => setPassword(e.target.value)} autoFocus />
+                </div>
+                <ErrorLine error={error} />
+                <button type="submit" disabled={isSubmitting} className={primaryButton}>
+                  {isSubmitting ? <><Loader2 size={16} className="animate-spin" /> Signing in</> : "Sign in"}
+                </button>
+                <button type="button" onClick={() => go("verify")} className={backButton}>
+                  <ArrowLeft size={14} /> Other ways to sign in
+                </button>
+              </form>
+            )}
+
+            {step === "setPassword" && (
+              <form onSubmit={submitNewPassword} noValidate className="mt-6 space-y-5">
+                <input type="email" autoComplete="username" value={email} readOnly hidden />
+                {newPasswordFields}
+                <ErrorLine error={error} />
+                <button type="submit" disabled={isSubmitting} className={primaryButton}>
+                  {isSubmitting ? <><Loader2 size={16} className="animate-spin" /> Saving</> : "Save and sign in"}
+                </button>
+              </form>
+            )}
+
+            {step === "parent" && (
+              <form onSubmit={handleParentLogin} noValidate className="mt-7 space-y-5">
+                <div>
+                  <label htmlFor="p-phone" className={labelClass}>Mobile number</label>
+                  <input id="p-phone" type="tel" inputMode="tel" autoComplete="username" placeholder="09171234567" className={inputClass}
+                    aria-describedby="p-phone-help" value={phone} onChange={(e) => { setPhone(phoneChars(e.target.value)); setError(null); }} autoFocus />
+                  <p id="p-phone-help" className="text-xs text-slate-500 mt-1">{PHONE_HELP}</p>
+                </div>
+                <div>
+                  <div className="flex items-baseline justify-between gap-2">
+                    <label htmlFor="password" className={labelClass}>Password</label>
+                    <button type="button" onClick={() => go("forgot")}
+                      className="text-[13px] text-blue-700 font-medium hover:underline underline-offset-4">
+                      Forgot password?
+                    </button>
+                  </div>
+                  <input id="password" type="password" autoComplete="current-password" className={inputClass} value={password}
+                    onChange={(e) => setPassword(e.target.value)} />
+                </div>
+                <ErrorLine error={error} />
+                <button type="submit" disabled={isSubmitting} className={primaryButton}>
+                  {isSubmitting ? <><Loader2 size={16} className="animate-spin" /> Signing in</> : "Sign in"}
+                </button>
                 <p className="text-center text-[13px] text-slate-600 border-t border-rule pt-4">
-                  Parent or guardian without an account?{" "}
-                  <button type="button" onClick={() => { if (isPhone) setPhone(phoneChars(email)); go("register"); }}
+                  No account yet?{" "}
+                  <button type="button" onClick={() => go("register")}
                     className="px-1 rounded text-blue-700 font-medium hover:underline underline-offset-4">
                     Create a parent account
                   </button>
                 </p>
+                <button type="button" onClick={() => go("email")} className={backButton}>
+                  <ArrowLeft size={14} /> Back
+                </button>
               </form>
             )}
 
@@ -494,21 +746,16 @@ const LoginPage = () => {
                 </p>
                 <NoticeLine message={roleNotice} />
                 <p className="text-xs text-slate-500">
-                  No notification? Open E-Gabay on your phone; the request pops up there. It expires in 2 minutes.
+                  Expires in 2 minutes.
                 </p>
-                <button type="button" onClick={() => { setApproval(null); go("start"); }} className={backButton}>
-                  <ArrowLeft size={14} /> Use an email code instead
+                <button type="button" onClick={() => { setApproval(null); go("verify"); }} className={backButton}>
+                  <ArrowLeft size={14} /> Other ways to sign in
                 </button>
               </div>
             )}
 
             {step === "totp" && (
-              <form onSubmit={handleTotpLogin} className="mt-7 space-y-5">
-                <div>
-                  <label htmlFor="t-email" className={labelClass}>School email</label>
-                  <input id="t-email" type="email" autoComplete="email" inputMode="email" className={inputClass} value={email}
-                    onChange={(e) => setEmail(e.target.value)} required />
-                </div>
+              <form onSubmit={handleTotpLogin} className="mt-6 space-y-5">
                 <div>
                   <label htmlFor="t-code" className={labelClass}>Code from the app</label>
                   <input id="t-code" type="text" inputMode="numeric" autoComplete="one-time-code" maxLength={6} placeholder="000000"
@@ -520,17 +767,14 @@ const LoginPage = () => {
                 <button type="submit" disabled={isSubmitting || code.length !== 6} className={primaryButton}>
                   {isSubmitting ? <><Loader2 size={16} className="animate-spin" /> Checking</> : "Sign in"}
                 </button>
-                <p className="text-xs text-slate-500">
-                  Haven&apos;t set it up? Sign in with an email code first, then turn it on from your Profile or My Account page.
-                </p>
-                <button type="button" onClick={() => go("start")} className={backButton}>
-                  <ArrowLeft size={14} /> Use an email code instead
+                <button type="button" onClick={() => go("verify")} className={backButton}>
+                  <ArrowLeft size={14} /> Other ways to sign in
                 </button>
               </form>
             )}
 
             {(step === "code" || step === "details") && (
-              <form onSubmit={checkCode} className="mt-7 space-y-5">
+              <form onSubmit={step === "code" ? checkCode : submitDetails} noValidate={step === "details"} className="mt-6 space-y-5">
                 {step === "code" ? (
                   <div>
                     <label htmlFor="code" className={labelClass}>6-digit code</label>
@@ -543,7 +787,7 @@ const LoginPage = () => {
                     {nameFields}
                     {roleFromSchoolEmail(email) === "STUDENT" ? (
                       <p className="text-[13px] text-slate-600 bg-blue-50 border border-blue-100 rounded-lg px-3 py-2">
-                        From your school email, you&apos;re signing in as a student.
+                        Signing in as a student.
                       </p>
                     ) : (
                       <fieldset>
@@ -598,10 +842,13 @@ const LoginPage = () => {
                     )}
                     {signInAs !== "STUDENT" && (
                       <p className="text-xs text-slate-600 bg-butter-50 border border-butter-200 rounded-lg px-3 py-2">
-                        New {signInAs === "FACULTY" ? "faculty" : "guidance office"} accounts are approved by the guidance office before they can be used.
+                        Needs approval from the guidance office before first use.
                       </p>
                     )}
-                    <p className="text-xs text-slate-500">Use the name on your school records so the guidance office can find you.</p>
+                    <fieldset className="border-t border-rule pt-4 space-y-2">
+                      <legend className="text-[14px] font-semibold text-ink pr-2">Your password</legend>
+                      {newPasswordFields}
+                    </fieldset>
                   </div>
                 )}
                 <ErrorLine error={error} />
@@ -612,8 +859,8 @@ const LoginPage = () => {
                 {step === "code" && resendIn > 0 && <ResendTimer seconds={resendIn} />}
                 {step === "code" && (
                   <div className="flex items-center justify-between text-[13px]">
-                    <button type="button" onClick={() => go("start")} className={backButton}>
-                      <ArrowLeft size={14} /> Different email
+                    <button type="button" onClick={() => go("verify")} className={backButton}>
+                      <ArrowLeft size={14} /> Other ways
                     </button>
                     <button type="button" onClick={() => sendCode()} disabled={resendIn > 0 || isSubmitting}
                       className="px-2 min-h-9 -mr-2 rounded-full text-blue-700 hover:bg-blue-50 disabled:text-slate-500 disabled:hover:bg-transparent">
@@ -636,9 +883,9 @@ const LoginPage = () => {
                   {isSubmitting ? <><Loader2 size={16} className="animate-spin" /> Sending</> : "Reset my password"}
                 </button>
                 <p className="text-xs text-slate-500">
-                  Students, faculty and staff don&apos;t have a password. They sign in with a code sent to their school email.
+                  Students, faculty and staff: go back, choose Microsoft Entra ID, and use &ldquo;Forgot password?&rdquo; after your email.
                 </p>
-                <button type="button" onClick={() => go("start")} className={backButton}>
+                <button type="button" onClick={() => go("parent")} className={backButton}>
                   <ArrowLeft size={14} /> Back to sign in
                 </button>
               </form>
@@ -672,7 +919,7 @@ const LoginPage = () => {
                 <p className="text-xs text-slate-500">
                   No email on your account? The guidance office can give you a temporary password.
                 </p>
-                <button type="button" onClick={() => go("start")} className={backButton}>
+                <button type="button" onClick={() => go("parent")} className={backButton}>
                   <ArrowLeft size={14} /> Back to sign in
                 </button>
               </form>
@@ -761,7 +1008,7 @@ const LoginPage = () => {
                 <button type="submit" disabled={isSubmitting} className={primaryButton}>
                   {isSubmitting ? <><Loader2 size={16} className="animate-spin" /> Sending</> : "Create account"}
                 </button>
-                <button type="button" onClick={() => go("start")} className={backButton}>
+                <button type="button" onClick={() => go("parent")} className={backButton}>
                   <ArrowLeft size={14} /> I already have an account
                 </button>
               </form>
@@ -811,6 +1058,47 @@ const LoginPage = () => {
     </main>
   );
 };
+
+// "Signing in as Student" etc. A guess comes from what was typed
+// (roleFromSignInId); without guess, it's the account's role on file.
+function RoleBadge({ role, guess }: { role: UserRole | null; guess?: boolean }) {
+  if (!role) return null;
+  return (
+    <p role="status" className="mt-2 inline-flex items-center gap-1.5 text-[13px] text-slate-600">
+      {guess ? "Looks like you're signing in as" : "Signing in as"}
+      <span className="rounded-full bg-blue-50 text-blue-800 font-medium px-2.5 py-0.5">{SIGN_IN_ROLE_LABEL[role]}</span>
+    </p>
+  );
+}
+
+// One way to verify on the "Verify your identity" list.
+function MethodRow({ icon, title, detail, onClick, disabled }: { icon: React.ReactNode; title: string; detail: string; onClick: () => void; disabled?: boolean }) {
+  return (
+    <li>
+      <button type="button" onClick={onClick} disabled={disabled}
+        className="group w-full flex items-center gap-3 px-4 min-h-16 py-3 text-left hover:bg-blue-50 disabled:opacity-50 disabled:hover:bg-transparent transition-colors">
+        <span className="shrink-0 grid place-items-center size-9 rounded-full bg-blue-50 text-blue-700 group-hover:bg-white">{icon}</span>
+        <span className="min-w-0 flex-1">
+          <span className="block text-[14px] font-medium text-ink break-words">{title}</span>
+          <span className="block text-xs text-slate-500">{detail}</span>
+        </span>
+        <ChevronRight size={16} className="shrink-0 text-slate-400 group-hover:text-blue-700" />
+      </button>
+    </li>
+  );
+}
+
+// The four-square Microsoft logo used on "Sign in with Microsoft" buttons.
+function MicrosoftMark() {
+  return (
+    <svg aria-hidden width="16" height="16" viewBox="0 0 21 21" className="shrink-0">
+      <rect x="1" y="1" width="9" height="9" fill="#f25022" />
+      <rect x="11" y="1" width="9" height="9" fill="#7fba00" />
+      <rect x="1" y="11" width="9" height="9" fill="#00a4ef" />
+      <rect x="11" y="11" width="9" height="9" fill="#ffb900" />
+    </svg>
+  );
+}
 
 function FieldError({ id, message }: { id: string; message?: string }) {
   if (!message) return null;

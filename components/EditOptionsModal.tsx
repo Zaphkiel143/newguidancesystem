@@ -99,7 +99,6 @@ export default function EditOptionsModal({ listKey, listLabel, onClose, onSaved,
         <div className="flex items-start justify-between p-5 border-b border-slate-100 sticky top-0 bg-white">
           <div>
             <h3 className="text-base font-semibold text-slate-900">Edit {listLabel}</h3>
-            <p className="text-xs text-slate-500">Reorder, rename, add, or remove choices.</p>
           </div>
           <button type="button" onClick={onClose} aria-label="Close" className="text-slate-400 hover:text-slate-700 p-1 rounded-full hover:bg-slate-100">
             <X size={18} />

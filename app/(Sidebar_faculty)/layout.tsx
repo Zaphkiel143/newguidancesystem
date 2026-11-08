@@ -1,16 +1,13 @@
 import { AppShell } from "../../components/AppShell";
-import { getViewAs, requireRole } from "../../lib/auth";
-import ViewAsBanner from "../../components/ViewAsBanner";
+import { requireRole } from "../../lib/auth";
 import { shownName } from "../../lib/demo";
 
 export default async function Layout({ children }: { children: React.ReactNode }) {
   const user = await requireRole("FACULTY");
-  const viewAs = await getViewAs();
   const avatarUrl = user.avatarType ? "/api/me/avatar" : null;
 
   return (
-    <AppShell role="faculty" userName={user.name} displayName={shownName(user)} avatarUrl={avatarUrl} needsPrivacyConsent={!viewAs && !user.privacyAcceptedAt}>
-      <ViewAsBanner viewAs={viewAs} />
+    <AppShell role="faculty" userName={user.name} displayName={shownName(user)} avatarUrl={avatarUrl} needsPrivacyConsent={!user.privacyAcceptedAt}>
       {children}
     </AppShell>
   );

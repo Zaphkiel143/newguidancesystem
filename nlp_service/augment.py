@@ -36,7 +36,9 @@ OPENERS_TL = ["", "ano po ", "grabe ", "pwede po bang malaman ", "huhu "]
 CLOSERS_TL = ["", " po", " naman", " lang"]
 SHORT = {"affirm", "deny", "greeting", "goodbye", "thanks", "how_are_you"}
 FEELINGS = {"feeling_happy", "feeling_sad", "feeling_anxious", "feeling_angry", "feeling_okay",
-            "exam_stress", "self_esteem", "family_problems", "friendship_issues", "bullying"}
+            "exam_stress", "thesis_stress", "self_esteem", "family_problems", "friendship_issues", "bullying",
+            "loneliness", "sleep_problems", "relationship_problems", "grief_loss", "abuse_harassment",
+            "addiction_concern", "pregnancy_concern", "gender_identity", "school_adjustment", "peer_pressure"}
 TL_HINTS = re.compile(r"\b(ako|ko|mo|ba|po|ang|ng|sa|na|naman|kasi|hindi|paano|ano|saan|kailan)\b")
 
 

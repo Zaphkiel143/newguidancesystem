@@ -73,7 +73,7 @@ const MyAppointments: React.FC = () => {
       </header>
 
       {/* Appointment History Main Card Panel */}
-      <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden max-w-6xl">
+      <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
         <div className="px-6 py-5 border-b border-slate-100">
           <h2 className="font-semibold text-slate-900 text-base">Appointment History</h2>
         </div>
@@ -82,7 +82,6 @@ const MyAppointments: React.FC = () => {
         {appointments.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 text-center">
             <p className="text-sm font-semibold text-slate-500">No appointments yet</p>
-            <p className="text-xs text-slate-500">Book an appointment with the guidance associate to get started</p>
           </div>
         ) : (
           <div className="p-6 space-y-4">

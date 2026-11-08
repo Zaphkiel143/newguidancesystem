@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import { eventDateLabel, isMultiDay } from "../lib/eventDates";
 import { Loader2, MapPin } from "lucide-react";
 import { getBulletin } from "../app/action/bulletin";
 import { LogoMark } from "./Logo";
@@ -27,10 +28,9 @@ export default function BulletinBoard() {
   const shown = data?.announcements.filter((a) => category === "All" || a.category === category) ?? [];
 
   return (
-    <div className="px-5 sm:px-8 lg:px-12 pt-8 lg:pt-12 pb-16 max-w-6xl text-slate-800">
+    <div className="px-5 sm:px-8 lg:px-12 pt-8 lg:pt-12 pb-16 text-slate-800">
       <header>
         <h1 className="page-title">Announcements &amp; events</h1>
-        <p className="text-sm text-slate-500 mt-1">News, reminders, and upcoming activities from the Guidance and Counseling Office</p>
       </header>
 
       {!data ? (
@@ -100,8 +100,6 @@ export default function BulletinBoard() {
               <ul className="divide-y divide-rule border-t border-rule">
                 {data.events.map((e) => {
                   const d = new Date(e.date);
-                  const end = e.endDate ? new Date(e.endDate) : null;
-                  const isRange = end && end.toISOString().slice(0, 10) !== d.toISOString().slice(0, 10);
                   return (
                     <li key={e.id} className="py-4 grid grid-cols-[56px_1fr] gap-4">
                       <div className="text-center border border-butter-200 rounded-lg bg-butter-100 py-1.5 h-fit">
@@ -113,12 +111,7 @@ export default function BulletinBoard() {
                       <div className="min-w-0">
                         <h3 className="font-medium text-ink">{e.title}</h3>
                         <p className="text-[13px] text-slate-500 mt-0.5 flex flex-wrap gap-x-3">
-                          {isRange && (
-                            <span className="font-mono">
-                              {d.toLocaleDateString("en-PH", { month: "short", day: "numeric", timeZone: "UTC" })} –{" "}
-                              {end!.toLocaleDateString("en-PH", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" })}
-                            </span>
-                          )}
+                          {isMultiDay(e) && <span className="font-medium text-blue-700">{eventDateLabel(e)}</span>}
                           <span className="font-mono">{e.time}</span>
                           {e.location && (
                             <span className="inline-flex items-center gap-1">

@@ -15,6 +15,8 @@ CRISIS_KEYWORDS_EN = [
     "self-harm", "cutting myself", "want to die", "don't want to live",
     "not want to live", "don't want to be alive",
     "dont want to live", "dont want to be alive", "end it all", "giving up on life",
+    "wish i was dead", "wish i were dead", "better off dead", "take my own life",
+    "suicidal", "want to disappear", "no reason to live",
 ]
 CRISIS_KEYWORDS_TL = [
     "magpakamatay", "papatayin ko na lang sarili", "papatayin ko sarili",
@@ -22,8 +24,18 @@ CRISIS_KEYWORDS_TL = [
     "ayoko nang mabuhay", "gusto ko nang mamatay", "gusto kong mamatay",
     "wala nang saysay ang buhay", "gusto ko na mawala", "gusto ko nang mawala",
     "ayoko na sa buhay", "gusto ko na mamatay",
+    "magpapakamatay", "nagpapakamatay", "patay na lang ako", "mamatay na lang ako",
+    "tapusin ang buhay ko", "tatapusin ko na buhay ko", "wawakasan ko na",
 ]
 CRISIS_KEYWORDS = CRISIS_KEYWORDS_EN + CRISIS_KEYWORDS_TL
+
+# Clear signs of abuse or harassment always get the safety reply (911, 1553, tell the GCO)
+ABUSE_KEYWORDS = [
+    "sexually harassed", "harassing me", "molested", "molesting me", "raped", "rape me", "touched me inappropriately",
+    "touched me without", "abusing me", "abused me", "hits me at home", "beats me", "beating me",
+    "hinipuan", "minolestya", "ginahasa", "binastos ako", "binabastos ako", "pinagbubuhatan", "binubugbog ako",
+    "hinarass", "hina-harass", "nangha-harass",
+]
 
 
 class Engine:
@@ -41,6 +53,8 @@ class Engine:
         """Returns (tag, confidence, ranked [(tag, prob), ...])."""
         if any(k in message.lower() for k in CRISIS_KEYWORDS):
             return "crisis", 1.0, [("crisis", 1.0)]
+        if "abuse_harassment" in self.intents and any(k in message.lower() for k in ABUSE_KEYWORDS):
+            return "abuse_harassment", 1.0, [("abuse_harassment", 1.0)]
         probs = self.pipeline.predict_proba([message])[0]
         ranked = sorted(zip(self.pipeline.classes_, probs), key=lambda p: -p[1])
         tag, conf = ranked[0]
@@ -49,8 +63,14 @@ class Engine:
         return tag, float(conf), [(t, float(p)) for t, p in ranked]
 
     def _pick(self, intent, language):
-        pool = intent.get(f"responses_{language}") or intent.get("responses_en") or []
+        pool = self._pool(intent, language)
         return random.choice(pool) if pool else ""
+
+    def _pool(self, intent, language):
+        return intent.get(f"responses_{language}") or intent.get("responses_en") or []
+
+    def _label(self, intent, language):
+        return intent.get(f"label_{language}") or intent.get("label_en")
 
     def _suggestions(self, ranked, language):
         out = []
@@ -68,7 +88,12 @@ class Engine:
         return out
 
     def reply(self, message, context=None):
-        """context is the intent of E-Gabay's previous reply, if any."""
+        """context is the intent of E-Gabay's previous reply, if any.
+
+        The reply also carries the matched intent's label and official answer
+        pool so the app can ground AI-generated replies (lib/ai.ts) on the
+        guidance office's real information.
+        """
         message = message.strip()
         language = detect_language(message)
         tag, conf, ranked = self.classify(message)
@@ -77,10 +102,17 @@ class Engine:
         if tag in ("affirm", "deny") and context in self.intents:
             target = self.intents[context].get("followups", {}).get(tag)
             if target in self.intents:
+                target_intent = self.intents[target]
                 return {"intent": target, "confidence": conf, "language": language,
-                        "response": self._pick(self.intents[target], language), "suggestions": []}
+                        "label": self._label(target_intent, language),
+                        "response": self._pick(target_intent, language),
+                        "responses": self._pool(target_intent, language),
+                        "suggestions": []}
 
         intent = self.intents.get(tag) or self.intents["fallback"]
         suggestions = self._suggestions(ranked, language) if tag == "fallback" else []
         return {"intent": tag, "confidence": conf, "language": language,
-                "response": self._pick(intent, language), "suggestions": suggestions}
+                "label": self._label(intent, language),
+                "response": self._pick(intent, language),
+                "responses": self._pool(intent, language),
+                "suggestions": suggestions}

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import { eventDateLabel, isMultiDay } from "../lib/eventDates";
 import { BookOpen, CalendarDays, Loader2, MapPin } from "lucide-react";
 import ReadingList from "./ReadingList";
 import { getBulletin } from "../app/action/bulletin";
@@ -25,7 +26,7 @@ export default function ParentFeed() {
   }, []);
 
   return (
-    <div className="px-4 sm:px-8 pt-8 lg:pt-12 pb-16 max-w-2xl mx-auto text-slate-800">
+    <div className="px-4 sm:px-8 pt-8 lg:pt-12 pb-16 text-slate-800">
       <header>
         <h1 className="page-title">Feed</h1>
         <p className="text-sm text-slate-500 mt-1">
@@ -47,15 +48,10 @@ export default function ParentFeed() {
               <ul className="mt-3 flex gap-3 overflow-x-auto pb-2 -mx-4 px-4 snap-x">
                 {data.events.map((e) => {
                   const d = new Date(e.date);
-                  const end = e.endDate ? new Date(e.endDate) : null;
-                  const isRange = end && end.toISOString().slice(0, 10) !== d.toISOString().slice(0, 10);
                   return (
                     <li key={e.id} className="snap-start shrink-0 w-64 bg-sheet border border-rule rounded-2xl p-4 shadow-sm">
                       <p className="text-[12px] font-semibold text-blue-700">
-                        {isRange
-                          ? `${d.toLocaleDateString("en-PH", { month: "short", day: "numeric", timeZone: "UTC" })} – ${end!.toLocaleDateString("en-PH", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" })}`
-                          : d.toLocaleDateString("en-PH", { weekday: "short", month: "short", day: "numeric", timeZone: "UTC" })}{" "}
-                        · {e.time}
+                        {isMultiDay(e) ? eventDateLabel(e) : d.toLocaleDateString("en-PH", { weekday: "short", month: "short", day: "numeric", timeZone: "UTC" })} · {e.time}
                       </p>
                       <h3 className="font-semibold text-ink mt-1 break-words">{e.title}</h3>
                       {e.location && (
@@ -83,7 +79,7 @@ export default function ParentFeed() {
           <section aria-label="Posts" className="mt-6 space-y-4">
             {data.announcements.length === 0 ? (
               <p className="bg-sheet border border-rule rounded-2xl p-8 text-center text-sm text-slate-500">
-                Nothing posted yet. New announcements from the guidance office will show up here.
+                Nothing posted yet.
               </p>
             ) : (
               data.announcements.map((a) => (

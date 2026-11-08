@@ -2,11 +2,11 @@
 
 import React, { useEffect, useState } from "react";
 import { Loader2 } from "lucide-react";
-import { changeMyPassword, getMyParentProfile, requestChildLink, updateMyParentProfile } from "../../action/parent";
+import { getMyParentProfile, requestChildLink, updateMyParentProfile } from "../../action/parent";
 import PhotoPicker from "../../../components/PhotoPicker";
 import { PushToggle } from "../../../components/LoginApproval";
 import ThemeSetting from "../../../components/ThemeSetting";
-import PasswordStrength from "../../../components/PasswordStrength";
+import ChangePassword from "../../../components/ChangePassword";
 import InlineError from "../../../components/InlineError";
 import { formatPhone } from "../../../lib/phone";
 import { useOptionList } from "../../../components/useOptionList";
@@ -40,9 +40,6 @@ export default function ParentProfilePage() {
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  const [pw, setPw] = useState({ current: "", next: "", confirm: "" });
-  const [pwState, setPwState] = useState<{ busy: boolean; error: string | null; done: boolean }>({ busy: false, error: null, done: false });
 
   const [link, setLink] = useState({ childStudentId: "", childName: "", relationship: "" });
   const [linkState, setLinkState] = useState<{ busy: boolean; error: string | null; done: boolean }>({ busy: false, error: null, done: false });
@@ -84,15 +81,6 @@ export default function ParentProfilePage() {
     } else setError(result.error ?? "Couldn't save.");
   };
 
-  const savePassword = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (pw.next !== pw.confirm) return setPwState({ busy: false, error: "The new passwords don't match.", done: false });
-    setPwState({ busy: true, error: null, done: false });
-    const result = await changeMyPassword({ current: pw.current, next: pw.next });
-    setPwState({ busy: false, error: result.success ? null : result.error ?? "Couldn't change it.", done: result.success });
-    if (result.success) setPw({ current: "", next: "", confirm: "" });
-  };
-
   const sendLink = async (e: React.FormEvent) => {
     e.preventDefault();
     setLinkState({ busy: true, error: null, done: false });
@@ -112,7 +100,7 @@ export default function ParentProfilePage() {
   }
 
   return (
-    <div className="px-5 sm:px-8 lg:px-12 pt-8 lg:pt-12 pb-16 max-w-3xl text-slate-800">
+    <div className="px-5 sm:px-8 lg:px-12 pt-8 lg:pt-12 pb-16 text-slate-800">
       <header>
         <h1 className="page-title">My profile</h1>
       </header>
@@ -208,34 +196,7 @@ export default function ParentProfilePage() {
       <div id="settings" className="scroll-mt-24 mt-8 space-y-8">
         <ThemeSetting />
         <PushToggle />
-      <section className="bg-sheet border border-rule rounded-2xl p-5 sm:p-6" aria-labelledby="pw-heading">
-        <h2 id="pw-heading" className="font-semibold text-[17px] text-ink">Change password</h2>
-        <form onSubmit={savePassword} className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-3 items-end">
-          <div>
-            <label htmlFor="pw-current" className={label}>Current password</label>
-            <input id="pw-current" type="password" autoComplete="current-password" className={input} value={pw.current} required onChange={(e) => setPw({ ...pw, current: e.target.value })} />
-          </div>
-          <div>
-            <label htmlFor="pw-next" className={label}>New password</label>
-            <input id="pw-next" type="password" autoComplete="new-password" minLength={8} className={input} value={pw.next} required
-              aria-describedby="pw-next-strength" onChange={(e) => setPw({ ...pw, next: e.target.value })} />
-            {pw.next && <PasswordStrength password={pw.next} id="pw-next-strength" />}
-          </div>
-          <div>
-            <label htmlFor="pw-confirm" className={label}>Repeat new password</label>
-            <input id="pw-confirm" type="password" autoComplete="new-password" minLength={8} className={input} value={pw.confirm} required onChange={(e) => setPw({ ...pw, confirm: e.target.value })} />
-          </div>
-          <div className="sm:col-span-3 space-y-2">
-            <InlineError message={pwState.error} onDismiss={() => setPwState({ ...pwState, error: null })} />
-            <div className="flex items-center gap-3">
-              <button type="submit" disabled={pwState.busy} className={primary}>
-                {pwState.busy && <Loader2 size={15} className="animate-spin" />} Change password
-              </button>
-              {pwState.done && <span role="status" className="text-sm text-emerald-700">Password changed</span>}
-            </div>
-          </div>
-        </form>
-      </section>
+      <ChangePassword />
       </div>
     </div>
   );

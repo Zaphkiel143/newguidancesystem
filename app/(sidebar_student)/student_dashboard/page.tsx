@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from 'react';
+import { eventDateLabel, isMultiDay } from "../../../lib/eventDates";
 import Link from 'next/link';
 import { ArrowRight, CircleCheck, ClipboardList } from 'lucide-react';
 import { getMyAppointments, getMyCareerPlan, getMyReferrals, getMyStudentLevel } from '../../action/student';
@@ -79,7 +80,7 @@ const DashboardContent: React.FC = () => {
   ];
 
   return (
-    <div className="px-5 sm:px-8 lg:px-12 pt-8 lg:pt-12 pb-16 max-w-6xl text-slate-800">
+    <div className="px-5 sm:px-8 lg:px-12 pt-8 lg:pt-12 pb-16 text-slate-800">
       <header>
         <h1 className="page-title">Kumusta, {greetingName(me.displayName)}.</h1>
       </header>
@@ -98,7 +99,7 @@ const DashboardContent: React.FC = () => {
         <span className="min-w-0">
           <span className="block font-serif text-[20px] sm:text-[22px] text-ink leading-snug break-words">Need someone to talk to?</span>
           <span className="block text-[14px] text-slate-600 mt-1 break-words">
-            E-Gabay listens in English or Filipino. Your guidance associate is still a message away.
+            Chat in English or Filipino.
           </span>
         </span>
         <span className="shrink-0 inline-flex items-center gap-2 text-[14px] font-medium text-blue-700">
@@ -140,7 +141,7 @@ const DashboardContent: React.FC = () => {
                 </p>
               </>
             ) : (
-              <p>You&apos;re not enrolled in the Career Planning Program yet. The guidance office adds students to it.</p>
+              <p>Not enrolled in the Career Planning Program yet.</p>
             )}
           </div>
 
@@ -220,10 +221,7 @@ const DashboardContent: React.FC = () => {
                   <p className="text-xs text-slate-500">Upcoming event</p>
                   <p className="font-medium text-ink">{data.event.title}</p>
                   <p className="font-mono text-[13px] text-slate-500 mt-0.5">
-                    {data.event.endDate && new Date(data.event.endDate).toISOString().slice(0, 10) !== new Date(data.event.date).toISOString().slice(0, 10)
-                      ? `${new Date(data.event.date).toLocaleDateString("en-PH", { timeZone: "UTC", month: "long", day: "numeric" })} – ${new Date(data.event.endDate).toLocaleDateString("en-PH", { timeZone: "UTC", month: "long", day: "numeric" })}`
-                      : new Date(data.event.date).toLocaleDateString("en-PH", { timeZone: "UTC", month: "long", day: "numeric" })}{" "}
-                    · {data.event.time}
+                    {isMultiDay(data.event) ? eventDateLabel(data.event) : new Date(data.event.date).toLocaleDateString("en-PH", { timeZone: "UTC", month: "long", day: "numeric" })} · {data.event.time}
                   </p>
                 </div>
               )}

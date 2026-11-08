@@ -9,10 +9,13 @@ import {
   savePushSubscription,
 } from "../app/action/loginApproval";
 import InlineError from "./InlineError";
+import { usePolling } from "../lib/usePolling";
 
 type Request = Awaited<ReturnType<typeof getMyLoginRequests>>[number];
 
-const POLL_MS = 5000;
+// Coming back to the tab or focusing it checks right away, and the approval
+// also arrives as a push notification, so this can be slow.
+const POLL_MS = 15_000;
 
 // Shown on any signed-in page when someone asks to sign in to this account
 // with "Approve on my phone". The person taps the number shown on the other
@@ -30,15 +33,10 @@ export function LoginApprovalPrompt() {
 
   useEffect(() => {
     queueMicrotask(check);
-    const id = setInterval(check, POLL_MS);
-    document.addEventListener("visibilitychange", check);
     window.addEventListener("focus", check);
-    return () => {
-      clearInterval(id);
-      document.removeEventListener("visibilitychange", check);
-      window.removeEventListener("focus", check);
-    };
+    return () => window.removeEventListener("focus", check);
   }, [check]);
+  usePolling(check, POLL_MS);
 
   const answer = async (picked: number | "deny") => {
     if (!request) return;

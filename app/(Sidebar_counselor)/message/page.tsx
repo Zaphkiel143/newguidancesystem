@@ -8,8 +8,9 @@ import ConversationPanel from '../../../components/ConversationPanel';
 import { listAccounts } from '../../action/accounts';
 import InlineError from '../../../components/InlineError';
 import { useCurrentUser } from '../../../components/CurrentUser';
+import { usePolling } from '../../../lib/usePolling';
 
-const POLL_INTERVAL_MS = 5000;
+const POLL_INTERVAL_MS = 20_000;
 
 interface Conversation {
   id: string;
@@ -91,9 +92,10 @@ const MessagesDashboard: React.FC = () => {
 
   useEffect(() => {
     refreshConversations();
-    const interval = setInterval(refreshConversations, POLL_INTERVAL_MS);
-    return () => clearInterval(interval);
   }, []);
+  // The open chat refreshes itself (ConversationPanel); this keeps the list
+  // and unread marks current while the page is in use (lib/usePolling.ts).
+  usePolling(refreshConversations, POLL_INTERVAL_MS);
 
   useEffect(() => {
     if (!menu) return;
@@ -438,7 +440,7 @@ const MessagesDashboard: React.FC = () => {
                 </svg>
               </div>
               <p className="text-slate-500 font-medium text-[15px]">
-                Select a conversation to start messaging
+                No conversation selected
               </p>
             </div>
           </main>

@@ -342,9 +342,6 @@ export default function GroupGuidance() {
     <div className="px-5 sm:px-8 lg:px-12 pt-8 lg:pt-12 pb-16 text-slate-800">
       <header>
         <h1 className="page-title">Group Guidance</h1>
-        <p className="text-sm text-slate-500 mt-1 max-w-[70ch]">
-          Topics tailored to the results of the needs assessment: group sessions, orientation activities, and supplementary reading materials.
-        </p>
       </header>
 
       {/* ---- Needs assessment ---- */}
@@ -362,15 +359,11 @@ export default function GroupGuidance() {
             </button>
           </div>
         </div>
-        <p className="text-sm text-slate-500 max-w-[70ch]">
-          Send a form that students answer in E-Gabay, or upload the results of one given to students, faculty, or parents on paper or Google Forms.
-          Answers are tallied automatically, most-needed topics first.
-        </p>
 
         {results === null ? (
           <div className="py-12 flex justify-center text-slate-500"><Loader2 className="animate-spin" size={20} /></div>
         ) : results.length === 0 ? (
-          <p className="mt-4 border-t border-rule pt-4 text-sm text-slate-500">No needs assessments yet. Create a form or upload results to see which topics people need.</p>
+          <p className="mt-4 border-t border-rule pt-4 text-sm text-slate-500">No needs assessments yet.</p>
         ) : (
           <div className="mt-4 space-y-8">
             {results.map((r) =>
@@ -476,7 +469,7 @@ export default function GroupGuidance() {
             <Plus size={16} /> Add material
           </button>
         </div>
-        <p className="text-sm text-slate-500 max-w-[70ch]">Handouts and links on the topics people need. They appear under Announcements &amp; Events for the audience you choose.</p>
+        <p className="text-sm text-slate-500 max-w-[70ch]">Shown under Announcements &amp; Events.</p>
 
         {materials === null ? (
           <div className="py-12 flex justify-center text-slate-500"><Loader2 className="animate-spin" size={20} /></div>
@@ -514,8 +507,7 @@ export default function GroupGuidance() {
             <div>
               <label htmlFor="up-file" className="block text-[13px] font-medium text-slate-700 mb-1.5">Responses file</label>
               <p className="text-xs text-slate-500 mb-2">
-                From Google Forms: Responses → Download responses (.csv), or Open in Sheets → File → Download → .xlsx. Paper forms: type them into Excel, one row per person,
-                one column per question (put ✓ or Yes under each topic they ticked).
+                .csv or .xlsx, one row per person and one column per question (✓ or Yes for each topic ticked).
               </p>
               <input id="up-file" type="file" accept=".xlsx,.csv,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
                 onChange={(e) => chooseResultsFile(e.target.files?.[0])}
@@ -703,7 +695,7 @@ export default function GroupGuidance() {
           <form onSubmit={saveRecord} className="space-y-4">
             <div>
               <p className="text-[13px] font-medium text-slate-700 mb-1.5">Attendance sheet</p>
-              <p className="text-xs text-slate-500 mb-2">Attach a photo of the signed attendance form, type the names below, or both.</p>
+              <p className="text-xs text-slate-500 mb-2">Photo of the signed sheet, typed names, or both.</p>
               <AttachmentStrip kind="GROUP_ATTENDANCE" refId={recording.id} items={sheets.filter((s) => s.refId === recording.id)}
                 onChange={loadSheets} addLabel="Attach photo of sheet" />
             </div>

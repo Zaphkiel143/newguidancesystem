@@ -1,4 +1,65 @@
 services:
+  # The E-Gabay web app (Next.js). Free plan: it sleeps after ~15 minutes
+  # without visitors and the first page after that takes about a minute.
+  # Secrets marked sync: false are typed into the Render dashboard once
+  # (copy them from Vercel → Settings → Environment Variables).
+  - type: web
+    name: egabay-web
+    runtime: node
+    plan: free
+    region: singapore
+    buildCommand: npm ci && npm run build
+    startCommand: npm start
+    healthCheckPath: /Login
+    envVars:
+      - key: NODE_VERSION
+        value: 22.12.0
+      # Keeps the build inside the free plan's memory.
+      - key: NODE_OPTIONS
+        value: --max-old-space-size=460
+      - key: NEXT_TELEMETRY_DISABLED
+        value: "1"
+      - key: DATABASE_URL
+        sync: false
+      - key: DIRECT_URL
+        sync: false
+      - key: NLP_SERVICE_URL
+        sync: false
+      - key: COUNSELOR_EMAILS
+        sync: false
+      - key: GCO_OFFICE_EMAIL
+        sync: false
+      - key: NEXT_PUBLIC_DEMO_LOGIN
+        sync: false
+      - key: SMTP_HOST
+        sync: false
+      - key: SMTP_PORT
+        sync: false
+      - key: SMTP_USER
+        sync: false
+      - key: SMTP_PASS
+        sync: false
+      - key: SMTP_FROM
+        sync: false
+      - key: AI_BASE_URL
+        sync: false
+      - key: AI_API_KEY
+        sync: false
+      - key: AI_MODEL
+        sync: false
+      - key: NEXT_PUBLIC_VAPID_PUBLIC_KEY
+        sync: false
+      - key: VAPID_PRIVATE_KEY
+        sync: false
+      - key: ENTRA_CLIENT_ID
+        sync: false
+      - key: ENTRA_TENANT_ID
+        sync: false
+      - key: ENTRA_CLIENT_SECRET
+        sync: false
+      - key: ENTRA_REDIRECT_URI
+        sync: false
+
   - type: web
     name: egabay-nlp-service
     runtime: python
@@ -10,4 +71,4 @@ services:
       - key: PYTHON_VERSION
         value: 3.11.9
       - key: ALLOWED_ORIGINS
-        value: http://localhost:3000,https://guidancesystem-green.vercel.app
+        value: http://localhost:3000,https://guidancesystem-green.vercel.app,https://egabay-web.onrender.com

@@ -24,7 +24,7 @@ export default function MyCareerPlanPage() {
   const currentIndex = plan ? plan.stepDates.findIndex((d) => !d) : -1;
 
   return (
-    <div className="px-5 sm:px-8 lg:px-12 pt-8 lg:pt-12 pb-16 max-w-3xl text-slate-800">
+    <div className="px-5 sm:px-8 lg:px-12 pt-8 lg:pt-12 pb-16 text-slate-800">
       <header>
         <h1 className="page-title">My Career Plan</h1>
       </header>
