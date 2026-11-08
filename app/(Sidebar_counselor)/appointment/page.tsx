@@ -287,7 +287,19 @@ export default function AppointmentScheduling() {
                     <div className="flex flex-wrap items-start justify-between gap-2">
                       <div className="min-w-0">
                         <p className="font-semibold text-ink">{a.studentName}</p>
-                        <p className="text-[13px] text-slate-600">{a.appointmentType || "General consultation"}</p>
+                        <p className="text-[13px] text-slate-600 flex items-center gap-2">
+                          {a.appointmentType || "General consultation"}
+                          {a.rescheduled && (
+                            <span className="inline-flex items-center gap-1 bg-blue-50 text-blue-600 border border-blue-200 text-[11px] font-semibold px-2 py-0.5 rounded">
+                              Rescheduled
+                            </span>
+                          )}
+                        </p>
+                        {a.rescheduled && a.originalDate && (
+                          <p className="text-[12px] text-blue-600">
+                            Originally {new Date(a.originalDate).toLocaleDateString("en-PH", { timeZone: "UTC" })} at {a.originalTime}
+                          </p>
+                        )}
                         {a.contactName && a.contactName !== a.studentName && (
                           <p className="text-[12px] text-slate-500">Booked by {a.contactName} ({a.contactRole?.toLowerCase()})</p>
                         )}

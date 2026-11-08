@@ -158,6 +158,11 @@ export default function EventsPanel({ openForm = 0 }: { openForm?: number }) {
               </div>
             </div>
             <div>
+              <label htmlFor="e-time" className="block text-[13px] font-medium text-slate-700 mb-1.5">Time</label>
+              <input id="e-time" placeholder="e.g. 1:00 PM – 3:00 PM" value={editing.time} onChange={(e) => setEditing({ ...editing, time: e.target.value })} required
+                className="w-full bg-sheet border border-slate-300 rounded-md px-3 py-2.5 text-sm" />
+            </div>
+            <div>
               <label htmlFor="e-loc" className="block text-[13px] font-medium text-slate-700 mb-1.5">Location (optional)</label>
               <input id="e-loc" value={editing.location} onChange={(e) => setEditing({ ...editing, location: e.target.value })}
                 className="w-full bg-sheet border border-slate-300 rounded-md px-3 py-2.5 text-sm" />

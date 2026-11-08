@@ -37,7 +37,7 @@ export default function SettingsPage() {
           <Loader2 className="animate-spin" size={24} />
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4 mt-6">
           {lists.map((list) => (
             <div key={list.listKey} className="bg-white border border-slate-100 rounded-2xl shadow-sm p-5">
               <div className="flex items-start justify-between gap-2 mb-3">

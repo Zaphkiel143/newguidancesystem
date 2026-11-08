@@ -31,6 +31,13 @@ model Appointment {
   bookedByEmail   String?
   bookedByPhone   String?
 
+  // Set the first time the counselor moves this appointment's date/time;
+  // originalDate/originalTime snapshot the slot it was first booked for
+  // (not the previous reschedule), so later reschedules don't overwrite it.
+  rescheduled  Boolean   @default(false)
+  originalDate DateTime?
+  originalTime String?
+
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 }
@@ -322,17 +329,17 @@ model AnnouncementView {
 // ---- Events ----
 
 model Event {
-  id          String   @id @default(uuid())
+  id          String    @id @default(uuid())
   title       String
-  description String   @db.Text
+  description String    @db.Text
   date        DateTime
   // Last day of a multi-day event; null for a one-day event
   endDate     DateTime?
   time        String
   location    String?
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 }
 
 // ---- Group Guidance: needs assessment ----

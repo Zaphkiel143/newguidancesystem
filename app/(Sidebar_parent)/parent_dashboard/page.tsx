@@ -315,7 +315,19 @@ const ParentBookAppointment: React.FC = () => {
             {bookings.map((b) => (
               <li key={b.id} className="py-3 flex flex-wrap items-center justify-between gap-x-4 gap-y-1 text-sm">
                 <span className="min-w-0">
-                  <span className="block text-ink font-medium">{b.appointmentType || 'General consultation'}</span>
+                  <span className="block text-ink font-medium flex items-center gap-2">
+                    {b.appointmentType || 'General consultation'}
+                    {b.rescheduled && (
+                      <span className="inline-flex items-center gap-1 bg-blue-50 text-blue-600 border border-blue-200 text-[11px] font-semibold px-2 py-0.5 rounded">
+                        Rescheduled
+                      </span>
+                    )}
+                  </span>
+                  {b.rescheduled && b.originalDate && (
+                    <span className="block text-[12px] text-blue-600">
+                      Originally {new Date(b.originalDate).toLocaleDateString('en-PH', { timeZone: 'UTC' })} at {b.originalTime}
+                    </span>
+                  )}
                   <span className="block text-[13px] text-slate-500">
                     For {b.forSelf ? 'you' : b.studentName} ·{' '}
                     {new Date(b.date).toLocaleDateString('en-PH', { timeZone: 'UTC', weekday: 'short', month: 'short', day: 'numeric' })}, {b.time}

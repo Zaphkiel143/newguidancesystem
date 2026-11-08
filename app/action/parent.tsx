@@ -133,7 +133,7 @@ export async function getMyBookings() {
     const me = await requireActionUser("PARENT");
     const rows = await db.appointment.findMany({
       where: { bookedByName: me.name, bookedByRole: me.roleLabel },
-      select: { id: true, date: true, time: true, studentName: true, appointmentType: true, status: true },
+      select: { id: true, date: true, time: true, studentName: true, appointmentType: true, status: true, rescheduled: true, originalDate: true, originalTime: true },
       orderBy: [{ date: "desc" }, { time: "asc" }],
       take: 20,
     });

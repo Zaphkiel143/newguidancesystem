@@ -282,6 +282,7 @@ export async function saveAppointmentDetails(formData: {
 
     if (formData.appointmentId) {
       const before = await db.appointment.findUnique({ where: { id: formData.appointmentId } });
+      const moved = before && (before.date.getTime() !== targetDate.getTime() || before.time !== formData.timeSlot);
       try {
         const after = await db.appointment.update({
           where: { id: formData.appointmentId },
@@ -291,10 +292,12 @@ export async function saveAppointmentDetails(formData: {
             appointmentType: formData.appointmentType || null,
             notes: formData.notes || null,
             requirements: formData.requirements,
+            // Snapshot the first-ever booked slot only, so a second
+            // reschedule doesn't overwrite what "originally" means.
+            ...(moved && !before?.rescheduled ? { rescheduled: true, originalDate: before!.date, originalTime: before!.time } : {}),
           },
         });
 
-        const moved = before && (before.date.getTime() !== after.date.getTime() || before.time !== after.time);
         if (moved) {
           await notifyBooker(
             after,

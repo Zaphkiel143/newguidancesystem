@@ -72,13 +72,23 @@ const MyAppointmentsPage: React.FC = () => {
                 {/* Left Column Description Context Info */}
                 <div className="space-y-2">
                   <div className="space-y-0.5">
-                    <h3 className="text-lg font-semibold text-slate-900 tracking-tight">
+                    <h3 className="text-lg font-semibold text-slate-900 tracking-tight flex items-center gap-2">
                       {meeting.appointmentType || "General Consultation"}
+                      {meeting.rescheduled && (
+                        <span className="inline-flex items-center gap-1 bg-blue-50 text-blue-600 border border-blue-200 text-[11px] font-semibold px-2 py-0.5 rounded">
+                          Rescheduled
+                        </span>
+                      )}
                     </h3>
                     <p className="text-xs text-slate-500 font-medium flex items-center gap-1">
                       <span>With:</span>
                       <span className="text-slate-700 font-semibold">Guidance Associate</span>
                     </p>
+                    {meeting.rescheduled && meeting.originalDate && (
+                      <p className="text-[12px] text-blue-600">
+                        Originally {new Date(meeting.originalDate).toLocaleDateString("en-PH", { timeZone: "UTC" })} at {meeting.originalTime}
+                      </p>
+                    )}
                   </div>
 
                   {/* Sub-row Meta Icons Trackers */}
