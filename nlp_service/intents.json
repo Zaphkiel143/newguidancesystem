@@ -32,7 +32,11 @@
         "magandang gabi",
         "kamusta po",
         "Hello po?",
-        "Good morning, afternoon po (?)"
+        "Good morning, afternoon po (?)",
+        "hello po",
+        "hi po, may itatanong po ako",
+        "good day po, tanong lang",
+        "hello po e-gabay, pwede magtanong?"
       ],
       "responses_en": [
         "Hi there! I'm E-Gabay. How are you feeling today?",
@@ -447,7 +451,12 @@
         "magulo sa bahay namin",
         "ayokong umuwi sa bahay",
         "lagi akong pinapagalitan sa bahay",
-        "lagi akong sinisigawan ng magulang ko"
+        "lagi akong sinisigawan ng magulang ko",
+        "may problema sa bahay namin",
+        "magulo sa family namin ngayon",
+        "family problems kaya di ako maka-focus sa school",
+        "may pinagdadaanan family namin",
+        "hirap kami sa bahay ngayon, lagi silang nag-aaway"
       ],
       "responses_en": [
         "Thank you for sharing what you're going through. Problems at home can be really heavy, and your feelings deserve to be heard.\n\nYou don't have to solve everything at once. It may help to talk with someone you trust or schedule a consultation with the Guidance and Counseling office. The GCO can provide a supportive space to discuss your concerns and explore ways to cope.\n\nIf you feel unsafe at home or are thinking about hurting yourself, please tell a trusted person and seek immediate help.",
@@ -1136,7 +1145,12 @@
         "di po to malalaman ng iba?",
         "Atin-atin lang naman po ang mapag-uusapan natin?",
         "Private po ba lahat ng pag-uusapan natin dito?",
-        "sasabihin nyo ba sa magulang ko na pumunta ako sa guidance"
+        "sasabihin nyo ba sa magulang ko na pumunta ako sa guidance",
+        "sasabihin niyo ba sa magulang ko?",
+        "malalaman ba ng mga teacher ko yung sinabi ko?",
+        "ise-share niyo ba sa parents ko yung pinag-usapan natin?",
+        "secret lang ba yung pag-uusapan natin?",
+        "di ba sasabihin sa nanay ko?"
       ],
       "responses_en": [
         "Your privacy is important to the Guidance and Counseling Office. Information shared during a consultation is handled with care and according to applicable privacy requirements and school policies.\n\nHowever, confidentiality may have limits. Information may need to be shared with appropriate people when there is a serious risk of harm to you or someone else, a safeguarding concern, or another applicable legal or institutional requirement.\n\nWhen appropriate and safe, the GCO will explain the reason for sharing information and involve you in the process."
@@ -1809,7 +1823,11 @@
         "walang nakakapansin sa akin",
         "parang hindi ako nakikita ng iba",
         "wala akong makausap",
-        "mag-isa lang ako palagi"
+        "mag-isa lang ako palagi",
+        "parang wala akong ka-close sa school",
+        "walang kumakausap sakin sa klase",
+        "wala akong kasama lagi",
+        "feeling ko walang may pake sakin"
       ],
       "responses_en": [
         "Feeling alone is painful, and it happens to more students than you might think. Thank you for telling me. Small steps can help: say hi to one classmate, join a club or org that matches your interests, or sit with a group during a break.\n\nYou also don't have to wait until you have friends to talk to someone. The Guidance Associate is there to listen. You can book a session with the Guidance Associate under My Appointments, or visit the Guidance and Counseling Office during office hours."
@@ -2417,7 +2435,13 @@
         "ang bilis ng tibok ng puso ko",
         "puro ako worry",
         "inaatake ako ng panic",
-        "hindi ako makahinga sa kaba"
+        "hindi ako makahinga sa kaba",
+        "lagi akong kinakabahan",
+        "may anxiety ako",
+        "anxious ako palagi",
+        "parang laging may masamang mangyayari",
+        "kinakabahan ako kahit walang dahilan",
+        "di ako mapakali lagi"
       ],
       "responses_en": [
         "That sounds stressful. Let's slow down for a moment: breathe in for 4 seconds, hold for 4, breathe out for 6. Try it a few times. Would you like to book a session with the Guidance Associate?",
@@ -2739,7 +2763,11 @@
         "anong oras na",
         "saan masarap kumain",
         "sino ang presidente",
-        "ano ang lotto result"
+        "ano ang lotto result",
+        "ano masarap na ulam ngayon",
+        "saan masarap kumain malapit sa school",
+        "anong kakainin ko mamaya",
+        "recommend ka naman ng merienda"
       ],
       "responses_en": [
         "I'm E-Gabay, the guidance office's assistant, so I can't help with that one. I can answer questions about appointments, office hours, referrals, and the GCO's services, or you can tell me how you're feeling."
