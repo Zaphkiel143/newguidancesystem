@@ -584,11 +584,31 @@ const LoginPage = () => {
       {/* While the sign-in pop-up is open, the "Log in" card stays in its place behind it. */}
       {!onStart && (
         <div aria-hidden inert className={cardSlot}>
+          {/* Same size and contents as the real card, so it doesn't shrink when the pop-up opens. */}
           <section className="w-full max-w-[440px] bg-sheet border border-rule rounded-2xl shadow-lg overflow-hidden">
-            <div className="px-6 sm:px-8 pt-8 pb-8 text-center">
-              <LogoMark size={72} className="block mx-auto rounded-[16px] shadow-md" />
-              <p className="mt-4 text-2xl font-bold tracking-tight text-ink">Log in</p>
-              <div className={`${primaryButton} mt-7`}>Sign in</div>
+            <div className="px-6 sm:px-8 pt-8 pb-8">
+              <div className="text-center">
+                <LogoMark size={72} className="block mx-auto rounded-[16px] shadow-md" />
+                <p className="mt-4 text-2xl font-bold tracking-tight text-ink">Log in</p>
+              </div>
+              <div className="mt-7 space-y-3">
+                <div className={primaryButton}>Sign in</div>
+              </div>
+              {SHOW_DEMO && (
+                <div className="mt-8 pt-6 border-t border-rule">
+                  <p className="text-[13px] text-slate-500">Demo accounts</p>
+                  <ul className="mt-2 divide-y divide-rule">
+                    {DEMO_ROLES.map(({ role, label }) => (
+                      <li key={role}>
+                        <div className="w-full flex items-center justify-between min-h-11 text-[14px] text-ink">
+                          <span>Continue as {label}</span>
+                          <ArrowRight size={15} className="text-slate-300" />
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
             </div>
           </section>
         </div>
