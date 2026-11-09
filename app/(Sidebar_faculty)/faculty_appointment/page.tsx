@@ -1,12 +1,13 @@
 "use client";
 
 import React, { useEffect, useState } from 'react';
-import { Calendar, Clock, Plus, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Calendar, Clock, Plus } from 'lucide-react';
 import { getMyAppointments, getBookedTimesForDate, bookAppointment } from '../../action/faculty';
 import BookAppointmentModal from '../../../components/BookAppointmentModal';
 import type { Appointment as DbAppointment } from '../../../lib/generated';
 
 
+import AppointmentStatusBadge from "../../../components/AppointmentStatusBadge";
 const MyAppointmentsPage: React.FC = () => {
   const [appointments, setAppointments] = useState<DbAppointment[]>([]);
   const [isBookingOpen, setIsBookingOpen] = useState(false);
@@ -105,19 +106,7 @@ const MyAppointmentsPage: React.FC = () => {
 
                 {/* Right Column Badge State Triggers */}
                 <div className="self-start sm:self-auto">
-                  <span className={`text-xs font-semibold px-3 py-1 rounded flex items-center gap-1.5 font-sans border
-                    ${meeting.status === 'CONFIRMED'
-                      ? 'bg-emerald-50 border-emerald-200 text-emerald-600'
-                      : 'bg-slate-100 border-slate-200 text-slate-600'
-                    }
-                  `}>
-                    {meeting.status === 'CONFIRMED' ? (
-                      <CheckCircle2 size={13} className="stroke-[2.5]" />
-                    ) : (
-                      <AlertCircle size={13} className="stroke-[2.5]" />
-                    )}
-                    {meeting.status === 'CONFIRMED' ? 'Confirmed' : 'Pending'}
-                  </span>
+                  <AppointmentStatusBadge appointment={meeting} />
                 </div>
 
               </div>

@@ -32,11 +32,16 @@ export function hasPassword(passwordHash: string): boolean {
 
 export async function createSession(userId: string) {
   const expiresAt = new Date(Date.now() + SESSION_TTL_MS);
+  const cookieStore = await cookies();
+  // Signing in on a browser that's already signed in (another account, or a
+  // different demo) ends that browser's previous session first.
+  const previous = cookieStore.get(SESSION_COOKIE)?.value;
+  if (previous) await db.session.deleteMany({ where: { token: previous } }).catch(() => {});
+
   const session = await db.session.create({
     data: { token: randomUUID(), userId, expiresAt },
   });
 
-  const cookieStore = await cookies();
   cookieStore.set(SESSION_COOKIE, session.token, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",

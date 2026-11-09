@@ -6,6 +6,7 @@ import { getCurrentUser } from '../../../lib/auth';
 import { manilaHour, manilaToday, OFFICE_TZ } from '../../../lib/time';
 import StudentQuickSearch from '../../../components/StudentQuickSearch';
 
+import AppointmentStatusBadge from '../../../components/AppointmentStatusBadge';
 const Dashboard = async () => {
   const now = new Date();
   const today = manilaToday(now);
@@ -101,7 +102,7 @@ const Dashboard = async () => {
                     <span className="block font-medium text-ink truncate">{appointment.studentName || "Unnamed student"}</span>
                     <span className="block text-[13px] text-slate-500 truncate">{appointment.appointmentType || "General"}</span>
                   </span>
-                  <Status confirmed={appointment.status === "CONFIRMED"} completed={appointment.status === "COMPLETED"} />
+                  <AppointmentStatusBadge appointment={appointment} variant="dot" />
                 </li>
               ))}
             </ol>
@@ -158,9 +159,3 @@ const Empty = ({ children }: { children: React.ReactNode }) => (
   <p className="border-t border-rule pt-4 text-[14px] text-slate-500 max-w-[46ch]">{children}</p>
 );
 
-const Status = ({ confirmed, completed }: { confirmed: boolean; completed: boolean }) => (
-  <span className={`inline-flex items-center gap-1.5 text-[12px] ${completed ? "text-teal-700" : confirmed ? "text-emerald-700" : "text-orange-700"}`}>
-    <span className={`w-1.5 h-1.5 rounded-full ${completed ? "bg-teal-500" : confirmed ? "bg-emerald-500" : "bg-orange-500"}`} />
-    {completed ? "Terminated" : confirmed ? "Confirmed" : "Pending"}
-  </span>
-);

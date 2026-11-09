@@ -12,7 +12,7 @@ import { getOptionList } from "./optionLists";
 import { optionValue } from "../../lib/optionListDefaults";
 import { allow, clientIp, HOUR, MINUTE } from "../../lib/rateLimit";
 import type { UserRole } from "../../lib/generated";
-import { SCHOOL_EMAIL_DOMAIN, roleFromSchoolEmail } from "../config/school";
+import { SCHOOL_EMAIL_DOMAIN, roleFromSchoolEmail, PARENT_APPROVAL_TIME } from "../config/school";
 import { gradeSectionLabel, isShs } from "../config/studentLevels";
 import { logActivity } from "../../lib/activityLog";
 import { ROLE_LABEL } from "../../lib/session";
@@ -39,7 +39,7 @@ const DEMO_USERS: Record<DemoRole, { email: string; name: string }> = {
 function statusMessage(status: string, role: UserRole) {
   if (status === "PENDING") {
     return role === "PARENT"
-      ? "Your parent account is waiting for the guidance office to confirm it. You'll be able to sign in once it's approved."
+      ? `Your parent account is waiting for the guidance office to confirm it. ${PARENT_APPROVAL_TIME} You'll be able to sign in once it's approved.`
       : "Your account is waiting for the guidance office to approve it. Try again once it's approved.";
   }
   if (status === "ARCHIVED") return "This account was archived. Please contact the Guidance and Counseling Office to restore it.";

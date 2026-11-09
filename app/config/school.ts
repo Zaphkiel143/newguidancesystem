@@ -24,3 +24,9 @@ export function roleFromSignInId(value: string): "STUDENT" | "FACULTY" | "PARENT
   if (!v.toLowerCase().endsWith(`@${SCHOOL_EMAIL_DOMAIN}`)) return null;
   return roleFromSchoolEmail(v);
 }
+
+// How long a parent or guardian usually waits for the guidance office to
+// confirm their new account, shown after signing up and when they try to sign
+// in before it's approved.
+export const PARENT_APPROVAL_TIME =
+  "This usually takes 1 to 2 school days. If it takes longer, visit or call the Guidance and Counseling Office.";

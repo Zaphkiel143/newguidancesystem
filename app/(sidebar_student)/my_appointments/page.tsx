@@ -1,12 +1,13 @@
 "use client";
 
 import React, { useEffect, useState } from 'react';
-import { Plus, Calendar, Clock, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Plus, Calendar, Clock } from 'lucide-react';
 import { getMyAppointments, getBookedTimesForDate, bookAppointment } from '../../action/student';
 import BookAppointmentModal from '../../../components/BookAppointmentModal';
 import type { Appointment as DbAppointment } from '../../../lib/generated';
 
 
+import AppointmentStatusBadge from "../../../components/AppointmentStatusBadge";
 const MyAppointments: React.FC = () => {
   const [appointments, setAppointments] = useState<DbAppointment[]>([]);
   const [isBookingOpen, setIsBookingOpen] = useState(false);
@@ -29,30 +30,6 @@ const MyAppointments: React.FC = () => {
     };
   }, []);
 
-  const renderStatusBadge = (status: string) => {
-    if (status === "COMPLETED") {
-      return (
-        <span className="inline-flex items-center gap-1.5 bg-teal-50 text-teal-700 text-xs font-semibold px-3 py-1 rounded border border-teal-200">
-          <CheckCircle2 size={14} className="stroke-[2.5]" />
-          Terminated
-        </span>
-      );
-    }
-    if (status === "CONFIRMED") {
-      return (
-        <span className="inline-flex items-center gap-1.5 bg-emerald-50 text-emerald-600 text-xs font-semibold px-3 py-1 rounded border border-emerald-200">
-          <CheckCircle2 size={14} className="stroke-[2.5]" />
-          Confirmed
-        </span>
-      );
-    }
-    return (
-      <span className="inline-flex items-center gap-1.5 bg-orange-50 text-orange-600 text-xs font-semibold px-3 py-1 rounded border border-orange-200">
-        <AlertCircle size={14} className="stroke-[2.5]" />
-        Pending
-      </span>
-    );
-  };
 
   return (
     <div className="px-5 sm:px-8 lg:px-12 pt-8 lg:pt-12 pb-16 min-h-[calc(100dvh-var(--topbar-h)-var(--footer-h))] font-sans antialiased text-slate-800">
@@ -123,7 +100,7 @@ const MyAppointments: React.FC = () => {
 
                 {/* Status Badge Alignment Wrapper */}
                 <div className="shrink-0 self-start sm:self-center">
-                  {renderStatusBadge(apt.status)}
+                  <AppointmentStatusBadge appointment={apt} />
                 </div>
               </div>
             ))}

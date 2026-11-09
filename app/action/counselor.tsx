@@ -7,6 +7,7 @@ import { randomUUID } from "crypto";
 import { CAREER_STEPS } from "../config/careerSteps";
 import { Prisma, type UserRole } from "../../lib/generated";
 import { requireActionUser } from "../../lib/session";
+import { slotsCoveredBy, takenSlots } from "../../lib/appointmentStatus";
 import { formatAppointmentWhen, sendEmail } from "../../lib/email";
 import { checkImage } from "../../lib/image";
 import { checkDocument } from "../../lib/documents";
@@ -47,11 +48,12 @@ const APPOINTMENTS_PAGE: Record<string, string> = { Student: "/my_appointments",
 async function notifyBooker(
   appointment: { bookedByEmail: string | null; bookedByName: string | null; bookedByRole: string | null; studentName: string | null; date: Date; time: string; appointmentType: string | null },
   subject: string,
-  message: string
+  message: string,
+  reason?: string | null
 ) {
   await notifyByName(appointment.bookedByName ?? appointment.studentName, appointment.bookedByRole ?? "Student", {
     title: subject,
-    body: `${appointment.appointmentType || "Appointment"} · ${formatAppointmentWhen(appointment.date, appointment.time)}`,
+    body: `${appointment.appointmentType || "Appointment"} · ${formatAppointmentWhen(appointment.date, appointment.time)}${reason ? ` · Reason: ${reason}` : ""}`,
     href: APPOINTMENTS_PAGE[appointment.bookedByRole ?? "Student"],
   });
   if (!appointment.bookedByEmail) return;
@@ -60,16 +62,21 @@ async function notifyBooker(
   await sendEmail(
     appointment.bookedByEmail,
     subject,
-    `Hello ${appointment.bookedByName ?? ""},\n\n${message}\n\nAppointment${forWhom}: ${appointment.appointmentType || "General consultation"}\nWhen: ${formatAppointmentWhen(appointment.date, appointment.time)}\n\n— Guidance and Counseling Office, STI College Sta. Maria`
+    `Hello ${appointment.bookedByName ?? ""},\n\n${message}${reason ? `\n\nReason: ${reason}` : ""}\n\nAppointment${forWhom}: ${appointment.appointmentType || "General consultation"}\nWhen: ${formatAppointmentWhen(appointment.date, appointment.time)}\n\n— Guidance and Counseling Office, STI College Sta. Maria`
   );
 }
 
-export async function updateAppointmentStatus(id: string, status: "PENDING" | "CONFIRMED" | "COMPLETED" | "CANCELLED") {
+// Longest reason the Guidance Associate can give when cancelling.
+const CANCEL_REASON_MAX = 300;
+
+export async function updateAppointmentStatus(id: string, status: "PENDING" | "CONFIRMED" | "COMPLETED" | "CANCELLED", reason?: string) {
   try {
     const me = await counselorOnly();
+    // An optional reason, kept only for a cancellation (and cleared otherwise).
+    const cancelReason = status === "CANCELLED" ? reason?.trim().slice(0, CANCEL_REASON_MAX) || null : null;
     // Cancelled appointments are kept (not deleted) so the history and the
     // cancellation email both still have the details.
-    const appointment = await db.appointment.update({ where: { id }, data: { status } });
+    const appointment = await db.appointment.update({ where: { id }, data: { status, cancelReason } });
     await logActivity(me, `Marked an appointment as ${status === "COMPLETED" ? "terminated" : status.toLowerCase()}`, "Appointment", id, appointment.studentName ?? undefined);
 
     if (status === "CONFIRMED") {
@@ -78,7 +85,8 @@ export async function updateAppointmentStatus(id: string, status: "PENDING" | "C
       await notifyBooker(
         appointment,
         "Your guidance appointment was cancelled",
-        "Your appointment with the Guidance Associate has been cancelled. You can book a new time in E-Gabay."
+        "Your appointment with the Guidance Associate has been cancelled. You can book a new time in E-Gabay.",
+        cancelReason
       );
     }
 
@@ -210,10 +218,11 @@ export async function blockTime(formData: { dateString: string; startTime: strin
     if (slots.length === 0) return { success: false, error: "That range has no bookable hours (lunch is already closed)." };
 
     const [booked, alreadyBlocked] = await Promise.all([
-      db.appointment.findMany({ where: { date, time: { in: slots }, status: { not: "CANCELLED" } }, select: { time: true, studentName: true } }),
-      db.blockedSlot.findMany({ where: { date, time: { in: slots } }, select: { time: true } }),
+      db.appointment.findMany({ where: { date, status: { not: "CANCELLED" } }, select: { time: true, studentName: true } }),
+      db.blockedSlot.findMany({ where: { date }, select: { time: true } }),
     ]);
-    const skip = new Set([...booked.map((b) => b.time), ...alreadyBlocked.map((b) => b.time)]);
+    // Hours already taken, counting every hour an older ranged booking covers.
+    const skip = new Set(takenSlots([...booked.map((b) => b.time), ...alreadyBlocked.map((b) => b.time)]));
     const toBlock = slots.filter((t) => !skip.has(t));
 
     const groupId = randomUUID();
@@ -222,7 +231,7 @@ export async function blockTime(formData: { dateString: string; startTime: strin
       await logActivity(me, "Blocked appointment time", "BlockedSlot", groupId, `${formData.dateString}: ${toBlock.join(", ")}`);
     }
     revalidatePath("/appointment");
-    return { success: true, blocked: toBlock, skippedBooked: booked.map((b) => `${b.time} (${b.studentName ?? "booked"})`) };
+    return { success: true, blocked: toBlock, skippedBooked: booked.filter((b) => slotsCoveredBy(b.time).some((t) => slots.includes(t))).map((b) => `${b.time} (${b.studentName ?? "booked"})`) };
   } catch (error) {
     console.error("Failed to block time:", error);
     return { success: false, error: "Couldn't block that time. Try again." };
@@ -257,7 +266,9 @@ export async function saveAppointmentDetails(formData: {
 }) {
   try {
     const me = await counselorOnly();
-    const targetDate = new Date(formData.dateString);
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(formData.dateString)) return { success: false, error: "Choose a date." };
+    // Same form as every other booking: the calendar day at UTC midnight.
+    const targetDate = new Date(`${formData.dateString}T00:00:00Z`);
 
     const createData = {
       date: targetDate,
@@ -271,12 +282,16 @@ export async function saveAppointmentDetails(formData: {
 
     if (!isBookableTime(formData.timeSlot)) return { success: false, error: "Pick a time between 8:00 AM and 3:00 PM (not during lunch)." };
     if (isClosedDay(formData.dateString)) return { success: false, error: "Consultations are Monday to Friday only. Pick a weekday." };
-    const [clash, blocked] = await Promise.all([
-      db.appointment.findFirst({
-        where: { date: targetDate, time: formData.timeSlot, status: { not: "CANCELLED" }, ...(formData.appointmentId ? { id: { not: formData.appointmentId } } : {}) },
+    // A clash is any other booking or block covering this hour, including older
+    // ranged ("8:00 AM - 9:00 AM") or half-hour ("8:30 AM") bookings.
+    const [sameDay, blocks] = await Promise.all([
+      db.appointment.findMany({
+        where: { date: targetDate, status: { not: "CANCELLED" }, ...(formData.appointmentId ? { id: { not: formData.appointmentId } } : {}) },
       }),
-      db.blockedSlot.findFirst({ where: { date: targetDate, time: formData.timeSlot } }),
+      db.blockedSlot.findMany({ where: { date: targetDate } }),
     ]);
+    const clash = sameDay.find((a) => slotsCoveredBy(a.time).includes(formData.timeSlot));
+    const blocked = blocks.find((b) => slotsCoveredBy(b.time).includes(formData.timeSlot));
     if (clash) return { success: false, error: `${formData.timeSlot} is already booked by ${clash.studentName ?? "someone"}.` };
     if (blocked) return { success: false, error: `${formData.timeSlot} is blocked${blocked.reason ? ` (${blocked.reason})` : ""}. Unblock it first or pick another time.` };
 
@@ -1405,14 +1420,15 @@ export async function sendReferralFeedback(referralId: string, content: string) 
       data: { conversationId: conversation.id, senderRole: "Counselor", senderName: me.name, content },
     });
     await db.conversation.update({ where: { id: conversation.id }, data: { updatedAt: new Date() } });
+    // Also shown on the referrer's My Referrals page (unlike the internal notes).
+    await db.referral.update({ where: { id: referralId }, data: { feedback: content, feedbackAt: new Date() } });
     await notifyByName(referral.referrerName, referral.referrerRole, {
       title: "The guidance office replied about your referral",
       body: content.length > 120 ? `${content.slice(0, 117)}…` : content,
     });
     await logActivity(me, "Sent feedback on a referral", "Referral", referralId, referral.studentName);
 
-    revalidatePath("/message");
-    revalidatePath("/referral");
+    for (const p of ["/message", "/referral", "/my_referrals", "/faculty_myreferral", "/parent_myreferral"]) revalidatePath(p);
     return { success: true };
   } catch (error) {
     console.error("Failed to send referral feedback:", error);

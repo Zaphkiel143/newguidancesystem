@@ -38,6 +38,10 @@ model Appointment {
   originalDate DateTime?
   originalTime String?
 
+  // Why the Guidance Associate cancelled or declined it (optional), shown to
+  // whoever booked it and included in the cancellation notice.
+  cancelReason String?   @db.Text
+
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 }
@@ -177,7 +181,12 @@ model Referral {
   priority      String   @default("Normal") // Low, Normal, High, Urgent
   description   String   @db.Text
   status        String   @default("OPEN") // OPEN, IN_PROGRESS, CLOSED
+  // Internal notes: only the Guidance Associate ever sees these.
   notes         String?  @db.Text
+  // The latest feedback sent to the referrer ("Send Feedback"), shown on their
+  // My Referrals page. Kept apart from the internal notes on purpose.
+  feedback      String?  @db.Text
+  feedbackAt    DateTime?
 
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt

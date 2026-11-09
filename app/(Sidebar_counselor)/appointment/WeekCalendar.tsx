@@ -5,6 +5,7 @@ import { Ban, ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
 import { getWeekSchedule } from "../../action/counselor";
 import { DAY_SCHEDULE, LUNCH_BREAK_LABEL } from "../../config/timeSlots";
 
+import { appointmentStatus, slotsCoveredBy, statusLabel } from "../../../lib/appointmentStatus";
 type Week = Awaited<ReturnType<typeof getWeekSchedule>>;
 
 const STATUS_CELL: Record<string, string> = {
@@ -12,7 +13,6 @@ const STATUS_CELL: Record<string, string> = {
   CONFIRMED: "bg-emerald-50 text-emerald-900 border-emerald-300",
   COMPLETED: "bg-teal-50 text-teal-900 border-teal-300",
 };
-const STATUS_LABEL: Record<string, string> = { PENDING: "Pending", CONFIRMED: "Confirmed", COMPLETED: "Terminated" };
 
 function addDays(date: string, days: number) {
   const d = new Date(`${date}T00:00:00Z`);
@@ -111,14 +111,14 @@ export default function WeekCalendar({ today, selected, onPickDay }: { today: st
                   <div className="px-2 py-2 border-b border-rule text-[11px] text-slate-600 font-mono">{entry.time}</div>
                   {days.map((day) => {
                     const weekend = [0, 6].includes(new Date(`${day}T00:00:00Z`).getUTCDay());
-                    const a = data?.appointments.find((x) => x.day === day && x.time === entry.time);
-                    const b = data?.blocks.find((x) => x.day === day && x.time === entry.time);
+                    const a = data?.appointments.find((x) => x.day === day && slotsCoveredBy(x.time).includes(entry.time));
+                    const b = data?.blocks.find((x) => x.day === day && slotsCoveredBy(x.time).includes(entry.time));
                     return (
                       <button key={day} type="button" onClick={() => onPickDay(day, entry.time)}
                         className={`min-h-16 border-b border-l border-rule p-1 text-left hover:bg-blue-50/60 ${weekend ? "bg-slate-50" : ""}`}
-                        aria-label={`${fmt(day, { weekday: "long", month: "long", day: "numeric" })}, ${entry.time}: ${a ? `${a.studentName ?? "appointment"}, ${STATUS_LABEL[a.status] ?? a.status}` : b ? "blocked" : "open"}`}>
+                        aria-label={`${fmt(day, { weekday: "long", month: "long", day: "numeric" })}, ${entry.time}: ${a ? `${a.studentName ?? "appointment"}, ${statusLabel({ ...a, date: day })}` : b ? "blocked" : "open"}`}>
                         {a ? (
-                          <span className={`block h-full rounded-md border-l-4 border px-1.5 py-1 text-[11px] leading-tight ${STATUS_CELL[a.status] ?? "bg-slate-50 border-slate-300"}`}>
+                          <span className={`block h-full rounded-md border-l-4 border px-1.5 py-1 text-[11px] leading-tight ${STATUS_CELL[appointmentStatus({ ...a, date: day })] ?? "bg-slate-50 border-slate-300"}`}>
                             <span className="block font-semibold truncate">{a.studentName ?? "Appointment"}</span>
                             <span className="block truncate opacity-80">{a.appointmentType || "Consultation"}</span>
                           </span>

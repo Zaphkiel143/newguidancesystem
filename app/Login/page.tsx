@@ -6,7 +6,7 @@ import { ArrowLeft, ArrowRight, ChevronRight, KeyRound, Loader2, Mail, ShieldChe
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { finishParentReset, getSignInOptions, login, loginAsDemo, registerParent, requestLoginCode, requestParentReset, verifyLoginCode, type SignInAs, type SignInOptions } from '../action/auth';
-import { SCHOOL_EMAIL_DOMAIN, roleFromSchoolEmail, roleFromSignInId } from '../config/school';
+import { PARENT_APPROVAL_TIME, SCHOOL_EMAIL_DOMAIN, roleFromSchoolEmail, roleFromSignInId } from '../config/school';
 import { LogoMark } from '../../components/Logo';
 import { signInWithTotp } from '../action/totp';
 import { checkLoginApproval, requestLoginApproval } from '../action/loginApproval';
@@ -434,7 +434,7 @@ const LoginPage = () => {
     setIsSubmitting(false);
     if (result.success) {
       setWaitingMessage(
-        "Thank you. The guidance office will check your child's student ID and confirm your account. Once it's approved, sign in with your mobile number and password."
+        `Thank you. The guidance office will check your child's student ID and confirm your account. ${PARENT_APPROVAL_TIME} Once it's approved, sign in with your mobile number and password.`
       );
       setPassword('');
       setReg({ email: '', password: '', confirm: '', childStudentId: '', childName: '', relationship: '', website: '' });

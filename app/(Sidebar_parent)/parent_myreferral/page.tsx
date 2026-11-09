@@ -8,7 +8,7 @@ import {
   AlertCircle,
 } from 'lucide-react';
 import { getMyReferrals } from '../../action/parent';
-import type { Referral } from '../../../lib/generated';
+type Referral = Awaited<ReturnType<typeof getMyReferrals>>[number];
 
 
 const MyReferralsPage: React.FC = () => {
@@ -103,11 +103,11 @@ const MyReferralsPage: React.FC = () => {
                 </div>
 
                 {/* Associate Feedback Collateral Block Frame */}
-                {item.notes && (
+                {item.feedback && (
                   <div className="bg-emerald-50 border border-emerald-50 rounded-xl p-4 space-y-1">
                     <h4 className="text-xs font-semibold text-emerald-600">Associate Feedback:</h4>
                     <p className="text-sm text-slate-700 font-medium leading-relaxed">
-                      {item.notes}
+                      {item.feedback}
                     </p>
                   </div>
                 )}

@@ -10,16 +10,11 @@ import { useOptionList } from '../../../components/useOptionList';
 import { optionValue } from '../../../lib/optionListDefaults';
 import FullyBookedNotice from '../../../components/FullyBookedNotice';
 
+import AppointmentStatusBadge from "../../../components/AppointmentStatusBadge";
 // "Who is this for?" value meaning the parent themself.
 const MYSELF = '__myself__';
 
 type Booking = Awaited<ReturnType<typeof getMyBookings>>[number];
-const STATUS: Record<string, { label: string; className: string }> = {
-  PENDING: { label: 'Waiting for confirmation', className: 'text-orange-700 bg-orange-50' },
-  CONFIRMED: { label: 'Confirmed', className: 'text-emerald-700 bg-emerald-50' },
-  COMPLETED: { label: 'Done', className: 'text-slate-600 bg-slate-100' },
-  CANCELLED: { label: 'Cancelled', className: 'text-red-700 bg-red-50' },
-};
 
 const ParentBookAppointment: React.FC = () => {
   const [categories] = useOptionList("appointmentCategories");
@@ -333,9 +328,7 @@ const ParentBookAppointment: React.FC = () => {
                     {new Date(b.date).toLocaleDateString('en-PH', { timeZone: 'UTC', weekday: 'short', month: 'short', day: 'numeric' })}, {b.time}
                   </span>
                 </span>
-                <span className={`shrink-0 text-[11px] font-medium px-2 py-0.5 rounded-full ${STATUS[b.status]?.className ?? ''}`}>
-                  {STATUS[b.status]?.label ?? b.status}
-                </span>
+                <span className="shrink-0"><AppointmentStatusBadge appointment={b} /></span>
               </li>
             ))}
           </ul>

@@ -1,6 +1,8 @@
 "use server";
 
 import db from "../../lib/db";
+import { REFERRER_REFERRAL_FIELDS } from "../../lib/referralView";
+import { takenSlots } from "../../lib/appointmentStatus";
 import { revalidatePath } from "next/cache";
 import { requireActionUser } from "../../lib/session";
 import { allow, DAY, HOUR, MINUTE, SLOW_DOWN } from "../../lib/rateLimit";
@@ -42,7 +44,8 @@ export async function getBookedTimesForDate(dateString: string) {
       db.blockedSlot.findMany({ where: { date: targetDate }, select: { time: true } }),
     ]);
 
-    return Array.from(new Set([...appointments.map((a) => a.time), ...blockedSlots.map((b) => b.time)]));
+    // Every hour a booking or block covers, including older ranged or half-hour bookings.
+    return takenSlots([...appointments.map((a) => a.time), ...blockedSlots.map((b) => b.time)]);
   } catch (error) {
     console.error("[faculty] Failed to fetch booked times:", error);
     return [];
@@ -224,6 +227,7 @@ export async function getMyReferrals() {
     return await db.referral.findMany({
       where: { referrerName: me.name, referrerRole: "Faculty" },
       orderBy: { createdAt: "desc" },
+      select: REFERRER_REFERRAL_FIELDS,
     });
   } catch (error) {
     console.error("[faculty] Failed to fetch referrals:", error);

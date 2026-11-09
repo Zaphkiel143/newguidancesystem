@@ -1,6 +1,7 @@
 import db from "./db";
 import { isBookableTime, isClosedDay } from "../app/config/timeSlots";
 import { manilaToday } from "./time";
+import { takenSlots } from "./appointmentStatus";
 import { normalizePhone } from "./phone";
 import { notifyCounselors } from "./notify";
 import { formatAppointmentWhen } from "./email";
@@ -35,11 +36,13 @@ export async function checkBooking(input: { dateString: string; timeSlot: string
     if (!phone) return { error: "Enter a valid mobile number, like 0917 123 4567, or leave it blank." } as const;
   }
 
-  const [taken, blocked] = await Promise.all([
-    db.appointment.findFirst({ where: { date, time: input.timeSlot, status: { not: "CANCELLED" } } }),
-    db.blockedSlot.findFirst({ where: { date, time: input.timeSlot } }),
+  // Compare against every hour the day's bookings and blocks cover, so an older
+  // "8:00 AM - 9:00 AM" or "8:30 AM" booking still takes the 8:00 AM slot.
+  const [booked, blocks] = await Promise.all([
+    db.appointment.findMany({ where: { date, status: { not: "CANCELLED" } }, select: { time: true } }),
+    db.blockedSlot.findMany({ where: { date }, select: { time: true } }),
   ]);
-  if (taken || blocked) return { error: "That time isn't available anymore. Please pick another time." } as const;
+  if (takenSlots([...booked.map((a) => a.time), ...blocks.map((b) => b.time)]).includes(input.timeSlot)) return { error: "That time isn't available anymore. Please pick another time." } as const;
 
   return { date, appointmentType: purpose, notes: notes || null, phone } as const;
 }

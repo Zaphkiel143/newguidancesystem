@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { Search, AlertTriangle, Clock, CheckCircle2, FileText } from 'lucide-react';
 import { getMyReferrals } from '../../action/faculty';
-import type { Referral } from '../../../lib/generated';
+type Referral = Awaited<ReturnType<typeof getMyReferrals>>[number];
 
 
 const MyReferralsPage: React.FC = () => {
@@ -112,14 +112,14 @@ const MyReferralsPage: React.FC = () => {
               </div>
 
               {/* Conditional Nested Office Feedback Container */}
-              {log.notes && (
+              {log.feedback && (
                 <div className="bg-blue-50/50 border border-blue-100 rounded-xl p-4 mt-2">
                   <span className="text-xs font-semibold text-blue-900 flex items-center gap-2">
                     <FileText size={14} className="text-blue-600" />
                     Feedback from Guidance Office:
                   </span>
                   <p className="text-xs text-slate-600 font-medium mt-1.5 leading-relaxed pl-5">
-                    {log.notes}
+                    {log.feedback}
                   </p>
                 </div>
               )}

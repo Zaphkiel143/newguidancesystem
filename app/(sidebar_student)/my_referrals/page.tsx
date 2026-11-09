@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Loader2 } from 'lucide-react';
 import { getMyReferrals } from '../../action/student';
-import type { Referral } from '../../../lib/generated';
+type Referral = Awaited<ReturnType<typeof getMyReferrals>>[number];
 
 const STATUS: Record<string, { label: string; dot: string; text: string; explain: string }> = {
   OPEN: { label: 'Received', dot: 'bg-red-500', text: 'text-red-700', explain: 'The guidance office has your referral and will review it.' },

@@ -11,7 +11,13 @@ const SESSION_DAYS = 30;
 export function proxy(request: NextRequest) {
   const response = NextResponse.next();
   const token = request.cookies.get(SESSION_COOKIE)?.value;
-  if (token) {
+  // Only plain page visits renew the cookie. A server action (signing in,
+  // switching demo accounts) is a POST that sets a NEW session cookie itself;
+  // renewing the old one on that same response would overwrite it, and the
+  // person would stay signed in as the previous account (e.g. the Faculty demo
+  // opening the Student portal after using the Student demo).
+  const isPageVisit = request.method === "GET" && !request.headers.has("next-action");
+  if (token && isPageVisit) {
     response.cookies.set(SESSION_COOKIE, token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",

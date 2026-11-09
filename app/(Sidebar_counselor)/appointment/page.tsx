@@ -21,6 +21,8 @@ import { optionValue } from "../../../lib/optionListDefaults";
 import MonthCalendar from "./MonthCalendar";
 import WeekCalendar from "./WeekCalendar";
 
+import AppointmentStatusBadge from "../../../components/AppointmentStatusBadge";
+import { appointmentStatus, takenSlots } from "../../../lib/appointmentStatus";
 type Schedule = Awaited<ReturnType<typeof getDaySchedule>>;
 type Appt = Schedule["appointments"][number];
 type Block = Schedule["blocks"][number];
@@ -117,17 +119,24 @@ export default function AppointmentScheduling() {
   const blocks = schedule?.blocks ?? [];
   const confirmed = appts.filter((a) => a.status === "CONFIRMED").length;
   const completed = appts.filter((a) => a.status === "COMPLETED").length;
-  const pending = appts.filter((a) => a.status === "PENDING").length;
-  const open = Math.max(0, STANDARD_DAY_HOURS.length - appts.length - blocks.length);
+  // A request whose time passed without being confirmed isn't waiting anymore.
+  const pending = appts.filter((a) => appointmentStatus({ ...a, date }) === "PENDING").length;
+  // Hours still free, counting every hour an older ranged booking covers.
+  const open = STANDARD_DAY_HOURS.length - takenSlots([...appts.map((a) => a.time), ...blocks.map((b) => b.time)]).length;
 
   // Cancelling or terminating asks first, in a dialog.
   const [asking, setAsking] = useState<{ appt: Appt; status: "COMPLETED" | "CANCELLED" } | null>(null);
+  // Optional reason typed in the cancel dialog; shown to whoever booked it.
+  const [cancelReason, setCancelReason] = useState("");
 
   const setStatus = async (a: Appt, status: "CONFIRMED" | "COMPLETED" | "CANCELLED", confirmed = false) => {
-    if (status !== "CONFIRMED" && !confirmed) return setAsking({ appt: a, status });
+    if (status !== "CONFIRMED" && !confirmed) {
+      setCancelReason("");
+      return setAsking({ appt: a, status });
+    }
     setBusyId(a.id);
     setRowError(null);
-    const result = await updateAppointmentStatus(a.id, status);
+    const result = await updateAppointmentStatus(a.id, status, status === "CANCELLED" ? cancelReason : undefined);
     setBusyId(null);
     setAsking(null);
     if (result.success) await load(date);
@@ -304,9 +313,7 @@ export default function AppointmentScheduling() {
                           <p className="text-[12px] text-slate-500">Booked by {a.contactName} ({a.contactRole?.toLowerCase()})</p>
                         )}
                       </div>
-                      <span className={`text-[12px] font-semibold px-2 py-0.5 rounded border ${a.status === "COMPLETED" ? "bg-green-100 text-green-800 border-green-200" : a.status === "CONFIRMED" ? "bg-emerald-50 text-emerald-700 border-emerald-100" : "bg-amber-50 text-amber-700 border-amber-100"}`}>
-                        {a.status === "COMPLETED" ? "Terminated" : a.status === "CONFIRMED" ? "Confirmed" : "Pending"}
-                      </span>
+                      <AppointmentStatusBadge appointment={{ ...a, date }} />
                     </div>
                     {a.notes && <p className="text-[13px] text-slate-700 whitespace-pre-wrap break-words">{a.notes}</p>}
                     <ContactLinks
@@ -512,9 +519,19 @@ export default function AppointmentScheduling() {
         title={asking?.status === "CANCELLED" ? "Cancel this appointment?" : "Mark this appointment as terminated?"}
         message={
           asking &&
-          (asking.status === "CANCELLED"
-            ? `The ${asking.appt.time} appointment for ${asking.appt.studentName} will be cancelled, and they'll be notified.`
-            : `The ${asking.appt.time} appointment for ${asking.appt.studentName} will be marked as terminated.`)
+          (asking.status === "CANCELLED" ? (
+            <>
+              <p>The {asking.appt.time} appointment for {asking.appt.studentName} will be cancelled, and they&apos;ll be notified.</p>
+              <label htmlFor="cancel-reason" className="block mt-3 text-[13px] font-medium text-slate-700">
+                Reason <span className="font-normal text-slate-500">(optional, shown to them)</span>
+              </label>
+              <textarea id="cancel-reason" rows={3} maxLength={300} value={cancelReason} onChange={(e) => setCancelReason(e.target.value)}
+                placeholder="e.g. The Guidance Associate has a meeting at that time. Please book another day."
+                className="mt-1.5 w-full px-3 py-2 bg-sheet border border-slate-300 rounded-md text-[14px] text-ink resize-none" />
+            </>
+          ) : (
+            `The ${asking.appt.time} appointment for ${asking.appt.studentName} will be marked as terminated.`
+          ))
         }
         confirmLabel={asking?.status === "CANCELLED" ? "Cancel appointment" : "Mark as terminated"}
         cancelLabel={asking?.status === "CANCELLED" ? "Keep it" : "Go back"}

@@ -12,6 +12,8 @@ import { CAREER_STEPS } from '../../config/careerSteps';
 import { useCurrentUser } from '../../../components/CurrentUser';
 import type { Appointment as DbAppointment, CareerPlan, Event as DbEvent } from '../../../lib/generated';
 
+import AppointmentStatusBadge from "../../../components/AppointmentStatusBadge";
+import { appointmentStatus } from "../../../lib/appointmentStatus";
 type Announcement = NonNullable<Awaited<ReturnType<typeof getBulletinPreview>>["announcement"]>;
 
 const SHORTCUTS = [
@@ -66,7 +68,7 @@ const DashboardContent: React.FC = () => {
   const isShs = data?.level.isShs ?? false;
   const day = (d: Date) => new Date(d).toISOString().slice(0, 10);
   const upcoming = data?.appointments
-    .filter((a) => a.status !== "CANCELLED" && a.status !== "COMPLETED" && day(a.date) >= today)
+    .filter((a) => ["PENDING", "CONFIRMED"].includes(appointmentStatus(a)) && day(a.date) >= today)
     .sort((a, b) => +new Date(a.date) - +new Date(b.date))[0];
   const sessionsDone = data?.appointments.filter((a) => a.status === "COMPLETED" || (a.status === "CONFIRMED" && day(a.date) < today)).length ?? 0;
   const stagesDone = data?.careerPlan?.stepDates.filter(Boolean).length ?? 0;
@@ -186,10 +188,7 @@ const DashboardContent: React.FC = () => {
                   <p className="font-mono text-[13px] text-slate-500 mt-1 tabular">
                     {new Date(upcoming.date).toLocaleDateString("en-PH", { timeZone: "UTC", weekday: "short", month: "short", day: "numeric" })} · {upcoming.time}
                   </p>
-                  <p className={`mt-2 inline-flex items-center gap-1.5 text-xs ${upcoming.status === "CONFIRMED" ? "text-emerald-700" : "text-orange-700"}`}>
-                    <span className={`w-1.5 h-1.5 rounded-full ${upcoming.status === "CONFIRMED" ? "bg-emerald-500" : "bg-orange-500"}`} />
-                    {upcoming.status === "CONFIRMED" ? "Confirmed" : "Waiting for confirmation"}
-                  </p>
+                  <p className="mt-2"><AppointmentStatusBadge appointment={upcoming} variant="dot" /></p>
                 </>
               ) : (
                 <p className="text-[14px] text-slate-500">

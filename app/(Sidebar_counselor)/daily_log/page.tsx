@@ -7,6 +7,7 @@ import type { Appointment } from '../../../lib/generated';
 import { listAttachments } from '../../action/attachments';
 import AttachmentStrip, { type AttachmentMeta } from '../../../components/AttachmentStrip';
 
+import AppointmentStatusBadge from "../../../components/AppointmentStatusBadge";
 function toDateInput(d: Date) {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
@@ -112,8 +113,8 @@ export default function DailyLogPage() {
                             onChange={() => loadPhotos((rows ?? []).map((r) => r.id))} addLabel="Add photo of a document" />
                         </span>
                       </td>
-                      <td className={`py-3 text-xs text-right w-24 ${a.status === "COMPLETED" ? "text-teal-700" : a.status === "CONFIRMED" ? "text-emerald-700" : "text-orange-700"}`}>
-                        {a.status === "COMPLETED" ? "Terminated" : a.status === "CONFIRMED" ? "Confirmed" : "Pending"}
+                      <td className="py-3 text-right w-28">
+                        <AppointmentStatusBadge appointment={a} variant="dot" />
                       </td>
                     </tr>
                   ))}

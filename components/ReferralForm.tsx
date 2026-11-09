@@ -70,8 +70,10 @@ const EMPTY = {
   contactTime: "",
 };
 
+// Students and faculty pick a priority themselves (no preset): starting at
+// "Emergency" made every untouched referral look urgent to the office.
 function emptyFor(mode: Mode) {
-  return { ...EMPTY, priority: mode === "parent" ? "Medium" : "Emergency" };
+  return { ...EMPTY, priority: mode === "parent" ? "Medium" : "" };
 }
 
 const input = "w-full px-3 py-2.5 bg-sheet border border-slate-300 rounded-lg text-[14px] focus:outline-none focus:ring-2 focus:ring-blue-500";
@@ -133,6 +135,7 @@ export default function ReferralForm({ mode, onSubmit, myReferralsPath }: Props)
     if (!isStaff && f.studentId && !isStudentId(f.studentId)) return setError(`A student ID has ${STUDENT_ID_DIGITS} digits.`);
     if (!isStaff && !isShs && Boolean(f.sectionCode) !== Boolean(f.yearSection)) return setError("Choose both parts of the section, or leave both empty.");
     if (f.concern === OTHER && !f.concernOther.trim()) return setError("Tell us what the concern is.");
+    if (!f.priority) return setError("Choose the level of priority.");
     if (mode !== "parent" && f.priority === NEEDS_DATE && !f.priorityDate) return setError("Choose the date it's needed by.");
     setSaving(true);
     setError(null);
@@ -242,7 +245,8 @@ export default function ReferralForm({ mode, onSubmit, myReferralsPath }: Props)
     
           <fieldset>
             <legend className={label}>Level{req}</legend>
-            <LevelPicker name="ref-dept" departments={departments} value={f.department}
+            {/* One choice per row on phones, where "Senior High School (Grades 11-12)" doesn't fit half the width */}
+            <LevelPicker name="ref-dept" departments={departments} value={f.department} columns="grid-cols-1 sm:grid-cols-2"
               onChange={(department, sameTrack) => set(sameTrack ? { department } : { department, yearLevel: "", program: "", section: "", sectionCode: "", yearSection: "" })} />
           </fieldset>
     
@@ -299,7 +303,8 @@ export default function ReferralForm({ mode, onSubmit, myReferralsPath }: Props)
         </div>
         <div>
           <label htmlFor="ref-priority" className={label}>Level of priority{req}</label>
-          <select id="ref-priority" className={input} value={f.priority} onChange={(e) => set({ priority: e.target.value, priorityDate: "" })}>
+          <select id="ref-priority" className={input} value={f.priority} required onChange={(e) => set({ priority: e.target.value, priorityDate: "" })}>
+            {!f.priority && <option value="" disabled>Choose…</option>}
             {(mode === "parent" ? priorities : facultyPriorities).map((p) => <option key={p.id} value={optionValue(p)}>{p.label}</option>)}
           </select>
           {mode !== "parent" && f.priority === NEEDS_DATE && (
@@ -323,7 +328,7 @@ export default function ReferralForm({ mode, onSubmit, myReferralsPath }: Props)
       </div>
 
       <div>
-        <label htmlFor="ref-observed" className={label}>Actions Taken<span className="font-normal text-slate-500">(optional)</span></label>
+        <label htmlFor="ref-observed" className={label}>Actions Taken <span className="font-normal text-slate-500">(optional)</span></label>
         <textarea id="ref-observed" rows={3} className={`${input} resize-y`} value={f.observed} maxLength={2000} onChange={(e) => set({ observed: e.target.value })} />
       </div>
 
