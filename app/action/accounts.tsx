@@ -178,6 +178,9 @@ export async function setAccountRole(userId: string, role: UserRole): Promise<Re
     if (user.role === "PARENT" || !SWITCHABLE_ROLES.includes(role)) {
       return { success: false, error: "Parent accounts and school-email accounts sign in differently, so they can't be switched." };
     }
+    if (user.role === "FACULTY") {
+      return { success: false, error: "A faculty member's role can't be changed." };
+    }
     await db.user.update({ where: { id: userId }, data: { role } });
     // A changed role must be re-established by signing in again, not picked up mid-session
     await db.session.deleteMany({ where: { userId } });

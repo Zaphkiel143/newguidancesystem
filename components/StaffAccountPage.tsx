@@ -22,12 +22,13 @@ export default async function StaffAccountPage() {
         <PhotoPicker name={shownName(me)} hasPhoto={Boolean(me.avatarType)} />
       </section>
       {me.role === "FACULTY" && <FacultyDetailsForm />}
-      {me.role === "COUNSELOR" && <GaHandover />}
       <div id="settings" className="scroll-mt-24 space-y-6">
         <ThemeSetting />
         <PushToggle />
         <ChangePassword />
         <AuthenticatorSetup />
+        {/* Account settings of the Guidance Associate: passing the role to a successor. */}
+        {me.role === "COUNSELOR" && <GaHandover />}
       </div>
     </div>
   );

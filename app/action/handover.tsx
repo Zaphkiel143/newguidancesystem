@@ -134,7 +134,7 @@ export async function startTransfer(rawEmail: string): Promise<Result> {
       "You're invited to take over as Guidance Associate in E-Gabay",
       `${me.name} invited you to take over the Guidance Associate role in E-Gabay, the guidance system of STI College Sta. Maria.\n\n` +
         `Your handover code is ${formatHandoverCode(code)}\n\n` +
-        `${link ? `Open ${link} and enter the code` : `On the E-Gabay sign-in page, choose "New Guidance Associate?" and enter the code`}. ` +
+        `${link ? `Open ${link} and enter the code` : `Open the handover page of E-Gabay (/handover) and enter the code`}. ` +
         `It works once and expires on ${fmtWhen(expiresAt)}.\n\n` +
         `When you accept, you'll get full access to the guidance office's records, and ${me.name}'s account will be closed.\n\n` +
         `If you weren't expecting this, ignore this email and tell the guidance office.${SIGN_OFF}`,

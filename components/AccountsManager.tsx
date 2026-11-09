@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useCallback, useEffect, useState } from 'react';
-import { Archive, Check, Copy, KeyRound, Loader2, RotateCcw, Search, X } from 'lucide-react';
+import { Archive, Check, ChevronLeft, ChevronRight, Copy, KeyRound, Loader2, RotateCcw, Search, X } from 'lucide-react';
 import {
   decideStaffAccount,
   listAccounts,
@@ -27,6 +27,9 @@ const ROLE_LABEL: Record<Role, string> = {
 };
 // The Guidance Associate role moves by handover (My Account), so it isn't offered here.
 const SWITCHABLE_ROLES: Role[] = ["STUDENT", "FACULTY"];
+// Only student accounts can be switched (to faculty); a faculty member's role is fixed.
+const canChangeRole = (role: Role) => role === "STUDENT";
+const PAGE_SIZE = 10;
 const FILTER_ROLES: Role[] = ["COUNSELOR", "FACULTY", "STUDENT", "PARENT"];
 
 const STATUS: Record<string, { label: string; className: string }> = {
@@ -51,6 +54,7 @@ export default function AccountsManager() {
   const [tab, setTab] = useState<"current" | "archived">("current");
   const [roleFilter, setRoleFilter] = useState<Role | "">("");
   const [query, setQuery] = useState("");
+  const [page, setPage] = useState(1);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [rowError, setRowError] = useState<{ id: string; message: string } | null>(null);
   const [tempPassword, setTempPassword] = useState<{ name: string; password: string } | null>(null);
@@ -118,6 +122,13 @@ export default function AccountsManager() {
     return !q || a.name.toLowerCase().includes(q) || (a.email ?? "").toLowerCase().includes(q) || (digits.length > 2 && (a.phone ?? "").includes(digits.slice(-9)));
   });
   const archivedCount = (accounts ?? []).filter((a) => a.status === "ARCHIVED").length;
+  // 10 accounts per page; a page past the end (after archiving, say) falls back to the last one.
+  const pages = Math.max(1, Math.ceil(shown.length / PAGE_SIZE));
+  const current = Math.min(page, pages);
+  const pageRows = shown.slice((current - 1) * PAGE_SIZE, current * PAGE_SIZE);
+  const first = shown.length === 0 ? 0 : (current - 1) * PAGE_SIZE + 1;
+  const last = Math.min(current * PAGE_SIZE, shown.length);
+  const pagerButton = "inline-flex items-center gap-1 min-h-10 px-4 rounded-full border border-slate-300 text-[13px] font-medium hover:bg-slate-50 disabled:opacity-40 disabled:hover:bg-transparent";
 
   const pill = "inline-flex items-center gap-1.5 text-[13px] font-medium px-3 min-h-9 rounded-full disabled:opacity-50";
 
@@ -171,14 +182,14 @@ export default function AccountsManager() {
         <div className="mt-3 flex flex-wrap items-center gap-3">
           <div role="tablist" aria-label="Which accounts" className="inline-flex rounded-full bg-slate-100 p-1">
             {(["current", "archived"] as const).map((t) => (
-              <button key={t} role="tab" aria-selected={tab === t} onClick={() => setTab(t)}
+              <button key={t} role="tab" aria-selected={tab === t} onClick={() => { setTab(t); setPage(1); }}
                 className={`px-4 min-h-9 rounded-full text-[13px] font-medium ${tab === t ? "bg-sheet text-ink shadow-sm" : "text-slate-600 hover:text-ink"}`}>
                 {t === "current" ? "Current" : `Archived${archivedCount ? ` (${archivedCount})` : ""}`}
               </button>
             ))}
           </div>
           <label className="sr-only" htmlFor="role-filter">Role</label>
-          <select id="role-filter" value={roleFilter} onChange={(e) => setRoleFilter(e.target.value as Role | "")}
+          <select id="role-filter" value={roleFilter} onChange={(e) => { setRoleFilter(e.target.value as Role | ""); setPage(1); }}
             className="bg-sheet border border-slate-300 rounded-md px-3 py-2 text-sm">
             <option value="">All roles</option>
             {FILTER_ROLES.map((r) => <option key={r} value={r}>{ROLE_LABEL[r]}</option>)}
@@ -186,7 +197,7 @@ export default function AccountsManager() {
           <div className="relative flex-1 min-w-56 max-w-md">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={17} />
             <input type="text" aria-label="Search by name, email or mobile number" placeholder="Search by name, email or mobile number" value={query}
-              onChange={(e) => setQuery(e.target.value)}
+              onChange={(e) => { setQuery(e.target.value); setPage(1); }}
               className="w-full pl-10 pr-4 py-2.5 bg-sheet border border-slate-300 rounded-md text-sm" />
           </div>
         </div>
@@ -209,7 +220,7 @@ export default function AccountsManager() {
                 {shown.length === 0 ? (
                   <tr><td colSpan={5} className="py-6 text-slate-500">{tab === "archived" ? "No archived accounts." : "No accounts match."}</td></tr>
                 ) : (
-                  shown.map((a) => {
+                  pageRows.map((a) => {
                     const status = STATUS[a.status] ?? { label: a.status, className: "text-slate-600" };
                     const busy = busyId === a.id;
                     return (
@@ -221,7 +232,7 @@ export default function AccountsManager() {
                         </td>
                         <td className="py-3 pr-4 text-slate-600 break-all hidden md:table-cell">{signsInWith(a)}</td>
                         <td className="py-2 pr-4 min-w-44">
-                          {!SWITCHABLE_ROLES.includes(a.role) || a.isMe || a.status === "ARCHIVED" ? (
+                          {!canChangeRole(a.role) || a.isMe || a.status === "ARCHIVED" ? (
                             <span className="inline-block py-2 text-slate-700">{ROLE_LABEL[a.role]}</span>
                           ) : (
                             <select aria-label={`Role for ${a.name}`} value={a.role} disabled={busy}
@@ -271,6 +282,27 @@ export default function AccountsManager() {
               </tbody>
             </table>
           </div>
+        )}
+
+        {accounts !== null && shown.length > 0 && (
+          <nav aria-label="Account pages" className="mt-4 flex flex-wrap items-center justify-between gap-3">
+            <p className="text-[13px] text-slate-500 tabular" aria-live="polite">
+              Showing {first}–{last} of {shown.length}
+            </p>
+            {pages > 1 && (
+              <div className="flex items-center gap-2">
+                <button type="button" onClick={() => setPage(current - 1)} disabled={current <= 1} className={pagerButton}>
+                  <ChevronLeft size={15} /> Previous
+                </button>
+                <span className="text-[13px] text-slate-600 tabular px-1">
+                  Page {current} of {pages}
+                </span>
+                <button type="button" onClick={() => setPage(current + 1)} disabled={current >= pages} className={pagerButton}>
+                  Next <ChevronRight size={15} />
+                </button>
+              </div>
+            )}
+          </nav>
         )}
       </section>
 

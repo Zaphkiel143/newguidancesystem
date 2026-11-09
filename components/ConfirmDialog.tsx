@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import { Loader2 } from "lucide-react";
 
 // "Are you sure?" before an action that's hard to undo (signing out,
@@ -37,7 +38,9 @@ export default function ConfirmDialog({
   }, [open, busy, onCancel]);
 
   if (!open) return null;
-  return (
+  // Portal to <body> so a transformed (animated) page wrapper can't trap the
+  // fixed overlay, and it stays above pop-ups that are portaled the same way.
+  return createPortal(
     <div className="fixed inset-0 z-[60] bg-black/40 grid place-items-center p-4" onClick={() => !busy && onCancel()}>
       <div
         role="alertdialog"
@@ -78,6 +81,7 @@ export default function ConfirmDialog({
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

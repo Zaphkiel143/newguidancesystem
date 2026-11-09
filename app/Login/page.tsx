@@ -2,10 +2,9 @@
 
 import LevelPicker from "../../components/LevelPicker";
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { ArrowLeft, ArrowRight, ChevronRight, KeyRound, Loader2, Mail, ShieldCheck, Smartphone } from 'lucide-react';
+import { ArrowLeft, ArrowRight, ChevronRight, KeyRound, Loader2, Mail, ShieldCheck, Smartphone, X } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-import Link from 'next/link';
 import { finishParentReset, getSignInOptions, login, loginAsDemo, registerParent, requestLoginCode, requestParentReset, verifyLoginCode, type SignInAs, type SignInOptions } from '../action/auth';
 import { SCHOOL_EMAIL_DOMAIN, roleFromSchoolEmail, roleFromSignInId } from '../config/school';
 import { LogoMark } from '../../components/Logo';
@@ -496,7 +495,7 @@ const LoginPage = () => {
     code: ["Enter code", `Sent to ${email}`],
     setPassword: resetting
       ? ["Choose a new password", "Your old password stops working, and other devices are signed out."]
-      : ["Choose a password", ""],
+      : ["Choose a password", "E-Gabay accounts now have passwords, so you only need to set one once. Next time you can sign in with it instead of waiting for an emailed code."],
     details: ["Welcome to E-Gabay", ""],
     parent: ["Parent or guardian", ""],
     forgot: ["Forgot your password?", ""],
@@ -506,6 +505,10 @@ const LoginPage = () => {
     approve: ["Check your phone", "Tap this number where you're signed in."],
     totp: ["Enter code", "From Microsoft Authenticator (E-Gabay STI)"],
   };
+
+  // Only the first screen sits on the page; every other step opens as a pop-up.
+  const onStart = step === "start";
+  const cardSlot = "flex-1 w-full px-4 sm:px-5 py-8 sm:py-14 flex items-center justify-center lg:justify-end lg:pr-[9vw]";
 
   // Steps that belong to one school email show it at the top, like Microsoft does.
   const showsIdentity = ["verify", "password", "code", "setPassword", "totp", "approve"].includes(step);
@@ -578,12 +581,39 @@ const LoginPage = () => {
         </div>
       </header>
 
-      <div className="flex-1 w-full px-4 sm:px-5 py-8 sm:py-14 flex items-center justify-center lg:justify-end lg:pr-[9vw]">
+      {/* While the sign-in pop-up is open, the "Log in" card stays in its place behind it. */}
+      {!onStart && (
+        <div aria-hidden inert className={cardSlot}>
+          <section className="w-full max-w-[440px] bg-sheet border border-rule rounded-2xl shadow-lg overflow-hidden">
+            <div className="px-6 sm:px-8 pt-8 pb-8 text-center">
+              <LogoMark size={72} className="block mx-auto rounded-[16px] shadow-md" />
+              <p className="mt-4 text-2xl font-bold tracking-tight text-ink">Log in</p>
+              <div className={`${primaryButton} mt-7`}>Sign in</div>
+            </div>
+          </section>
+        </div>
+      )}
+
+      {/* Start: the card sits on the page. Any later step: the same card opens as a pop-up in the middle. */}
+      <div
+        className={onStart ? cardSlot : "fixed inset-0 z-50 overflow-y-auto bg-blue-950/55 backdrop-blur-sm"}
+        role={onStart ? undefined : "dialog"}
+        aria-modal={onStart ? undefined : true}
+        aria-labelledby={onStart ? undefined : "login-title"}
+        onKeyDown={onStart ? undefined : (e) => { if (e.key === "Escape") go("start"); }}
+      >
+        <div className={onStart ? "contents" : "min-h-full flex items-center justify-center px-4 py-8"}>
         <section className="w-full max-w-[440px] bg-sheet border border-rule rounded-2xl shadow-lg overflow-hidden animate-rise-in">
           <div className="relative px-6 sm:px-8 pt-8 pb-8">
+            {!onStart && (
+              <button type="button" onClick={() => go("start")} aria-label="Close"
+                className="absolute top-3 right-3 inline-flex items-center justify-center size-9 rounded-full text-slate-500 hover:text-ink hover:bg-slate-100">
+                <X size={18} />
+              </button>
+            )}
             <div className="text-center">
               <LogoMark size={72} className="block mx-auto rounded-[16px] shadow-md" />
-              <h1 className="mt-4 text-2xl font-bold tracking-tight text-ink">{heading[step][0]}</h1>
+              <h1 id="login-title" className="mt-4 text-2xl font-bold tracking-tight text-ink">{heading[step][0]}</h1>
               {heading[step][1] && <p className="text-sm text-slate-500 mt-1 break-words">{heading[step][1]}</p>}
             </div>
 
@@ -601,9 +631,6 @@ const LoginPage = () => {
                   Sign in
                 </button>
                 <ErrorLine error={error} />
-                <p className="text-xs text-center pt-1">
-                  <Link href="/handover" className="text-slate-500 underline underline-offset-2 hover:text-blue-700">Guidance Associate handover</Link>
-                </p>
               </div>
             )}
 
@@ -1044,6 +1071,7 @@ const LoginPage = () => {
             )}
           </div>
         </section>
+        </div>
       </div>
 
       <footer className="px-6 sm:px-10 py-6 text-[12px] text-white/85 flex flex-wrap gap-x-6 gap-y-1 [text-shadow:0_1px_2px_rgb(0_0_0/0.4)]">

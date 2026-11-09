@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useCallback, useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { Loader2, Send, UserRoundCog, X } from "lucide-react";
 import { cancelHandover, getHandoverState, startTransfer, type HandoverState } from "../app/action/handover";
 import { SCHOOL_EMAIL_DOMAIN } from "../app/config/school";
@@ -22,6 +23,19 @@ export default function GaHandover() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [sentTo, setSentTo] = useState<string | null>(null);
+  const [formOpen, setFormOpen] = useState(false);
+
+  const openForm = () => {
+    setEmail("");
+    setError(null);
+    setSentTo(null);
+    setFormOpen(true);
+  };
+  const closeForm = () => {
+    if (busy) return;
+    setFormOpen(false);
+    setError(null);
+  };
 
   const load = useCallback(async () => setState(await getHandoverState()), []);
   useEffect(() => {
@@ -31,6 +45,14 @@ export default function GaHandover() {
       cancelled = true;
     };
   }, []);
+
+  // Escape closes the pop-up wherever focus is, unless the confirmation on top of it is open.
+  useEffect(() => {
+    if (!formOpen || confirming || busy) return;
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setFormOpen(false);
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [formOpen, confirming, busy]);
 
   if (state === null) return null;
 
@@ -51,6 +73,7 @@ export default function GaHandover() {
     if (result.success) {
       setSentTo(email.trim().toLowerCase());
       setEmail("");
+      setFormOpen(false);
       await load();
     } else setError(result.error);
   };
@@ -69,8 +92,8 @@ export default function GaHandover() {
         <UserRoundCog size={18} className="text-slate-500" /> Hand over the Guidance Associate role
       </h2>
       <p className="text-sm text-slate-600 mt-1">
-        Leaving or being replaced? Enter your successor&apos;s STI email. They get a one-time code that works for 48 hours. When they accept, they
-        become the Guidance Associate with all records, and your account is closed.
+        Leaving or being replaced? Send your successor a one-time code. When they accept it, they become the Guidance Associate with all
+        records, and your account is closed.
       </p>
 
       {state === undefined ? (
@@ -109,28 +132,62 @@ export default function GaHandover() {
           )}
 
           {state.canTransfer ? (
-            <form onSubmit={review} noValidate className="mt-4 flex flex-wrap items-end gap-3">
-              <div className="flex-1 min-w-60">
-                <label htmlFor="successor" className="block text-[13px] font-medium text-slate-700 mb-1.5">Successor&apos;s school email</label>
-                <input id="successor" type="email" autoComplete="off" placeholder={`maria.santos@${SCHOOL_EMAIL_DOMAIN}`} value={email}
-                  onChange={(e) => { setEmail(e.target.value); setError(null); }} className={input} />
-              </div>
-              <button type="submit" disabled={busy || !email.trim()} className={primary}>
-                <Send size={15} /> Send handover code
+            <div className="mt-4">
+              <button type="button" onClick={openForm} className={primary}>
+                <UserRoundCog size={15} /> Hand over the role
               </button>
-            </form>
+            </div>
           ) : (
             <p className="mt-4 text-sm text-slate-500">The demo account can&apos;t hand over the role.</p>
           )}
 
-          {sentTo && <p className="mt-3 text-sm text-emerald-700" role="status">Code sent to {sentTo}. They accept it from &ldquo;New Guidance Associate?&rdquo; on the sign-in page.</p>}
-          <InlineError message={error} onDismiss={() => setError(null)} className="mt-3" />
+          {sentTo && <p className="mt-3 text-sm text-emerald-700" role="status">Code sent to {sentTo}. The email has a link where they enter the code.</p>}
+          {!formOpen && <InlineError message={error} onDismiss={() => setError(null)} className="mt-3" />}
 
           <p className="mt-4 text-[13px] text-slate-500">
             Claim codes go to the guidance office mailbox{state.officeEmail ? <> (<span className="break-all">{state.officeEmail}</span>)</> : " (not set up yet)"}.
             You&apos;re notified first and can cancel.
           </p>
         </>
+      )}
+
+      {/* The successor's email is entered in a pop-up in the middle of the screen. */}
+      {/* Portal to <body>: an animated (transformed) page wrapper would otherwise trap the fixed overlay. */}
+      {formOpen && createPortal(
+        <div className="fixed inset-0 z-[55] overflow-y-auto bg-black/40" onClick={closeForm}>
+          <div className="min-h-full grid place-items-center p-4">
+            <div role="dialog" aria-modal="true" aria-labelledby="handover-dialog-title"
+              className="relative w-full max-w-md bg-sheet text-ink rounded-2xl p-6 shadow-xl animate-rise-in"
+              onClick={(e) => e.stopPropagation()}>
+              <button type="button" onClick={closeForm} aria-label="Close"
+                className="absolute top-3 right-3 inline-flex items-center justify-center size-9 rounded-full text-slate-500 hover:text-ink hover:bg-slate-100">
+                <X size={18} />
+              </button>
+              <h2 id="handover-dialog-title" className="text-lg font-semibold inline-flex items-center gap-2 pr-8">
+                <UserRoundCog size={18} className="text-slate-500" /> Hand over the role
+              </h2>
+              <p className="text-sm text-slate-600 mt-1">Your successor gets a one-time code by email that works for 48 hours.</p>
+              <form onSubmit={review} noValidate className="mt-5 space-y-4">
+                <div>
+                  <label htmlFor="successor" className="block text-[13px] font-medium text-slate-700 mb-1.5">Successor&apos;s school email</label>
+                  <input id="successor" type="email" autoComplete="off" autoFocus placeholder={`maria.santos@${SCHOOL_EMAIL_DOMAIN}`} value={email}
+                    onChange={(e) => { setEmail(e.target.value); setError(null); }} className={input} />
+                </div>
+                <InlineError message={error} onDismiss={() => setError(null)} />
+                <div className="pt-2 flex flex-col-reverse sm:flex-row sm:justify-end gap-2">
+                  <button type="button" onClick={closeForm} disabled={busy}
+                    className="min-h-11 px-5 rounded-full border border-slate-300 text-[14px] hover:bg-slate-50 disabled:opacity-60">
+                    Cancel
+                  </button>
+                  <button type="submit" disabled={busy || !email.trim()} className={primary}>
+                    <Send size={15} /> Send handover code
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>,
+        document.body
       )}
 
       <ConfirmDialog
