@@ -12,6 +12,7 @@ import {
   isStudentId,
   sectionCodeForCourse,
   splitCollegeSection,
+  formatCollegeSection,
   withOther,
   yearSectionsFor,
 } from "../app/config/studentLevels";
@@ -56,7 +57,7 @@ const EMPTY = {
   department: SHS as string,
   yearLevel: "",
   program: "",
-  // Senior high: typed section. College: a program code and year-section, e.g. "BSIT" + "1-101".
+  // Senior high: typed section. College: a program code and year-section, e.g. "BSIT" + "1-101" = "BSIT1-101".
   section: "",
   sectionCode: "",
   yearSection: "",
@@ -98,7 +99,7 @@ export default function ReferralForm({ mode, onSubmit, myReferralsPath }: Props)
   const set = (patch: Partial<typeof EMPTY>) => setF((prev) => ({ ...prev, ...patch }));
   const isShs = f.department === SHS;
   const isStaff = mode === "faculty" && f.subject === "staff";
-  const collegeSection = f.sectionCode && f.yearSection ? `${f.sectionCode} ${f.yearSection}` : "";
+  const collegeSection = f.sectionCode && f.yearSection ? formatCollegeSection(f.sectionCode, f.yearSection) : "";
 
   // A full student ID that's in the school records fills in the rest.
   const changeStudentId = async (raw: string) => {
@@ -274,7 +275,7 @@ export default function ReferralForm({ mode, onSubmit, myReferralsPath }: Props)
                   <select aria-label="Year and section" className={input} value={f.yearSection} disabled={!f.yearLevel}
                     title={f.yearLevel ? undefined : "Choose the year level first."} onChange={(e) => set({ yearSection: e.target.value })}>
                     <option value="">{f.yearLevel ? "Section" : "Year first"}</option>
-                    {yearSectionsFor(f.yearLevel).map((s) => <option key={s} value={s}>{s}</option>)}
+                    {yearSectionsFor(f.yearLevel).map((s) => <option key={s} value={s}>{f.sectionCode ? formatCollegeSection(f.sectionCode, s) : s}</option>)}
                   </select>
                 </div>
               )}

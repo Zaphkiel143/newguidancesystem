@@ -2,6 +2,7 @@
 
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { ArrowLeft, ArrowUp, Bot, History, Loader2, RotateCcw } from "lucide-react";
+import { censor } from "../lib/censor";
 import {
   endMyAiConversation,
   forwardAiQuestion,
@@ -151,14 +152,14 @@ export default function AiChatThread({ compact = false }: { compact?: boolean })
     list.map((m) =>
       m.role === "user" ? (
         <div key={m.id} className="flex justify-end">
-          <p className={`max-w-[85%] bg-blue-100 text-ink rounded-2xl rounded-br-md px-3.5 py-2 ${text} leading-relaxed whitespace-pre-wrap break-words`}>
-            {m.content}
+          <p className={`max-w-[85%] bg-blue-100 text-ink rounded-2xl rounded-br-md px-3.5 py-2 ${text} leading-relaxed whitespace-pre-wrap [overflow-wrap:anywhere]`}>
+            {censor(m.content)}
           </p>
         </div>
       ) : (
         <div key={m.id} className="max-w-[92%]">
           <p className="inline-flex items-center gap-1.5 text-[12px] font-medium text-blue-700 mb-0.5"><Bot size={13} aria-hidden /> E-Gabay Chatbot</p>
-          <p className={`${text} leading-relaxed text-ink whitespace-pre-wrap break-words`}>{m.content}</p>
+          <p className={`${text} leading-relaxed text-ink whitespace-pre-wrap [overflow-wrap:anywhere]`}>{censor(m.content)}</p>
           {m.intent === "crisis" && (
             <div role="alert" className="mt-3 rounded-xl border border-red-200 bg-red-50 p-3 text-[13px] text-red-900 space-y-2">
               <p className="font-semibold">You don&apos;t have to go through this alone. Please reach out now:</p>
@@ -288,13 +289,7 @@ export default function AiChatThread({ compact = false }: { compact?: boolean })
                 bubbles(messages, true)
               )}
 
-              {isSending && (
-                <p className="text-slate-500 flex items-center gap-1" aria-label="E-Gabay is typing">
-                  <span className="w-1 h-1 rounded-full bg-slate-400 animate-pulse" />
-                  <span className="w-1 h-1 rounded-full bg-slate-400 animate-pulse [animation-delay:150ms]" />
-                  <span className="w-1 h-1 rounded-full bg-slate-400 animate-pulse [animation-delay:300ms]" />
-                </p>
-              )}
+              {isSending && <ThinkingIndicator />}
 
               {error && (
                 <p role="alert" className="text-[13px] text-red-700 border-l-2 border-red-500 pl-3">
@@ -359,6 +354,37 @@ export default function AiChatThread({ compact = false }: { compact?: boolean })
             )}
           </div>
         </>
+      )}
+    </div>
+  );
+}
+
+// How long before the waiting message explains a slow first reply.
+const SLOW_REPLY_MS = 5000;
+
+// Shown while a reply is on its way. The chatbot service sleeps when nobody
+// has used it for a while (free hosting), so the first reply can take up to a
+// minute: after a few seconds the message says so, so the student keeps waiting.
+function ThinkingIndicator() {
+  const [slow, setSlow] = useState(false);
+  useEffect(() => {
+    const t = setTimeout(() => setSlow(true), SLOW_REPLY_MS);
+    return () => clearTimeout(t);
+  }, []);
+  return (
+    <div className="max-w-[85%] rounded-2xl rounded-bl-md bg-slate-100 px-3.5 py-2.5 text-[13px] text-slate-600" role="status" aria-live="polite">
+      <p className="flex items-center gap-2">
+        <span className="flex items-center gap-1" aria-hidden>
+          <span className="w-1.5 h-1.5 rounded-full bg-slate-400 animate-pulse" />
+          <span className="w-1.5 h-1.5 rounded-full bg-slate-400 animate-pulse [animation-delay:150ms]" />
+          <span className="w-1.5 h-1.5 rounded-full bg-slate-400 animate-pulse [animation-delay:300ms]" />
+        </span>
+        E-Gabay is thinking…
+      </p>
+      {slow && (
+        <p className="mt-1 text-slate-500">
+          Still thinking. The first reply can take up to a minute while E-Gabay wakes up. Please wait, your message is saved.
+        </p>
       )}
     </div>
   );

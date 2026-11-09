@@ -188,7 +188,7 @@ export const COLLEGE_CAREER_FORM: Section[] = [
       { id: "nickname", label: "Nickname", type: "name", required: true, half: true, placeholder: "e.g. Jun" },
       { id: "birthdate", label: "Birthdate", type: "date", required: true, half: true },
       { id: "program", label: "Program", type: "select", options: TERTIARY_COURSES, required: true, half: true },
-      { id: "section", label: "Section", type: "text", required: true, half: true, placeholder: "e.g. BSIT 1-101" },
+      { id: "section", label: "Section", type: "text", required: true, half: true, placeholder: "e.g. BSIT1-101" },
       ...nationality("nationality", "Nationality"),
       { id: "religion", label: "Religion", type: "text", required: true, half: true, placeholder: "e.g. Roman Catholic" },
     ],

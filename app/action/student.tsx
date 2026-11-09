@@ -484,7 +484,8 @@ export async function sendAiMessage(formData: { conversationId: string; content:
       await notifyCounselors({
         title: `URGENT: ${who(me)} may be in crisis`,
         body: `${me.name} sent a message to E-Gabay that may mean they're at risk. Please reach out right away.`,
-        href: "/message",
+        // Opens the chat with this person directly (an empty one if they've never messaged)
+        href: `/message?with=${encodeURIComponent(me.name)}&role=${me.role === "FACULTY" ? "Faculty" : "Student"}`,
       });
       for (const to of await counselorEmails()) {
         await sendEmail(
@@ -510,7 +511,7 @@ export type MyStudentInfo = {
   department: string;
   yearLevel: string;
   program: string;
-  // Senior high: as typed (e.g. "STEM-A"). College: "BSIT 1-101".
+  // Senior high: as typed (e.g. "STEM-A"). College: "BSIT1-101".
   section: string;
   phone?: string;
   birthDate?: string;
@@ -546,7 +547,7 @@ export async function saveMyStudentInfo(formData: MyStudentInfo) {
     const section = formData.section.trim();
     if (!section || section.length > 30) return { success: false, error: "Enter your section." };
     if (!isShs(formData.department) && !splitCollegeSection(section)) {
-      return { success: false, error: "Choose your section's program and year-section, e.g. BSIT 1-101." };
+      return { success: false, error: "Choose your section's program and year-section, e.g. BSIT1-101." };
     }
 
     const optional = (v: string | undefined) => (v ?? "").trim() || null;

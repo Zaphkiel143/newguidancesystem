@@ -2,6 +2,7 @@
 
 import React, { useEffect, useRef, useState } from "react";
 import { ArrowUp, Loader2 } from "lucide-react";
+import { censor } from "../lib/censor";
 import type { Message as DbMessage } from "../lib/generated";
 import Link from "next/link";
 import InlineError from "./InlineError";
@@ -165,8 +166,8 @@ export default function ConversationPanel({
             const time = new Date(m.createdAt).toLocaleString("en-PH", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
             return isMine ? (
               <div key={m.id} className="flex flex-col items-end">
-                <p className="max-w-[75%] bg-blue-100 text-ink rounded-2xl rounded-br-md px-4 py-2.5 text-[15px] leading-relaxed whitespace-pre-wrap">
-                  {m.content}
+                <p className="max-w-[75%] bg-blue-100 text-ink rounded-2xl rounded-br-md px-4 py-2.5 text-[15px] leading-relaxed whitespace-pre-wrap [overflow-wrap:anywhere]">
+                  {censor(m.content)}
                 </p>
                 <span className="text-xs text-slate-500 mt-1">{time}</span>
               </div>
@@ -175,8 +176,8 @@ export default function ConversationPanel({
                 <p className="text-[12px] text-slate-500 mb-1">
                   <span className="font-medium text-slate-700">{m.senderName}</span> · {time}
                 </p>
-                <p className="bg-sheet border border-rule rounded-2xl rounded-tl-md px-4 py-2.5 text-[15px] leading-relaxed text-ink whitespace-pre-wrap">
-                  {m.content}
+                <p className="bg-sheet border border-rule rounded-2xl rounded-tl-md px-4 py-2.5 text-[15px] leading-relaxed text-ink whitespace-pre-wrap [overflow-wrap:anywhere]">
+                  {censor(m.content)}
                 </p>
               </div>
             );

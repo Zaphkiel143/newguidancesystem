@@ -11,7 +11,7 @@ import ChangePassword from '../../../components/ChangePassword';
 import ThemeSetting from '../../../components/ThemeSetting';
 import { PushToggle } from '../../../components/LoginApproval';
 import { ACCEPTED_FILE_TYPES } from '../../config/documents';
-import { SECTION_PROGRAMS, SHS, STUDENT_ID_DIGITS, isShs, normalizeDepartment, splitCollegeSection, yearSectionsFor } from '../../config/studentLevels';
+import { SECTION_PROGRAMS, SHS, STUDENT_ID_DIGITS, formatCollegeSection, isShs, normalizeDepartment, splitCollegeSection, yearSectionsFor } from '../../config/studentLevels';
 import { capitalizeName, phoneChars } from '../../config/collegeCareerForm';
 import { optionValue } from '../../../lib/optionListDefaults';
 import { useOptionList } from '../../../components/useOptionList';
@@ -140,7 +140,7 @@ const StudentProfile: React.FC = () => {
       department: info.department,
       yearLevel: info.yearLevel,
       program: info.program,
-      section: infoIsShs ? info.section : `${info.sectionCode} ${info.yearSection}`,
+      section: infoIsShs ? info.section : formatCollegeSection(info.sectionCode, info.yearSection),
       phone: info.phone,
       birthDate: info.birthDate,
       address: info.address,
@@ -272,7 +272,7 @@ const StudentProfile: React.FC = () => {
                         <select aria-label="Year and section" className={inputClass} value={info.yearSection} required disabled={!info.yearLevel}
                           onChange={(e) => setInfo({ ...info, yearSection: e.target.value })}>
                           <option value="">{info.yearLevel ? "Section" : "Year first"}</option>
-                          {yearSectionsFor(info.yearLevel).map((s) => <option key={s} value={s}>{s}</option>)}
+                          {yearSectionsFor(info.yearLevel).map((s) => <option key={s} value={s}>{info.sectionCode ? formatCollegeSection(info.sectionCode, s) : s}</option>)}
                         </select>
                       </div>
                     )}

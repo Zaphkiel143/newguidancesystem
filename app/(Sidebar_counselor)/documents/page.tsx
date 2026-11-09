@@ -37,7 +37,7 @@ function programOf(d: Doc) {
   return d.program ?? NO_PROGRAM;
 }
 
-// College sections read "BSIT 1-101" (course code + year-section, built in
+// College sections read "BSIT1-101" (course code + year-section, built in
 // listDocumentsForReview); senior high shows its "Grade 12 - STEM-A" label.
 function sectionOf(d: Doc) {
   return d.section ?? NO_SECTION;

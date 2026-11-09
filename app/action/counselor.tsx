@@ -644,7 +644,7 @@ export async function listDocumentsForReview(status: "PENDING" | "APPROVED" | "R
     return docs.map((d) => {
       const p = d.studentName ? byName.get(d.studentName) : undefined;
       const program = p?.strandOrProgram?.trim() || null;
-      // College sections file as "BSIT 1-101"; senior high keeps its own label.
+      // College sections file as "BSIT1-101"; senior high keeps its own label.
       const college = p && isTertiaryLike(p.department) ? collegeSectionLabel({ ...p, program }) : null;
       return {
         ...d,

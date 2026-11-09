@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
+import { censor } from '../../../lib/censor';
 import { Archive, ArchiveRestore, Mail, MailOpen, Search, MessageSquare, X } from 'lucide-react';
 import { listConversations, startConversation, getMessages, markConversationRead, markConversationUnread, sendMessage, listStudentProfiles, setConversationArchived } from '../../action/counselor';
 import ConversationPanel from '../../../components/ConversationPanel';
@@ -35,11 +36,11 @@ function initialsOf(name: string) {
 
 const MessagesDashboard: React.FC = () => {
   const me = useCurrentUser();
-  const router = useRouter();
   const searchParams = useSearchParams();
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [conversationsLoaded, setConversationsLoaded] = useState(false);
-  const [deepLinkDone, setDeepLinkDone] = useState(false);
+  // The ?with= link last handled (null once the URL has been cleaned up).
+  const [deepLinkDone, setDeepLinkDone] = useState<string | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [showArchived, setShowArchived] = useState(false);
@@ -196,24 +197,28 @@ const MessagesDashboard: React.FC = () => {
     [conversations]
   );
 
-  // Arriving from "Message" on a referral/appointment contact card
-  // (/message?with=<name>&role=<role>) opens straight to that person's chat.
-  // Adjusts state during render (not in an effect) per the project's rule
-  // against synchronous setState-in-effect; this runs at most once since
-  // deepLinkDone only ever goes false -> true.
-  if (conversationsLoaded && !deepLinkDone) {
-    setDeepLinkDone(true);
-    const withName = searchParams.get('with');
-    const withRole = searchParams.get('role');
+  // Arriving from "Message" on a referral/appointment contact card, or "Open"
+  // on a crisis alert (/message?with=<name>&role=<role>), opens straight to
+  // that person's chat, or an empty one if there's none yet. This also works
+  // when the link is followed while this page is already open: each new link
+  // is handled once. Adjusts state during render (not in an effect) per the
+  // project's rule against synchronous setState-in-effect.
+  const withName = searchParams.get('with');
+  const withRole = searchParams.get('role');
+  const linkKey = withName ? `${withName}|${withRole ?? ''}` : null;
+  if (conversationsLoaded && linkKey !== deepLinkDone) {
+    setDeepLinkDone(linkKey);
     if (withName && (withRole === 'Student' || withRole === 'Faculty' || withRole === 'Parent')) {
       chooseRecipient({ key: 'deep-link', name: withName, role: withRole, detail: '' });
     }
   }
 
   // Drop the query string once handled, so refreshing doesn't retrigger it.
+  // history.replaceState (which Next.js keeps in sync with useSearchParams)
+  // isn't dropped the way router.replace can be while a navigation finishes.
   useEffect(() => {
-    if (deepLinkDone) router.replace('/message');
-  }, [deepLinkDone, router]);
+    if (deepLinkDone) window.history.replaceState(null, '', '/message');
+  }, [deepLinkDone]);
 
   const draftProfile = draft?.role === 'Student' ? studentProfiles.find((s) => s.name === draft.name) : undefined;
 
@@ -320,8 +325,8 @@ const MessagesDashboard: React.FC = () => {
                         )}
                       </div>
 
-                      <p className={`text-xs mt-1.5 line-clamp-2 leading-relaxed ${isUnread ? 'text-ink font-semibold' : 'text-slate-600'}`}>
-                        {chat.lastMessage || "No messages yet"}
+                      <p className={`text-xs mt-1.5 line-clamp-2 leading-relaxed [overflow-wrap:anywhere] ${isUnread ? 'text-ink font-semibold' : 'text-slate-600'}`}>
+                        {chat.lastMessage ? censor(chat.lastMessage) : "No messages yet"}
                       </p>
 
                       <span className="text-xs text-slate-500 block mt-1 font-mono">

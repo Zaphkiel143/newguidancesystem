@@ -75,10 +75,21 @@ export function gradeSectionLabel(yearLevel: string, section: string) {
 export const STUDENT_ID_DIGITS = 11;
 export const isStudentId = (s: string) => new RegExp(`^\\d{${STUDENT_ID_DIGITS}}$`).test(s);
 
-// College sections are a program code plus year-section, e.g. "BSIT 1-101".
+// College sections are a program code plus year-section, written together:
+// "BSIT1-101", "BSIT1-102" for first year, "BSIT2-101" for second year, and so on.
 export const SECTION_PROGRAMS = ["BSIT", "BSTM", "BSAIS", "BSCS", "BSCPE"] as const;
-// Sections per year level: year 1 has 1-101 to 1-105, year 2 has 2-201 to 2-205, and so on.
+// Sections per year level: every year counts 101 to 105 (1-101 ... 1-105, 2-101 ... 2-105).
 const SECTIONS_PER_YEAR = 5;
+
+// "BSIT" + "1-101" -> "BSIT1-101", the way sections are written and saved.
+export const formatCollegeSection = (code: string, yearSection: string) => `${code}${yearSection}`;
+
+// Older records numbered sections by year ("2-201", "4-401"); today every year
+// starts at 101, so "2-201" is read as "2-101". First-year numbers are unchanged.
+function normalizeYearSection(year: string, number: string) {
+  const fixed = year !== "1" && number[0] === year ? `1${number.slice(1)}` : number;
+  return `${year}-${fixed}`;
+}
 
 // The program code for a course, when it has one.
 const COURSE_SECTION_CODE: Record<string, (typeof SECTION_PROGRAMS)[number]> = {
@@ -90,11 +101,11 @@ const COURSE_SECTION_CODE: Record<string, (typeof SECTION_PROGRAMS)[number]> = {
 };
 export const sectionCodeForCourse = (course: string) => COURSE_SECTION_CODE[course] ?? "";
 
-// "2nd Year" -> ["2-201", ..., "2-205"]; nothing until a year level is picked.
+// "2nd Year" -> ["2-101", ..., "2-105"]; nothing until a year level is picked.
 export function yearSectionsFor(yearLevel: string): string[] {
   const year = Number(/^(\d)/.exec(yearLevel)?.[1]);
   if (!year) return [];
-  return Array.from({ length: SECTIONS_PER_YEAR }, (_, i) => `${year}-${year}${String(i + 1).padStart(2, "0")}`);
+  return Array.from({ length: SECTIONS_PER_YEAR }, (_, i) => `${year}-1${String(i + 1).padStart(2, "0")}`);
 }
 
 // Short codes for every course, for labels like "BSBA 2-201". The five
@@ -118,27 +129,28 @@ export function courseCode(course: string) {
   return code || course;
 }
 
-// A college student's section as "BSIT 1-101": the course code plus the
-// year-section. Older records only have a combined label such as
-// "1st Year - 101" or "4th Year - BSIT 4-102", so the year-section is read from
-// whichever field has it. Null when there isn't enough to build it.
+// A college student's section as "BSIT1-101": the course code plus the
+// year-section. Older records may say "BSIT 1-101", "BSIT 4-401", or only have
+// a combined label such as "1st Year - 101" or "4th Year - BSIT 4-102", so the
+// year-section is read from whichever field has it. Null when there isn't
+// enough to build it.
 export function collegeSectionLabel(p: { program?: string | null; section?: string | null; gradeSection?: string | null; yearLevel?: string | null }) {
   const section = (p.section ?? "").trim();
-  const stored = /^([A-Z]{2,6}) (\d-\d{3})$/.exec(section);
-  if (stored) return `${stored[1]} ${stored[2]}`;
+  const stored = /^([A-Z]{2,6}) ?(\d)-(\d{3})$/.exec(section);
+  if (stored) return formatCollegeSection(stored[1], normalizeYearSection(stored[2], stored[3]));
   if (!p.program) return null;
   const text = `${section} ${p.gradeSection ?? ""}`;
   const pair = /(\d)-(\d{3})/.exec(text);
   const year = /^(\d)/.exec(p.yearLevel ?? "")?.[1] ?? /(\d)(?:st|nd|rd|th) Year/.exec(p.gradeSection ?? "")?.[1];
   const number = /^\d{3}$/.test(section) ? section : /- (\d{3})$/.exec(p.gradeSection ?? "")?.[1];
-  const yearSection = pair ? `${pair[1]}-${pair[2]}` : year && number ? `${year}-${number}` : null;
-  return yearSection ? `${courseCode(p.program)} ${yearSection}` : null;
+  const yearSection = pair ? normalizeYearSection(pair[1], pair[2]) : year && number ? normalizeYearSection(year, number) : null;
+  return yearSection ? formatCollegeSection(courseCode(p.program), yearSection) : null;
 }
 
-// "BSIT 1-101" -> { code: "BSIT", yearSection: "1-101" }; anything else -> null.
+// "BSIT1-101" (or an older "BSIT 1-101") -> { code: "BSIT", yearSection: "1-101" }; anything else -> null.
 export function splitCollegeSection(section: string | null | undefined) {
-  const m = /^([A-Z]+) (\d-\d{3})$/.exec((section ?? "").trim());
-  return m && (SECTION_PROGRAMS as readonly string[]).includes(m[1]) ? { code: m[1], yearSection: m[2] } : null;
+  const m = /^([A-Z]+) ?(\d)-(\d{3})$/.exec((section ?? "").trim());
+  return m && (SECTION_PROGRAMS as readonly string[]).includes(m[1]) ? { code: m[1], yearSection: normalizeYearSection(m[2], m[3]) } : null;
 }
 
 // Shared "pick one, or type your own" options. OTHER reveals a text box and is
