@@ -72,7 +72,7 @@ const MyReferralsPage: React.FC = () => {
                     <h3 className="text-lg font-semibold text-slate-900 tracking-tight">{item.concernType}</h3>
                     <div className="text-xs text-slate-500 font-medium flex flex-wrap items-center gap-x-4 gap-y-1">
                       <span>For: <span className="text-slate-700 font-semibold">{item.studentName}</span></span>
-                      <span className="hidden sm:inline text-slate-300">â€¢</span>
+                      <span className="hidden sm:inline text-slate-300">•</span>
                       <span className="font-mono">Date Submitted: {new Date(item.createdAt).toLocaleDateString()}</span>
                     </div>
                   </div>

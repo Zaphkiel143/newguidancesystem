@@ -20,6 +20,7 @@ import { announceNewReferral, checkReferral } from "../../lib/referrals";
 import { cleanAnswers, validateAnswers, type Answers } from "../config/collegeCareerForm";
 import { logActivity } from "../../lib/activityLog";
 import { shownName } from "../../lib/demo";
+import { BOOKER_APPOINTMENT_FIELDS } from "../../lib/appointmentView";
 
 // Every action here acts as the signed-in student; names never come from the client.
 
@@ -28,7 +29,7 @@ import { shownName } from "../../lib/demo";
 export async function getMyAppointments() {
   try {
     const me = await requireActionUser("STUDENT");
-    const rows = await db.appointment.findMany({ where: { studentName: me.name } });
+    const rows = await db.appointment.findMany({ where: { studentName: me.name }, select: BOOKER_APPOINTMENT_FIELDS });
     // Newest first, by date then clock time (times are text like "8:00 AM").
     return rows.sort((x, y) => y.date.getTime() - x.date.getTime() || parseTimeToMinutes(y.time) - parseTimeToMinutes(x.time));
   } catch (error) {
@@ -286,9 +287,11 @@ export async function getMyProfile() {
   try {
     const me = await requireActionUser("STUDENT");
     const [profile, appointments, documents] = await Promise.all([
-      db.studentProfile.findUnique({ where: { name: me.name } }),
+      // The office's own notes and family background stay out of the student's browser.
+      db.studentProfile.findUnique({ where: { name: me.name }, omit: { counselorNotes: true, familyBackground: true } }),
       db.appointment.findMany({
         where: { studentName: me.name, status: { not: "CANCELLED" } },
+        select: BOOKER_APPOINTMENT_FIELDS,
         orderBy: { date: "desc" },
         take: 10,
       }),

@@ -1,6 +1,7 @@
 "use server";
 
 import db from "../../lib/db";
+import { BOOKER_APPOINTMENT_FIELDS } from "../../lib/appointmentView";
 import { REFERRER_REFERRAL_FIELDS } from "../../lib/referralView";
 import { takenSlots } from "../../lib/appointmentStatus";
 import { revalidatePath } from "next/cache";
@@ -25,7 +26,7 @@ import { isDemoUser } from "../../lib/demo";
 export async function getMyAppointments() {
   try {
     const me = await requireActionUser("FACULTY");
-    const rows = await db.appointment.findMany({ where: { studentName: me.name } });
+    const rows = await db.appointment.findMany({ where: { studentName: me.name }, select: BOOKER_APPOINTMENT_FIELDS });
     // Newest first, by date then clock time (times are text like "8:00 AM").
     return rows.sort((x, y) => y.date.getTime() - x.date.getTime() || parseTimeToMinutes(y.time) - parseTimeToMinutes(x.time));
   } catch (error) {

@@ -135,7 +135,7 @@ export default function StudentInventory() {
         <div>
           <h1 className="page-title">Individual Inventory</h1>
         </div>
-        <div className="flex items-center gap-2 self-start sm:self-auto">
+        <div className="flex flex-wrap items-center gap-2 self-start sm:self-auto">
           <EditOptionsButton listKey="departments" listLabel="Student Level" text="Level" onSaved={refetchDepartments} />
           <EditOptionsButton listKey="shsStrands" listLabel="Senior High Strands" text="Strands" onSaved={refetchShsStrands} />
           <EditOptionsButton listKey="tertiaryCourses" listLabel="Tertiary Courses" text="Courses" onSaved={refetchTertiaryCourses} />

@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
 import { getAppointmentsByDate, getDashboardStats, listReferrals } from '../../action/counselor';
 import { getCurrentUser } from '../../../lib/auth';
+import { greetingName, shownName } from '../../../lib/demo';
 import { manilaHour, manilaToday, OFFICE_TZ } from '../../../lib/time';
 import StudentQuickSearch from '../../../components/StudentQuickSearch';
 
@@ -23,7 +24,7 @@ const Dashboard = async () => {
 
   const hour = manilaHour(now);
   const greeting = hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
-  const firstName = user?.name.split(" ")[0];
+  const firstName = user ? greetingName(shownName(user)) : undefined;
   const dateLabel = now.toLocaleDateString("en-PH", { timeZone: OFFICE_TZ, weekday: "long", month: "long", day: "numeric" });
 
   const summary =

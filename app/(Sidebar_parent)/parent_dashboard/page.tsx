@@ -12,6 +12,7 @@ import FullyBookedNotice from '../../../components/FullyBookedNotice';
 
 import AppointmentStatusBadge from "../../../components/AppointmentStatusBadge";
 import Pager, { usePaged } from "../../../components/Pager";
+import AppointmentRequirements from "../../../components/AppointmentRequirements";
 // "Who is this for?" value meaning the parent themself.
 const MYSELF = '__myself__';
 
@@ -329,6 +330,7 @@ const ParentBookAppointment: React.FC = () => {
                     For {b.forSelf ? 'you' : b.studentName} ·{' '}
                     {new Date(b.date).toLocaleDateString('en-PH', { timeZone: 'UTC', weekday: 'short', month: 'short', day: 'numeric' })}, {b.time}
                   </span>
+                  <AppointmentRequirements requirements={b.requirements} status={b.status} className="mt-0.5" />
                 </span>
                 <span className="shrink-0"><AppointmentStatusBadge appointment={b} /></span>
               </li>

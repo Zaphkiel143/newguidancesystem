@@ -4,13 +4,15 @@ import React, { useEffect, useState } from 'react';
 import { Calendar, Clock, Plus } from 'lucide-react';
 import { getMyAppointments, getBookedTimesForDate, bookAppointment } from '../../action/faculty';
 import BookAppointmentModal from '../../../components/BookAppointmentModal';
-import type { Appointment as DbAppointment } from '../../../lib/generated';
 
+
+type Booked = Awaited<ReturnType<typeof getMyAppointments>>[number];
 
 import AppointmentStatusBadge from "../../../components/AppointmentStatusBadge";
 import Pager, { usePaged } from "../../../components/Pager";
+import AppointmentRequirements from "../../../components/AppointmentRequirements";
 const MyAppointmentsPage: React.FC = () => {
-  const [appointments, setAppointments] = useState<DbAppointment[]>([]);
+  const [appointments, setAppointments] = useState<Booked[]>([]);
   const [isBookingOpen, setIsBookingOpen] = useState(false);
   const paged = usePaged(appointments, 10);
 
@@ -104,6 +106,7 @@ const MyAppointmentsPage: React.FC = () => {
                       <span className="text-slate-600">{meeting.time}</span>
                     </div>
                   </div>
+                  <AppointmentRequirements requirements={meeting.requirements} status={meeting.status} />
                 </div>
 
                 {/* Right Column Badge State Triggers */}

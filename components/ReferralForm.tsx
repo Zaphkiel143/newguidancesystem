@@ -136,6 +136,9 @@ export default function ReferralForm({ mode, onSubmit, myReferralsPath }: Props)
     if (!isStaff && !isShs && Boolean(f.sectionCode) !== Boolean(f.yearSection)) return setError("Choose both parts of the section, or leave both empty.");
     if (f.concern === OTHER && !f.concernOther.trim()) return setError("Tell us what the concern is.");
     if (!f.priority) return setError("Choose the level of priority.");
+    // Checked here: the details added below (level, grade...) would otherwise
+    // make an empty description look filled in to the server.
+    if (!f.description.trim()) return setError("Describe what you've noticed and why you're concerned.");
     if (mode !== "parent" && f.priority === NEEDS_DATE && !f.priorityDate) return setError("Choose the date it's needed by.");
     setSaving(true);
     setError(null);

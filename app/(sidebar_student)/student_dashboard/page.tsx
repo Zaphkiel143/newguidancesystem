@@ -10,7 +10,7 @@ import { greetingName } from '../../../lib/demo';
 import { getBulletinPreview } from '../../action/bulletin';
 import { CAREER_STEPS } from '../../config/careerSteps';
 import { useCurrentUser } from '../../../components/CurrentUser';
-import type { Appointment as DbAppointment, CareerPlan, Event as DbEvent } from '../../../lib/generated';
+import type { CareerPlan, Event as DbEvent } from '../../../lib/generated';
 
 import AppointmentStatusBadge from "../../../components/AppointmentStatusBadge";
 import { appointmentStatus } from "../../../lib/appointmentStatus";
@@ -24,7 +24,7 @@ const SHORTCUTS = [
 ];
 
 interface DashboardData {
-  appointments: DbAppointment[];
+  appointments: Awaited<ReturnType<typeof getMyAppointments>>;
   careerPlan: CareerPlan | null;
   level: Awaited<ReturnType<typeof getMyStudentLevel>>;
   openReferrals: number;
@@ -70,7 +70,8 @@ const DashboardContent: React.FC = () => {
   const upcoming = data?.appointments
     .filter((a) => ["PENDING", "CONFIRMED"].includes(appointmentStatus(a)) && day(a.date) >= today)
     .sort((a, b) => +new Date(a.date) - +new Date(b.date))[0];
-  const sessionsDone = data?.appointments.filter((a) => a.status === "COMPLETED" || (a.status === "CONFIRMED" && day(a.date) < today)).length ?? 0;
+  // Only sessions the office marked Terminated (held), like the Daily Log and Monthly Report.
+  const sessionsDone = data?.appointments.filter((a) => a.status === "COMPLETED").length ?? 0;
   const stagesDone = data?.careerPlan?.stepDates.filter(Boolean).length ?? 0;
   const nextStage = data?.careerPlan ? CAREER_STEPS[data.careerPlan.stepDates.findIndex((d) => !d)] : undefined;
 

@@ -20,7 +20,7 @@ import { collegeSectionLabel, gradeSectionLabel, isShs, isTertiaryLike, normaliz
 import { formatStudentName } from "../../lib/studentName";
 import { getOptionList } from "./optionLists";
 import { optionValue } from "../../lib/optionListDefaults";
-import { manilaMinutes, manilaTodayAsStoredDate } from "../../lib/time";
+import { manilaMinutes, manilaToday, manilaTodayAsStoredDate } from "../../lib/time";
 
 // Every action here requires a signed-in Guidance Associate (COUNSELOR role).
 const counselorOnly = () => requireActionUser("COUNSELOR");
@@ -1023,7 +1023,7 @@ export async function saveAnnouncement(formData: {
     };
     if (formData.id) await db.announcement.update({ where: { id: formData.id }, data });
     else await db.announcement.create({ data });
-    await logActivity(me, formData.id ? "Edited an announcement" : "Published an announcement", "Announcement", formData.id, formData.title);
+    await logActivity(me, formData.id ? "Edited an announcement" : formData.isPublished ? "Published an announcement" : "Saved a hidden announcement draft", "Announcement", formData.id, formData.title);
 
     revalidatePath("/information");
     for (const p of ["/bulletin", "/faculty_bulletin", "/parent_bulletin", "/student_dashboard"]) revalidatePath(p);
@@ -1106,7 +1106,10 @@ export async function saveEvent(formData: {
     revalidatePath("/information");
     for (const p of ["/bulletin", "/faculty_bulletin", "/parent_bulletin", "/student_dashboard"]) revalidatePath(p);
 
-    if (isNew) {
+    // Only upcoming events are news. Adding one that already ended (to keep a
+    // record of it) shouldn't alert everyone.
+    const lastDay = formData.endDateString || formData.dateString;
+    if (isNew && lastDay >= manilaToday()) {
       const title = formData.title.trim();
       const recipients = await notifyAudience("All", (role) => ({
         title: "New event",

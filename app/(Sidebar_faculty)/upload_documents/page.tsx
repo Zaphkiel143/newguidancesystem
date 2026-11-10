@@ -4,6 +4,7 @@ import React, { useEffect, useState, ChangeEvent, DragEvent } from 'react';
 import { UploadCloud, FileText, CheckCircle2, Trash2, Loader2 } from 'lucide-react';
 import { uploadDocument, getMyDocuments, deleteDocument } from '../../action/faculty';
 import InlineError from '../../../components/InlineError';
+import ConfirmDialog from '../../../components/ConfirmDialog';
 
 const MAX_FILE_BYTES = 5 * 1024 * 1024; // 5MB
 
@@ -47,6 +48,8 @@ const UploadDocuments: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [deleteError, setDeleteError] = useState<string | null>(null);
+  // The file waiting for "Delete this document?" to be confirmed.
+  const [asking, setAsking] = useState<DocumentMeta | null>(null);
 
   const refresh = async () => {
     const data = await getMyDocuments();
@@ -227,7 +230,7 @@ const UploadDocuments: React.FC = () => {
 
                     <button
                       type="button"
-                      onClick={() => removeFile(file.id)}
+                      onClick={() => setAsking(file)}
                       disabled={deletingId === file.id}
                       className="text-slate-500 hover:text-red-500 p-1.5 rounded-full hover:bg-slate-50 transition-colors disabled:opacity-50"
                       title="Delete document"
@@ -243,6 +246,22 @@ const UploadDocuments: React.FC = () => {
             <InlineError message={deleteError} onDismiss={() => setDeleteError(null)} className="mt-3" />
           </div>
         )}
+
+        <ConfirmDialog
+          open={asking !== null}
+          title="Delete this document?"
+          message={asking ? `${asking.fileName} will be removed from the guidance office. This can't be undone.` : undefined}
+          confirmLabel="Delete"
+          cancelLabel="Keep it"
+          danger
+          busy={asking !== null && deletingId === asking.id}
+          onCancel={() => setAsking(null)}
+          onConfirm={async () => {
+            if (!asking) return;
+            await removeFile(asking.id);
+            setAsking(null);
+          }}
+        />
 
       </div>
     </div>
