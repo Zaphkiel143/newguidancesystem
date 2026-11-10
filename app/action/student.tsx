@@ -401,21 +401,18 @@ export async function submitAssessmentResponse(formData: { assessmentId: string;
 
 const who = (me: { roleLabel: string }) => (me.roleLabel === "Faculty" ? "a faculty member" : "a student");
 
-// The student's open chat (the newest one not yet ended), or a new empty one.
+// The person's open chat, or a new empty one. The open chat stays open when
+// the panel is closed or the page is left, so reopening E-Gabay continues
+// where they left off; only "New chat" (or continuing a past chat) ends it.
 export async function getMyAiConversation() {
   try {
     const me = await requireActionUser("STUDENT", "FACULTY");
     const existing = await db.aiConversation.findFirst({
-      where: { studentName: me.name, endedAt: null },
+      where: { studentName: me.name, endedAt: null, hiddenAt: null },
       include: { messages: { orderBy: { createdAt: "asc" } } },
-      orderBy: { createdAt: "desc" },
+      orderBy: { updatedAt: "desc" },
     });
-    // A chat left idle (e.g. the tab was closed) is saved to history and a
-    // fresh one starts, the same as closing the chat panel.
-    const IDLE_MS = 30 * 60 * 1000;
-    const idle = existing && existing.messages.length > 0 && Date.now() - existing.updatedAt.getTime() > IDLE_MS;
-    if (existing && !idle) return existing;
-    if (existing && idle) await db.aiConversation.update({ where: { id: existing.id }, data: { endedAt: new Date() } });
+    if (existing) return existing;
 
     return await db.aiConversation.create({
       data: { studentName: me.name },
@@ -620,12 +617,22 @@ export async function endMyAiConversation(conversationId: string) {
   }
 }
 
-// Past chats, newest first, each titled by its first question.
-export async function getMyAiHistory() {
+// History shows the 10 most recent past chats; older ones are archived and
+// listed 10 per page. Each is titled by its first question.
+const HISTORY_RECENT = 10;
+const HISTORY_PAGE = 10;
+
+export async function getMyAiHistory(options: { archived?: boolean; page?: number } = {}) {
   try {
     const me = await requireActionUser("STUDENT", "FACULTY");
+    const where = { studentName: me.name, endedAt: { not: null }, hiddenAt: null };
+    const page = Math.max(1, Math.floor(options.page ?? 1));
+    const total = await db.aiConversation.count({ where });
+    const archivedTotal = Math.max(0, total - HISTORY_RECENT);
     const chats = await db.aiConversation.findMany({
-      where: { studentName: me.name, endedAt: { not: null } },
+      where,
+      skip: options.archived ? HISTORY_RECENT + (page - 1) * HISTORY_PAGE : 0,
+      take: options.archived ? HISTORY_PAGE : HISTORY_RECENT,
       select: {
         id: true,
         createdAt: true,
@@ -634,18 +641,65 @@ export async function getMyAiHistory() {
         messages: { where: { role: "user" }, orderBy: { createdAt: "asc" }, take: 1, select: { content: true } },
       },
       orderBy: { endedAt: "desc" },
-      take: 100,
     });
-    return chats.map((c) => ({
-      id: c.id,
-      title: c.messages[0]?.content.slice(0, 80) ?? "Chat",
-      startedAt: c.createdAt,
-      endedAt: c.endedAt,
-      messageCount: c._count.messages,
-    }));
+    return {
+      items: chats.map((c) => ({
+        id: c.id,
+        title: c.messages[0]?.content.slice(0, 80) ?? "Chat",
+        startedAt: c.createdAt,
+        endedAt: c.endedAt,
+        messageCount: c._count.messages,
+      })),
+      archivedTotal,
+      archivedPages: Math.max(1, Math.ceil(archivedTotal / HISTORY_PAGE)),
+    };
   } catch (error) {
     console.error("[student] Failed to load AI history:", error);
-    return [];
+    return { items: [], archivedTotal: 0, archivedPages: 1 };
+  }
+}
+
+// Continue a past chat: it becomes the open chat again and the one that was
+// open moves to History (an empty one is simply removed).
+export async function resumeMyAiConversation(conversationId: string) {
+  try {
+    const me = await requireActionUser("STUDENT", "FACULTY");
+    const target = await db.aiConversation.findFirst({
+      where: { id: conversationId, studentName: me.name, hiddenAt: null },
+      select: { id: true },
+    });
+    if (!target) return { success: false, error: "That chat is no longer available." };
+    const open = await db.aiConversation.findMany({
+      where: { studentName: me.name, endedAt: null, hiddenAt: null, id: { not: target.id } },
+      select: { id: true, _count: { select: { messages: true } } },
+    });
+    const empty = open.filter((c) => c._count.messages === 0).map((c) => c.id);
+    const used = open.filter((c) => c._count.messages > 0).map((c) => c.id);
+    if (empty.length) await db.aiConversation.deleteMany({ where: { id: { in: empty } } });
+    if (used.length) await db.aiConversation.updateMany({ where: { id: { in: used } }, data: { endedAt: new Date() } });
+    await db.aiConversation.update({ where: { id: target.id }, data: { endedAt: null } });
+    return { success: true };
+  } catch (error) {
+    console.error("[student] Failed to continue AI chat:", error);
+    return { success: false, error: "Couldn't open that chat. Try again." };
+  }
+}
+
+// Removes a chat from the person's History. It's hidden, not erased, so the
+// office's chatbot figures and any crisis record stay intact.
+export async function deleteMyAiConversation(conversationId: string) {
+  try {
+    const me = await requireActionUser("STUDENT", "FACULTY");
+    const now = new Date();
+    const result = await db.aiConversation.updateMany({
+      where: { id: conversationId, studentName: me.name, hiddenAt: null },
+      data: { hiddenAt: now, endedAt: now },
+    });
+    if (result.count === 0) return { success: false, error: "That chat is no longer available." };
+    return { success: true };
+  } catch (error) {
+    console.error("[student] Failed to delete AI chat:", error);
+    return { success: false, error: "Couldn't delete that chat. Try again." };
   }
 }
 
@@ -653,7 +707,7 @@ export async function getMyAiHistoryChat(conversationId: string) {
   try {
     const me = await requireActionUser("STUDENT", "FACULTY");
     return await db.aiConversation.findFirst({
-      where: { id: conversationId, studentName: me.name },
+      where: { id: conversationId, studentName: me.name, hiddenAt: null },
       include: { messages: { orderBy: { createdAt: "asc" } } },
     });
   } catch (error) {

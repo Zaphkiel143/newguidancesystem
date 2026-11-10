@@ -258,6 +258,9 @@ model AiConversation {
   messages    AiMessage[]
 
   endedAt     DateTime?
+  // Set when the person deletes the chat from their History. The chat is kept
+  // (hidden from them) so the office's chatbot figures and crisis records stay.
+  hiddenAt    DateTime?
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 

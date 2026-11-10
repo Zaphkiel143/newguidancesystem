@@ -2,12 +2,12 @@
 
 import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { Bell, MessageSquare, Sparkles, X } from "lucide-react";
 import { getMyNotices, markNoticesRead } from "../app/action/notifications";
 import type { Notification } from "../lib/generated";
-import AiChatThread from "./AiChat";
 import { usePolling } from "../lib/usePolling";
+import AiChatThread from "./AiChat";
 
 type Notices = { items: Notification[]; unread: number; unreadMessages: number };
 const EMPTY: Notices = { items: [], unread: 0, unreadMessages: 0 };
@@ -259,32 +259,48 @@ export function NoticeBell({ allPath }: { allPath: string }) {
 }
 
 // Floating button (bottom right, every page): messages with the guidance
-// office, with an unread badge; students can also open E-Gabay from here.
-export function FloatingDock({ messagesPath, withChatbot }: { messagesPath: string; withChatbot: boolean }) {
+// office, with an unread badge; students and faculty can also ask E-Gabay from
+// here. On phones that opens the E-Gabay Chatbot page (a small window is too
+// cramped there); on bigger screens it opens the floating chat window.
+const PHONE = "(max-width: 767px)";
+
+export function FloatingDock({ messagesPath, chatbotPath }: { messagesPath: string; chatbotPath?: string }) {
   const { notices } = useNotices();
   const [open, setOpen] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
   const pathname = usePathname();
+  const router = useRouter();
 
   // Not needed on the pages it would open.
-  const onMessagesPage = pathname === messagesPath;
-  const onChatPage = pathname === "/ai_chat" || pathname === "/faculty_chat";
-  if (onMessagesPage || onChatPage) return null;
+  if (pathname === messagesPath || (chatbotPath && pathname === chatbotPath)) return null;
 
+  const askChatbot = () => {
+    setOpen(false);
+    if (!chatbotPath) return;
+    if (window.matchMedia(PHONE).matches) router.push(chatbotPath);
+    else setChatOpen(true);
+  };
+
+  const item = "flex items-center gap-3 px-3 min-h-11 rounded-xl hover:bg-blue-50 text-[14px] text-ink";
   return (
     <div className="fixed right-4 bottom-[calc(var(--footer-h)+1rem)] sm:right-6 sm:bottom-[calc(var(--footer-h)+1.5rem)] z-40 flex flex-col items-end gap-3 print:hidden">
-      {chatOpen && withChatbot && (
+      {chatOpen && chatbotPath && (
         <section
           aria-label="Chat with E-Gabay"
           className="w-[min(24rem,calc(100vw-2rem))] h-[min(34rem,calc(100dvh-8rem))] bg-sheet rounded-2xl shadow-2xl border border-rule flex flex-col overflow-hidden"
         >
-          <header className="flex items-center justify-between px-4 py-3 bg-blue-700 text-white">
+          <header className="flex items-center justify-between gap-2 px-4 py-3 bg-blue-700 text-white">
             <p className="font-semibold inline-flex items-center gap-2">
               <Sparkles size={16} /> E-Gabay Chatbot
             </p>
-            <button onClick={() => setChatOpen(false)} aria-label="Close chat" className="w-9 h-9 grid place-items-center rounded-full hover:bg-white/10">
-              <X size={17} />
-            </button>
+            <span className="flex items-center gap-1">
+              <Link href={chatbotPath} onClick={() => setChatOpen(false)} className="text-[12px] underline underline-offset-2 px-2 min-h-9 inline-flex items-center rounded-full hover:bg-white/10">
+                Open full page
+              </Link>
+              <button onClick={() => setChatOpen(false)} aria-label="Close chat" className="w-9 h-9 grid place-items-center rounded-full hover:bg-white/10">
+                <X size={17} />
+              </button>
+            </span>
           </header>
           <div className="flex-1 min-h-0">
             <AiChatThread compact />
@@ -294,7 +310,7 @@ export function FloatingDock({ messagesPath, withChatbot }: { messagesPath: stri
 
       {open && !chatOpen && (
         <div className="bg-sheet rounded-2xl shadow-2xl border border-rule p-2 w-60">
-          <Link href={messagesPath} className="flex items-center gap-3 px-3 min-h-11 rounded-xl hover:bg-blue-50 text-[14px] text-ink">
+          <Link href={messagesPath} onClick={() => setOpen(false)} className={item}>
             <MessageSquare size={17} className="text-blue-700" />
             <span className="flex-1">Message guidance office</span>
             {notices.unreadMessages > 0 && (
@@ -303,14 +319,8 @@ export function FloatingDock({ messagesPath, withChatbot }: { messagesPath: stri
               </span>
             )}
           </Link>
-          {withChatbot && (
-            <button
-              onClick={() => {
-                setChatOpen(true);
-                setOpen(false);
-              }}
-              className="w-full flex items-center gap-3 px-3 min-h-11 rounded-xl hover:bg-blue-50 text-[14px] text-ink text-left"
-            >
+          {chatbotPath && (
+            <button type="button" onClick={askChatbot} className={`${item} w-full text-left`}>
               <Sparkles size={17} className="text-blue-700" />
               Ask E-Gabay (chatbot)
             </button>

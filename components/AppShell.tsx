@@ -276,7 +276,7 @@ export function AppShell({ role, userName, displayName = userName, hiddenPaths =
         <AppFooter showHotlines={role !== "counselor"} />
       </main>
 
-      {MESSAGES_PATH[role] && <FloatingDock messagesPath={MESSAGES_PATH[role]} withChatbot={role === "student" || role === "faculty"} />}
+      {MESSAGES_PATH[role] && <FloatingDock messagesPath={MESSAGES_PATH[role]} chatbotPath={role === "student" ? "/ai_chat" : role === "faculty" ? "/faculty_chat" : undefined} />}
       <LoginApprovalPrompt />
       <ScrollToHash />
       {needsPrivacyConsent && <PrivacyNotice />}
