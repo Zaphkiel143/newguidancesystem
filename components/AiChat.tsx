@@ -2,7 +2,10 @@
 
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { ArrowLeft, ArrowUp, Bot, ChevronLeft, ChevronRight, History, Loader2, RotateCcw, Trash2 } from "lucide-react";
+import Link from "next/link";
 import ConfirmDialog from "./ConfirmDialog";
+import { useCurrentUser } from "./CurrentUser";
+import { chatbotLinks } from "../lib/chatbotLinks";
 import { censor } from "../lib/censor";
 import {
   endMyAiConversation,
@@ -45,6 +48,7 @@ function when(d: Date | null) {
 // History continues that one. History keeps the 10 most recent chats; older
 // ones are archived (10 per page). Chats can be deleted from History.
 export default function AiChatThread({ compact = false }: { compact?: boolean }) {
+  const me = useCurrentUser();
   const [conversationId, setConversationId] = useState<string | null>(null);
   const [messages, setMessages] = useState<AiMessage[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -190,6 +194,17 @@ export default function AiChatThread({ compact = false }: { compact?: boolean })
         <div key={m.id} className="max-w-[92%]">
           <p className="inline-flex items-center gap-1.5 text-[12px] font-medium text-blue-700 mb-0.5"><Bot size={13} aria-hidden /> E-Gabay Chatbot</p>
           <p className={`${text} leading-relaxed text-ink whitespace-pre-wrap [overflow-wrap:anywhere]`}>{censor(m.content)}</p>
+          {/* E-Gabay can't see records, so it points to the page where they are. */}
+          {chatbotLinks(m.intent, me.roleLabel).length > 0 && (
+            <div className="mt-2 flex flex-wrap gap-2">
+              {chatbotLinks(m.intent, me.roleLabel).map((l) => (
+                <Link key={l.href} href={l.href}
+                  className="inline-flex items-center px-3 min-h-9 rounded-full bg-blue-700 hover:bg-blue-800 text-white text-[13px] font-medium">
+                  {l.label}
+                </Link>
+              ))}
+            </div>
+          )}
           {m.intent === "crisis" && (
             <div role="alert" className="mt-3 rounded-xl border border-red-200 bg-red-50 p-3 text-[13px] text-red-900 space-y-2">
               <p className="font-semibold">You don&apos;t have to go through this alone. Please reach out now:</p>

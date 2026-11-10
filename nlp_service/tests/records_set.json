@@ -1,0 +1,69 @@
+{
+  "description": "Questions about the person's own records (appointment, referral, document, message status, account). The chatbot isn't connected to the database, so these should reach the topic that tells them where to check. None are training patterns, but they were looked at while choosing phrasings. Scored with: python evaluate.py --test tests/records_set.json",
+  "items": [
+    {
+      "text": "is my appointment on friday confirmed already?",
+      "intent": "my_appointment_status"
+    },
+    {
+      "text": "can you check if my appointment got approved",
+      "intent": "my_appointment_status"
+    },
+    {
+      "text": "kelan ba sched ko sa guidance",
+      "intent": "my_appointment_status"
+    },
+    {
+      "text": "confirmed na po ba yung sched ko?",
+      "intent": "my_appointment_status"
+    },
+    {
+      "text": "why did my appointment get cancelled",
+      "intent": "my_appointment_status"
+    },
+    {
+      "text": "any news about the referral i sent?",
+      "intent": "my_referral_status"
+    },
+    {
+      "text": "ano na status nung ni-refer kong classmate",
+      "intent": "my_referral_status"
+    },
+    {
+      "text": "did my excuse letter get accepted",
+      "intent": "my_document_status"
+    },
+    {
+      "text": "tinanggap na ba yung medical cert ko",
+      "intent": "my_document_status"
+    },
+    {
+      "text": "has the guidance office answered my message yet",
+      "intent": "my_messages_status"
+    },
+    {
+      "text": "nag-reply na ba sila sa chat ko",
+      "intent": "my_messages_status"
+    },
+    {
+      "text": "how can i change my password",
+      "intent": "account_help"
+    },
+    {
+      "text": "pano magpalit ng picture sa profile",
+      "intent": "account_help"
+    },
+    {
+      "text": "how do i book an appointment",
+      "intent": "book_appointment"
+    },
+    {
+      "text": "how do i refer my classmate",
+      "intent": "referral_process"
+    },
+    {
+      "text": "can i cancel my appointment",
+      "intent": "cancel_reschedule"
+    }
+  ]
+}

@@ -56,17 +56,24 @@ def cross_validate(texts, labels, folds=5):
     return oof, classes, labels
 
 
+# Thresholds whose scores are this close count as a tie (out of ~2,000
+# examples), and a tie goes to the lower threshold: it answers many more
+# messages for no real gain in mistakes, and keeps the pick from flipping
+# between retrains. Never below MIN_THRESHOLD (the floor for real guesses).
+TIE_MARGIN = 5
+MIN_THRESHOLD = 0.25
+
+
 def pick_threshold(oof, classes, labels):
     """+1 correct, 0 for "not sure" (fallback), -1 for a confident wrong answer."""
-    best, best_score = None, None
     pred = np.array(classes)[oof.argmax(1)]
     conf = oof.max(1)
+    scores = {}
     for t in THRESHOLDS:
         sure = conf >= t
-        score = int(((pred == labels) & sure).sum()) - int(((pred != labels) & sure).sum())
-        if best_score is None or score > best_score:
-            best, best_score = t, score
-    return best
+        scores[t] = int(((pred == labels) & sure).sum()) - int(((pred != labels) & sure).sum())
+    best_score = max(scores.values())
+    return min(t for t, s in scores.items() if t >= MIN_THRESHOLD and s >= best_score - TIE_MARGIN)
 
 
 def main():

@@ -3066,6 +3066,163 @@
       ]
     },
     {
+      "tag": "my_appointment_status",
+      "label_en": "Checking my appointment",
+      "label_tl": "Status ng appointment ko",
+      "example_en": "Is my appointment confirmed?",
+      "example_tl": "Na-confirm na ba ang appointment ko?",
+      "patterns_en": [
+        "is my appointment confirmed",
+        "when is my appointment",
+        "did they approve my appointment",
+        "what is the status of my appointment",
+        "was my appointment accepted",
+        "do i have an appointment tomorrow",
+        "why was my appointment cancelled",
+        "check my appointment",
+        "has the guidance office confirmed my booking",
+        "is my booking still pending",
+        "what time is my appointment",
+        "when is my sched with the guidance office"
+      ],
+      "patterns_tl": [
+        "na-confirm na ba appointment ko",
+        "kailan ang appointment ko",
+        "may appointment ba ako bukas",
+        "approved na ba yung booking ko",
+        "bakit na-cancel appointment ko",
+        "pending pa rin ba appointment ko",
+        "anong oras appointment ko",
+        "pa-check ng appointment ko",
+        "kailan sched ko",
+        "anong oras sched ko sa gco",
+        "confirmed na ba sched ko",
+        "may sched ba ako sa guidance",
+        "pa-check ng sched ko"
+      ],
+      "responses_en": [
+        "I can't see your appointments from here, but you can check them yourself: open My Appointments. Each one shows its status: Pending (waiting for the office), Confirmed, Not confirmed (the date passed without confirmation), Terminated (the session was held), or Cancelled with the reason. You also get a notification whenever the office confirms or cancels."
+      ],
+      "responses_tl": [
+        "Hindi ko nakikita ang mga appointment mo dito, pero pwede mo itong i-check: buksan ang My Appointments. Makikita mo ang status ng bawat isa: Pending (hinihintay pa ang office), Confirmed, Not confirmed (lumipas ang petsa nang hindi na-confirm), Terminated (natapos ang session), o Cancelled kasama ang dahilan. May notification ka rin tuwing magko-confirm o magka-cancel ang office."
+      ]
+    },
+    {
+      "tag": "my_referral_status",
+      "label_en": "Checking my referral",
+      "label_tl": "Status ng referral ko",
+      "example_en": "What happened to my referral?",
+      "example_tl": "Ano na ang nangyari sa referral ko?",
+      "patterns_en": [
+        "what happened to my referral",
+        "status of my referral",
+        "did they receive my referral",
+        "is my referral being handled",
+        "any update on the student i referred",
+        "did the guidance office read my referral",
+        "check my referral",
+        "what's the status of the student i referred"
+      ],
+      "patterns_tl": [
+        "ano na nangyari sa referral ko",
+        "natanggap na ba yung referral ko",
+        "may update na ba sa ni-refer ko",
+        "pa-check ng referral ko",
+        "binasa na ba ng guidance yung referral ko",
+        "ano na status ng referral ko",
+        "may balita na ba sa ni-refer ko"
+      ],
+      "responses_en": [
+        "I can't see your referrals from here, but you can check them: open My Referrals. Each referral shows whether it was received, is in progress, or is resolved, plus any feedback from the guidance office. You also get a notification when its status changes."
+      ],
+      "responses_tl": [
+        "Hindi ko nakikita ang mga referral mo dito, pero pwede mo itong i-check: buksan ang My Referrals. Makikita mo kung natanggap na, inaasikaso, o tapos na ang bawat referral, pati ang feedback ng guidance office. May notification ka rin kapag nagbago ang status."
+      ]
+    },
+    {
+      "tag": "my_document_status",
+      "label_en": "Checking my document",
+      "label_tl": "Status ng dokumento ko",
+      "example_en": "Was my document accepted?",
+      "example_tl": "Na-accept na ba ang dokumento ko?",
+      "patterns_en": [
+        "was my document accepted",
+        "status of my excuse letter",
+        "did they check my medical certificate",
+        "why was my document not accepted",
+        "is my uploaded file approved",
+        "check my submitted document"
+      ],
+      "patterns_tl": [
+        "na-accept na ba yung document ko",
+        "na-check na ba excuse letter ko",
+        "bakit hindi tinanggap yung document ko",
+        "approved na ba yung pinasa ko",
+        "pa-check ng pinasa kong file"
+      ],
+      "responses_en": [
+        "I can't see your files from here, but you can check them: students open Profile (Submitted documents), and faculty open Upload Documents. Each file shows Waiting for review, Accepted, or Not accepted with the office's note. You also get a notification when it's reviewed."
+      ],
+      "responses_tl": [
+        "Hindi ko nakikita ang mga file mo dito, pero pwede mo itong i-check: sa estudyante, buksan ang Profile (Submitted documents); sa faculty, ang Upload Documents. Makikita kung Waiting for review, Accepted, o Not accepted kasama ang paliwanag ng office. May notification ka rin kapag na-review na."
+      ]
+    },
+    {
+      "tag": "my_messages_status",
+      "label_en": "Replies from the office",
+      "label_tl": "Sagot ng office",
+      "example_en": "Did the guidance office reply to me?",
+      "example_tl": "May sagot na ba ang guidance office?",
+      "patterns_en": [
+        "did the guidance office reply to me",
+        "did they answer my message",
+        "has the counselor replied",
+        "where do i see the office's reply",
+        "where is my conversation with the guidance associate"
+      ],
+      "patterns_tl": [
+        "may reply na ba sa message ko",
+        "sumagot na ba ang guidance",
+        "saan ko makikita yung sagot ng guidance",
+        "nag-reply na ba si guidance associate"
+      ],
+      "responses_en": [
+        "I can't see your messages from here, but you can check: open Messages to see your conversation with the guidance office. A red badge on the Messages button means there's something new."
+      ],
+      "responses_tl": [
+        "Hindi ko nakikita ang mga mensahe mo dito, pero pwede mo itong i-check: buksan ang Messages para makita ang usapan ninyo ng guidance office. Kapag may pulang badge ang Messages button, may bago."
+      ]
+    },
+    {
+      "tag": "account_help",
+      "label_en": "My account and settings",
+      "label_tl": "Account at settings ko",
+      "example_en": "How do I change my password?",
+      "example_tl": "Paano palitan ang password ko?",
+      "patterns_en": [
+        "how do i change my password",
+        "how to change my profile picture",
+        "how do i update my details",
+        "how to turn on dark mode",
+        "where are my account settings",
+        "how do i change my contact number",
+        "how to set up the authenticator app"
+      ],
+      "patterns_tl": [
+        "paano palitan password ko",
+        "paano magpalit ng profile picture",
+        "paano i-update yung details ko",
+        "saan yung settings ng account ko",
+        "paano mag-dark mode"
+      ],
+      "responses_en": [
+        "You can do that yourself: students open Profile, and faculty open My Account. There you can update your details and photo, and under the settings you'll find the theme, notifications, password, and authenticator app."
+      ],
+      "responses_tl": [
+        "Ikaw mismo ang makakagawa niyan: sa estudyante, buksan ang Profile; sa faculty, ang My Account. Doon mo maa-update ang details at picture mo, at nasa settings ang theme, notifications, password, at authenticator app."
+      ]
+    },
+    {
       "tag": "fallback",
       "patterns_en": [],
       "patterns_tl": [],
