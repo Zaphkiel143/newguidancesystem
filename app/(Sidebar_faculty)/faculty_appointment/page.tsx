@@ -8,9 +8,11 @@ import type { Appointment as DbAppointment } from '../../../lib/generated';
 
 
 import AppointmentStatusBadge from "../../../components/AppointmentStatusBadge";
+import Pager, { usePaged } from "../../../components/Pager";
 const MyAppointmentsPage: React.FC = () => {
   const [appointments, setAppointments] = useState<DbAppointment[]>([]);
   const [isBookingOpen, setIsBookingOpen] = useState(false);
+  const paged = usePaged(appointments, 10);
 
   const refresh = async () => {
     const data = await getMyAppointments();
@@ -63,7 +65,7 @@ const MyAppointmentsPage: React.FC = () => {
           </div>
         ) : (
           <div className="p-6 space-y-4">
-            {appointments.map((meeting) => (
+            {paged.rows.map((meeting) => (
               <div
                 key={meeting.id}
                 className="bg-white border border-slate-100 rounded-xl p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:shadow-xs transition-shadow"
@@ -111,6 +113,7 @@ const MyAppointmentsPage: React.FC = () => {
 
               </div>
             ))}
+            <Pager label="Appointment pages" paged={paged} className="pt-2" />
           </div>
         )}
 

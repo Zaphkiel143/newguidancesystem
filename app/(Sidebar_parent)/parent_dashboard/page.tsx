@@ -11,6 +11,7 @@ import { optionValue } from '../../../lib/optionListDefaults';
 import FullyBookedNotice from '../../../components/FullyBookedNotice';
 
 import AppointmentStatusBadge from "../../../components/AppointmentStatusBadge";
+import Pager, { usePaged } from "../../../components/Pager";
 // "Who is this for?" value meaning the parent themself.
 const MYSELF = '__myself__';
 
@@ -26,6 +27,7 @@ const ParentBookAppointment: React.FC = () => {
   const [chosenChild, setChosenChild] = useState<string>('');
   const selectedChild = chosenChild || children?.[0]?.name || (children ? MYSELF : '');
   const [bookings, setBookings] = useState<Booking[] | null>(null);
+  const paged = usePaged(bookings ?? [], 10);
   const loadBookings = useCallback(async () => setBookings(await getMyBookings()), []);
   useEffect(() => {
     let cancelled = false;
@@ -307,7 +309,7 @@ const ParentBookAppointment: React.FC = () => {
           <p className="border-t border-rule pt-4 text-sm text-slate-500">Nothing booked yet.</p>
         ) : (
           <ul className="divide-y divide-rule border-t border-rule">
-            {bookings.map((b) => (
+            {paged.rows.map((b) => (
               <li key={b.id} className="py-3 flex flex-wrap items-center justify-between gap-x-4 gap-y-1 text-sm">
                 <span className="min-w-0">
                   <span className="block text-ink font-medium flex items-center gap-2">
@@ -333,6 +335,7 @@ const ParentBookAppointment: React.FC = () => {
             ))}
           </ul>
         )}
+        <Pager label="Appointment request pages" paged={paged} className="mt-3" />
       </section>
     </div>
   );

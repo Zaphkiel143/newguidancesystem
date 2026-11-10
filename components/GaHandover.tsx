@@ -131,14 +131,12 @@ export default function GaHandover() {
             </ul>
           )}
 
-          {state.canTransfer ? (
+          {state.canTransfer && (
             <div className="mt-4">
               <button type="button" onClick={openForm} className={primary}>
                 <UserRoundCog size={15} /> Hand over the role
               </button>
             </div>
-          ) : (
-            <p className="mt-4 text-sm text-slate-500">The demo account can&apos;t hand over the role.</p>
           )}
 
           {sentTo && <p className="mt-3 text-sm text-emerald-700" role="status">Code sent to {sentTo}. The email has a link where they enter the code.</p>}
