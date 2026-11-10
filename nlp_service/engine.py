@@ -9,6 +9,13 @@ SUGGEST_MIN = 0.12
 MAX_SUGGESTIONS = 3
 NO_SUGGEST = {"fallback", "out_of_scope", "affirm", "deny", "greeting", "goodbye", "thanks", "crisis"}
 
+# Small talk is only trusted on short messages or with real confidence: a long
+# request that merely contains "hello" ("write a python script that prints
+# hello world") must not get a cheerful greeting back.
+SMALL_TALK = {"greeting", "goodbye", "thanks", "affirm", "deny", "how_are_you", "bot_identity", "feeling_okay"}
+SMALL_TALK_MIN = 0.5
+SMALL_TALK_MAX_WORDS = 4
+
 # Always answered with the crisis reply, whatever the model predicts
 CRISIS_KEYWORDS_EN = [
     "kill myself", "suicide", "end my life", "hurt myself", "self harm",
@@ -59,6 +66,8 @@ class Engine:
         ranked = sorted(zip(self.pipeline.classes_, probs), key=lambda p: -p[1])
         tag, conf = ranked[0]
         if conf < self.threshold:
+            tag = "fallback"
+        elif tag in SMALL_TALK and conf < SMALL_TALK_MIN and len(message.split()) > SMALL_TALK_MAX_WORDS:
             tag = "fallback"
         return tag, float(conf), [(t, float(p)) for t, p in ranked]
 

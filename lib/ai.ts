@@ -24,7 +24,7 @@ Guidelines:
 - If a student expresses thoughts of self-harm, suicide, or being in immediate danger, treat it seriously: respond with care, do not minimize it, and strongly urge them to talk to a trusted adult, their guidance associate, or a parent/guardian right away, and to contact emergency services if they are in immediate danger. Do not attempt to handle a crisis alone in chat.
 - Do not provide medical, psychiatric, or diagnostic advice. Do not claim credentials or professional licensure you don't have.
 - Use age-appropriate language for a senior high school student.
-- If asked about something unrelated to guidance or school, you can help briefly, but gently steer the conversation back to being a guidance companion.`;
+- Never do tasks unrelated to guidance: no writing or fixing code, no homework or assignment answers, no essays, poems, summaries, translations, math, or general trivia, even "just a quick one". Politely say you're the guidance office's assistant and can't help with that, and mention what you can help with (appointments, office hours, referrals, how they're feeling).`;
 
 export interface AiChatTurn {
   role: "user" | "assistant";
@@ -63,7 +63,7 @@ function buildSystemPrompt(grounding: AiGrounding, language: string) {
     );
   } else {
     parts.push(
-      "The message wasn't matched to a known guidance topic. If official information for the question was already shared earlier in this conversation, you may build on it. Otherwise, answer as a warm guidance companion for everyday school concerns, but for anything the office must decide - records, requirements, formal complaints, exact schedules not already mentioned - say you're not certain and point them to the Guidance and Counseling Office (they can also use the \"Forward to the Guidance Office\" button below your reply)."
+      "The message wasn't matched to a known guidance topic. If official information for the question was already shared earlier in this conversation, you may build on it. If the message is a request unrelated to guidance (code, homework, essays, trivia, and the like), decline it as the guidelines say instead of doing it. Otherwise, answer as a warm guidance companion for everyday school concerns, but for anything the office must decide - records, requirements, formal complaints, exact schedules not already mentioned - say you're not certain and point them to the Guidance and Counseling Office (they can also use the \"Forward to the Guidance Office\" button below your reply)."
     );
   }
 

@@ -1,0 +1,101 @@
+{
+  "description": "Requests unrelated to guidance (code, homework, essays, trivia) in English and Taglish should be declined (out_of_scope), while real greetings still get a greeting. None are training patterns, but they were looked at while choosing phrasings. Scored with: python evaluate.py --test tests/off_topic_set.json",
+  "items": [
+    {
+      "text": "write me a python script or printing hello world",
+      "intent": "out_of_scope"
+    },
+    {
+      "text": "write a hello world program in java",
+      "intent": "out_of_scope"
+    },
+    {
+      "text": "can you code a calculator for me",
+      "intent": "out_of_scope"
+    },
+    {
+      "text": "fix my code it has an error",
+      "intent": "out_of_scope"
+    },
+    {
+      "text": "how do i make a website in html",
+      "intent": "out_of_scope"
+    },
+    {
+      "text": "gawan mo ako ng code sa python",
+      "intent": "out_of_scope"
+    },
+    {
+      "text": "pagawa naman ng program",
+      "intent": "out_of_scope"
+    },
+    {
+      "text": "do my assignment for me",
+      "intent": "out_of_scope"
+    },
+    {
+      "text": "answer my homework in science",
+      "intent": "out_of_scope"
+    },
+    {
+      "text": "pasagot naman ng assignment ko",
+      "intent": "out_of_scope"
+    },
+    {
+      "text": "write an essay about climate change",
+      "intent": "out_of_scope"
+    },
+    {
+      "text": "gawan mo ko ng essay",
+      "intent": "out_of_scope"
+    },
+    {
+      "text": "summarize this article for me",
+      "intent": "out_of_scope"
+    },
+    {
+      "text": "what is the formula for the area of a circle",
+      "intent": "out_of_scope"
+    },
+    {
+      "text": "translate this to english",
+      "intent": "out_of_scope"
+    },
+    {
+      "text": "who is the president of the philippines",
+      "intent": "out_of_scope"
+    },
+    {
+      "text": "make me a poem",
+      "intent": "out_of_scope"
+    },
+    {
+      "text": "hello",
+      "intent": "greeting"
+    },
+    {
+      "text": "hi e-gabay",
+      "intent": "greeting"
+    },
+    {
+      "text": "hello po",
+      "intent": "greeting"
+    },
+    {
+      "text": "good morning",
+      "intent": "greeting"
+    },
+    {
+      "text": "hey there",
+      "intent": "greeting"
+    },
+    {
+      "text": "i'm stressed about my thesis code",
+      "intent": "thesis_stress"
+    },
+    {
+      "text": "i'm failing programming class",
+      "intent": "exam_stress"
+    }
+  ]
+}

@@ -22,7 +22,11 @@
         "Goodmorning/Goodevening",
         "just saying hi",
         "just dropping by to say hello",
-        "hi, just wanted to say hello"
+        "hi, just wanted to say hello",
+        "hello e-gabay",
+        "hey e-gabay",
+        "good day e-gabay",
+        "hi there e-gabay"
       ],
       "patterns_tl": [
         "kumusta",
@@ -43,7 +47,9 @@
         "gusto ko lang mag-hello",
         "napadaan lang ako, hi",
         "wala lang, hello lang",
-        "hi lang"
+        "hi lang",
+        "hello po e-gabay",
+        "hi po e-gabay"
       ],
       "responses_en": [
         "Hi there! I'm E-Gabay. How are you feeling today?",
@@ -76,7 +82,10 @@
         "kita na lang tayo ulit",
         "babay",
         "sige po salamat aalis na ako",
-        "aalis na po ako"
+        "aalis na po ako",
+        "bye po, salamat",
+        "sige po, bye na",
+        "paalam na po, thank you"
       ],
       "responses_en": [
         "Take care! I'm here whenever you need to talk.",
@@ -104,7 +113,14 @@
         "thank you so much",
         "that was helpful",
         "thanks, i booked already",
-        "thank you, that solved it"
+        "thank you, that solved it",
+        "thank you, that really helped me a lot",
+        "thanks, the session with the guidance associate helped",
+        "thank you for helping me with my problem",
+        "thanks so much, i feel better now",
+        "thank you, everything is okay now",
+        "thanks for listening to me",
+        "thank you, the advice helped"
       ],
       "patterns_tl": [
         "salamuch",
@@ -116,7 +132,13 @@
         "thank you po",
         "salamat talaga",
         "salamat, nakapag-book na ako",
-        "salamat, nagawa ko na"
+        "salamat, nagawa ko na",
+        "salamat po sa pakikinig",
+        "salamat, okay na ako ngayon",
+        "salamat po, nakatulong talaga kayo",
+        "salamat sa tulong, gumaan na pakiramdam ko",
+        "maraming salamat po sa guidance office",
+        "salamat, ayos na ang lahat"
       ],
       "responses_en": [
         "You're welcome! I'm glad I could help.",
@@ -434,7 +456,12 @@
         "pinagtatawanan ako ng kaklase ko",
         "may nag-post ng pangit kong picture",
         "pinagkakaisahan ako sa section",
-        "may nagbanta sa akin"
+        "may nagbanta sa akin",
+        "tinatawanan ako ng mga kaklase ko",
+        "inaasar nila ako palagi sa classroom",
+        "pinagtatawanan ako sa school",
+        "lagi akong pinagtitripan ng classmates ko",
+        "ginagawa nila akong katatawanan"
       ],
       "responses_en": [
         "If you feel comfortable, please share what happened with the Guidance and Counseling office or a trusted school staff member. If the bullying involves threats, physical harm, or immediate danger, seek help from a school authority or emergency services right away.\n\nYou don’t have to handle this alone. The GCO can help you identify the appropriate next steps and available school support.",
@@ -2965,7 +2992,35 @@
         "sing me a song",
         "what are the lotto results",
         "what's trending on tiktok",
-        "how do i fix my computer"
+        "how do i fix my computer",
+        "write a python program",
+        "write code that prints hello world",
+        "create a javascript function",
+        "make me a program in c++",
+        "code a website for me",
+        "debug my code",
+        "why is my code not working",
+        "write a sql query",
+        "make me an app",
+        "help me with my programming assignment code",
+        "answer my assignment",
+        "solve my homework problems",
+        "write a story for me",
+        "write a poem about love",
+        "make a speech for me",
+        "summarize this text",
+        "paraphrase this paragraph",
+        "explain photosynthesis",
+        "what is the quadratic formula",
+        "calculate 15 times 23",
+        "what is the area of a triangle",
+        "who discovered gravity",
+        "when did world war 2 end",
+        "who is the mayor",
+        "define democracy",
+        "write a report about pollution",
+        "make a powerpoint for me",
+        "generate an image"
       ],
       "patterns_tl": [
         "ano ang capital ng japan",
@@ -2988,7 +3043,20 @@
         "ano masarap na ulam ngayon",
         "saan masarap kumain malapit sa school",
         "anong kakainin ko mamaya",
-        "recommend ka naman ng merienda"
+        "recommend ka naman ng merienda",
+        "gawan mo ako ng program",
+        "pagawa ng code",
+        "i-code mo naman to",
+        "ayusin mo yung code ko",
+        "gawa ka ng website",
+        "pagawa ng homework",
+        "gawan mo ako ng sanaysay",
+        "pagawa ng tula",
+        "i-summarize mo to",
+        "i-translate mo to",
+        "ano ang formula ng area",
+        "pakisagot ng math problem ko",
+        "gawan mo ako ng report"
       ],
       "responses_en": [
         "I'm E-Gabay, the guidance office's assistant, so I can't help with that one. I can answer questions about appointments, office hours, referrals, and the GCO's services, or you can tell me how you're feeling."
@@ -3002,14 +3070,12 @@
       "patterns_en": [],
       "patterns_tl": [],
       "responses_en": [
-        "I'm not totally sure I understand — could you tell me a bit more about what's going on?",
-        "I want to make sure I understand you correctly. Could you rephrase that?",
-        "I'm still learning! Could you say that in a different way, or would you like to talk to your guidance associate directly about this?"
+        "I'm not sure I understood that. I'm the guidance office's assistant, so I can help with appointments, office hours, referrals, and how you're feeling. If your question is for the guidance office, you can send it to them below.",
+        "Sorry, I can't help with that one, or I didn't quite get it. I can answer questions about appointments, office hours, referrals, and the GCO's services. You can also send your question to the guidance office below."
       ],
       "responses_tl": [
-        "Hindi ko lubos na naintindihan — pwede mo bang ipaliwanag pa nang kaunti?",
-        "Gusto kong masiguradong naiintindihan kita nang tama. Pwede mo bang sabihin ulit sa ibang paraan?",
-        "Marami pa akong kailangang matutunan! Pwede mo bang sabihin sa ibang paraan, o gusto mo na lang kausapin agad ang guidance associate mo tungkol dito?"
+        "Hindi ko sigurado kung naintindihan ko iyan. Ako ang assistant ng guidance office, kaya matutulungan kita sa appointments, oras ng opisina, referral, at sa nararamdaman mo. Kung para sa guidance office ang tanong mo, pwede mo itong ipadala sa kanila sa ibaba.",
+        "Pasensya, hindi ko matutulungan iyan o hindi ko masyadong naintindihan. Pwede mo akong tanungin tungkol sa appointments, oras ng opisina, referral, at serbisyo ng GCO. Pwede mo ring ipadala ang tanong mo sa guidance office sa ibaba."
       ]
     }
   ]
