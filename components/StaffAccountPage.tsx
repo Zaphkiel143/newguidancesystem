@@ -5,6 +5,7 @@ import { PushToggle } from "./LoginApproval";
 import ThemeSetting from "./ThemeSetting";
 import FacultyDetailsForm from "./FacultyDetailsForm";
 import GaHandover from "./GaHandover";
+import AccountTabs from "./AccountTabs";
 import { getCurrentUser } from "../lib/auth";
 import { shownName } from "../lib/demo";
 
@@ -17,19 +18,27 @@ export default async function StaffAccountPage() {
         <h1 className="page-title">My account</h1>
         <p className="text-sm text-slate-500 mt-1 break-all">{shownName(me)} · {me.email}</p>
       </header>
-      <section className="bg-sheet border border-rule rounded-2xl p-5 sm:p-6">
-        <h2 className="font-semibold text-[17px] text-ink mb-4">Profile photo</h2>
-        <PhotoPicker name={shownName(me)} hasPhoto={Boolean(me.avatarType)} />
-      </section>
-      {me.role === "FACULTY" && <FacultyDetailsForm />}
-      <div id="settings" className="scroll-mt-24 space-y-6">
-        <ThemeSetting />
-        <PushToggle />
-        <ChangePassword />
-        <AuthenticatorSetup />
-        {/* Account settings of the Guidance Associate: passing the role to a successor. */}
-        {me.role === "COUNSELOR" && <GaHandover />}
-      </div>
+      <AccountTabs
+        profile={
+          <div className="space-y-6">
+            <section className="bg-sheet border border-rule rounded-2xl p-5 sm:p-6">
+              <h2 className="font-semibold text-[17px] text-ink mb-4">Profile photo</h2>
+              <PhotoPicker name={shownName(me)} hasPhoto={Boolean(me.avatarType)} />
+            </section>
+            {me.role === "FACULTY" && <FacultyDetailsForm />}
+          </div>
+        }
+        settings={
+          <div className="space-y-6">
+            <ThemeSetting />
+            <PushToggle />
+            <ChangePassword />
+            <AuthenticatorSetup />
+            {/* Account settings of the Guidance Associate: passing the role to a successor. */}
+            {me.role === "COUNSELOR" && <GaHandover />}
+          </div>
+        }
+      />
     </div>
   );
 }

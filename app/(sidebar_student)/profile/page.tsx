@@ -10,6 +10,7 @@ import AuthenticatorSetup from '../../../components/AuthenticatorSetup';
 import ChangePassword from '../../../components/ChangePassword';
 import ThemeSetting from '../../../components/ThemeSetting';
 import { PushToggle } from '../../../components/LoginApproval';
+import AccountTabs from '../../../components/AccountTabs';
 import { ACCEPTED_FILE_TYPES } from '../../config/documents';
 import { SECTION_PROGRAMS, SHS, STUDENT_ID_DIGITS, formatCollegeSection, isShs, normalizeDepartment, splitCollegeSection, yearSectionsFor } from '../../config/studentLevels';
 import { capitalizeName, phoneChars } from '../../config/collegeCareerForm';
@@ -173,7 +174,16 @@ const StudentProfile: React.FC = () => {
       ) : !data ? (
         <p className="text-sm text-red-700">Couldn&apos;t load your profile. Try refreshing the page.</p>
       ) : (
-        <>
+        <AccountTabs
+          settings={
+            <div className="space-y-8">
+              <ThemeSetting />
+              <PushToggle />
+              <ChangePassword />
+              <AuthenticatorSetup />
+            </div>
+          }
+          profile={<div className="space-y-8">
           <section className="bg-white border border-rule rounded-xl overflow-hidden">
             <div className="px-6 py-6 flex flex-wrap items-center gap-5 border-b border-rule">
               <PhotoPicker name={data.name} hasPhoto={data.hasPhoto} compact />
@@ -325,13 +335,6 @@ const StudentProfile: React.FC = () => {
             )}
           </section>
 
-          <div id="settings" className="scroll-mt-24 space-y-8">
-            <ThemeSetting />
-            <PushToggle />
-            <ChangePassword />
-            <AuthenticatorSetup />
-          </div>
-
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
             <section>
               <h2 className="font-serif text-[22px] text-ink mb-3">Submit a document</h2>
@@ -416,7 +419,8 @@ const StudentProfile: React.FC = () => {
               )}
             </section>
           </div>
-        </>
+          </div>}
+        />
       )}
     </div>
   );

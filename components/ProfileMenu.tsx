@@ -74,7 +74,7 @@ export default function ProfileMenu({
           <Link role="menuitem" href={accountPath} className={item} onClick={() => setOpen(false)}>
             <UserRound size={17} className="text-blue-700" /> My account
           </Link>
-          <Link role="menuitem" href={`${accountPath}#settings`} className={item} onClick={() => setOpen(false)}>
+          <Link role="menuitem" href={`${accountPath}?tab=settings`} className={item} onClick={() => setOpen(false)}>
             <Settings size={17} className="text-blue-700" /> Settings
           </Link>
           <SignOutButton role="menuitem" className={`${item} border-t border-rule text-red-700 hover:bg-red-50`}>

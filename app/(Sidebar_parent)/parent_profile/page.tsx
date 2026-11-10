@@ -7,6 +7,7 @@ import PhotoPicker from "../../../components/PhotoPicker";
 import { PushToggle } from "../../../components/LoginApproval";
 import ThemeSetting from "../../../components/ThemeSetting";
 import ChangePassword from "../../../components/ChangePassword";
+import AccountTabs from "../../../components/AccountTabs";
 import InlineError from "../../../components/InlineError";
 import { formatPhone } from "../../../lib/phone";
 import { useOptionList } from "../../../components/useOptionList";
@@ -105,7 +106,17 @@ export default function ParentProfilePage() {
         <h1 className="page-title">My profile</h1>
       </header>
 
-      <section className="mt-8 bg-sheet border border-rule rounded-2xl p-5 sm:p-6">
+      <div className="mt-8">
+      <AccountTabs
+        settings={
+          <div className="space-y-8">
+            <ThemeSetting />
+            <PushToggle />
+            <ChangePassword />
+          </div>
+        }
+        profile={<>
+      <section className="bg-sheet border border-rule rounded-2xl p-5 sm:p-6">
         <PhotoPicker name={profile.name} hasPhoto={profile.hasPhoto} />
 
         <form onSubmit={save} className="mt-6 space-y-4">
@@ -192,11 +203,8 @@ export default function ParentProfilePage() {
           </div>
         </form>
       </section>
-
-      <div id="settings" className="scroll-mt-24 mt-8 space-y-8">
-        <ThemeSetting />
-        <PushToggle />
-      <ChangePassword />
+        </>}
+      />
       </div>
     </div>
   );

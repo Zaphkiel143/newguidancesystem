@@ -12,7 +12,7 @@ const REFERRALS: ChatLink = { label: "Open My Referrals", student: "/my_referral
 const REFER: ChatLink = { label: "Submit a referral", student: "/refer_student", faculty: "/submit_referral" };
 const DOCUMENTS: ChatLink = { label: "Open my documents", student: "/profile", faculty: "/upload_documents" };
 const MESSAGES: ChatLink = { label: "Message the guidance office", student: "/my_messages", faculty: "/faculty_message" };
-const ACCOUNT: ChatLink = { label: "Open my account", student: "/profile#settings", faculty: "/faculty_account" };
+const ACCOUNT: ChatLink = { label: "Open my account settings", student: "/profile?tab=settings", faculty: "/faculty_account?tab=settings" };
 
 const BY_INTENT: Record<string, ChatLink[]> = {
   book_appointment: [APPOINTMENTS],
