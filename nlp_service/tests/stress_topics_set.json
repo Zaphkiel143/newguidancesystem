@@ -1,0 +1,149 @@
+{
+  "description": "'Stressed / worried about <topic>' in English and Taglish: each should reach its own topic, not exam stress. None of these sentences are training patterns, but they were looked at while choosing new phrasings. Scored with: python evaluate.py --test tests/stress_topics_set.json",
+  "items": [
+    {
+      "text": "Im stressed about my family",
+      "intent": "family_problems"
+    },
+    {
+      "text": "i'm so stressed because of my parents",
+      "intent": "family_problems"
+    },
+    {
+      "text": "stressed ako sa family ko",
+      "intent": "family_problems"
+    },
+    {
+      "text": "stress na stress ako sa bahay",
+      "intent": "family_problems"
+    },
+    {
+      "text": "worried ako sa parents ko lagi silang nag-aaway",
+      "intent": "family_problems"
+    },
+    {
+      "text": "i'm worried about my mom and dad",
+      "intent": "family_problems"
+    },
+    {
+      "text": "my family stresses me out",
+      "intent": "family_problems"
+    },
+    {
+      "text": "i'm stressed about my friends",
+      "intent": "friendship_issues"
+    },
+    {
+      "text": "stressed ako sa barkada ko",
+      "intent": "friendship_issues"
+    },
+    {
+      "text": "i'm stressed about my relationship",
+      "intent": "relationship_problems"
+    },
+    {
+      "text": "stressed ako sa jowa ko",
+      "intent": "relationship_problems"
+    },
+    {
+      "text": "my boyfriend is stressing me out",
+      "intent": "relationship_problems"
+    },
+    {
+      "text": "i'm stressed about money",
+      "intent": "financial_concern"
+    },
+    {
+      "text": "stressed ako sa pambayad ng tuition",
+      "intent": "financial_concern"
+    },
+    {
+      "text": "i'm stressed about paying tuition",
+      "intent": "financial_concern"
+    },
+    {
+      "text": "i'm stressed about my thesis",
+      "intent": "thesis_stress"
+    },
+    {
+      "text": "i'm stressed about my exams",
+      "intent": "exam_stress"
+    },
+    {
+      "text": "stressed ako sa quiz bukas",
+      "intent": "exam_stress"
+    },
+    {
+      "text": "i'm stressed because i can't sleep",
+      "intent": "sleep_problems"
+    },
+    {
+      "text": "stressed ako kasi di ako makatulog",
+      "intent": "sleep_problems"
+    },
+    {
+      "text": "i'm stressed because they bully me",
+      "intent": "bullying"
+    },
+    {
+      "text": "stressed ako kasi binubully ako",
+      "intent": "bullying"
+    },
+    {
+      "text": "i'm stressed about what course to take",
+      "intent": "career_question"
+    },
+    {
+      "text": "stressed ako kung anong course kukunin ko",
+      "intent": "career_question"
+    },
+    {
+      "text": "i'm stressed about my absences",
+      "intent": "attendance_concern"
+    },
+    {
+      "text": "i'm stressed about all my deadlines",
+      "intent": "time_management"
+    },
+    {
+      "text": "stressed ako, ang dami kong deadlines",
+      "intent": "time_management"
+    },
+    {
+      "text": "i'm stressed being new in this school",
+      "intent": "school_adjustment"
+    },
+    {
+      "text": "i'm stressed since my grandma died",
+      "intent": "grief_loss"
+    },
+    {
+      "text": "i'm worried about my friend",
+      "intent": "worried_about_someone"
+    },
+    {
+      "text": "i'm stressed and lonely, i have no friends",
+      "intent": "loneliness"
+    },
+    {
+      "text": "i'm stressed about how i look",
+      "intent": "self_esteem"
+    },
+    {
+      "text": "problem ko yung family ko",
+      "intent": "family_problems"
+    },
+    {
+      "text": "my family is the reason i'm stressed",
+      "intent": "family_problems"
+    },
+    {
+      "text": "i feel stressed at home",
+      "intent": "family_problems"
+    },
+    {
+      "text": "stressed lang ako in general",
+      "intent": "feeling_anxious"
+    }
+  ]
+}

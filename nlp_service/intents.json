@@ -204,12 +204,12 @@
         "sobrang stressed na ako sa quiz bukas"
       ],
       "responses_en": [
-        "It’s normal to feel stressed when exams and deadlines pile up. Let’s start with a few manageable steps:\n• List your upcoming exams, projects, and deadlines.\n• Prioritize tasks according to urgency and importance.\n• Break large tasks into smaller, achievable steps.\n• Study in focused intervals and take short breaks.\n• Get enough sleep, eat regularly, and allow time to rest.\n\nIf your stress feels overwhelming or is affecting your daily functioning, you may reach out to the Guidance and Counseling office for additional support.",
-        "Exams can feel like a lot. Try one small step today: pick one subject, study it for 25 minutes, then take a 5-minute break. Sleep and meals matter too. Would you like to book a session with the Guidance Associate?"
+        "It's normal to feel stressed when exams and deadlines pile up. One small thing that can help is taking a short break and getting enough sleep. If the stress is weighing on you, the Guidance Associate can talk it through with you. You can book a session with the Guidance Associate under My Appointments, or visit the Guidance and Counseling Office during office hours.",
+        "Exams can feel like a lot. Be kind to yourself and rest when you can. Would you like to book a session with the Guidance Associate to talk about it?"
       ],
       "responses_tl": [
-        "Normal lang na ma-stress kapag sabay-sabay ang exams at deadlines. Subukan natin ito:\n• Ilista ang mga paparating na exam, project, at deadline.\n• Unahin ang pinaka-urgent at pinaka-importante.\n• Hatiin ang malalaking gawain sa maliliit na hakbang.\n• Mag-aral nang naka-focus, tapos magpahinga sandali.\n• Matulog nang sapat, kumain nang maayos, at magpahinga.\n\nKung sobra na ang stress at naaapektuhan na ang araw-araw mo, pwede kang lumapit sa Guidance and Counseling Office para sa dagdag na suporta.",
-        "Nakaka-pressure talaga ang exams. Subukan mong isang subject muna: mag-aral nang 25 minuto, tapos 5 minutong pahinga. Mahalaga rin ang tulog at pagkain. Gusto mo bang mag-book ng session sa Guidance Associate?"
+        "Normal lang na ma-stress kapag sabay-sabay ang exams at deadlines. Makakatulong ang sandaling pahinga at sapat na tulog. Kung mabigat na ito para sa iyo, pwede mo itong pag-usapan kasama ang Guidance Associate. Pwede kang mag-book ng session sa Guidance Associate sa My Appointments, o pumunta sa Guidance and Counseling Office sa oras ng opisina.",
+        "Nakaka-pressure talaga ang exams. Maging mabait sa sarili at magpahinga kapag kaya. Gusto mo bang mag-book ng session sa Guidance Associate para pag-usapan ito?"
       ],
       "followups": {
         "affirm": "book_appointment",
@@ -288,12 +288,12 @@
         "pagod na ako sa thesis namin"
       ],
       "responses_en": [
-        "Thesis and capstone work can feel huge, especially with deadlines, revisions, and a group to coordinate. A few steps that help:\n• Break the paper into small tasks (one section or one feature at a time) and set a date for each.\n• Agree on who does what with your groupmates, write it down, and check in briefly every few days.\n• Bring specific questions to your adviser early instead of waiting until the paper is \"done\".\n• Treat panel revisions as a checklist: list them, then tick them off one by one.\n• Protect your sleep and meals, and take short breaks; a tired mind writes slower.\n\nIf the stress is affecting your sleep, health, or how you get along with your group, the Guidance Associate can help. You can book a session here anytime.",
-        "Thesis stress is very common, and you don't have to carry it alone. Pick one small task you can finish today, like one paragraph or one bug, and start there. If your group is having conflicts or you feel close to burning out, would you like to book a session with the Guidance Associate?"
+        "Thesis and capstone work can feel huge, and you don't have to carry it alone. Your adviser is the right person for questions about the paper itself. If the stress or group conflicts are wearing you down, the Guidance Associate can help. You can book a session with the Guidance Associate under My Appointments, or visit the Guidance and Counseling Office during office hours.",
+        "Thesis stress is very common. If it's affecting your sleep, health, or your group, would you like to book a session with the Guidance Associate?"
       ],
       "responses_tl": [
-        "Mabigat talaga ang thesis at capstone, lalo na kapag sabay-sabay ang deadline, revisions, at pakikipag-ugnayan sa grupo. Subukan natin ito:\n• Hatiin ang papel sa maliliit na gawain (isang section o isang feature muna) at lagyan ng petsa ang bawat isa.\n• Pag-usapan ng grupo kung sino ang gagawa ng ano, isulat ito, at mag-check in kada ilang araw.\n• Lumapit agad sa adviser na may tiyak na tanong; huwag nang hintaying \"tapos\" na ang papel.\n• Gawing checklist ang mga revision ng panel at isa-isahin ang mga ito.\n• Matulog nang sapat, kumain nang maayos, at magpahinga sandali; mas mabagal magsulat kapag pagod.\n\nKung naaapektuhan na ng stress ang tulog, kalusugan, o samahan ng grupo ninyo, pwede kang tulungan ng Guidance Associate. Pwede kang mag-book ng session dito anumang oras.",
-        "Normal lang ma-stress sa thesis, at hindi mo kailangang pasanin ito nang mag-isa. Pumili ng isang maliit na gawain na kaya mong tapusin ngayon, gaya ng isang talata o isang bug, at doon magsimula. Kung may hindi pagkakaunawaan sa grupo o pakiramdam mo ay malapit ka nang mag-burnout, gusto mo bang mag-book ng session sa Guidance Associate?"
+        "Mabigat talaga ang thesis at capstone, at hindi mo kailangang pasanin ito nang mag-isa. Ang adviser mo ang tamang lapitan para sa mismong papel. Kung pinapagod ka na ng stress o ng hindi pagkakaunawaan sa grupo, matutulungan ka ng Guidance Associate. Pwede kang mag-book ng session sa Guidance Associate sa My Appointments, o pumunta sa Guidance and Counseling Office sa oras ng opisina.",
+        "Karaniwan ang ma-stress sa thesis. Kung naaapektuhan na nito ang tulog, kalusugan, o grupo mo, gusto mo bang mag-book ng session sa Guidance Associate?"
       ],
       "label_en": "Thesis or capstone",
       "label_tl": "Thesis o capstone",
@@ -384,12 +384,12 @@
         "hindi ko natatapos ang assignments ko"
       ],
       "responses_en": [
-        "Juggling many tasks is hard. A few things that help:\n• Write every task and deadline in one list or planner.\n• Do the most urgent and important task first.\n• Break big projects into small steps with their own mini-deadlines.\n• Work in focused blocks (for example 25 minutes) with short breaks.\n• Say no to extra commitments when your week is already full.\n\nIf you'd like help making a study plan, the Guidance and Counseling Office can work on it with you.",
-        "Procrastinating is very common. Try the 2-minute rule: if a task takes less than 2 minutes, do it now. For bigger ones, just start for 10 minutes; starting is usually the hardest part. Would you like to book a session with the Guidance Associate?"
+        "Juggling many tasks is hard. Writing everything down in one list can make it feel lighter. If you'd like help making a plan that works for you, the Guidance Associate can work on it with you. You can book a session with the Guidance Associate under My Appointments, or visit the Guidance and Counseling Office during office hours.",
+        "Procrastinating is very common, and starting is usually the hardest part. Would you like to book a session with the Guidance Associate to work on it together?"
       ],
       "responses_tl": [
-        "Mahirap talagang pagsabayin ang maraming gawain. Ilang tips:\n• Isulat lahat ng gawain at deadline sa isang listahan o planner.\n• Unahin ang pinaka-urgent at pinaka-importante.\n• Hatiin ang malalaking project sa maliliit na hakbang na may sariling deadline.\n• Magtrabaho nang naka-focus (halimbawa 25 minuto) at magpahinga sandali.\n\nKung gusto mo ng tulong sa paggawa ng study plan, matutulungan ka ng Guidance and Counseling Office.",
-        "Normal ang mag-procrastinate. Subukan mong simulan kahit 10 minuto lang; kadalasan, ang pagsisimula ang pinakamahirap. Gusto mo bang mag-book ng session sa Guidance Associate?"
+        "Mahirap talagang pagsabayin ang maraming gawain. Makakatulong ang isulat lahat sa isang listahan. Kung gusto mo ng tulong sa paggawa ng plano, matutulungan ka ng Guidance Associate. Pwede kang mag-book ng session sa Guidance Associate sa My Appointments, o pumunta sa Guidance and Counseling Office sa oras ng opisina.",
+        "Normal ang mag-procrastinate, at kadalasan ang pagsisimula ang pinakamahirap. Gusto mo bang mag-book ng session sa Guidance Associate para pag-usapan ito?"
       ],
       "followups": {
         "affirm": "book_appointment",
@@ -479,7 +479,16 @@
         "i don't want to go home",
         "my dad always scolds me",
         "my mom is always mad at me",
-        "my parents are fighting again"
+        "my parents are fighting again",
+        "i'm really stressed about my family",
+        "my family is stressing me out",
+        "so stressed because of problems at home",
+        "my parents are stressing me out",
+        "i'm worried about my parents fighting",
+        "stressed out about things at home",
+        "family stuff is stressing me",
+        "i'm stressed because of my family situation",
+        "worried about my family"
       ],
       "patterns_tl": [
         "maingay lagi sa bahay kasi nag-aaway sila",
@@ -504,7 +513,14 @@
         "nag-aaway na naman parents ko",
         "nag-away ulit sila papa at mama",
         "away na naman sa bahay",
-        "nagsigawan na naman sila mama at papa"
+        "nagsigawan na naman sila mama at papa",
+        "stressed ako sa pamilya ko",
+        "stress ako sa family namin",
+        "nai-stress ako sa bahay",
+        "stressed ako dahil sa parents ko",
+        "nag-aalala ako sa pamilya ko",
+        "stress na ako sa problema sa bahay",
+        "family ko yung problema ko"
       ],
       "responses_en": [
         "Thank you for sharing what you're going through. Problems at home can be really heavy, and your feelings deserve to be heard.\n\nYou don't have to solve everything at once. It may help to talk with someone you trust or schedule a consultation with the Guidance and Counseling office. The GCO can provide a supportive space to discuss your concerns and explore ways to cope.\n\nIf you feel unsafe at home or are thinking about hurting yourself, please tell a trusted person and seek immediate help.",
@@ -574,7 +590,11 @@
         "Call them and talk about what happened",
         "How can I solve the conflict and make peace with my friend?",
         "Can you help me resolve a conflict with my classmate or friend?",
-        "If the conflict is already intense, I would ask the guidance for a little help bago pa maging physical ang conflict."
+        "If the conflict is already intense, I would ask the guidance for a little help bago pa maging physical ang conflict.",
+        "i'm stressed about my friendships",
+        "my friends are stressing me out",
+        "stressed because of my friend group",
+        "worried about my friendship"
       ],
       "patterns_tl": [
         "nagtampo yung bestfriend ko",
@@ -594,17 +614,22 @@
         "Hello po, May problema po kame ng classmate ko po? pwede po gawan ng paraan.",
         "Paano po ba makipag-ayos sa kaibigan ko?",
         "Paano po ba pwedeng maayos ung conflict namin nang hindi na lumala?",
-        "Good morning po ma'am/sir pwede po ba ko magpa advice dahil po nagkagalit po kame ng friend ko"
+        "Good morning po ma'am/sir pwede po ba ko magpa advice dahil po nagkagalit po kame ng friend ko",
+        "stressed ako sa mga kaibigan ko",
+        "nai-stress ako sa tropa ko",
+        "stress ako sa friendship namin",
+        "nag-away kami ng kaibigan ko",
+        "hindi na ako pinapansin ng bestfriend ko",
+        "galit sakin yung best friend ko",
+        "nag-away kami ng tropa ko, di na kami nag-uusap"
       ],
       "responses_en": [
-        "Friendship troubles can really hurt. Do you want to talk about what happened?",
-        "Feeling lonely at school is hard. Sometimes joining a club or activity can help you meet new people who share your interests.",
-        "That sounds lonely. It's okay to feel this way. Would you like to book a session with the Guidance Associate?"
+        "Friendship troubles can really hurt, and it's okay to feel this way. The Guidance Associate can help you think it through. You can book a session with the Guidance Associate under My Appointments, or visit the Guidance and Counseling Office during office hours.",
+        "That sounds lonely, and it's okay to feel this way. Would you like to book a session with the Guidance Associate?"
       ],
       "responses_tl": [
-        "Mahirap talaga ang problema sa friendship. Gusto mo bang ikwento kung ano ang nangyari?",
-        "Mahirap ang mapag-isa sa school. Minsan makakatulong ang pagsali sa isang club o activity para makakilala ka ng bagong kaibigan na may parehong interes.",
-        "Mukhang nakakalungkot iyan. Okay lang na maramdaman mo iyan. Gusto mo bang mag-book ng session sa Guidance Associate?"
+        "Masakit talaga ang problema sa friendship, at okay lang na maramdaman mo iyan. Matutulungan ka ng Guidance Associate na pag-isipan ito. Pwede kang mag-book ng session sa Guidance Associate sa My Appointments, o pumunta sa Guidance and Counseling Office sa oras ng opisina.",
+        "Mukhang nakakalungkot iyan, at okay lang na maramdaman mo iyan. Gusto mo bang mag-book ng session sa Guidance Associate?"
       ],
       "followups": {
         "affirm": "book_appointment",
@@ -689,7 +714,10 @@
         "i'm always the worst in class",
         "nobody would miss me if i was gone at school",
         "i'm not pretty enough",
-        "i'm so dumb"
+        "i'm so dumb",
+        "i'm stressed about my appearance",
+        "stressed because i feel ugly",
+        "i'm insecure about how i look"
       ],
       "patterns_tl": [
         "parang wala akong kwenta",
@@ -703,7 +731,10 @@
         "mas magaling silang lahat sa akin",
         "bobo ako",
         "ayaw ko sa sarili ko",
-        "pakiramdam ko wala akong silbi"
+        "pakiramdam ko wala akong silbi",
+        "stressed ako sa itsura ko",
+        "insecure ako sa itsura ko",
+        "nai-stress ako kasi pangit daw ako"
       ],
       "responses_en": [
         "I'm sorry you're feeling this way about yourself. Those thoughts can be really loud, but they don't tell the whole story about who you are.\n\nTry noticing one small thing you did well today, even something simple. Talking it through with someone can also help, and the Guidance and Counseling office is a safe place to do that. Would you like to book a session with the Guidance Associate?",
@@ -1683,10 +1714,10 @@
         "mag-vent lang ako"
       ],
       "responses_en": [
-        "I'm here to listen. Tell me what's on your mind, and I'll do my best to help or point you to the right support. If you'd like to talk to the Guidance Associate, you can book a session under My Appointments or visit the Guidance and Counseling Office during office hours."
+        "I'm glad you reached out. I'm an automated helper, so for what's on your mind the Guidance Associate is the right person to listen and help. You can book a session with the Guidance Associate under My Appointments, or visit the Guidance and Counseling Office during office hours. You can also message the guidance office from My Messages."
       ],
       "responses_tl": [
-        "Nandito ako para makinig. Sabihin mo lang kung ano ang nasa isip mo, at tutulungan kita o ituturo sa tamang suporta. Kung gusto mong makausap ang Guidance Associate, mag-book ng session sa My Appointments o pumunta sa Guidance and Counseling Office sa oras ng opisina."
+        "Mabuti at lumapit ka. Automated helper lang ako, kaya ang Guidance Associate ang tamang makikinig at tutulong sa iyo. Pwede kang mag-book ng session sa Guidance Associate sa My Appointments, o pumunta sa Guidance and Counseling Office sa oras ng opisina. Pwede mo ring i-message ang guidance office sa My Messages."
       ],
       "followups": {
         "affirm": "book_appointment",
@@ -1737,10 +1768,10 @@
         "na-miss ko ang exam kasi absent ako"
       ],
       "responses_en": [
-        "Missing classes often has a reason behind it, like health, problems at home, money, or feeling unmotivated. It helps to:\n• Talk to your teacher or adviser soon, before absences pile up, and ask how to catch up.\n• Keep any medical certificate or excuse letter for absences.\n• Ask a classmate for notes and missed requirements.\n\nIf something is making it hard to come to school, the Guidance Associate can talk it through with you and help you plan. You can book a session with the Guidance Associate under My Appointments, or visit the Guidance and Counseling Office during office hours."
+        "Missing classes often has a reason behind it, like health, problems at home, money, or feeling unmotivated. Your teacher or adviser can tell you how to catch up. If something is making it hard to come to school, the Guidance Associate can talk it through with you. You can book a session with the Guidance Associate under My Appointments, or visit the Guidance and Counseling Office during office hours."
       ],
       "responses_tl": [
-        "Kadalasan may dahilan ang madalas na pag-absent, gaya ng kalusugan, problema sa bahay, pera, o kawalan ng gana. Makakatulong ang:\n• Kausapin agad ang teacher o adviser mo bago pa dumami ang absences, at itanong kung paano makakahabol.\n• Itago ang medical certificate o excuse letter para sa mga absent.\n• Humingi ng notes at mga na-miss na requirements sa kaklase.\n\nKung may dahilan kung bakit nahihirapan kang pumasok, pwede mo itong pag-usapan kasama ang Guidance Associate. Pwede kang mag-book ng session sa Guidance Associate sa My Appointments, o pumunta sa Guidance and Counseling Office sa oras ng opisina."
+        "Kadalasan may dahilan ang madalas na pag-absent, gaya ng kalusugan, problema sa bahay, pera, o kawalan ng gana. Ang teacher o adviser mo ang makakapagsabi kung paano makakahabol. Kung may dahilan kung bakit nahihirapan kang pumasok, pwede mo itong pag-usapan kasama ang Guidance Associate. Pwede kang mag-book ng session sa Guidance Associate sa My Appointments, o pumunta sa Guidance and Counseling Office sa oras ng opisina."
       ],
       "label_en": "Absences or lateness",
       "label_tl": "Absent o late",
@@ -1770,7 +1801,12 @@
         "my parents lost their jobs",
         "we're having money problems and i might stop school",
         "i can't afford the requirements",
-        "i don't have money for my allowance"
+        "i don't have money for my allowance",
+        "i'm stressed about finances",
+        "money is stressing me out",
+        "stressed because we can't pay tuition",
+        "worried about money for school",
+        "i'm stressed about our bills"
       ],
       "patterns_tl": [
         "gipit kami ngayon",
@@ -1787,7 +1823,11 @@
         "nawalan ng trabaho ang magulang ko",
         "walang pera pang-baon",
         "hindi ko kayang bilhin ang mga requirements",
-        "may tulong ba sa walang pera"
+        "may tulong ba sa walang pera",
+        "stressed ako sa pera",
+        "nai-stress ako sa tuition",
+        "stress ako kasi wala kaming pera",
+        "nag-aalala ako sa pambayad"
       ],
       "responses_en": [
         "Money worries can make school feel much heavier. For scholarships, discounts, payment schedules, or financial assistance, please ask the Registrar or the Accounting/Cashier office; they handle the requirements and deadlines.\n\nIf money problems or working while studying are affecting your studies or how you feel, the Guidance Associate can help you plan and cope. You can book a session with the Guidance Associate under My Appointments, or visit the Guidance and Counseling Office during office hours."
@@ -1895,10 +1935,10 @@
         "feeling ko walang may pake sakin"
       ],
       "responses_en": [
-        "Feeling alone is painful, and it happens to more students than you might think. Thank you for telling me. Small steps can help: say hi to one classmate, join a club or org that matches your interests, or sit with a group during a break.\n\nYou also don't have to wait until you have friends to talk to someone. The Guidance Associate is there to listen. You can book a session with the Guidance Associate under My Appointments, or visit the Guidance and Counseling Office during office hours."
+        "Feeling alone is painful, and it happens to more students than you might think. Thank you for telling me. You don't have to wait until you have friends to talk to someone: the Guidance Associate is there to listen. You can book a session with the Guidance Associate under My Appointments, or visit the Guidance and Counseling Office during office hours."
       ],
       "responses_tl": [
-        "Masakit ang pakiramdam na nag-iisa, at mas maraming estudyante ang nakakaranas nito kaysa sa inaakala mo. Salamat sa pagsabi. Makakatulong ang maliliit na hakbang: batiin ang isang kaklase, sumali sa club o org na gusto mo, o sumama sa isang grupo tuwing break.\n\nHindi mo rin kailangang hintaying magkaroon ng kaibigan bago may makausap. Nandiyan ang Guidance Associate para makinig. Pwede kang mag-book ng session sa Guidance Associate sa My Appointments, o pumunta sa Guidance and Counseling Office sa oras ng opisina."
+        "Masakit ang pakiramdam na nag-iisa, at mas maraming estudyante ang nakakaranas nito kaysa sa inaakala mo. Salamat sa pagsabi. Hindi mo kailangang hintaying magkaroon ng kaibigan bago may makausap: nandiyan ang Guidance Associate para makinig. Pwede kang mag-book ng session sa Guidance Associate sa My Appointments, o pumunta sa Guidance and Counseling Office sa oras ng opisina."
       ],
       "label_en": "Feeling lonely",
       "label_tl": "Nag-iisa",
@@ -1943,10 +1983,10 @@
         "pagod ako lagi kasi di ako makatulog"
       ],
       "responses_en": [
-        "Not getting enough sleep makes everything harder, from focusing in class to handling stress. A few things that help:\n• Sleep and wake up at about the same time every day.\n• Put your phone away 30 minutes before bed.\n• Avoid coffee and energy drinks in the afternoon.\n• If your mind keeps racing, write your worries down so they can wait until tomorrow.\n\nIf you've had trouble sleeping for weeks, or worries are keeping you up, talk to the Guidance Associate, and consider seeing a doctor. You can book a session with the Guidance Associate under My Appointments, or visit the Guidance and Counseling Office during office hours."
+        "Not getting enough sleep makes everything harder. Keeping your phone away before bed can help a little. If you've had trouble sleeping for a while, or worries are keeping you up, talk to the Guidance Associate, and consider seeing a doctor. You can book a session with the Guidance Associate under My Appointments, or visit the Guidance and Counseling Office during office hours."
       ],
       "responses_tl": [
-        "Mas humihirap ang lahat kapag kulang sa tulog, mula sa pag-focus sa klase hanggang sa pagharap sa stress. Makakatulong ang:\n• Matulog at gumising sa halos parehong oras araw-araw.\n• Itabi ang cellphone 30 minuto bago matulog.\n• Iwasan ang kape at energy drinks sa hapon.\n• Kung hindi tumitigil ang isip, isulat ang mga iniisip para bukas na lang harapin.\n\nKung ilang linggo ka nang hirap matulog, o hindi ka makatulog dahil sa mga alalahanin, kausapin ang Guidance Associate at magpatingin din sa doktor. Pwede kang mag-book ng session sa Guidance Associate sa My Appointments, o pumunta sa Guidance and Counseling Office sa oras ng opisina."
+        "Mas humihirap ang lahat kapag kulang sa tulog. Makakatulong nang kaunti ang itabi ang cellphone bago matulog. Kung matagal ka nang hirap matulog o may mga alalahaning hindi ka pinapatulog, kausapin ang Guidance Associate at magpatingin din sa doktor. Pwede kang mag-book ng session sa Guidance Associate sa My Appointments, o pumunta sa Guidance and Counseling Office sa oras ng opisina."
       ],
       "label_en": "Trouble sleeping",
       "label_tl": "Hirap matulog",
@@ -1975,7 +2015,11 @@
         "my girlfriend ignores me",
         "i got ghosted",
         "i'm confused about my feelings for someone",
-        "my crush rejected me"
+        "my crush rejected me",
+        "i'm stressed about my girlfriend",
+        "my relationship is stressing me out",
+        "stressed because of my partner",
+        "worried about my relationship"
       ],
       "patterns_tl": [
         "nakipag-break siya sa akin",
@@ -1989,13 +2033,21 @@
         "nag-away kami ng jowa ko",
         "na-ghost ako",
         "binasted ako ng crush ko",
-        "hindi ako pinapansin ng jowa ko"
+        "hindi ako pinapansin ng jowa ko",
+        "stressed ako sa relasyon namin",
+        "nai-stress ako sa boyfriend ko",
+        "stress ako sa girlfriend ko",
+        "nakipaghiwalay sakin yung boyfriend ko",
+        "break na kami ng bf ko, ang sakit",
+        "iniwan ako ng jowa ko",
+        "hiniwalayan ako ng girlfriend ko",
+        "nag-break kami kahapon, sobrang sakit"
       ],
       "responses_en": [
-        "Breakups and relationship problems can hurt a lot, and it's okay to feel sad, angry, or confused. Lean on people you trust, keep up your routine (sleep, meals, classes), and give yourself time.\n\nA healthy relationship should never make you feel scared, controlled, or hurt. If your partner checks your phone, isolates you from friends, threatens you, or hurts you, please talk to someone you trust right away. The Guidance Associate can help, confidentially. You can book a session with the Guidance Associate under My Appointments, or visit the Guidance and Counseling Office during office hours."
+        "Breakups and relationship problems can hurt a lot, and it's okay to feel sad, angry, or confused. A healthy relationship should never make you feel scared, controlled, or hurt; if it does, please tell someone you trust right away. The Guidance Associate can help, confidentially. You can book a session with the Guidance Associate under My Appointments, or visit the Guidance and Counseling Office during office hours."
       ],
       "responses_tl": [
-        "Masakit talaga ang break-up at problema sa relasyon, at okay lang na malungkot, magalit, o maguluhan. Sumandal sa mga taong pinagkakatiwalaan mo, ituloy ang normal na routine (tulog, kain, klase), at bigyan ng oras ang sarili.\n\nHindi ka dapat matakot, kontrolin, o saktan sa isang maayos na relasyon. Kung chine-check ng partner mo ang phone mo, nilalayo ka sa mga kaibigan, tinatakot, o sinasaktan ka, sabihin agad sa taong pinagkakatiwalaan mo. Makakatulong ang Guidance Associate nang confidential. Pwede kang mag-book ng session sa Guidance Associate sa My Appointments, o pumunta sa Guidance and Counseling Office sa oras ng opisina."
+        "Masakit talaga ang break-up at problema sa relasyon, at okay lang na malungkot, magalit, o maguluhan. Hindi ka dapat matakot, kontrolin, o saktan sa isang maayos na relasyon; kung nangyayari ito, sabihin agad sa taong pinagkakatiwalaan mo. Makakatulong ang Guidance Associate nang confidential. Pwede kang mag-book ng session sa Guidance Associate sa My Appointments, o pumunta sa Guidance and Counseling Office sa oras ng opisina."
       ],
       "label_en": "Relationship or breakup",
       "label_tl": "Relasyon o break-up",
@@ -2045,10 +2097,10 @@
         "kakalibing lang ng lola ko"
       ],
       "responses_en": [
-        "I'm so sorry for your loss. Grief can come in waves: sadness, anger, numbness, even trouble focusing in class. All of that is normal, and there's no right way or timeline to grieve.\n\nBe gentle with yourself, stay close to people who care about you, and let your teachers know if you need time to catch up. The Guidance Associate can be someone to talk to while you go through this. You can book a session with the Guidance Associate under My Appointments, or visit the Guidance and Counseling Office during office hours."
+        "I'm so sorry for your loss. Grief can come in waves, and there's no right way or timeline to grieve. Let your teachers know if you need time to catch up, and know that the Guidance Associate can be someone to talk to while you go through this. You can book a session with the Guidance Associate under My Appointments, or visit the Guidance and Counseling Office during office hours."
       ],
       "responses_tl": [
-        "Nakikiramay ako sa pagkawala mo. Pabalik-balik ang pagluluksa: lungkot, galit, pamamanhid, pati hirap mag-focus sa klase. Normal lahat iyan, at walang tamang paraan o takdang panahon ng pagluluksa.\n\nMaging mabait sa sarili, manatiling malapit sa mga nagmamahal sa iyo, at sabihan ang mga teacher kung kailangan mo ng oras para makahabol. Pwede mong makausap ang Guidance Associate habang pinagdadaanan mo ito. Pwede kang mag-book ng session sa Guidance Associate sa My Appointments, o pumunta sa Guidance and Counseling Office sa oras ng opisina."
+        "Nakikiramay ako sa pagkawala mo. Pabalik-balik ang pagluluksa, at walang tamang paraan o takdang panahon nito. Sabihan ang mga teacher kung kailangan mo ng oras para makahabol, at nandiyan ang Guidance Associate para makausap mo habang pinagdadaanan mo ito. Pwede kang mag-book ng session sa Guidance Associate sa My Appointments, o pumunta sa Guidance and Counseling Office sa oras ng opisina."
       ],
       "label_en": "Losing someone",
       "label_tl": "Pagkawala ng mahal sa buhay",
@@ -2148,10 +2200,10 @@
         "puro laro na lang ako"
       ],
       "responses_en": [
-        "It takes courage to notice that a habit is getting out of hand. You don't have to quit everything at once: try setting limits (time, money, or places), removing triggers, and replacing the habit with something you enjoy.\n\nThe Guidance Associate won't judge you and can help you make a plan, or connect you with more help if needed. You can book a session with the Guidance Associate under My Appointments, or visit the Guidance and Counseling Office during office hours."
+        "It takes courage to notice that a habit is getting out of hand. The Guidance Associate won't judge you and can help you figure out next steps, or connect you with more help if needed. You can book a session with the Guidance Associate under My Appointments, or visit the Guidance and Counseling Office during office hours."
       ],
       "responses_tl": [
-        "Kailangan ng lakas ng loob para aminin na lumalala na ang isang bisyo. Hindi kailangang ihinto lahat agad: subukang maglagay ng limitasyon (oras, pera, o lugar), iwasan ang mga trigger, at palitan ito ng ibang gawaing gusto mo.\n\nHindi ka huhusgahan ng Guidance Associate at matutulungan ka niyang magplano, o i-refer sa dagdag na tulong kung kailangan. Pwede kang mag-book ng session sa Guidance Associate sa My Appointments, o pumunta sa Guidance and Counseling Office sa oras ng opisina."
+        "Kailangan ng lakas ng loob para aminin na lumalala na ang isang bisyo. Hindi ka huhusgahan ng Guidance Associate at matutulungan ka niyang alamin ang susunod na hakbang, o i-refer sa dagdag na tulong kung kailangan. Pwede kang mag-book ng session sa Guidance Associate sa My Appointments, o pumunta sa Guidance and Counseling Office sa oras ng opisina."
       ],
       "label_en": "Vaping, games or other habits",
       "label_tl": "Vape, laro o ibang bisyo",
@@ -2285,10 +2337,10 @@
         "naninibago ako sa school"
       ],
       "responses_en": [
-        "Starting somewhere new takes time, and feeling out of place at first is very normal. Give yourself a few weeks; meanwhile, try to learn your way around campus, introduce yourself to a seatmate, join an org, and keep in touch with family and old friends.\n\nIf you still feel lost or homesick after a while, the Guidance Associate can help you settle in. You can book a session with the Guidance Associate under My Appointments, or visit the Guidance and Counseling Office during office hours."
+        "Starting somewhere new takes time, and feeling out of place at first is very normal. If you still feel lost or homesick after a while, the Guidance Associate can help you settle in. You can book a session with the Guidance Associate under My Appointments, or visit the Guidance and Counseling Office during office hours."
       ],
       "responses_tl": [
-        "Kailangan ng panahon para masanay sa bagong lugar, at normal lang na pakiramdam mo ay hindi ka pa belong sa umpisa. Bigyan ang sarili ng ilang linggo; habang hinihintay, kilalanin ang campus, magpakilala sa katabi, sumali sa org, at makipag-ugnayan sa pamilya at dating kaibigan.\n\nKung nahihirapan ka pa rin o homesick pa rin pagkalipas ng ilang panahon, matutulungan kang mag-adjust ng Guidance Associate. Pwede kang mag-book ng session sa Guidance Associate sa My Appointments, o pumunta sa Guidance and Counseling Office sa oras ng opisina."
+        "Kailangan ng panahon para masanay sa bagong lugar, at normal lang na pakiramdam mo ay hindi ka pa belong sa umpisa. Kung nahihirapan ka pa rin o homesick pagkalipas ng ilang panahon, matutulungan kang mag-adjust ng Guidance Associate. Pwede kang mag-book ng session sa Guidance Associate sa My Appointments, o pumunta sa Guidance and Counseling Office sa oras ng opisina."
       ],
       "label_en": "Adjusting to a new school",
       "label_tl": "Pag-adjust sa bagong school",
@@ -2329,10 +2381,10 @@
         "sumasama lang ako para hindi nila ako iwan"
       ],
       "responses_en": [
-        "It's hard to say no when you want to fit in. Real friends will respect your choices. A few things that help: have a simple line ready (\"I'm good, thanks\"), stay close to friends who share your values, and walk away from situations that feel wrong.\n\nIf the pressure is affecting you or you feel unsafe, the Guidance Associate can help. You can book a session with the Guidance Associate under My Appointments, or visit the Guidance and Counseling Office during office hours."
+        "It's hard to say no when you want to fit in, and real friends will respect your choices. If the pressure is affecting you or you feel unsafe, the Guidance Associate can help. You can book a session with the Guidance Associate under My Appointments, or visit the Guidance and Counseling Office during office hours."
       ],
       "responses_tl": [
-        "Mahirap tumanggi kapag gusto mong makibagay. Igagalang ng totoong kaibigan ang desisyon mo. Makakatulong ang: may handang simpleng sagot (\"Okay lang ako, salamat\"), manatiling malapit sa mga kaibigang kapareho mo ng pinahahalagahan, at umalis sa sitwasyong mali sa pakiramdam mo.\n\nKung naaapektuhan ka na ng pressure o hindi ka ligtas, matutulungan ka ng Guidance Associate. Pwede kang mag-book ng session sa Guidance Associate sa My Appointments, o pumunta sa Guidance and Counseling Office sa oras ng opisina."
+        "Mahirap tumanggi kapag gusto mong makibagay, at igagalang ng totoong kaibigan ang desisyon mo. Kung naaapektuhan ka na ng pressure o hindi ka ligtas, matutulungan ka ng Guidance Associate. Pwede kang mag-book ng session sa Guidance Associate sa My Appointments, o pumunta sa Guidance and Counseling Office sa oras ng opisina."
       ],
       "label_en": "Peer pressure",
       "label_tl": "Pressure ng barkada",
@@ -2541,12 +2593,12 @@
         "parang wala akong nararamdaman"
       ],
       "responses_en": [
-        "I'm sorry you're feeling this way. It's okay to feel sad, and you don't have to go through it alone. Do you want to tell me what happened? Would you like to book a session with the Guidance Associate?",
-        "That sounds really hard. Thank you for telling me. Sometimes it helps to talk it out with someone. Would you like to book a session with the Guidance Associate?"
+        "I'm sorry you're feeling this way. It's okay to feel sad, and you don't have to go through it alone. Would you like to book a session with the Guidance Associate?",
+        "That sounds really hard. Thank you for telling me. Talking it out with someone can help: would you like to book a session with the Guidance Associate?"
       ],
       "responses_tl": [
-        "Pasensya na at ganyan ang nararamdaman mo. Okay lang malungkot, at hindi mo kailangang harapin ito nang mag-isa. Gusto mo bang ikwento kung ano ang nangyari? Gusto mo bang mag-book ng session sa Guidance Associate?",
-        "Mukhang mabigat iyan. Salamat at sinabi mo sa akin. Minsan nakakatulong ang makipag-usap. Gusto mo bang mag-book ng session sa Guidance Associate?"
+        "Pasensya na at ganyan ang nararamdaman mo. Okay lang malungkot, at hindi mo kailangang harapin ito nang mag-isa. Gusto mo bang mag-book ng session sa Guidance Associate?",
+        "Mukhang mabigat iyan. Salamat at sinabi mo sa akin. Nakakatulong ang makipag-usap: gusto mo bang mag-book ng session sa Guidance Associate?"
       ],
       "followups": {
         "affirm": "book_appointment",
@@ -2579,7 +2631,11 @@
         "i get nervous around people",
         "i'm having a panic attack right now",
         "my heart is racing and i can't breathe",
-        "i get panic attacks"
+        "i get panic attacks",
+        "i'm just stressed",
+        "i feel so stressed lately",
+        "i'm stressed and i don't know why",
+        "stressed out in general"
       ],
       "patterns_tl": [
         "takot ako palagi kahit walang dahilan",
@@ -2602,7 +2658,11 @@
         "anxious ako palagi",
         "parang laging may masamang mangyayari",
         "kinakabahan ako kahit walang dahilan",
-        "di ako mapakali lagi"
+        "di ako mapakali lagi",
+        "stressed lang ako",
+        "nai-stress ako lately",
+        "stressed ako pero di ko alam bakit",
+        "sobrang stressed ko lately"
       ],
       "responses_en": [
         "That sounds stressful. Let's slow down for a moment: breathe in for 4 seconds, hold for 4, breathe out for 6. Try it a few times. Would you like to book a session with the Guidance Associate?",
@@ -2652,12 +2712,12 @@
         "sawang-sawa na ako"
       ],
       "responses_en": [
-        "It's okay to feel angry. Strong feelings are valid. Try stepping away for a few minutes, taking deep breaths, or writing down what's bothering you before you act on it. Would you like to book a session with the Guidance Associate?",
-        "That sounds really frustrating. Want to tell me what happened? Talking about it can help you figure out what to do next."
+        "It's okay to feel angry; strong feelings are valid. Stepping away for a few minutes can help before you act on it. Would you like to book a session with the Guidance Associate?",
+        "That sounds really frustrating. Talking it through with the Guidance Associate can help you figure out what to do next. Would you like to book a session?"
       ],
       "responses_tl": [
-        "Okay lang magalit. Valid ang malalakas na emosyon. Subukang lumayo muna nang ilang minuto, huminga nang malalim, o isulat ang bumabagabag sa iyo bago kumilos. Gusto mo bang mag-book ng session sa Guidance Associate?",
-        "Mukhang nakakainis talaga iyan. Gusto mo bang ikwento ang nangyari? Makakatulong ang pag-usapan ito."
+        "Okay lang magalit; valid ang malalakas na emosyon. Makakatulong ang lumayo muna nang ilang minuto bago kumilos. Gusto mo bang mag-book ng session sa Guidance Associate?",
+        "Mukhang nakakainis talaga iyan. Makakatulong ang pag-usapan ito kasama ang Guidance Associate. Gusto mo bang mag-book ng session?"
       ],
       "followups": {
         "affirm": "book_appointment",

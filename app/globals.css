@@ -214,6 +214,24 @@ html {
   background: var(--color-paper);
 }
 
+/* Phones: never let the page slide sideways. "clip" (unlike "hidden") keeps
+   sticky headers working. */
+html,
+body {
+  overflow-x: clip;
+}
+
+/* Phones zoom the whole page in when you tap a text box whose text is
+   smaller than 16px (and stay zoomed and shifted afterwards). Keeping every
+   box at 16px on small screens stops that everywhere at once. */
+@media (max-width: 767px) {
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+}
+
 body {
   background: var(--color-paper);
   color: var(--color-slate-800);
