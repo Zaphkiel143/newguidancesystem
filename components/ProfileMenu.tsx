@@ -30,6 +30,10 @@ export default function ProfileMenu({
   useEffect(() => {
     if (!open) return;
     const onDown = (e: MouseEvent) => {
+      // A pop-up opened from this menu (like "Sign out?") is drawn outside it,
+      // at the top of the page. Clicks there must not close the menu, or the
+      // pop-up closes with it before its button can be pressed.
+      if ((e.target as Element).closest?.('[role="alertdialog"], [role="dialog"]')) return;
       if (box.current && !box.current.contains(e.target as Node)) setOpen(false);
     };
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
