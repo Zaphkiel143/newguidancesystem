@@ -1,0 +1,345 @@
+{
+  "description": "Tricky messages: good news about a topic that is usually a problem (passed the defense, made up with a friend), failed exams/defense, wanting to share or vent, and casual hellos. None of these sentences are training patterns, but the first 60 were looked at while choosing new training phrasings, so they are not fully unseen. Scored with: python evaluate.py --test tests/good_news_set.json",
+  "items": [
+    {
+      "text": "I just wanna tell you na nakapasa ako sa defense",
+      "intent": "feeling_happy"
+    },
+    {
+      "text": "nakapasa ako sa finals!",
+      "intent": "feeling_happy"
+    },
+    {
+      "text": "i passed my midterms, so happy",
+      "intent": "feeling_happy"
+    },
+    {
+      "text": "pasado ako sa exam kanina",
+      "intent": "feeling_happy"
+    },
+    {
+      "text": "tapos na thesis namin, finally!",
+      "intent": "feeling_happy"
+    },
+    {
+      "text": "approved na title namin sa capstone",
+      "intent": "feeling_happy"
+    },
+    {
+      "text": "nakuha ko yung scholarship!",
+      "intent": "feeling_happy"
+    },
+    {
+      "text": "i got the scholarship, i'm so happy",
+      "intent": "feeling_happy"
+    },
+    {
+      "text": "dean's lister ako this sem",
+      "intent": "feeling_happy"
+    },
+    {
+      "text": "i made it to the dean's list",
+      "intent": "feeling_happy"
+    },
+    {
+      "text": "nag-champion kami sa intrams",
+      "intent": "feeling_happy"
+    },
+    {
+      "text": "ga-graduate na ako next month!",
+      "intent": "feeling_happy"
+    },
+    {
+      "text": "natanggap ako sa OJT ko",
+      "intent": "feeling_happy"
+    },
+    {
+      "text": "i got hired for my ojt",
+      "intent": "feeling_happy"
+    },
+    {
+      "text": "good news po, pumasa ako sa board exam",
+      "intent": "feeling_happy"
+    },
+    {
+      "text": "bati na kami ng best friend ko",
+      "intent": "feeling_happy"
+    },
+    {
+      "text": "we made up already, me and my friend",
+      "intent": "feeling_happy"
+    },
+    {
+      "text": "okay na kami ng bf ko, nagkabalikan kami",
+      "intent": "feeling_happy"
+    },
+    {
+      "text": "okay na sa bahay, hindi na nag-aaway parents ko",
+      "intent": "feeling_happy"
+    },
+    {
+      "text": "my parents stopped fighting, things are better at home",
+      "intent": "feeling_happy"
+    },
+    {
+      "text": "nakatulog na ako nang maayos kagabi",
+      "intent": "feeling_happy"
+    },
+    {
+      "text": "i finally got good sleep last night",
+      "intent": "feeling_happy"
+    },
+    {
+      "text": "di na ako binubully, okay na",
+      "intent": "feeling_happy"
+    },
+    {
+      "text": "the bullying stopped, thank you",
+      "intent": "thanks"
+    },
+    {
+      "text": "salamat po, nakatulong talaga yung session",
+      "intent": "thanks"
+    },
+    {
+      "text": "thank you, the counseling really helped me",
+      "intent": "thanks"
+    },
+    {
+      "text": "salamat, na-book ko na yung appointment",
+      "intent": "thanks"
+    },
+    {
+      "text": "thanks, i already booked",
+      "intent": "thanks"
+    },
+    {
+      "text": "okay na ako, salamat sa pakikinig",
+      "intent": "thanks"
+    },
+    {
+      "text": "may ikukwento lang ako",
+      "intent": "seek_help"
+    },
+    {
+      "text": "can i share something with you?",
+      "intent": "seek_help"
+    },
+    {
+      "text": "gusto ko lang may makausap",
+      "intent": "seek_help"
+    },
+    {
+      "text": "pwede ba ako mag-vent?",
+      "intent": "seek_help"
+    },
+    {
+      "text": "i just need to vent",
+      "intent": "seek_help"
+    },
+    {
+      "text": "hindi ako stressed, okay lang ako",
+      "intent": "feeling_okay"
+    },
+    {
+      "text": "i'm not sad, just tired",
+      "intent": "feeling_okay"
+    },
+    {
+      "text": "ayos lang naman ako",
+      "intent": "feeling_okay"
+    },
+    {
+      "text": "medyo okay naman today",
+      "intent": "feeling_okay"
+    },
+    {
+      "text": "excited na ako sa defense namin bukas",
+      "intent": "feeling_happy"
+    },
+    {
+      "text": "kinakabahan ako sa defense namin bukas",
+      "intent": "thesis_stress"
+    },
+    {
+      "text": "baka di kami pumasa sa defense",
+      "intent": "thesis_stress"
+    },
+    {
+      "text": "bumagsak kami sa defense",
+      "intent": "thesis_stress"
+    },
+    {
+      "text": "we failed our defense",
+      "intent": "thesis_stress"
+    },
+    {
+      "text": "bumagsak ako sa exam",
+      "intent": "exam_stress"
+    },
+    {
+      "text": "i failed my quiz today",
+      "intent": "exam_stress"
+    },
+    {
+      "text": "di ako nakapasa sa finals",
+      "intent": "exam_stress"
+    },
+    {
+      "text": "i didn't get the scholarship",
+      "intent": "financial_concern"
+    },
+    {
+      "text": "proud ako sa groupmates ko",
+      "intent": "feeling_happy"
+    },
+    {
+      "text": "ang saya ng birthday ko",
+      "intent": "feeling_happy"
+    },
+    {
+      "text": "na-promote ako sa next year level",
+      "intent": "feeling_happy"
+    },
+    {
+      "text": "i just wanted to say hi",
+      "intent": "greeting"
+    },
+    {
+      "text": "wala lang, gusto ko lang mag-hi",
+      "intent": "greeting"
+    },
+    {
+      "text": "naka-recover na ako sa sakit",
+      "intent": "feeling_happy"
+    },
+    {
+      "text": "nakabayad na kami ng tuition, thank God",
+      "intent": "feeling_happy"
+    },
+    {
+      "text": "i got a perfect score",
+      "intent": "feeling_happy"
+    },
+    {
+      "text": "perfect ako sa quiz",
+      "intent": "feeling_happy"
+    },
+    {
+      "text": "na-accept ako sa college na gusto ko",
+      "intent": "feeling_happy"
+    },
+    {
+      "text": "I got into my dream school",
+      "intent": "feeling_happy"
+    },
+    {
+      "text": "nag-sorry na sakin yung nambully",
+      "intent": "feeling_happy"
+    },
+    {
+      "text": "naka-move on na ako sa ex ko",
+      "intent": "feeling_happy"
+    },
+    {
+      "text": "yay pumasa kami sa final defense!!",
+      "intent": "feeling_happy"
+    },
+    {
+      "text": "we passed the oral defense today",
+      "intent": "feeling_happy"
+    },
+    {
+      "text": "na-approve na yung manuscript namin",
+      "intent": "feeling_happy"
+    },
+    {
+      "text": "nakapasa ako sa entrance exam",
+      "intent": "feeling_happy"
+    },
+    {
+      "text": "i topped the exam",
+      "intent": "feeling_happy"
+    },
+    {
+      "text": "kami yung nanalo sa quiz bee",
+      "intent": "feeling_happy"
+    },
+    {
+      "text": "nagka-ayos na kami ng gf ko",
+      "intent": "feeling_happy"
+    },
+    {
+      "text": "my dad and i are okay now",
+      "intent": "feeling_happy"
+    },
+    {
+      "text": "masarap tulog ko kagabi finally",
+      "intent": "feeling_happy"
+    },
+    {
+      "text": "may good news po ako, scholar na ako",
+      "intent": "feeling_happy"
+    },
+    {
+      "text": "i got my first job offer",
+      "intent": "feeling_happy"
+    },
+    {
+      "text": "i'm so proud, we finished the system",
+      "intent": "feeling_happy"
+    },
+    {
+      "text": "bumagsak kami sa final defense",
+      "intent": "thesis_stress"
+    },
+    {
+      "text": "kinakabahan ako baka bumagsak kami bukas sa defense",
+      "intent": "thesis_stress"
+    },
+    {
+      "text": "i failed my finals",
+      "intent": "exam_stress"
+    },
+    {
+      "text": "di ako pumasa sa entrance exam",
+      "intent": "exam_stress"
+    },
+    {
+      "text": "pagod na ako sa dami ng exams",
+      "intent": "exam_stress"
+    },
+    {
+      "text": "nag-away na naman sila mama",
+      "intent": "family_problems"
+    },
+    {
+      "text": "di na niya ako kinakausap, yung best friend ko",
+      "intent": "friendship_issues"
+    },
+    {
+      "text": "may gusto lang akong sabihin sayo",
+      "intent": "seek_help"
+    },
+    {
+      "text": "need ko lang mag-rant",
+      "intent": "seek_help"
+    },
+    {
+      "text": "hello lang po",
+      "intent": "greeting"
+    },
+    {
+      "text": "wala lang, napa-hi lang",
+      "intent": "greeting"
+    },
+    {
+      "text": "ayoko na mabuhay",
+      "intent": "crisis"
+    },
+    {
+      "text": "salamat, nakapag-schedule na ako",
+      "intent": "thanks"
+    }
+  ]
+}

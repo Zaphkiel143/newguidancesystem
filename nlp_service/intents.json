@@ -19,7 +19,10 @@
         "Good morning, afternoon.",
         "Hi.",
         "Good morning po or good afternoon",
-        "Goodmorning/Goodevening"
+        "Goodmorning/Goodevening",
+        "just saying hi",
+        "just dropping by to say hello",
+        "hi, just wanted to say hello"
       ],
       "patterns_tl": [
         "kumusta",
@@ -36,7 +39,11 @@
         "hello po",
         "hi po, may itatanong po ako",
         "good day po, tanong lang",
-        "hello po e-gabay, pwede magtanong?"
+        "hello po e-gabay, pwede magtanong?",
+        "gusto ko lang mag-hello",
+        "napadaan lang ako, hi",
+        "wala lang, hello lang",
+        "hi lang"
       ],
       "responses_en": [
         "Hi there! I'm E-Gabay. How are you feeling today?",
@@ -95,7 +102,9 @@
         "appreciate it",
         "thanks a lot",
         "thank you so much",
-        "that was helpful"
+        "that was helpful",
+        "thanks, i booked already",
+        "thank you, that solved it"
       ],
       "patterns_tl": [
         "salamuch",
@@ -105,7 +114,9 @@
         "salamat po",
         "nakatulong yan",
         "thank you po",
-        "salamat talaga"
+        "salamat talaga",
+        "salamat, nakapag-book na ako",
+        "salamat, nagawa ko na"
       ],
       "responses_en": [
         "You're welcome! I'm glad I could help.",
@@ -153,7 +164,11 @@
         "i got a failing grade",
         "i might fail this semester",
         "i have a big test tomorrow and i'm freaking out",
-        "i'm panicking about my quiz"
+        "i'm panicking about my quiz",
+        "i didn't pass the exam",
+        "i failed the test",
+        "i flunked my midterms",
+        "i didn't make it in the exam"
       ],
       "patterns_tl": [
         "quiz bukas wala pa akong review",
@@ -174,7 +189,19 @@
         "bagsak ako sa isang subject",
         "mababa ang grades ko",
         "baka bumagsak ako ngayong sem",
-        "kinakabahan ako sa long test bukas"
+        "kinakabahan ako sa long test bukas",
+        "hindi ako pumasa sa exam",
+        "bagsak ako sa quiz",
+        "bumagsak ako sa midterms",
+        "di ako pumasa sa long quiz",
+        "hindi ako nakapasa sa exam",
+        "di ako nakapasa sa quiz",
+        "di ko naipasa yung midterms",
+        "stress na ako sa exams",
+        "pagod na ako mag-review",
+        "hirap na hirap na ako sa finals",
+        "di ko na kaya yung exams",
+        "sobrang stressed na ako sa quiz bukas"
       ],
       "responses_en": [
         "It’s normal to feel stressed when exams and deadlines pile up. Let’s start with a few manageable steps:\n• List your upcoming exams, projects, and deadlines.\n• Prioritize tasks according to urgency and importance.\n• Break large tasks into smaller, achievable steps.\n• Study in focused intervals and take short breaks.\n• Get enough sleep, eat regularly, and allow time to rest.\n\nIf your stress feels overwhelming or is affecting your daily functioning, you may reach out to the Guidance and Counseling office for additional support.",
@@ -220,7 +247,14 @@
         "thesis and capstone are draining me",
         "we might fail our thesis",
         "i'm worried we won't finish our capstone on time",
-        "how do i deal with thesis stress"
+        "how do i deal with thesis stress",
+        "we failed the defense",
+        "the panel failed us",
+        "we might fail our defense",
+        "i'm nervous about our defense",
+        "we have to redefend",
+        "the panel rejected our title",
+        "our capstone defense didn't go well"
       ],
       "patterns_tl": [
         "stress ako sa thesis",
@@ -242,7 +276,16 @@
         "wala pa kaming title sa thesis",
         "baka bumagsak kami sa thesis",
         "sira pa yung system namin sa capstone",
-        "burnout na ako sa thesis"
+        "burnout na ako sa thesis",
+        "hindi kami pumasa sa defense",
+        "bagsak kami sa defense",
+        "baka bumagsak kami sa defense",
+        "kinakabahan ako sa defense",
+        "pinag-redefense kami",
+        "na-reject yung title namin",
+        "di maganda yung defense namin",
+        "stress na ako sa capstone",
+        "pagod na ako sa thesis namin"
       ],
       "responses_en": [
         "Thesis and capstone work can feel huge, especially with deadlines, revisions, and a group to coordinate. A few steps that help:\n• Break the paper into small tasks (one section or one feature at a time) and set a date for each.\n• Agree on who does what with your groupmates, write it down, and check in briefly every few days.\n• Bring specific questions to your adviser early instead of waiting until the paper is \"done\".\n• Treat panel revisions as a checklist: list them, then tick them off one by one.\n• Protect your sleep and meals, and take short breaks; a tired mind writes slower.\n\nIf the stress is affecting your sleep, health, or how you get along with your group, the Guidance Associate can help. You can book a session here anytime.",
@@ -435,7 +478,8 @@
         "home is so stressful",
         "i don't want to go home",
         "my dad always scolds me",
-        "my mom is always mad at me"
+        "my mom is always mad at me",
+        "my parents are fighting again"
       ],
       "patterns_tl": [
         "maingay lagi sa bahay kasi nag-aaway sila",
@@ -456,7 +500,11 @@
         "magulo sa family namin ngayon",
         "family problems kaya di ako maka-focus sa school",
         "may pinagdadaanan family namin",
-        "hirap kami sa bahay ngayon, lagi silang nag-aaway"
+        "hirap kami sa bahay ngayon, lagi silang nag-aaway",
+        "nag-aaway na naman parents ko",
+        "nag-away ulit sila papa at mama",
+        "away na naman sa bahay",
+        "nagsigawan na naman sila mama at papa"
       ],
       "responses_en": [
         "Thank you for sharing what you're going through. Problems at home can be really heavy, and your feelings deserve to be heard.\n\nYou don't have to solve everything at once. It may help to talk with someone you trust or schedule a consultation with the Guidance and Counseling office. The GCO can provide a supportive space to discuss your concerns and explore ways to cope.\n\nIf you feel unsafe at home or are thinking about hurting yourself, please tell a trusted person and seek immediate help.",
@@ -1593,7 +1641,14 @@
         "please help me",
         "help",
         "i need advice",
-        "can you help me with something"
+        "can you help me with something",
+        "can i tell you something?",
+        "i want to tell you something",
+        "i need to rant",
+        "i have something to share",
+        "can i vent?",
+        "i want to vent",
+        "let me vent for a bit"
       ],
       "patterns_tl": [
         "pwede ba humingi ng payo",
@@ -1615,7 +1670,17 @@
         "may makikinig ba sa akin",
         "tulungan mo ako",
         "tulong po",
-        "pahingi ng advice"
+        "pahingi ng advice",
+        "may sasabihin ako",
+        "pwede ko bang ikwento sayo?",
+        "may gusto akong ikwento",
+        "pwede ako mag-rant?",
+        "gusto ko lang maglabas ng sama ng loob",
+        "may gusto akong i-share",
+        "vent lang",
+        "pwede mag-vent?",
+        "gusto ko lang mag-vent",
+        "mag-vent lang ako"
       ],
       "responses_en": [
         "I'm here to listen. Tell me what's on your mind, and I'll do my best to help or point you to the right support. If you'd like to talk to the Guidance Associate, you can book a session under My Appointments or visit the Guidance and Counseling Office during office hours."
@@ -2302,7 +2367,55 @@
         "i'm doing great",
         "things are going well",
         "i feel blessed",
-        "i'm so glad today"
+        "i'm so glad today",
+        "i passed my thesis defense",
+        "we passed our capstone defense!",
+        "i passed the defense",
+        "good news, we passed our defense",
+        "i just want to share some good news",
+        "guess what, i passed!",
+        "i want to tell you something good happened",
+        "we got approved by the panel",
+        "our capstone got approved",
+        "i passed my board exam",
+        "i finally graduated",
+        "i got accepted",
+        "we finished our thesis!",
+        "our capstone is finally done",
+        "our title got approved by the panel",
+        "i won the scholarship",
+        "i got a scholarship grant",
+        "i'm on the dean's list this semester",
+        "i made the dean's list",
+        "we won the competition",
+        "our team won first place",
+        "i got accepted for my internship",
+        "i passed the interview for my ojt",
+        "my friend and i are okay again",
+        "we fixed things between us, we're friends again",
+        "things are better at home now",
+        "my family is okay now, no more fighting",
+        "i slept well last night",
+        "i finally slept early and feel rested",
+        "nobody bullies me anymore",
+        "the people who teased me apologized",
+        "i'm finally over my ex",
+        "i've moved on from the breakup",
+        "we finally paid the tuition",
+        "i got the highest score in class",
+        "i aced the quiz",
+        "i got into the school i wanted",
+        "i got accepted to my first choice university",
+        "i'm feeling better now after being sick",
+        "i'm going to the next year level",
+        "we're on good terms again",
+        "my friend and i reconciled",
+        "we're talking again, me and my best friend",
+        "we said sorry to each other and we're fine now",
+        "my parents don't fight anymore",
+        "my parents made up",
+        "home is peaceful now",
+        "my mom and dad are okay now"
       ],
       "patterns_tl": [
         "pumasa ako",
@@ -2319,7 +2432,55 @@
         "ang saya saya ko",
         "okay na okay ako ngayon",
         "good vibes lang ako today",
-        "natapos ko na project ko, ang saya"
+        "natapos ko na project ko, ang saya",
+        "pumasa kami sa defense",
+        "nakapasa kami sa capstone defense",
+        "pasado kami sa defense",
+        "good news, pasado na kami",
+        "gusto ko lang i-share na pumasa ako",
+        "may good news ako",
+        "nakapasa na kami, finally",
+        "approved na yung capstone namin",
+        "pasado ako sa thesis defense, ang saya",
+        "gusto ko lang sabihin na pumasa ako",
+        "natanggap ako",
+        "ga-graduate na ako",
+        "tapos na capstone namin",
+        "natapos na namin thesis, ang saya",
+        "approved na yung title namin",
+        "pasado ako sa quiz",
+        "nakapasa ako sa long quiz",
+        "pumasa ako sa midterms",
+        "nakakuha ako ng scholarship",
+        "dean's lister ako",
+        "kasama ako sa dean's list",
+        "nanalo kami sa contest",
+        "champion kami",
+        "tanggap na ako sa ojt",
+        "okay na kami ng kaibigan ko",
+        "nagkaayos na kami ng barkada ko",
+        "maayos na sa bahay namin",
+        "hindi na nag-aaway sila mama at papa",
+        "maaga ako nakatulog kagabi, ang sarap ng tulog ko",
+        "nakabawi na ako ng tulog",
+        "wala nang nambubully sakin",
+        "tumigil na sila sa pang-aasar sakin",
+        "naka-move on na ako",
+        "bayad na tuition ko",
+        "highest ako sa exam",
+        "perfect score ako",
+        "pasok ako sa university na gusto ko",
+        "nagbati na kami ng kaibigan ko",
+        "magkaibigan na ulit kami",
+        "nag-usap na kami at okay na kami",
+        "nagkabati na kami ng bestfriend ko",
+        "hindi na sila nag-aaway sa bahay",
+        "tumigil na sa pag-aaway parents ko",
+        "tahimik na sa bahay namin ngayon",
+        "nagkaayos na sila mama at papa",
+        "nakuha ko yung grant",
+        "gumaling ako sa sakit ko",
+        "second year level ako next sem, pumasa lahat"
       ],
       "responses_en": [
         "That's wonderful to hear! What made your day good?",
